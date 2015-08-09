@@ -1,0 +1,10 @@
+.gradle/
+**/.settings
+**/.project
+**/.classpath
+**/.DS_Store
+.metadata/
+bin/
+cov-int
+build/
+**/*.log
