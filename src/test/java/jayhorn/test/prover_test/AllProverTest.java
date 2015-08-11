@@ -1,7 +1,7 @@
 /**
  * 
  */
-package jhorn.test.prover_test;
+package jayhorn.test.prover_test;
 
 import static org.junit.Assert.fail;
 

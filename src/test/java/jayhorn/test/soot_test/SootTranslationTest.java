@@ -1,4 +1,4 @@
-package jhorn.test.soot_test;
+package jayhorn.test.soot_test;
 
 import static org.junit.Assert.fail;
 

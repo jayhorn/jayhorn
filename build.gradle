@@ -33,7 +33,12 @@ apply plugin: 'jacoco'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'findbugs'
 apply plugin: 'jdepend'
-apply plugin: 'net.ltgt.errorprone'
+if (!project.hasProperty('coverityMode')) {
+  // coverity cant handle plugins that 
+  // tinker with the compiler so we have
+  // to disable them.
+  apply plugin: 'net.ltgt.errorprone'
+}
 apply plugin: 'checkstyle'
 
 def z3LibPath = 'native_lib'
@@ -144,7 +149,7 @@ task coverityCheck {
     println("Running coverity")
     exec {
       workingDir '.'
-      commandLine 'cov-build', '--dir', 'cov-int', 'gradle', 'clean', 'compileJava'
+      commandLine 'cov-build', '--dir', 'cov-int', 'gradle', 'clean', 'compileJava', '-PcoverityMode'
     }
     println("Packing the results")
     exec {
@@ -154,7 +159,7 @@ task coverityCheck {
     println("Uploading to coverity")
     exec {
       workingDir '.'
-      commandLine 'curl', '--form', 'token=9ivvBXwUbgAQL5P0DfGBEA', '--form' , 'email=martinschaef@gmail.com', '--form', 'file=@cov-report.tgz', '--form', 'version="${version}"', 'https://scan.coverity.com/builds?project=martinschaef%2Fjhorn'
+      commandLine 'curl', '--form', 'token=9ivvBXwUbgAQL5P0DfGBEA', '--form' , 'email=martinschaef@gmail.com', '--form', 'file=@cov-report.tgz', '--form', 'version="${version}"', 'https://scan.coverity.com/builds?project=jayhorn%2Fjayhorn'
     }
     exec {
       workingDir '.'
@@ -174,7 +179,7 @@ task inferCheck {
 
     exec {
         workingDir '.'
-        commandLine 'infer', '--', 'gradle', 'clean', 'compileJava'
+        commandLine 'infer', '--', 'gradle', 'clean', 'compileJava', '-PcoverityMode'
     }
 
   }
