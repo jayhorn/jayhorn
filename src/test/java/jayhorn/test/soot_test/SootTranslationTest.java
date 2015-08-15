@@ -7,9 +7,11 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import jayhorn.test.AbstractTest;
+
 import org.junit.Test;
 
-public class SootTranslationTest extends AbstractIcTest {
+public class SootTranslationTest extends AbstractTest {
 
 	@Test
 	public void test() {

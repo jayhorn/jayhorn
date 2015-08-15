@@ -26,6 +26,7 @@ public class Main {
 			parser.printUsage(System.err);
 		} catch (Throwable t) {
 			Log.error(t.toString());
+			throw t;
 		} finally {
 			Options.resetInstance();
 			soot.G.reset();

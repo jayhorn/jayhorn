@@ -1,4 +1,4 @@
-package jayhorn.test.soot_test;
+package jayhorn.test;
 
 
 import java.io.BufferedReader;
@@ -15,7 +15,7 @@ import org.junit.AfterClass;
  * @author schaef
  * 
  */
-public class AbstractIcTest {
+public class AbstractTest {
 
 	protected static final String userDir = System.getProperty("user.dir")
 			+ "/";
@@ -69,6 +69,13 @@ public class AbstractIcTest {
 		return false;
 	}
 
+	/**
+	 * Compiles a sourceFile into a temp folder and returns this folder or null if 
+	 * compilation fails. 
+	 * @param sourceFile
+	 * @return the folder that contains the class file(s) or null if compilation fails.
+	 * @throws IOException
+	 */
 	protected File compileJavaFile(File sourceFile) throws IOException {
 		final File tempDir = getTempDir();
 		final String javac_command = String.format("javac -g %s -d %s",
@@ -90,6 +97,13 @@ public class AbstractIcTest {
 	}
 
 
+	/**
+	 * Compiles a set of sourceFiles into a temp folder and returns this folder or null if 
+	 * compilation fails. 
+	 * @param sourceFile
+	 * @return the folder that contains the class file(s) or null if compilation fails.
+	 * @throws IOException
+	 */
 	protected File compileJavaFiles(File[] sourceFiles) throws IOException {
 		final File tempDir = getTempDir();
 	    StringBuilder sb = new StringBuilder();

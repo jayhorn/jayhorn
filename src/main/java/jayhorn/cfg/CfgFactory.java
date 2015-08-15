@@ -9,4 +9,6 @@ package jayhorn.cfg;
  */
 public class CfgFactory {
 
+	
+	
 }

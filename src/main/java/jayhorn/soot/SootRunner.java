@@ -35,6 +35,7 @@ import java.util.jar.Manifest;
 
 import jayhorn.Options;
 import jayhorn.util.Log;
+import soot.PackManager;
 import soot.Scene;
 import soot.SootClass;
 
@@ -133,7 +134,7 @@ public class SootRunner {
 
 		} catch (Exception e) {
 			Log.error(e.toString());
-		}
+		}		
 	}
 
 	/**
@@ -145,7 +146,7 @@ public class SootRunner {
 	 *      /src/soot/jimple/infoflow/Infoflow.java
 	 */
 	public enum CallgraphAlgorithm {
-		None, CHA, VTA, RTA, SPARK, OnDemand
+		None, CHA, VTA, RTA, SPARK
 	}
 
 	/**
@@ -169,7 +170,7 @@ public class SootRunner {
 
 
 	/**
-	 * Run Soot and then run the analysis on all Methods in all Classes
+	 * Run Soot and creates an inter-procedural callgraph
 	 * that could be loaded by Soot.
 	 * @param classes additional classes that need to be loaded (e.g., when analyzing jars)
 	 */
@@ -182,7 +183,7 @@ public class SootRunner {
 		for (String s : classes) {
 			Scene.v().addBasicClass(s, SootClass.BODIES);
 		}
-
+		
 		CallgraphAlgorithm cga = Options.v().getCallGraphAlgorithm();
 		if (cga!=CallgraphAlgorithm.None) {
 			sootOpt.set_whole_program(true);
@@ -195,6 +196,7 @@ public class SootRunner {
 				sootOpt.setPhaseOption("cg.spark", "on");
 				sootOpt.setPhaseOption("cg.spark", "rta:true");
 				sootOpt.setPhaseOption("cg.spark", "string-constants:true");
+				
 				break;
 			case VTA:
 				sootOpt.setPhaseOption("cg.spark", "on");
@@ -204,9 +206,6 @@ public class SootRunner {
 			case SPARK:
 				sootOpt.setPhaseOption("cg.spark", "on");
 				sootOpt.setPhaseOption("cg.spark", "string-constants:true");
-				break;
-			case OnDemand:
-				// nothing to set here
 				break;
 			default:
 				throw new RuntimeException("Invalid callgraph algorithm");
@@ -228,15 +227,37 @@ public class SootRunner {
 			soot.G.v().out = new PrintStream(baos, true, "utf-8");				
 			//Now load the soot classes.
 			Scene.v().loadNecessaryClasses();
+			Scene.v().loadBasicClasses();
+
+			
+			// We explicitly select the packs we want to run for performance
+	        // reasons. Do not re-run the callgraph algorithm if the host
+	        // application already provides us with a CG.
+			if (cga != CallgraphAlgorithm.None
+					&& !Scene.v().hasCallGraph()) {
+		        PackManager.v().getPack("wjpp").apply();
+		        PackManager.v().getPack("cg").apply();
+			}			
+			
+//			Log.info("Building ICFG.");
+//			//now create the icfg
+//			if (Options.v().getCallGraphAlgorithm() != CallgraphAlgorithm.None) {							 
+//				SootKitchenSink.v().iCfg = new JimpleBasedInterproceduralCFG();
+//			} else {
+//				OnTheFlyJimpleBasedICFG.loadAllClassesOnClassPathToSignatures();
+//				Scene.v().getOrMakeFastHierarchy();
+////				SootKitchenSink.v().iCfg = new OnTheFlyJimpleBasedICFG(Scene.v().getEntryPoints());
+//			}
+//
+//			SootKitchenSink.v().pointsToAnalysis = Scene.v().getPointsToAnalysis();
+			
+			Log.info("Done.");
 		} catch (UnsupportedEncodingException e) {
 			Log.error(e.toString());
-			return;
 		} catch (RuntimeException e) {
 			Log.error("Soot could not process the input. STOPPING");
 			e.printStackTrace();
-			return;
-		}
-		Log.info("Done.");
+		}				
 	}
 
 

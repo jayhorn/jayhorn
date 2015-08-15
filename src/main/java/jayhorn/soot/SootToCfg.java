@@ -5,18 +5,17 @@ package jayhorn.soot;
 
 import java.util.Iterator;
 
-import jayhorn.Options;
-import jayhorn.soot.SootRunner.CallgraphAlgorithm;
+import jayhorn.soot.memory_model.MemoryModel;
+import jayhorn.soot.util.MethodInfo;
+import jayhorn.soot.util.SootKitchenSink;
 import jayhorn.soot.visitors.SootStmtSwitch;
 import jayhorn.util.Log;
 import soot.Body;
-import soot.PointsToAnalysis;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.Stmt;
-import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.toolkits.exceptions.UnitThrowAnalysis;
 import soot.toolkits.graph.ExceptionalUnitGraph;
 
@@ -29,7 +28,7 @@ import soot.toolkits.graph.ExceptionalUnitGraph;
  *
  */
 public class SootToCfg {
-
+	
 	/**
 	 * Run Soot and translate classes into Boogie/Horn
 	 * 
@@ -40,15 +39,6 @@ public class SootToCfg {
 		// run soot to load all classes.
 		SootRunner runner = new SootRunner();
 		runner.run(input);
-
-		// TODO: store the points-to analysis and CG somewhere.
-		PointsToAnalysis pta = Scene.v().getPointsToAnalysis();
-		System.out.println("PTA " + pta);
-
-		if (Options.v().getCallGraphAlgorithm() != CallgraphAlgorithm.None) {
-			CallGraph cg = Scene.v().getCallGraph();
-			System.out.println("CG " + cg);
-		}
 
 		for (SootClass sc : Scene.v().getClasses()) {			
 			processSootClass(sc);
@@ -61,13 +51,13 @@ public class SootToCfg {
 	 * 
 	 * @param sc
 	 */
-	private void processSootClass(SootClass sc) {
-		Log.info("Class " + sc.getName() + "  " + sc.resolvingLevel());
+	private void processSootClass(SootClass sc) {		
 		if (sc.resolvingLevel()<SootClass.SIGNATURES) {			
 			return;
 		}
 		
 		if (sc.isApplicationClass()) {
+			Log.info("Class " + sc.getName() + "  " + sc.resolvingLevel());
 			for (SootMethod sm : sc.getMethods()) {
 				processSootMethod(sm);
 			}
@@ -90,15 +80,20 @@ public class SootToCfg {
 	 */
 	private void transformStmtList(Body body) {
 
+		SootKitchenSink.v().currentMethod = new MethodInfo(body.getMethod());
+		
 		ExceptionalUnitGraph tug = new ExceptionalUnitGraph(body,
 				UnitThrowAnalysis.v());
-
 		Iterator<Unit> stmtIt = tug.iterator();
+		
+		
+		MemoryModel mm = new MemoryModel(); 
+		SootStmtSwitch bss = new SootStmtSwitch(body.getMethod(), mm);
+		
+		
 		while (stmtIt.hasNext()) {
-			Stmt s = (Stmt) stmtIt.next();
-
-			SootStmtSwitch bss = new SootStmtSwitch();
-			s.apply(bss);
+			Unit u = stmtIt.next();
+			((Stmt)u).apply(bss);
 		}
 	}
 

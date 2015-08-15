@@ -19,12 +19,23 @@
 
 package jayhorn.soot.visitors;
 
-import jayhorn.solver.ProverExpr;
+import java.util.LinkedList;
+import java.util.List;
+
+import jayhorn.cfg.expression.BinaryExpression;
+import jayhorn.cfg.expression.BinaryExpression.BinaryOperator;
+import jayhorn.cfg.expression.Expression;
+import jayhorn.cfg.expression.IntegerLiteral;
+import jayhorn.cfg.expression.IteExpression;
+import jayhorn.cfg.expression.UnaryExpression;
+import jayhorn.cfg.expression.UnaryExpression.UnaryOperator;
+import jayhorn.soot.memory_model.MemoryModel;
+import jayhorn.soot.util.SootKitchenSink;
 import soot.Local;
-import soot.SootMethod;
 import soot.jimple.AddExpr;
 import soot.jimple.AndExpr;
 import soot.jimple.ArrayRef;
+import soot.jimple.BinopExpr;
 import soot.jimple.CastExpr;
 import soot.jimple.CaughtExceptionRef;
 import soot.jimple.ClassConstant;
@@ -70,305 +81,332 @@ import soot.jimple.ThisRef;
 import soot.jimple.UshrExpr;
 import soot.jimple.VirtualInvokeExpr;
 import soot.jimple.XorExpr;
-import soot.tagkit.Tag;
 
 /**
  * @author schaef
  */
 public class SootValueSwitch implements JimpleValueSwitch {
 
-	
-	public ProverExpr getExpression() {
-		// TODO Auto-generated method stub
-		return null;
+	private final List<Expression> expressionStack = new LinkedList<Expression>();
+	private final SootStmtSwitch statementSwitch;
+	private final MemoryModel memoryModel;
+
+	// private boolean isLeftHandSide = false;
+
+	public SootValueSwitch(SootStmtSwitch ss) {
+		this.statementSwitch = ss;
+		this.memoryModel = this.statementSwitch.getMemoryModel();
+	}
+
+	public Expression popExpression() {
+		return this.expressionStack.remove(this.expressionStack.size() - 1);
 	}
 
 	public void invokeExpr(InvokeExpr arg0) {
-		SootMethod m = arg0.getMethod();
-		if (m.isJavaLibraryMethod()) {
-			for (Tag t : m.getTags()) {
-				System.out.println(t.getClass().toString() + ": \t"+t);
-			}
-		}
-
+		// SootMethod m = arg0.getMethod();
 	}
-	
-	
-	@Override
-	public void caseClassConstant(ClassConstant arg0) {
-		// TODO Auto-generated method stub
+
+	protected void translateBinOp(BinopExpr arg0) {
+//		this.isLeftHandSide = false;
+		arg0.getOp1().apply(this);
+		Expression lhs = popExpression();
+		arg0.getOp2().apply(this);
+		Expression rhs = popExpression();
 		
+		String op = arg0.getSymbol().trim();
+		if (op.compareTo("+") == 0) {
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.Plus, lhs, rhs));
+			return;
+		} else if (op.compareTo("-") == 0) {
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.Minus, lhs, rhs));
+			return;
+		} else if (op.compareTo("*") == 0) {
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.Mul, lhs, rhs));
+			return;
+		} else if (op.compareTo("/") == 0) {
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.Div, lhs, rhs));
+			return;
+		} else if (op.compareTo("%") == 0) {
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.Mod, lhs, rhs));
+			return;
+		} else if (op.compareTo("cmp") == 0 || op.compareTo("cmpl") == 0 || op.compareTo("cmpg") == 0) {
+			/* Returns 0  if lhs==rhs
+			 *        -1  if lhs <rhs
+			 *         1  if lhs >rhs
+			 * We model that using ITE expressions as:
+			 * (lhs<=rhs)?((lhs==rhs)?0:-1):1
+			 */
+			Expression ite =
+					new IteExpression(new BinaryExpression(BinaryOperator.Le, lhs, rhs),			
+			new IteExpression(new BinaryExpression(BinaryOperator.Eq, lhs, rhs), 
+					IntegerLiteral.zero(), new UnaryExpression(UnaryOperator.Neg, IntegerLiteral.one())),
+					IntegerLiteral.one());
+			this.expressionStack.add(ite);
+			return;
+		} else if (op.compareTo("==") == 0) {
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.Eq, lhs, rhs));
+			return;
+		} else if (op.compareTo("<") == 0) {
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.Lt, lhs, rhs));
+			return;
+		} else if (op.compareTo(">") == 0) {
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.Gt, lhs, rhs));
+			return;
+		} else if (op.compareTo("<=") == 0) {
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.Le, lhs, rhs));
+			return;
+		} else if (op.compareTo(">=") == 0) {
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.Ge, lhs, rhs));
+			return;
+		} else if (op.compareTo("!=") == 0) {
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.Ne, lhs, rhs));
+			return;
+		} else if (op.compareTo("&") == 0) { //bit-and
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.BAnd, lhs, rhs));
+			return;
+		} else if (op.compareTo("|") == 0) { //bit-or
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.BOr, lhs, rhs));
+			return;
+		} else if (op.compareTo("<<") == 0) { // Shiftl
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.Shl, lhs, rhs));
+			return;
+		} else if (op.compareTo(">>") == 0) { // Shiftr
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.Shr, lhs, rhs));
+			return;
+		} else if (op.compareTo(">>>") == 0) { // UShiftr
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.Ushr, lhs, rhs));
+			return;
+		} else if (op.compareTo("^") == 0) { // XOR
+			this.expressionStack.add(new BinaryExpression(BinaryOperator.Xor, lhs, rhs));
+			return;
+		} else {
+			throw new RuntimeException("UNKNOWN Jimple operator " + op);
+		}
+		
+	}	@Override
+	public void caseClassConstant(ClassConstant arg0) {
+		this.expressionStack.add(this.memoryModel.mkClassConstant(arg0));
 	}
 
 	@Override
 	public void caseDoubleConstant(DoubleConstant arg0) {
-		// TODO Auto-generated method stub
-		
+		this.expressionStack.add(this.memoryModel.mkDoubleConstant(arg0));
+
 	}
 
 	@Override
 	public void caseFloatConstant(FloatConstant arg0) {
-		// TODO Auto-generated method stub
-		
+		this.expressionStack.add(this.memoryModel.mkFloatConstant(arg0));
 	}
 
 	@Override
 	public void caseIntConstant(IntConstant arg0) {
-		// TODO Auto-generated method stub
-		
+		this.expressionStack.add(new IntegerLiteral(arg0.value));
+
 	}
 
 	@Override
 	public void caseLongConstant(LongConstant arg0) {
-		// TODO Auto-generated method stub
-		
+		this.expressionStack.add(new IntegerLiteral(arg0.value));
 	}
 
 	@Override
 	public void caseMethodHandle(MethodHandle arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void caseNullConstant(NullConstant arg0) {
-		// TODO Auto-generated method stub
-		
+		this.expressionStack.add(this.memoryModel.mkNullConstant());
 	}
 
 	@Override
 	public void caseStringConstant(StringConstant arg0) {
-		// TODO Auto-generated method stub
-		
+		this.expressionStack.add(this.memoryModel.mkStringConstant(arg0));
 	}
 
 	@Override
 	public void defaultCase(Object arg0) {
-		// TODO Auto-generated method stub
-		
+		throw new RuntimeException("Not implemented " + arg0);
 	}
 
 	@Override
-	public void caseAddExpr(AddExpr arg0) {		
-		// TODO Auto-generated method stub
-		arg0.getOp1().apply(this);
-		arg0.getOp2().apply(this);
+	public void caseAddExpr(AddExpr arg0) {
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseAndExpr(AndExpr arg0) {
-		// TODO Auto-generated method stub
-		arg0.getOp1().apply(this);
-		arg0.getOp2().apply(this);
-		
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseCastExpr(CastExpr arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void caseCmpExpr(CmpExpr arg0) {
-		// TODO Auto-generated method stub
-		arg0.getOp1().apply(this);
-		arg0.getOp2().apply(this);
-		
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseCmpgExpr(CmpgExpr arg0) {
-		// TODO Auto-generated method stub
-		arg0.getOp1().apply(this);
-		arg0.getOp2().apply(this);
-		
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseCmplExpr(CmplExpr arg0) {
-		// TODO Auto-generated method stub
-		arg0.getOp1().apply(this);
-		arg0.getOp2().apply(this);
-		
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseDivExpr(DivExpr arg0) {
-		// TODO Auto-generated method stub
-		arg0.getOp1().apply(this);
-		arg0.getOp2().apply(this);
-		
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseDynamicInvokeExpr(DynamicInvokeExpr arg0) {
 		// TODO Auto-generated method stub
 		invokeExpr(arg0);
-		
+
 	}
 
 	@Override
 	public void caseEqExpr(EqExpr arg0) {
-		// TODO Auto-generated method stub
-		arg0.getOp1().apply(this);
-		arg0.getOp2().apply(this);
-
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseGeExpr(GeExpr arg0) {
-		// TODO Auto-generated method stub
-		arg0.getOp1().apply(this);
-		arg0.getOp2().apply(this);
-
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseGtExpr(GtExpr arg0) {
-		// TODO Auto-generated method stub
-		arg0.getOp1().apply(this);
-		arg0.getOp2().apply(this);
-
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseInstanceOfExpr(InstanceOfExpr arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void caseInterfaceInvokeExpr(InterfaceInvokeExpr arg0) {
 		// TODO Auto-generated method stub
 		invokeExpr(arg0);
-		
+
 	}
 
 	@Override
 	public void caseLeExpr(LeExpr arg0) {
-		// TODO Auto-generated method stub
-		arg0.getOp1().apply(this);
-		arg0.getOp2().apply(this);
-
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseLengthExpr(LengthExpr arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void caseLtExpr(LtExpr arg0) {
-		// TODO Auto-generated method stub
-		arg0.getOp1().apply(this);
-		arg0.getOp2().apply(this);
-
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseMulExpr(MulExpr arg0) {
-		// TODO Auto-generated method stub
-		
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseNeExpr(NeExpr arg0) {
-		// TODO Auto-generated method stub
-		
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseNegExpr(NegExpr arg0) {
-		// TODO Auto-generated method stub
-		
+		arg0.getOp().apply(this);
+		Expression expr = popExpression();
+		this.expressionStack.add(new UnaryExpression(UnaryOperator.LNot, expr));
 	}
 
 	@Override
 	public void caseNewArrayExpr(NewArrayExpr arg0) {
-		// TODO Auto-generated method stub
-		
+		this.expressionStack.add(this.memoryModel.mkNewArrayExpr(arg0));
 	}
 
 	@Override
 	public void caseNewExpr(NewExpr arg0) {
-		// TODO Auto-generated method stub
-		
+		this.expressionStack.add(this.memoryModel.mkNewExpr(arg0));
 	}
 
 	@Override
 	public void caseNewMultiArrayExpr(NewMultiArrayExpr arg0) {
-		// TODO Auto-generated method stub
-		
+		this.expressionStack.add(this.memoryModel.mkNewMultiArrayExpr(arg0));
 	}
 
 	@Override
 	public void caseOrExpr(OrExpr arg0) {
-		// TODO Auto-generated method stub
-		
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseRemExpr(RemExpr arg0) {
-		// TODO Auto-generated method stub
-		
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseShlExpr(ShlExpr arg0) {
-		// TODO Auto-generated method stub
-		
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseShrExpr(ShrExpr arg0) {
-		// TODO Auto-generated method stub
-		
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseSpecialInvokeExpr(SpecialInvokeExpr arg0) {
 		// TODO Auto-generated method stub
 		invokeExpr(arg0);
-		
+
 	}
 
 	@Override
 	public void caseStaticInvokeExpr(StaticInvokeExpr arg0) {
 		// TODO Auto-generated method stub
 		invokeExpr(arg0);
-		
+
 	}
 
 	@Override
 	public void caseSubExpr(SubExpr arg0) {
-		// TODO Auto-generated method stub
-		
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseUshrExpr(UshrExpr arg0) {
-		// TODO Auto-generated method stub
-		
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseVirtualInvokeExpr(VirtualInvokeExpr arg0) {
-		// TODO Auto-generated method stub
 		invokeExpr(arg0);
 	}
 
 	@Override
 	public void caseXorExpr(XorExpr arg0) {
-		// TODO Auto-generated method stub
-		
+		translateBinOp(arg0);
 	}
 
 	@Override
 	public void caseArrayRef(ArrayRef arg0) {
-		// TODO Auto-generated method stub
-		
+		this.expressionStack.add(this.memoryModel.mkArrayRefExpr(arg0));
 	}
 
 	@Override
@@ -379,32 +417,29 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseInstanceFieldRef(InstanceFieldRef arg0) {
-		// TODO Auto-generated method stub
-		
+		this.expressionStack.add(this.memoryModel.mkInstanceFieldRefExpr(arg0));
 	}
 
 	@Override
 	public void caseParameterRef(ParameterRef arg0) {
-		// TODO Auto-generated method stub
-		
+		this.expressionStack.add(SootKitchenSink.v().currentMethod
+				.lookupParameterRef(arg0));
 	}
 
 	@Override
 	public void caseStaticFieldRef(StaticFieldRef arg0) {
-		// TODO Auto-generated method stub
-		
+		this.expressionStack.add(this.memoryModel.mkStaticFieldRefExpr(arg0));
 	}
 
 	@Override
 	public void caseThisRef(ThisRef arg0) {
-		// TODO Auto-generated method stub
-		
+		this.expressionStack.add(this.memoryModel.mkThisRefExpr(arg0));
 	}
 
 	@Override
 	public void caseLocal(Local arg0) {
-		// TODO Auto-generated method stub
-		
+		this.expressionStack.add(SootKitchenSink.v().currentMethod
+				.lookupLocal(arg0));
 	}
 
 }
