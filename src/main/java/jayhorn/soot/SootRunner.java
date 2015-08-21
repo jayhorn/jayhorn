@@ -239,17 +239,11 @@ public class SootRunner {
 		        PackManager.v().getPack("cg").apply();
 			}			
 			
-//			Log.info("Building ICFG.");
-//			//now create the icfg
-//			if (Options.v().getCallGraphAlgorithm() != CallgraphAlgorithm.None) {							 
-//				SootKitchenSink.v().iCfg = new JimpleBasedInterproceduralCFG();
-//			} else {
-//				OnTheFlyJimpleBasedICFG.loadAllClassesOnClassPathToSignatures();
-//				Scene.v().getOrMakeFastHierarchy();
-////				SootKitchenSink.v().iCfg = new OnTheFlyJimpleBasedICFG(Scene.v().getEntryPoints());
-//			}
-//
-//			SootKitchenSink.v().pointsToAnalysis = Scene.v().getPointsToAnalysis();
+			for (SootClass sc : Scene.v().getClasses()) {
+				if (classes.contains(sc.getName())) {
+					sc.setApplicationClass();
+				}				
+			}
 			
 			Log.info("Done.");
 		} catch (UnsupportedEncodingException e) {
