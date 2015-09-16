@@ -9,6 +9,8 @@ package jayhorn.cfg.expression;
  */
 public class IntegerLiteral extends Expression {
 
+	private long value;
+	
 	public static IntegerLiteral one() {
 		return new IntegerLiteral(1);
 	}
@@ -19,11 +21,17 @@ public class IntegerLiteral extends Expression {
 
 	
 	public IntegerLiteral(int value) {
-		
+		this.value = value;
 	}
 	
 	public IntegerLiteral(long value) {
-		
+		this.value = value;
 	}
 	
+	@Override
+	public String toString(){
+		StringBuilder sb = new StringBuilder();
+		sb.append(value);
+		return sb.toString();		
+	}	
 }

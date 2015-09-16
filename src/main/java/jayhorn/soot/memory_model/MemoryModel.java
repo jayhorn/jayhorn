@@ -6,11 +6,13 @@ package jayhorn.soot.memory_model;
 import jayhorn.cfg.expression.Expression;
 import jayhorn.soot.visitors.SootStmtSwitch;
 import jayhorn.soot.visitors.SootValueSwitch;
+import soot.Value;
 import soot.jimple.ArrayRef;
 import soot.jimple.ClassConstant;
 import soot.jimple.DoubleConstant;
 import soot.jimple.FloatConstant;
 import soot.jimple.InstanceFieldRef;
+import soot.jimple.InstanceOfExpr;
 import soot.jimple.NewArrayExpr;
 import soot.jimple.NewExpr;
 import soot.jimple.NewMultiArrayExpr;
@@ -27,13 +29,9 @@ public class MemoryModel {
 //	private SootStmtSwitch statementSwitch = null;
 //	private SootValueSwitch valueSwitch = null;
 		
-	public void setStmtSwitch(SootStmtSwitch ss) {
+	public MemoryModel(SootStmtSwitch ss, SootValueSwitch vs) {
 		
 	}
-
-	public void setValueSwitch(SootValueSwitch vs) {
-		
-	}	
 	
 	public Expression mkNewExpr(NewExpr arg0) {
 		// TODO Auto-generated method stub
@@ -55,6 +53,12 @@ public class MemoryModel {
 		return null;
 	}
 
+	public Expression mkArrayLengthExpr(Value arg0) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	
 	public Expression mkInstanceFieldRefExpr(InstanceFieldRef arg0) {
 		// TODO Auto-generated method stub
 		return null;
@@ -91,6 +95,11 @@ public class MemoryModel {
 	}
 
 	public Expression mkFloatConstant(FloatConstant arg0) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Expression mkInstanceOfExpr(InstanceOfExpr arg0) {
 		// TODO Auto-generated method stub
 		return null;
 	}

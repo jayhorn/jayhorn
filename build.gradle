@@ -57,6 +57,13 @@ task wrapper(type: Wrapper) {
 
 sourceCompatibility = 1.7
 
+allprojects {
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:deprecation"
+        options.compilerArgs << "-Werror"
+    }
+}
+
 tasks.withType(Test) {
   systemProperty  'java.library.path', nativeLibFile.absolutePath
 }

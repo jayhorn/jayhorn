@@ -11,4 +11,5 @@ import jayhorn.cfg.Node;
  */
 public class Method implements Node {
 
+	
 }

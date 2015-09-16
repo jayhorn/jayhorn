@@ -15,7 +15,7 @@ public class SootKitchenSink {
 //	
 //	public AbstractJimpleBasedICFG iCfg = null;
 
-	public MethodInfo currentMethod = null;
+//	public MethodInfo currentMethod = null;
 	
 	private static SootKitchenSink instance = null;
 	

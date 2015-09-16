@@ -10,7 +10,20 @@ package jayhorn.cfg.expression;
 public class UnaryExpression extends Expression {
 
 	public enum UnaryOperator {
-		Neg, LNot
+		Neg("-"), LNot("!");
+		private final String name;       
+
+	    private UnaryOperator(String s) {
+	        name = s;
+	    }
+
+	    public boolean equalsName(String otherName) {
+	        return (otherName == null) ? false : name.equals(otherName);
+	    }
+
+	    public String toString() {
+	       return this.name;
+	    }			
 	}
 	
 	private final Expression expression;
@@ -29,5 +42,14 @@ public class UnaryExpression extends Expression {
 		return op;
 	}
 
+	@Override
+	public String toString(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("(");
+		sb.append(this.op);
+		sb.append(this.expression);
+		sb.append(")");
+		return sb.toString();		
+	}
 	
 }
