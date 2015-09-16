@@ -32,6 +32,7 @@ import jayhorn.cfg.expression.UnaryExpression.UnaryOperator;
 import jayhorn.cfg.method.CfgBlock;
 import jayhorn.cfg.statement.AssignStatement;
 import jayhorn.cfg.statement.Statement;
+import jayhorn.soot.SootToCfg;
 import jayhorn.soot.util.MethodInfo;
 import soot.SootMethod;
 import soot.Unit;
@@ -60,7 +61,7 @@ import soot.toolkits.graph.Block;
  * @author schaef
  */
 public class SootStmtSwitch implements StmtSwitch {
-
+	
 	private final SootMethod sootMethod;
 	private final MethodInfo methodInfo;
 	private final SootValueSwitch valueSwitch;
@@ -82,7 +83,7 @@ public class SootStmtSwitch implements StmtSwitch {
 		if (head != null) {
 			this.entryBlock = methodInfo.lookupCfgBlock(head);
 			this.currentBlock = this.entryBlock;
-			Iterator<Unit> iterator = block.iterator();
+			Iterator<Unit> iterator = block.iterator();			
 			while (iterator.hasNext()) {
 				Unit u = iterator.next();
 				u.apply(this);
@@ -97,9 +98,8 @@ public class SootStmtSwitch implements StmtSwitch {
 		} else {			
 			this.exitBlock=null;
 		}
-
-	}
-	
+	}	
+		
 	public CfgBlock getEntryBlock() {
 		return this.entryBlock;
 	}
@@ -334,6 +334,11 @@ public class SootStmtSwitch implements StmtSwitch {
 	}
 
 	private void translateMethodInvokation(Unit u, Value optionalLhs, InvokeExpr call) {
+		if (call.getMethod()==SootToCfg.internalAssertMethod) {
+			assert (optionalLhs==null);
+			System.err.println("Assertion! "+call);
+			return;
+		}
 		//TODO
 //		for (RefType t : TrapManager.getExceptionTypesOf(u, sootBlock.getBody())) {
 //			System.err.println("\t type "+t);
@@ -344,7 +349,7 @@ public class SootStmtSwitch implements StmtSwitch {
 //		}
 	}
 
-	private void translateAssignment(Unit u, Value lhs, Value rhs) {
+	private void translateAssignment(Unit u, Value lhs, Value rhs) {		
 		lhs.apply(valueSwitch);
 		Expression left = valueSwitch.popExpression();
 		rhs.apply(valueSwitch);		
