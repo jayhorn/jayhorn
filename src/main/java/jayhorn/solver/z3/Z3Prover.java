@@ -54,6 +54,7 @@ public class Z3Prover implements Prover {
 	private Solver solver;
 	private boolean useHornLogic = false;
 	
+	
 	private HashMap<String, String> cfg = new HashMap<String, String>();
 
 	static class Z3SolverThread implements Runnable {
@@ -77,7 +78,9 @@ public class Z3Prover implements Prover {
 	public Z3Prover() {
 		com.microsoft.z3.Global.ToggleWarningMessages(true);
 
+		
 		this.cfg.put("model", "true");
+			
 		// this.ctx = new Context(this.cfg);
 		this.ctx = new Context(this.cfg);		
 		createSolver(useHornLogic);
@@ -85,7 +88,18 @@ public class Z3Prover implements Prover {
 
 	private void createSolver(boolean useHorn) {
 		if (useHorn) {
-			this.solver = this.ctx.mkSolver("HORN");	
+			this.solver = this.ctx.mkSolver();
+			Params params = this.ctx.mkParams();
+			params.add(":engine", "pdr");
+			params.add (":xform.slice", false);
+			params.add (":use_heavy_mev", true);
+			params.add (":reset_obligation_queue", true);
+			params.add (":pdr.flexible_trace", false);
+			params.add (":xform.inline-linear", false);
+			params.add (":xform.inline-eager", false);
+			params.add (":pdr.utvpi", false);
+			//this.solver.setParameters(params);
+			
 		} else {
 			this.solver = this.ctx.mkSolver();	
 		}

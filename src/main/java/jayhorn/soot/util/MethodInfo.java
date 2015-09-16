@@ -12,6 +12,7 @@ import soot.Local;
 import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.ParameterRef;
+import soot.tagkit.Tag;
 
 /**
  * @author schaef
@@ -45,6 +46,11 @@ public class MethodInfo {
 	}
 
 	public CfgBlock lookupCfgBlock(Unit u) {
+//		
+//		for (Tag t : u.getTags()) {
+//			System.err.println(t + " -- " +t.getClass())
+//		}
+		
 		if (!unitToBlockMap.containsKey(u)) {
 			unitToBlockMap.put(u, new CfgBlock());
 		}
