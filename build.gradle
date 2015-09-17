@@ -22,8 +22,6 @@ buildscript {
 
     dependencies {
         classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.0.1'
-        classpath 'net.ltgt.gradle:gradle-errorprone-plugin:latest.release'
-
     }
 }
 
@@ -33,12 +31,6 @@ apply plugin: 'jacoco'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'findbugs'
 apply plugin: 'jdepend'
-if (!project.hasProperty('coverityMode')) {
-  // coverity cant handle plugins that 
-  // tinker with the compiler so we have
-  // to disable them.
-  apply plugin: 'net.ltgt.errorprone'
-}
 apply plugin: 'checkstyle'
 
 def z3LibPath = 'native_lib'

@@ -30,6 +30,7 @@ import jayhorn.cfg.expression.IntegerLiteral;
 import jayhorn.cfg.expression.UnaryExpression;
 import jayhorn.cfg.expression.UnaryExpression.UnaryOperator;
 import jayhorn.cfg.method.CfgBlock;
+import jayhorn.cfg.statement.AssertStatement;
 import jayhorn.cfg.statement.AssignStatement;
 import jayhorn.cfg.statement.Statement;
 import jayhorn.soot.SootToCfg;
@@ -334,9 +335,11 @@ public class SootStmtSwitch implements StmtSwitch {
 	}
 
 	private void translateMethodInvokation(Unit u, Value optionalLhs, InvokeExpr call) {
-		if (call.getMethod()==SootToCfg.internalAssertMethod) {
+		if (call.getMethod()==SootToCfg.getAssertMethod()) {
 			assert (optionalLhs==null);
-			System.err.println("Assertion! "+call);
+			assert(call.getArgCount()==1);
+			call.getArg(0).apply(valueSwitch);			
+			currentBlock.addStatement(new AssertStatement(u,valueSwitch.popExpression())); 
 			return;
 		}
 		//TODO

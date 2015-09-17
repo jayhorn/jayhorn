@@ -74,14 +74,18 @@ public class SootToCfg {
 
 	public static final String assertionClassName = "JayHornAssertions";
 	public static final String assertionProcedureName = "super_crazy_assertion";
-	public static SootMethod internalAssertMethod = null;
+	private static SootMethod internalAssertMethod = null;
+	
+	public static SootMethod getAssertMethod() {
+		return internalAssertMethod;
+	}
 
 	/**
 	 * Helper procedure that creates a static method to represent Java
 	 * assertions.
 	 */
 	private void createAssertionHelper() {
-		if (this.internalAssertMethod==null) {
+		if (internalAssertMethod==null) {
 			SootClass sClass = new SootClass(assertionClassName, Modifier.PUBLIC);			
 			internalAssertMethod = new SootMethod(assertionProcedureName,                 
 				    Arrays.asList(new Type[] {ArrayType.v(BooleanType.v(), 1)}),
@@ -175,7 +179,7 @@ public class SootToCfg {
 			CfgBlock root = subGraphs.get(bg.getHeads().get(0)).getEntryBlock();
 			mi.setSource(root);
 		}
-//		debugPrint(mi);
+		debugPrint(mi);
 	}
 
 	/*
@@ -223,7 +227,7 @@ public class SootToCfg {
 				unitsToRemove.add(u);
 				
 				//now search for the new java.lang.AssertionError
-				Unit previousUnit = null;
+				Unit previousUnit = u;
 				while (iterator.hasNext()) {
 					u = iterator.next();
 					if (isNewJavaAssertionError(u)) {
@@ -317,20 +321,20 @@ public class SootToCfg {
 		return false;
 	}
 	
-//	private void debugPrint(MethodInfo mi) {
-//		List<CfgBlock> todo = new LinkedList<CfgBlock>();
-//		todo.add(mi.getSource());
-//		Set<CfgBlock> done = new HashSet<CfgBlock>();
-//		while (!todo.isEmpty()) {
-//			CfgBlock current = todo.remove(0);
-//			done.add(current);
-//			System.err.println(current);
-//			for (CfgBlock succ : current.getSuccessors()) {
-//				if (!todo.contains(succ) && !done.contains(succ)) {
-//					todo.add(succ);
-//				}
-//			}
-//		}
-//	}
+	private void debugPrint(MethodInfo mi) {
+		List<CfgBlock> todo = new LinkedList<CfgBlock>();
+		todo.add(mi.getSource());
+		Set<CfgBlock> done = new HashSet<CfgBlock>();
+		while (!todo.isEmpty()) {
+			CfgBlock current = todo.remove(0);
+			done.add(current);
+			System.err.println(current);
+			for (CfgBlock succ : current.getSuccessors()) {
+				if (!todo.contains(succ) && !done.contains(succ)) {
+					todo.add(succ);
+				}
+			}
+		}
+	}
 
 }
