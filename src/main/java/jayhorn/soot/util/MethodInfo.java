@@ -31,20 +31,21 @@ public class MethodInfo {
 	private static final String parameterPrefix = "$in_";
 	private static final String returnVariableName = "$ret_";
 	private static final String exceptionVariableName = "$exc_";
+	private static final String thisVariableName = "$this_";
 
 	private CfgBlock source = null, sink = null;
 	private Map<Unit, CfgBlock> unitToBlockMap = new HashMap<Unit, CfgBlock>();
 	private Map<Local, Variable> localsMap = new HashMap<Local, Variable>();
 	private List<Variable> parameterList = new LinkedList<Variable>();
 
-	private Variable returnVariable, exceptionalReturnVariable;
+	private Variable returnVariable, exceptionalReturnVariable, thisVariable;
 
 	public MethodInfo(SootMethod sm, String sourceFileName) {
 		sink = new CfgBlock();
 		this.sourceFileName = sourceFileName;
 
-		//create a return variable if the method does not
-		//return void.
+		// create a return variable if the method does not
+		// return void.
 		if (!(sm.getReturnType() instanceof VoidType)) {
 			this.returnVariable = new Variable(returnVariableName,
 					SootTranslationHelpers.v()
@@ -53,12 +54,20 @@ public class MethodInfo {
 			this.returnVariable = null;
 		}
 
-		//create a return variable for exceptional returns.
+		// create a return variable for exceptional returns.
 		this.exceptionalReturnVariable = new Variable(exceptionVariableName,
 				SootTranslationHelpers.v()
 						.translateType(
 								Scene.v().getSootClass("java.lang.Throwable")
 										.getType()));
+
+		// If the method is not static, create a this-variable which is
+		// passed as the first parameter to the method.
+		if (!sm.isStatic()) {
+			this.thisVariable = new Variable(thisVariableName,
+					SootTranslationHelpers.v().translateType(
+							sm.getDeclaringClass().getType()));
+		}
 
 		for (int i = 0; i < sm.getParameterCount(); i++) {
 			String param_name = parameterPrefix + i;
@@ -82,6 +91,10 @@ public class MethodInfo {
 		return new IdentifierExpression(this.exceptionalReturnVariable);
 	}
 
+	public Expression getThisVariable() {
+		return new IdentifierExpression(this.thisVariable);
+	}	
+	
 	public Expression lookupParameterRef(ParameterRef arg0) {
 		return new IdentifierExpression(parameterList.get(arg0.getIndex()));
 	}

@@ -69,11 +69,6 @@ public class MemoryModel {
 		return null;
 	}
 
-	public Expression mkThisRefExpr(ThisRef arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public Expression mkNullConstant() {
 		// TODO Auto-generated method stub
 		return null;

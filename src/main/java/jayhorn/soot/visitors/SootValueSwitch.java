@@ -444,8 +444,8 @@ public class SootValueSwitch implements ShimpleValueSwitch {
 	}
 
 	@Override
-	public void caseThisRef(ThisRef arg0) {
-		this.expressionStack.add(this.memoryModel.mkThisRefExpr(arg0));
+	public void caseThisRef(ThisRef arg0) {		
+		this.expressionStack.add(methodInfo.getThisVariable());
 	}
 
 	@Override

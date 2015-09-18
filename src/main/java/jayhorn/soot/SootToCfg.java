@@ -97,8 +97,9 @@ public class SootToCfg {
 	private void processMethodBody(ShimpleBody body) {
 		MethodInfo mi = new MethodInfo(body.getMethod(), currentSourceFile);
 
+		SootPreprocessing.v().removeAssertionRelatedNonsense(body);
 		SootPreprocessing.v().reconstructJavaAssertions(body);
-
+		
 		System.err.println(body.toString());
 
 		ShimpleFactory sf = soot.G.v().shimpleFactory;

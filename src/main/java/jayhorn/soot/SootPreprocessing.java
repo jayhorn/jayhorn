@@ -10,9 +10,10 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
+import jayhorn.util.Log;
 import soot.ArrayType;
 import soot.BooleanType;
 import soot.Local;
@@ -25,13 +26,17 @@ import soot.Unit;
 import soot.Value;
 import soot.VoidType;
 import soot.jimple.AssignStmt;
+import soot.jimple.ClassConstant;
+import soot.jimple.GotoStmt;
 import soot.jimple.IfStmt;
 import soot.jimple.IntConstant;
 import soot.jimple.InvokeStmt;
 import soot.jimple.Jimple;
 import soot.jimple.NewExpr;
 import soot.jimple.StaticFieldRef;
+import soot.jimple.Stmt;
 import soot.jimple.ThrowStmt;
+import soot.shimple.PhiExpr;
 import soot.shimple.ShimpleBody;
 
 /**
@@ -79,7 +84,95 @@ public enum SootPreprocessing {
 		return internalAssertMethod;
 	}
 
-		
+	/**
+	 * removes useless statements that are generated when
+	 * java assertions are translated into bytecode.
+	 * @param body
+	 */
+	public void removeAssertionRelatedNonsense(ShimpleBody body) {
+		/*
+		 * Look for the following sequence and remove it.
+	        $r0 = class "translation_tests/TranslationTest01";
+	        $z0 = virtualinvoke $r0.<java.lang.Class: boolean desiredAssertionStatus()>();
+	        if $z0 != 0 goto label1;
+	        $z1 = 1;
+	(0)     goto label2;
+	     label1:
+	(1)     $z1_1 = 0;
+	     label2:
+	        $z1_2 = Phi($z1 #0, $z1_1 #1);
+	        <translation_tests.TranslationTest01: boolean $assertionsDisabled> = $z1_2;
+		 */
+		Set<Unit> unitsToRemove = new HashSet<Unit>();
+		Iterator<Unit> iterator = body.getUnits().iterator();
+		while (iterator.hasNext()) {
+			Unit u = iterator.next();
+			if (u instanceof AssignStmt) {
+				AssignStmt asgn = (AssignStmt)u;
+				if (asgn.getLeftOp() instanceof Local && asgn.getRightOp() instanceof ClassConstant) {
+					ClassConstant rhs = (ClassConstant)asgn.getRightOp();
+					final String c = body.getMethod().getDeclaringClass().getName().replace('.', '/');
+					//search for $r0 = class "translation_tests/TranslationTest01";
+					if (rhs.getValue().equals(c)) {
+						unitsToRemove.add(u);
+						Stmt[] uslessBlock = new Stmt[7];
+						for (int i=0;i<7;i++) {
+							if (!iterator.hasNext()) {
+								unitsToRemove.clear();
+								break;
+							}
+							uslessBlock[i] = (Stmt)iterator.next();
+							unitsToRemove.add(uslessBlock[i]);
+						}
+						
+						//$z0 = virtualinvoke $r0.<java.lang.Class: boolean desiredAssertionStatus()>();
+						if (!uslessBlock[0].containsInvokeExpr() || !uslessBlock[0].getInvokeExpr().getMethod().getName().equals("desiredAssertionStatus")) {
+							unitsToRemove.clear();
+							continue;							
+						}
+				        
+				        //if $z0 != 0 goto label1;
+				        if (!(uslessBlock[1] instanceof IfStmt) || ((IfStmt)uslessBlock[1]).getTarget()!=uslessBlock[4]) {
+							unitsToRemove.clear();
+							continue;				        	
+				        }
+						//$z1 = 1;
+				        if (!(uslessBlock[2] instanceof AssignStmt) || !((AssignStmt)uslessBlock[2]).getRightOp().toString().equals("1")) {
+							unitsToRemove.clear();
+							continue;				        					        	
+				        }
+						//goto label2;
+				        if (!(uslessBlock[3] instanceof GotoStmt) || ((GotoStmt)uslessBlock[3]).getTarget()!=uslessBlock[5]) {
+							unitsToRemove.clear();
+							continue;				        					        					        	
+				        }
+						//$z1_1 = 0;
+				        if (!(uslessBlock[4] instanceof AssignStmt) || !((AssignStmt)uslessBlock[4]).getRightOp().toString().equals("0")) {
+							unitsToRemove.clear();
+							continue;				        					        	
+				        }
+				        //$z1_2 = Phi($z1 #0, $z1_1 #1);				        
+				        if (!(uslessBlock[5] instanceof AssignStmt) || ! ( ((AssignStmt)uslessBlock[5]).getRightOp() instanceof PhiExpr)) {
+							unitsToRemove.clear();
+							continue;				        					        					        	
+				        }
+				        //<translation_tests.TranslationTest01: boolean $assertionsDisabled> = $z1_2;
+				        if (!(uslessBlock[6] instanceof AssignStmt) || !((AssignStmt)uslessBlock[6]).getLeftOp().toString().contains("$assertionsDisabled")) {
+							unitsToRemove.clear();
+							continue;				        					        					        					        	
+				        }
+				        //we found the block.
+				        break;
+					}
+				}
+			}
+		}
+		if (!unitsToRemove.isEmpty()) {
+			Log.info("removed useless block in "+body.getMethod().getBytecodeSignature());
+			body.getUnits().removeAll(unitsToRemove);
+			body.validate();
+		}
+	}
 	
 	/**
 	 * Look for parts of the body that have been created from Java
