@@ -58,6 +58,15 @@ public class CfgBlock implements Node {
 			sb.append(s.toString());
 			sb.append("\n");
 		}
+		if (!this.successors.isEmpty()) {
+			sb.append("\tgoto ");
+			for (CfgBlock s : this.successors) {
+				sb.append("Block");
+				sb.append(s.hashCode());
+				sb.append(", ");
+			}
+			sb.append("\n");
+		}
 		return sb.toString();
 	}
 }

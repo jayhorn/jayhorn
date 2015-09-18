@@ -33,8 +33,9 @@ import jayhorn.cfg.method.CfgBlock;
 import jayhorn.cfg.statement.AssertStatement;
 import jayhorn.cfg.statement.AssignStatement;
 import jayhorn.cfg.statement.Statement;
-import jayhorn.soot.SootToCfg;
+import jayhorn.soot.SootPreprocessing;
 import jayhorn.soot.util.MethodInfo;
+import soot.PatchingChain;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
@@ -56,7 +57,7 @@ import soot.jimple.Stmt;
 import soot.jimple.StmtSwitch;
 import soot.jimple.TableSwitchStmt;
 import soot.jimple.ThrowStmt;
-import soot.toolkits.graph.Block;
+import soot.shimple.ShimpleBody;
 
 /**
  * @author schaef
@@ -67,24 +68,24 @@ public class SootStmtSwitch implements StmtSwitch {
 	private final MethodInfo methodInfo;
 	private final SootValueSwitch valueSwitch;
 
-	private final Block sootBlock;
+	private final PatchingChain<Unit> units;
 
 	private CfgBlock currentBlock, entryBlock, exitBlock;
 	private boolean insideMonitor = false;
 
-	public SootStmtSwitch(Block block, MethodInfo mi) {
+	public SootStmtSwitch(ShimpleBody body, MethodInfo mi) {
 		this.methodInfo = mi;
-		this.sootBlock = block;
-		this.sootMethod = block.getBody().getMethod();
+		this.sootMethod = body.getMethod();
 
 		this.valueSwitch = new SootValueSwitch(this);
 
-		Unit head = block.getHead();
+		units = body.getUnits();
+		Unit head = units.getFirst();
 		// check if the block is empty.
 		if (head != null) {
 			this.entryBlock = methodInfo.lookupCfgBlock(head);
 			this.currentBlock = this.entryBlock;
-			Iterator<Unit> iterator = block.iterator();			
+			Iterator<Unit> iterator = units.iterator();			
 			while (iterator.hasNext()) {
 				Unit u = iterator.next();
 				u.apply(this);
@@ -99,6 +100,7 @@ public class SootStmtSwitch implements StmtSwitch {
 		} else {			
 			this.exitBlock=null;
 		}
+		//TODO: connect stuff to exit.
 	}	
 		
 	public CfgBlock getEntryBlock() {
@@ -135,6 +137,7 @@ public class SootStmtSwitch implements StmtSwitch {
 		//first check if we already created a block
 		//for this statement.
 		if (methodInfo.findBlock(st) != null) {
+			//TODO: connect to predecessor.
 			currentBlock = methodInfo.findBlock(st);
 		}		
 		//If not, and we currently don't have a block,
@@ -210,10 +213,9 @@ public class SootStmtSwitch implements StmtSwitch {
 		 * current block and create two new blocks for then and else branch. The
 		 * new currenBlock becomes the else branch.
 		 */
-		Unit next = this.sootBlock.getSuccOf(arg0);
+		Unit next = units.getSuccOf(arg0);
 		if (next != null) {
-			CfgBlock elseBlock = methodInfo.lookupCfgBlock(this.sootBlock
-					.getSuccOf(arg0));
+			CfgBlock elseBlock = methodInfo.lookupCfgBlock(next);
 			this.currentBlock.addConditionalSuccessor(new UnaryExpression(
 					UnaryOperator.LNot, cond), elseBlock);
 			this.currentBlock = elseBlock;
@@ -335,7 +337,7 @@ public class SootStmtSwitch implements StmtSwitch {
 	}
 
 	private void translateMethodInvokation(Unit u, Value optionalLhs, InvokeExpr call) {
-		if (call.getMethod()==SootToCfg.getAssertMethod()) {
+		if (call.getMethod()==SootPreprocessing.v().getAssertMethod()) {
 			assert (optionalLhs==null);
 			assert(call.getArgCount()==1);
 			call.getArg(0).apply(valueSwitch);			

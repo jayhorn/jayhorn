@@ -54,12 +54,6 @@ public class Options {
 		return this.javaInput;
 	}
 
-	@Option(name = "-smt", usage = "Write SMT output", required = false)
-	private String smtFile;
-	public String getSmtFile() {
-		return this.smtFile;
-	}
-
 	@Option(name = "-cg", usage = "Set the callgraph algorithm: CHA,RTA,VTA,SPARK, or None (default).", required = false)
 	private String callGraphAlgorithm = "None";
 	public CallgraphAlgorithm getCallGraphAlgorithm() {
@@ -88,8 +82,14 @@ public class Options {
 	/**
 	 * Scope
 	 */
-	@Option(name = "--scope", usage = "Scope")
-	private String scope;
+	@Option(name = "--scope", usage = "Only analyze classes/methods that contain the scope string")
+	private String scope = null;
+	public String getScope() {
+		return scope;
+	}
+	public boolean hasScope() {
+		return scope == null || scope.isEmpty();
+	}
 
 	/**
 	 * Classpath
