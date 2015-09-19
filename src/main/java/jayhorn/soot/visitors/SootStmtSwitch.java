@@ -1,6 +1,6 @@
 /*
  * jimple2boogie - Translates Jimple (or Java) Programs to Boogie
- * Copyright (C) 2013 Martin Schaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaef and Stephan Arlt
+ * Copyright (C) 2013 Martin Schaef and Stephan Arlt
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,7 +19,6 @@
 
 package jayhorn.soot.visitors;
 
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,11 +39,11 @@ import jayhorn.cfg.statement.CallStatement;
 import jayhorn.cfg.statement.Statement;
 import jayhorn.soot.SootPreprocessing;
 import jayhorn.soot.SootTranslationHelpers;
+import jayhorn.soot.inoke_resolver.InvokeResolver;
+import jayhorn.soot.inoke_resolver.SimpleInvokeResolver;
 import jayhorn.soot.util.MethodInfo;
 import jayhorn.util.Log;
 import soot.PatchingChain;
-import soot.Scene;
-import soot.SootClass;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
@@ -69,7 +68,6 @@ import soot.jimple.StaticInvokeExpr;
 import soot.jimple.Stmt;
 import soot.jimple.StmtSwitch;
 import soot.jimple.TableSwitchStmt;
-import soot.jimple.ThisRef;
 import soot.jimple.ThrowStmt;
 import soot.shimple.ShimpleBody;
 
@@ -388,7 +386,10 @@ public class SootStmtSwitch implements StmtSwitch {
 					&& call instanceof SpecialInvokeExpr) {
 				possibleTargets.add(call.getMethod());
 			} else {
-				possibleTargets.addAll(resolveVirtualCall(iivk));
+				//TODO: Create the InvokeResolver elsewhere.
+//				InvokeResolver ivkr = new DefaultInvokeResolver();
+				InvokeResolver ivkr = new SimpleInvokeResolver();
+				possibleTargets.addAll(ivkr.resolveVirtualCall(this.shimpleBody, u, iivk));
 			}
 		} else if (call instanceof StaticInvokeExpr) {
 			possibleTargets.add(call.getMethod());
@@ -407,26 +408,17 @@ public class SootStmtSwitch implements StmtSwitch {
 		}
 		receiver.add(this.methodInfo.getExceptionVariable());
 
-		// TODO
-		// for (RefType t : TrapManager.getExceptionTypesOf(u,
-		// sootBlock.getBody())) {
-		// System.err.println("\t type "+t);
-		// }
-		//
-		// for (Trap t : TrapManager.getTrapsAt(u, sootBlock.getBody())) {
-		// System.err.println("\t type "+t.getException());
-		// }
 		if (possibleTargets.size() == 1) {
 			Method method = SootTranslationHelpers.v().loopupMethod(
 					possibleTargets.get(0));
 			CallStatement stmt = new CallStatement(u, method, args, receiver);
 			this.currentBlock.addStatement(stmt);
 		} else {
-			System.err.println(call);
-			assert (baseExpression!=null);
+			assert (!possibleTargets.isEmpty());
+			assert (baseExpression != null);
 			CfgBlock join = new CfgBlock();
-			for (SootMethod m : possibleTargets) {				
-				Method method = SootTranslationHelpers.v().loopupMethod(m);				
+			for (SootMethod m : possibleTargets) {
+				Method method = SootTranslationHelpers.v().loopupMethod(m);
 				Variable v = SootTranslationHelpers.v().lookupClassVariable(
 						m.getDeclaringClass());
 
@@ -434,13 +426,26 @@ public class SootStmtSwitch implements StmtSwitch {
 				thenBlock.addStatement(new CallStatement(u, method, args,
 						receiver));
 				thenBlock.addSuccessor(join);
-				this.currentBlock.addConditionalSuccessor(new InstanceOfExpression(baseExpression, v), thenBlock);
+				this.currentBlock.addConditionalSuccessor(
+						new InstanceOfExpression(baseExpression, v), thenBlock);
 				CfgBlock elseBlock = new CfgBlock();
-				this.currentBlock.addConditionalSuccessor(new UnaryExpression(UnaryOperator.LNot, new InstanceOfExpression(baseExpression, v)), elseBlock);
+				this.currentBlock.addConditionalSuccessor(new UnaryExpression(
+						UnaryOperator.LNot, new InstanceOfExpression(
+								baseExpression, v)), elseBlock);
 				this.currentBlock = elseBlock;
 			}
 			this.currentBlock.addSuccessor(join);
 			this.currentBlock = join;
+			
+			// TODO
+			// for (RefType t : TrapManager.getExceptionTypesOf(u,
+			// sootBlock.getBody())) {
+			// System.err.println("\t type "+t);
+			// }
+			//
+			// for (Trap t : TrapManager.getTrapsAt(u, sootBlock.getBody())) {
+			// System.err.println("\t type "+t.getException());
+			// }			
 		}
 	}
 
@@ -486,62 +491,6 @@ public class SootStmtSwitch implements StmtSwitch {
 		}
 
 		return false;
-	}
-
-	/**
-	 * TODO: this procedure is supposed to return the list of SootMethods that
-	 * this InstanceInvoke may refer to.
-	 * 
-	 * @param call
-	 *            the InstanceInvoke
-	 * @return the list of possible methods sorted by type (TODO which
-	 *         direction?)
-	 */
-	private List<SootMethod> resolveVirtualCall(InstanceInvokeExpr call) {
-		SootMethod callee = call.getMethod();
-		SootClass sc = callee.getDeclaringClass();
-		Value base = call.getBase();
-
-		List<SootMethod> res = new LinkedList<SootMethod>();
-		// if its a call to "this", don't try anything fancy.
-		if (base instanceof ThisRef || base == this.shimpleBody.getThisLocal()) {
-			res.add(callee);
-		} else {
-			Collection<SootClass> possibleClasses;
-			if (sc.isInterface()) {
-				possibleClasses = Scene.v().getFastHierarchy()
-						.getAllImplementersOfInterface(sc);
-			} else {
-				possibleClasses = Scene.v().getFastHierarchy()
-						.getSubclassesOf(sc);
-			}
-			for (SootClass sub : possibleClasses) {
-				if (sub.resolvingLevel() < SootClass.SIGNATURES) {
-					// Log.error("Not checking subtypes of " + sub.getName());
-					// Then we probably really don't care.
-				} else {
-					if (sub.declaresMethod(callee.getName(),
-							callee.getParameterTypes(), callee.getReturnType())) {
-						res.add(sub.getMethod(callee.getName(),
-								callee.getParameterTypes(),
-								callee.getReturnType()));
-					}
-				}
-			}
-		}
-
-		StringBuilder sb = new StringBuilder();
-		sb.append("Call " + call);
-		sb.append(" may go to:\n");
-		for (SootMethod m : res) {
-			sb.append("\t");
-			sb.append(m.getSignature());
-			sb.append("\n");
-		}
-		System.err.println(sb.toString());
-
-		// TODO: we have to sort the methods by type.
-		return res;
 	}
 
 	private void translateAssignment(Unit u, Value lhs, Value rhs) {

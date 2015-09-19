@@ -18,8 +18,6 @@ import soot.SootMethod;
 import soot.shimple.Shimple;
 import soot.shimple.ShimpleBody;
 import soot.shimple.ShimpleFactory;
-import soot.tagkit.SourceFileTag;
-import soot.tagkit.Tag;
 
 /**
  * This is the main class for the translation. It first invokes Soot to load all
@@ -30,8 +28,6 @@ import soot.tagkit.Tag;
  *
  */
 public class SootToCfg {
-
-	private String currentSourceFile = null;
 
 	/**
 	 * Run Soot and translate classes into Boogie/Horn
@@ -64,16 +60,9 @@ public class SootToCfg {
 
 		if (sc.isApplicationClass()) {
 			Log.info("Class " + sc.getName() + "  " + sc.resolvingLevel());
-
-			for (Tag tag : sc.getTags()) {
-				if (tag instanceof SourceFileTag) {
-					SourceFileTag t = (SourceFileTag) tag;
-					currentSourceFile = t.getAbsolutePath();
-				} else {
-					Log.error("Unprocessed tag " + tag.getClass() + " - " + tag);
-				}
-			}
-
+			
+			SootTranslationHelpers.v().setCurrentClass(sc);
+			
 			for (SootMethod sm : sc.getMethods()) {
 				processSootMethod(sm);
 			}
@@ -82,7 +71,7 @@ public class SootToCfg {
 	}
 
 	private void processSootMethod(SootMethod sm) {
-		if (sm.isConcrete()) {	
+		if (sm.isConcrete()) {
 			//TODO: remove
 			if (!sm.getBytecodeSignature().equals(
 					"<translation_tests.TranslationTest01: virtualCalls(I)V>"))
@@ -90,12 +79,13 @@ public class SootToCfg {
 			//-------------
 			
 			Log.info("\t" + sm.getBytecodeSignature());
+			SootTranslationHelpers.v().setCurrentMethod(sm);
 			processMethodBody(Shimple.v().newBody(sm.retrieveActiveBody()));
 		}
 	}
 
 	private void processMethodBody(ShimpleBody body) {
-		MethodInfo mi = new MethodInfo(body.getMethod(), currentSourceFile);
+		MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
 
 		SootPreprocessing.v().removeAssertionRelatedNonsense(body);
 		SootPreprocessing.v().reconstructJavaAssertions(body);
