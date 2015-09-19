@@ -25,10 +25,12 @@ import java.util.List;
 import jayhorn.cfg.expression.BinaryExpression;
 import jayhorn.cfg.expression.BinaryExpression.BinaryOperator;
 import jayhorn.cfg.expression.Expression;
+import jayhorn.cfg.expression.IdentifierExpression;
 import jayhorn.cfg.expression.IntegerLiteral;
 import jayhorn.cfg.expression.IteExpression;
 import jayhorn.cfg.expression.UnaryExpression;
 import jayhorn.cfg.expression.UnaryExpression.UnaryOperator;
+import jayhorn.soot.SootTranslationHelpers;
 import jayhorn.soot.memory_model.MemoryModel;
 import jayhorn.soot.util.MethodInfo;
 import soot.Local;
@@ -204,7 +206,8 @@ public class SootValueSwitch implements ShimpleValueSwitch {
 
 	@Override
 	public void caseClassConstant(ClassConstant arg0) {
-		this.expressionStack.add(this.memoryModel.mkClassConstant(arg0));
+		Expression e = new IdentifierExpression(SootTranslationHelpers.v().lookupClassConstant(arg0));
+		this.expressionStack.add(e);
 	}
 
 	@Override

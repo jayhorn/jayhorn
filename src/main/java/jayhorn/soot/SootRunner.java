@@ -123,8 +123,8 @@ public class SootRunner {
 
 			// set soot-class-path
 			sootOpt.set_soot_classpath(cp);
-			sootOpt.set_src_prec(soot.options.Options.src_prec_class);
-
+			sootOpt.set_src_prec(soot.options.Options.src_prec_class);			
+			
 			List<String> processDirs = new LinkedList<String>();
 			processDirs.add(path);
 			sootOpt.set_process_dir(processDirs);
@@ -178,7 +178,7 @@ public class SootRunner {
 		sootOpt.set_keep_line_number(true);
 		sootOpt.set_prepend_classpath(true); //-pp
 		sootOpt.set_output_format(soot.options.Options.output_format_none);
-		sootOpt.set_allow_phantom_refs(true);
+		sootOpt.set_allow_phantom_refs(true);		
 				
 		for (String s : classes) {
 			Scene.v().addBasicClass(s, SootClass.BODIES);
@@ -206,6 +206,7 @@ public class SootRunner {
 			case SPARK:
 				sootOpt.setPhaseOption("cg.spark", "on");
 				sootOpt.setPhaseOption("cg.spark", "string-constants:true");
+				sootOpt.setPhaseOption("cg.spark", "on-fly-cg:false");
 				break;
 			default:
 				throw new RuntimeException("Invalid callgraph algorithm");
@@ -238,6 +239,12 @@ public class SootRunner {
 		        PackManager.v().getPack("wjpp").apply();
 		        PackManager.v().getPack("cg").apply();
 			}			
+			
+			/*
+			 * TODO: apply some preprocessing stuff like:
+			 * soot.jimple.toolkits.base
+			 * or maybe the optimize option from soot.
+			 */
 			
 			for (SootClass sc : Scene.v().getClasses()) {
 				if (classes.contains(sc.getName())) {

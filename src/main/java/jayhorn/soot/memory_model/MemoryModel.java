@@ -8,7 +8,6 @@ import jayhorn.soot.visitors.SootStmtSwitch;
 import jayhorn.soot.visitors.SootValueSwitch;
 import soot.Value;
 import soot.jimple.ArrayRef;
-import soot.jimple.ClassConstant;
 import soot.jimple.DoubleConstant;
 import soot.jimple.FloatConstant;
 import soot.jimple.InstanceFieldRef;
@@ -18,7 +17,6 @@ import soot.jimple.NewExpr;
 import soot.jimple.NewMultiArrayExpr;
 import soot.jimple.StaticFieldRef;
 import soot.jimple.StringConstant;
-import soot.jimple.ThisRef;
 
 /**
  * @author schaef
@@ -75,11 +73,6 @@ public class MemoryModel {
 	}
 
 	public Expression mkStringConstant(StringConstant arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Expression mkClassConstant(ClassConstant arg0) {
 		// TODO Auto-generated method stub
 		return null;
 	}

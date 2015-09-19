@@ -49,7 +49,7 @@ public class MethodInfo {
 		if (!(sm.getReturnType() instanceof VoidType)) {
 			this.returnVariable = new Variable(returnVariableName,
 					SootTranslationHelpers.v()
-							.translateType(sm.getReturnType()));
+							.lookupType(sm.getReturnType()));
 		} else {
 			this.returnVariable = null;
 		}
@@ -57,7 +57,7 @@ public class MethodInfo {
 		// create a return variable for exceptional returns.
 		this.exceptionalReturnVariable = new Variable(exceptionVariableName,
 				SootTranslationHelpers.v()
-						.translateType(
+						.lookupType(
 								Scene.v().getSootClass("java.lang.Throwable")
 										.getType()));
 
@@ -65,14 +65,14 @@ public class MethodInfo {
 		// passed as the first parameter to the method.
 		if (!sm.isStatic()) {
 			this.thisVariable = new Variable(thisVariableName,
-					SootTranslationHelpers.v().translateType(
+					SootTranslationHelpers.v().lookupType(
 							sm.getDeclaringClass().getType()));
 		}
 
 		for (int i = 0; i < sm.getParameterCount(); i++) {
 			String param_name = parameterPrefix + i;
 			parameterList.add(new Variable(param_name, SootTranslationHelpers
-					.v().translateType(sm.getParameterType(i))));
+					.v().lookupType(sm.getParameterType(i))));
 
 			// assumeParameterType(id, sm.getParameterType(i));
 
@@ -109,7 +109,7 @@ public class MethodInfo {
 	private Variable createLocalVariable(Local arg0) {
 		// TODO
 		return new Variable(arg0.getName(), SootTranslationHelpers.v()
-				.translateType(arg0.getType()));
+				.lookupType(arg0.getType()));
 	}
 
 	public CfgBlock lookupCfgBlock(Unit u) {
