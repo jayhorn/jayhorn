@@ -73,9 +73,9 @@ public class SootToCfg {
 	private void processSootMethod(SootMethod sm) {
 		if (sm.isConcrete()) {
 			//TODO: remove
-			if (!sm.getBytecodeSignature().equals(
-					"<translation_tests.TranslationTest01: virtualCalls(I)V>"))
-				return;
+//			if (!sm.getBytecodeSignature().equals(
+//					"<translation_tests.TranslationTest01: virtualCalls(I)V>"))
+//				return;
 			//-------------
 			
 			Log.info("\t" + sm.getBytecodeSignature());
@@ -90,7 +90,7 @@ public class SootToCfg {
 		SootPreprocessing.v().removeAssertionRelatedNonsense(body);
 		SootPreprocessing.v().reconstructJavaAssertions(body);
 		
-//		System.err.println(body.toString());
+		System.err.println(body.toString());
 
 		ShimpleFactory sf = soot.G.v().shimpleFactory;
 		sf.setBody(body);
