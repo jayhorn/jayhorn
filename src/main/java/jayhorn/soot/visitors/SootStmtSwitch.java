@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import jayhorn.cfg.Program;
 import jayhorn.cfg.Variable;
 import jayhorn.cfg.expression.BinaryExpression;
 import jayhorn.cfg.expression.BinaryExpression.BinaryOperator;
@@ -47,6 +48,7 @@ import soot.PatchingChain;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
+import soot.jimple.ArrayRef;
 import soot.jimple.AssignStmt;
 import soot.jimple.BreakpointStmt;
 import soot.jimple.DynamicInvokeExpr;
@@ -55,6 +57,7 @@ import soot.jimple.ExitMonitorStmt;
 import soot.jimple.GotoStmt;
 import soot.jimple.IdentityStmt;
 import soot.jimple.IfStmt;
+import soot.jimple.InstanceFieldRef;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.InvokeStmt;
@@ -88,11 +91,13 @@ public class SootStmtSwitch implements StmtSwitch {
 	private boolean insideMonitor = false;
 	
 	private Stmt currentStmt;
+	private final Program program;
 
 	public SootStmtSwitch(ShimpleBody body, MethodInfo mi) {
 		this.methodInfo = mi;
 		this.sootMethod = body.getMethod();
 		this.shimpleBody = body;
+		this.program = SootTranslationHelpers.v().getProgram();
 
 		this.valueSwitch = new SootValueSwitch(this);
 
@@ -416,7 +421,7 @@ public class SootStmtSwitch implements StmtSwitch {
 		receiver.add(this.methodInfo.getExceptionVariable());
 
 		if (possibleTargets.size() == 1) {
-			Method method = SootTranslationHelpers.v().loopupMethod(
+			Method method = program.loopupMethod(
 					possibleTargets.get(0));
 			CallStatement stmt = new CallStatement(u, method, args, receiver);
 			this.currentBlock.addStatement(stmt);
@@ -425,7 +430,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			assert (baseExpression != null);
 			CfgBlock join = new CfgBlock();
 			for (SootMethod m : possibleTargets) {
-				Method method = SootTranslationHelpers.v().loopupMethod(m);
+				Method method = program.loopupMethod(m);
 				Variable v = SootTranslationHelpers.v().lookupTypeVariable(m.getDeclaringClass().getType());
 
 				CfgBlock thenBlock = new CfgBlock();
@@ -500,11 +505,20 @@ public class SootStmtSwitch implements StmtSwitch {
 	}
 
 	private void translateAssignment(Unit u, Value lhs, Value rhs) {
-		lhs.apply(valueSwitch);
-		Expression left = valueSwitch.popExpression();
-		rhs.apply(valueSwitch);
-		Expression right = valueSwitch.popExpression();
-		currentBlock.addStatement(new AssignStatement(u, left, right));
+		/*
+		 * Distinguish the case when the lhs is an array/instance access
+		 * to ensure that we create an ArrayStoreExpression and not an
+		 * assignment of two reads.
+		 */
+		if (lhs instanceof InstanceFieldRef || lhs instanceof ArrayRef) {
+			SootTranslationHelpers.v().getMemoryModel().mkHeapAssignment(u, lhs, rhs);
+		} else {
+			lhs.apply(valueSwitch);
+			Expression left = valueSwitch.popExpression();
+			rhs.apply(valueSwitch);
+			Expression right = valueSwitch.popExpression();
+			currentBlock.addStatement(new AssignStatement(u, left, right));
+		}
 	}
 
 }

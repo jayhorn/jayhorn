@@ -8,7 +8,6 @@ import java.util.Map;
 
 import jayhorn.cfg.Program;
 import jayhorn.cfg.Variable;
-import jayhorn.cfg.method.Method;
 import jayhorn.soot.memory_model.MemoryModel;
 import jayhorn.soot.memory_model.SimpleBurstallBornatModel;
 import jayhorn.util.Log;
@@ -30,8 +29,7 @@ public enum SootTranslationHelpers {
 	public static SootTranslationHelpers v() {
 		return INSTANCE;
 	}
-	
-	private final Map<SootMethod, Method> methods = new HashMap<SootMethod, Method>();
+		
 	private final Map<soot.Type, Variable> typeVariables = new HashMap<soot.Type, Variable>();	
 	
 	private SootMethod currentMethod;
@@ -62,15 +60,7 @@ public enum SootTranslationHelpers {
 		}
 		return this.memoryModel;
 	}
-	
-	public Method loopupMethod(SootMethod m) {
-		if (!methods.containsKey(m)) {
-			Method method = new Method(m);
-			methods.put(m, method);
-		}
-		return methods.get(m);
-	}
-		
+			
 	public Variable lookupClassConstant(ClassConstant cc) {
 		throw new RuntimeException("Not implemented");
 	}

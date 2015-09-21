@@ -3,13 +3,7 @@
  */
 package jayhorn.soot;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import jayhorn.cfg.Program;
-import jayhorn.cfg.method.CfgBlock;
 import jayhorn.soot.util.MethodInfo;
 import jayhorn.soot.visitors.SootStmtSwitch;
 import jayhorn.util.Log;
@@ -101,28 +95,8 @@ public class SootToCfg {
 
 		SootStmtSwitch ss = new SootStmtSwitch(body, mi); 
 		mi.setSource(ss.getEntryBlock());
-		debugPrint(mi);
+		
+		mi.finalizeAndAddToProgram();
+		System.err.println(mi.getMethod());
 	}
-
-	private void debugPrint(MethodInfo mi) {
-		StringBuilder sb = new StringBuilder();
-		List<CfgBlock> todo = new LinkedList<CfgBlock>();
-		todo.add(mi.getSource());
-		Set<CfgBlock> done = new HashSet<CfgBlock>();
-		while (!todo.isEmpty()) {
-			CfgBlock current = todo.remove(0);
-			done.add(current);
-			if (mi.getSource()==current) {
-				sb.append("Root ->");
-			}
-			sb.append(current);
-			for (CfgBlock succ : current.getSuccessors()) {
-				if (!todo.contains(succ) && !done.contains(succ)) {
-					todo.add(succ);
-				}
-			}
-		}
-		System.err.println(sb.toString());
-	}
-
 }

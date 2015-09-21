@@ -3,8 +3,9 @@
  */
 package jayhorn.soot.util;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,7 @@ import jayhorn.cfg.Variable;
 import jayhorn.cfg.expression.Expression;
 import jayhorn.cfg.expression.IdentifierExpression;
 import jayhorn.cfg.method.CfgBlock;
+import jayhorn.cfg.method.Method;
 import jayhorn.cfg.type.Type;
 import jayhorn.soot.SootTranslationHelpers;
 import jayhorn.soot.memory_model.MemoryModel;
@@ -38,6 +40,7 @@ public class MethodInfo {
 	private static final String thisVariableName = "$this_";
 
 	private final MemoryModel memoryModel;
+	private final SootMethod sootMethod;
 
 	private CfgBlock source = null, sink = null;
 	private Map<Unit, CfgBlock> unitToBlockMap = new HashMap<Unit, CfgBlock>();
@@ -46,9 +49,10 @@ public class MethodInfo {
 
 	private Variable returnVariable, exceptionalReturnVariable, thisVariable;
 
-	private final Set<Variable> freshLocals = new HashSet<Variable>(); 
+	private final Set<Variable> freshLocals = new LinkedHashSet<Variable>(); 
 	
 	public MethodInfo(SootMethod sm, String sourceFileName) {
+		this.sootMethod = sm;
 		this.memoryModel = SootTranslationHelpers.v().getMemoryModel();
 		sink = new CfgBlock();
 		this.sourceFileName = sourceFileName;
@@ -82,6 +86,24 @@ public class MethodInfo {
 			// assumeParameterType(id, sm.getParameterType(i));
 
 		}
+	}
+	
+	public Method getMethod() {
+		return SootTranslationHelpers.v().getProgram().loopupMethod(this.sootMethod);
+	}
+	
+	/**
+	 * Called after the method has been translated.
+	 * Looks up the corresponding Method object in Program
+	 * and fills in all the information. Should only be called
+	 * once per method.  
+	 */
+	public void finalizeAndAddToProgram() {
+		Method m = SootTranslationHelpers.v().getProgram().loopupMethod(this.sootMethod);
+		Collection<Variable> locals = new LinkedHashSet<Variable>();
+		locals.addAll(this.localsMap.values());
+		locals.addAll(this.freshLocals);
+		m.initialize(this.thisVariable, this.returnVariable, this.exceptionalReturnVariable, this.parameterList, locals, source);
 	}
 
 	public String getSourceFileName() {

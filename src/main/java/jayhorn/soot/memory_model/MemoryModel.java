@@ -7,6 +7,7 @@ import jayhorn.cfg.expression.Expression;
 import jayhorn.cfg.type.Type;
 import jayhorn.soot.visitors.SootStmtSwitch;
 import jayhorn.soot.visitors.SootValueSwitch;
+import soot.Unit;
 import soot.Value;
 import soot.jimple.ArrayRef;
 import soot.jimple.DoubleConstant;
@@ -37,6 +38,8 @@ public abstract class MemoryModel {
 	public void setValueSwitch(SootValueSwitch vs) {
 		this.valueSwitch = vs;
 	}
+	
+	public abstract void mkHeapAssignment(Unit u, Value lhs, Value rhs);
 	
 	public abstract Expression mkNewExpr(NewExpr arg0);
 

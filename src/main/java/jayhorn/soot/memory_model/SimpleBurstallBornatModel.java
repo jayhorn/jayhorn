@@ -8,15 +8,20 @@ import java.util.Map;
 
 import jayhorn.cfg.Program;
 import jayhorn.cfg.Variable;
+import jayhorn.cfg.expression.ArrayAccessExpression;
+import jayhorn.cfg.expression.ArrayStoreExpression;
 import jayhorn.cfg.expression.BinaryExpression;
 import jayhorn.cfg.expression.BinaryExpression.BinaryOperator;
 import jayhorn.cfg.expression.Expression;
 import jayhorn.cfg.expression.IdentifierExpression;
 import jayhorn.cfg.expression.InstanceOfExpression;
+import jayhorn.cfg.statement.AssignStatement;
 import jayhorn.cfg.statement.AssumeStatement;
 import jayhorn.cfg.type.Type;
 import jayhorn.soot.SootTranslationHelpers;
 import jayhorn.soot.util.MethodInfo;
+import soot.SootField;
+import soot.Unit;
 import soot.Value;
 import soot.jimple.ArrayRef;
 import soot.jimple.DoubleConstant;
@@ -34,14 +39,49 @@ import soot.jimple.StringConstant;
  */
 public class SimpleBurstallBornatModel extends MemoryModel {
 
-	private Variable nullConstant;
+	private final Variable nullConstant, heapVariable;
 	private Program program;
 	private final Map<soot.Type, jayhorn.cfg.type.Type> types = new HashMap<soot.Type, jayhorn.cfg.type.Type>();
+	private final Map<SootField, Variable> fieldGlobals = new HashMap<SootField, Variable>();
 
 	public SimpleBurstallBornatModel() {
 		this.program = SootTranslationHelpers.v().getProgram();
 		// TODO
 		this.nullConstant = this.program.loopupGlobalVariable("$null", null);
+		this.heapVariable = this.program.loopupGlobalVariable("$heap", null);
+	}
+
+	@Override
+	public void mkHeapAssignment(Unit u, Value lhs, Value rhs) {
+		rhs.apply(valueSwitch);
+		Expression value = valueSwitch.popExpression();
+		Expression target;
+		Expression[] indices;
+		if (lhs instanceof InstanceFieldRef) {
+			InstanceFieldRef ifr = (InstanceFieldRef) lhs;
+			ifr.getBase().apply(valueSwitch);
+			Expression base = valueSwitch.popExpression();
+			// TODO: assert that base!=null
+			Variable fieldVar = lookupField(ifr.getField());
+			indices = new Expression[] { base,
+					new IdentifierExpression(fieldVar) };
+			target = new IdentifierExpression(this.heapVariable);
+		} else if (lhs instanceof ArrayRef) {
+			ArrayRef ar = (ArrayRef) lhs;
+			ar.getBase().apply(valueSwitch);
+			Expression base = valueSwitch.popExpression();
+			// TODO: assert that idx is in bounds.
+			ar.getIndex().apply(valueSwitch);
+			Expression arrayIdx = valueSwitch.popExpression();
+			indices = new Expression[] { base, arrayIdx };
+			target = new IdentifierExpression(this.heapVariable);
+			// TODO: only a hack.
+		} else {
+			throw new RuntimeException();
+		}
+		this.statementSwitch.push(new AssignStatement(u,
+				new IdentifierExpression(heapVariable),
+				new ArrayStoreExpression(target, indices, value)));
 	}
 
 	/*
@@ -54,15 +94,16 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 		Type newType = this.lookupType(arg0.getBaseType());
 		MethodInfo mi = this.statementSwitch.getMethodInto();
 		Variable newLocal = mi.createFreshLocal("$new", newType);
-		//add: assume newLocal!=null
+		// add: assume newLocal!=null
 		this.statementSwitch.push(new AssumeStatement(this.statementSwitch
 				.getCurrentStmt(), new BinaryExpression(BinaryOperator.Ne,
 				new IdentifierExpression(newLocal), this.mkNullConstant())));
-		//add: assume newLocal instanceof newType
+		// add: assume newLocal instanceof newType
 		this.statementSwitch.push(new AssumeStatement(this.statementSwitch
 				.getCurrentStmt(), new InstanceOfExpression(
-				new IdentifierExpression(newLocal), SootTranslationHelpers.v().lookupTypeVariable(arg0.getBaseType()))));		
-		
+				new IdentifierExpression(newLocal), SootTranslationHelpers.v()
+						.lookupTypeVariable(arg0.getBaseType()))));
+
 		return new IdentifierExpression(newLocal);
 	}
 
@@ -126,8 +167,12 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 	@Override
 	public Expression mkInstanceFieldRefExpr(InstanceFieldRef arg0) {
 		arg0.getBase().apply(valueSwitch);
-		// TODO Auto-generated method stub
-		return null;
+		Expression base = valueSwitch.popExpression();
+		Variable fieldVar = lookupField(arg0.getField());
+		// TODO call the error model.
+		return new ArrayAccessExpression(new IdentifierExpression(
+				this.heapVariable), new Expression[] { base,
+				new IdentifierExpression(fieldVar) });
 	}
 
 	/*
@@ -139,8 +184,18 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkStaticFieldRefExpr(StaticFieldRef arg0) {
-		// TODO Auto-generated method stub
-		return null;
+		return new IdentifierExpression(lookupField(arg0.getField()));
+	}
+
+	private Variable lookupField(SootField field) {
+		if (!this.fieldGlobals.containsKey(field)) {
+			final String fieldName = field.getDeclaringClass().getName() + "."
+					+ field.getName();
+			Variable fieldVar = this.program.loopupGlobalVariable(fieldName,
+					this.lookupType(field.getType()));
+			this.fieldGlobals.put(field, fieldVar);
+		}
+		return this.fieldGlobals.get(field);
 	}
 
 	/*

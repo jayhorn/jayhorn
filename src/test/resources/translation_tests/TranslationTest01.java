@@ -12,8 +12,9 @@ public class TranslationTest01 {
 //		return 3;
 //	}
 
+	Object o;
+	
 	public void virtualCalls(int i) {
-		Object o;
 		if (i>0) {
 			o = new TranslationTest01();
 		} else {
