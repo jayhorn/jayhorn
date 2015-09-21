@@ -4,6 +4,7 @@
 package jayhorn.soot.memory_model;
 
 import jayhorn.cfg.expression.Expression;
+import jayhorn.cfg.type.Type;
 import jayhorn.soot.visitors.SootStmtSwitch;
 import jayhorn.soot.visitors.SootValueSwitch;
 import soot.Value;
@@ -11,7 +12,6 @@ import soot.jimple.ArrayRef;
 import soot.jimple.DoubleConstant;
 import soot.jimple.FloatConstant;
 import soot.jimple.InstanceFieldRef;
-import soot.jimple.InstanceOfExpr;
 import soot.jimple.NewArrayExpr;
 import soot.jimple.NewExpr;
 import soot.jimple.NewMultiArrayExpr;
@@ -22,75 +22,43 @@ import soot.jimple.StringConstant;
  * @author schaef
  *
  */
-public class MemoryModel {
+public abstract class MemoryModel {
 
-//	private SootStmtSwitch statementSwitch = null;
-//	private SootValueSwitch valueSwitch = null;
+	protected SootStmtSwitch statementSwitch;
+	protected SootValueSwitch valueSwitch;
 		
-	public MemoryModel(SootStmtSwitch ss, SootValueSwitch vs) {
-		
+	public MemoryModel() {
 	}
 	
-	public Expression mkNewExpr(NewExpr arg0) {
-		// TODO Auto-generated method stub
-		return null;
+	public void setStmtSwitch(SootStmtSwitch ss) {
+		this.statementSwitch = ss;
 	}
-
-	public Expression mkNewArrayExpr(NewArrayExpr arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Expression mkNewMultiArrayExpr(NewMultiArrayExpr arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Expression mkArrayRefExpr(ArrayRef arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Expression mkArrayLengthExpr(Value arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	
-	public Expression mkInstanceFieldRefExpr(InstanceFieldRef arg0) {
-		// TODO Auto-generated method stub
-		return null;
+	public void setValueSwitch(SootValueSwitch vs) {
+		this.valueSwitch = vs;
 	}
-
-	public Expression mkStaticFieldRefExpr(StaticFieldRef arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Expression mkNullConstant() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Expression mkStringConstant(StringConstant arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Expression mkDoubleConstant(DoubleConstant arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Expression mkFloatConstant(FloatConstant arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Expression mkInstanceOfExpr(InstanceOfExpr arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	
+	public abstract Expression mkNewExpr(NewExpr arg0);
+
+	public abstract Expression mkNewArrayExpr(NewArrayExpr arg0);
+
+	public abstract Expression mkNewMultiArrayExpr(NewMultiArrayExpr arg0);
+
+	public abstract Expression mkArrayRefExpr(ArrayRef arg0);
+
+	public abstract Expression mkArrayLengthExpr(Value arg0);
+	
+	public abstract Expression mkInstanceFieldRefExpr(InstanceFieldRef arg0);
+
+	public abstract Expression mkStaticFieldRefExpr(StaticFieldRef arg0);
+
+	public abstract Expression mkNullConstant();
+
+	public abstract Expression mkStringConstant(StringConstant arg0);
+
+	public abstract Expression mkDoubleConstant(DoubleConstant arg0);
+
+	public abstract Expression mkFloatConstant(FloatConstant arg0);
+
+	public abstract Type lookupType(soot.Type t);
 }

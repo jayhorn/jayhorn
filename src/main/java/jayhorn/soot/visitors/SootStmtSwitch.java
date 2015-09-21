@@ -86,6 +86,8 @@ public class SootStmtSwitch implements StmtSwitch {
 
 	private CfgBlock currentBlock, entryBlock, exitBlock;
 	private boolean insideMonitor = false;
+	
+	private Stmt currentStmt;
 
 	public SootStmtSwitch(ShimpleBody body, MethodInfo mi) {
 		this.methodInfo = mi;
@@ -134,6 +136,10 @@ public class SootStmtSwitch implements StmtSwitch {
 		return this.sootMethod;
 	}
 
+	public Stmt getCurrentStmt() {
+		return this.currentStmt;
+	}
+	
 	/**
 	 * Checks if the current statement is synchronized or inside a monitor
 	 * 
@@ -149,6 +155,7 @@ public class SootStmtSwitch implements StmtSwitch {
 	}
 
 	private void precheck(Stmt st) {
+		this.currentStmt = st;
 		// first check if we already created a block
 		// for this statement.
 		if (methodInfo.findBlock(st) != null) {
@@ -419,8 +426,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			CfgBlock join = new CfgBlock();
 			for (SootMethod m : possibleTargets) {
 				Method method = SootTranslationHelpers.v().loopupMethod(m);
-				Variable v = SootTranslationHelpers.v().lookupClassVariable(
-						m.getDeclaringClass());
+				Variable v = SootTranslationHelpers.v().lookupTypeVariable(m.getDeclaringClass().getType());
 
 				CfgBlock thenBlock = new CfgBlock();
 				thenBlock.addStatement(new CallStatement(u, method, args,

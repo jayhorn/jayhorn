@@ -6,10 +6,13 @@ package jayhorn.soot;
 import java.util.HashMap;
 import java.util.Map;
 
+import jayhorn.cfg.Program;
 import jayhorn.cfg.Variable;
 import jayhorn.cfg.method.Method;
-import jayhorn.cfg.type.Type;
+import jayhorn.soot.memory_model.MemoryModel;
+import jayhorn.soot.memory_model.SimpleBurstallBornatModel;
 import jayhorn.util.Log;
+import soot.RefType;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.jimple.ClassConstant;
@@ -29,17 +32,35 @@ public enum SootTranslationHelpers {
 	}
 	
 	private final Map<SootMethod, Method> methods = new HashMap<SootMethod, Method>();
-	private final Map<SootClass, Variable> classVariables = new HashMap<SootClass, Variable>();
-	private final Map<soot.Type, jayhorn.cfg.type.Type> types = new HashMap<soot.Type, jayhorn.cfg.type.Type>();
+	private final Map<soot.Type, Variable> typeVariables = new HashMap<soot.Type, Variable>();	
 	
 	private SootMethod currentMethod;
 	private SootClass currentClass;
 	private String currentSourceFileName;
+	
+	private MemoryModel memoryModel;
+	private Program program;
 
 	private long uniqueNumber = 0L;
 	
 	public long getUniqueNumber() {
 		return this.uniqueNumber++;
+	}
+
+	public void setProgram(Program p) {
+		this.program = p;
+	}
+	
+	public Program getProgram() {
+		return this.program;
+	}
+	
+	public MemoryModel getMemoryModel() {
+		if (this.memoryModel==null) {
+			//TODO:
+			this.memoryModel = new SimpleBurstallBornatModel();
+		}
+		return this.memoryModel;
 	}
 	
 	public Method loopupMethod(SootMethod m) {
@@ -49,27 +70,28 @@ public enum SootTranslationHelpers {
 		}
 		return methods.get(m);
 	}
-	
-	public Type lookupType(soot.Type t) {
-		if (!types.containsKey(t)) {
-			//TODO:
-		}
-		return types.get(t);
-	}
-	
+		
 	public Variable lookupClassConstant(ClassConstant cc) {
 		throw new RuntimeException("Not implemented");
 	}
 	
-	public Variable lookupClassVariable(SootClass sc) {
-		if (!classVariables.containsKey(sc)) {
-			Variable var = new Variable(sc.getName(), lookupType(sc.getType()));
-			classVariables.put(sc, var);
-			
+	public Variable lookupTypeVariable(soot.Type t) {
+		if (!typeVariables.containsKey(t)) {			
+			Variable var = new Variable(createTypeName(t), this.memoryModel.lookupType(t));
+			typeVariables.put(t, var);	
 		}
-		return classVariables.get(sc);
+		return typeVariables.get(t);
 	}
-
+	
+	private String createTypeName(soot.Type t) {
+		if (t instanceof RefType) {
+			RefType rt = (RefType)t;
+			return rt.getClassName();
+		} else {
+			throw new RuntimeException("Did not expect that!");
+		}
+	}
+	
 	public SootClass getCurrentClass() {
 		return currentClass;
 	}

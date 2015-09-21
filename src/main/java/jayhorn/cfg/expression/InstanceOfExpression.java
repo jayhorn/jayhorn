@@ -28,7 +28,7 @@ public class InstanceOfExpression extends Expression {
 		sb.append("(");
 		sb.append(this.expression);
 		sb.append(" instanceof ");
-		sb.append(this.typeVariable);
+		sb.append(this.typeVariable.getName());
 		sb.append(")");
 		return sb.toString();
 	}

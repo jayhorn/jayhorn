@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import jayhorn.cfg.Program;
 import jayhorn.cfg.method.CfgBlock;
 import jayhorn.soot.util.MethodInfo;
 import jayhorn.soot.visitors.SootStmtSwitch;
@@ -42,6 +43,9 @@ public class SootToCfg {
 		// init the helper classes for pre-processing
 		SootPreprocessing.v().initialize();
 
+		//Create a new program
+		SootTranslationHelpers.v().setProgram(new Program());
+		
 		for (SootClass sc : Scene.v().getClasses()) {
 			processSootClass(sc);
 		}

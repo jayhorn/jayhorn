@@ -4,15 +4,19 @@
 package jayhorn.soot.util;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import jayhorn.cfg.Variable;
 import jayhorn.cfg.expression.Expression;
 import jayhorn.cfg.expression.IdentifierExpression;
 import jayhorn.cfg.method.CfgBlock;
+import jayhorn.cfg.type.Type;
 import jayhorn.soot.SootTranslationHelpers;
+import jayhorn.soot.memory_model.MemoryModel;
 import soot.Local;
 import soot.Scene;
 import soot.SootMethod;
@@ -33,6 +37,8 @@ public class MethodInfo {
 	private static final String exceptionVariableName = "$exc_";
 	private static final String thisVariableName = "$this_";
 
+	private final MemoryModel memoryModel;
+
 	private CfgBlock source = null, sink = null;
 	private Map<Unit, CfgBlock> unitToBlockMap = new HashMap<Unit, CfgBlock>();
 	private Map<Local, Variable> localsMap = new HashMap<Local, Variable>();
@@ -40,7 +46,10 @@ public class MethodInfo {
 
 	private Variable returnVariable, exceptionalReturnVariable, thisVariable;
 
+	private final Set<Variable> freshLocals = new HashSet<Variable>(); 
+	
 	public MethodInfo(SootMethod sm, String sourceFileName) {
+		this.memoryModel = SootTranslationHelpers.v().getMemoryModel();
 		sink = new CfgBlock();
 		this.sourceFileName = sourceFileName;
 
@@ -48,31 +57,27 @@ public class MethodInfo {
 		// return void.
 		if (!(sm.getReturnType() instanceof VoidType)) {
 			this.returnVariable = new Variable(returnVariableName,
-					SootTranslationHelpers.v()
-							.lookupType(sm.getReturnType()));
+					memoryModel.lookupType(sm.getReturnType()));
 		} else {
 			this.returnVariable = null;
 		}
 
 		// create a return variable for exceptional returns.
 		this.exceptionalReturnVariable = new Variable(exceptionVariableName,
-				SootTranslationHelpers.v()
-						.lookupType(
-								Scene.v().getSootClass("java.lang.Throwable")
-										.getType()));
+				memoryModel.lookupType(Scene.v()
+						.getSootClass("java.lang.Throwable").getType()));
 
 		// If the method is not static, create a this-variable which is
 		// passed as the first parameter to the method.
 		if (!sm.isStatic()) {
 			this.thisVariable = new Variable(thisVariableName,
-					SootTranslationHelpers.v().lookupType(
-							sm.getDeclaringClass().getType()));
+					memoryModel.lookupType(sm.getDeclaringClass().getType()));
 		}
 
 		for (int i = 0; i < sm.getParameterCount(); i++) {
 			String param_name = parameterPrefix + i;
-			parameterList.add(new Variable(param_name, SootTranslationHelpers
-					.v().lookupType(sm.getParameterType(i))));
+			parameterList.add(new Variable(param_name, memoryModel
+					.lookupType(sm.getParameterType(i))));
 
 			// assumeParameterType(id, sm.getParameterType(i));
 
@@ -93,8 +98,8 @@ public class MethodInfo {
 
 	public Expression getThisVariable() {
 		return new IdentifierExpression(this.thisVariable);
-	}	
-	
+	}
+
 	public Expression lookupParameterRef(ParameterRef arg0) {
 		return new IdentifierExpression(parameterList.get(arg0.getIndex()));
 	}
@@ -108,8 +113,14 @@ public class MethodInfo {
 
 	private Variable createLocalVariable(Local arg0) {
 		// TODO
-		return new Variable(arg0.getName(), SootTranslationHelpers.v()
-				.lookupType(arg0.getType()));
+		return new Variable(arg0.getName(), memoryModel.lookupType(arg0
+				.getType()));
+	}
+	
+	public Variable createFreshLocal(String prefix, Type t) {
+		Variable v = new Variable(prefix+this.freshLocals.size(), t);
+		this.freshLocals.add(v);
+		return v;
 	}
 
 	public CfgBlock lookupCfgBlock(Unit u) {

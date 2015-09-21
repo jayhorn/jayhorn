@@ -22,10 +22,12 @@ package jayhorn.soot.visitors;
 import java.util.LinkedList;
 import java.util.List;
 
+import jayhorn.cfg.Variable;
 import jayhorn.cfg.expression.BinaryExpression;
 import jayhorn.cfg.expression.BinaryExpression.BinaryOperator;
 import jayhorn.cfg.expression.Expression;
 import jayhorn.cfg.expression.IdentifierExpression;
+import jayhorn.cfg.expression.InstanceOfExpression;
 import jayhorn.cfg.expression.IntegerLiteral;
 import jayhorn.cfg.expression.IteExpression;
 import jayhorn.cfg.expression.UnaryExpression;
@@ -99,7 +101,9 @@ public class SootValueSwitch implements ShimpleValueSwitch {
 
 	public SootValueSwitch(SootStmtSwitch ss) {
 		this.statementSwitch = ss;
-		this.memoryModel = new MemoryModel(this.statementSwitch, this);
+		this.memoryModel = SootTranslationHelpers.v().getMemoryModel();
+		this.memoryModel.setStmtSwitch(this.statementSwitch);
+		this.memoryModel.setValueSwitch(this);
 		this.methodInfo = this.statementSwitch.getMethodInto();
 	}
 
@@ -313,7 +317,11 @@ public class SootValueSwitch implements ShimpleValueSwitch {
 
 	@Override
 	public void caseInstanceOfExpr(InstanceOfExpr arg0) {
-		this.expressionStack.add(this.memoryModel.mkInstanceOfExpr(arg0));
+		arg0.getOp().apply(this);
+		Expression exp = this.popExpression();
+		arg0.getCheckType();
+		Variable v = SootTranslationHelpers.v().lookupTypeVariable(arg0.getCheckType()); //TODO		
+		this.expressionStack.add(new InstanceOfExpression(exp, v));
 	}
 
 	@Override
