@@ -17,7 +17,6 @@ import jayhorn.cfg.expression.IdentifierExpression;
 import jayhorn.cfg.method.CfgBlock;
 import jayhorn.cfg.method.Method;
 import jayhorn.cfg.type.Type;
-import jayhorn.soot.SootTranslationHelpers;
 import jayhorn.soot.memory_model.MemoryModel;
 import soot.Local;
 import soot.Scene;

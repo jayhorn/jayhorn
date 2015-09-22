@@ -1,7 +1,7 @@
 /**
  * 
  */
-package jayhorn.soot;
+package jayhorn.soot.util;
 
 import java.util.HashMap;
 import java.util.Map;

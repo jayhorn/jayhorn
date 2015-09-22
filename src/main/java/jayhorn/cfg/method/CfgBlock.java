@@ -11,7 +11,7 @@ import java.util.Map;
 import jayhorn.cfg.Node;
 import jayhorn.cfg.expression.Expression;
 import jayhorn.cfg.statement.Statement;
-import jayhorn.soot.SootTranslationHelpers;
+import jayhorn.soot.util.SootTranslationHelpers;
 
 /**
  * @author schaef

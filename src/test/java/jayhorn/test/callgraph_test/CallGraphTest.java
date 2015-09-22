@@ -59,10 +59,10 @@ public class CallGraphTest extends AbstractTest {
 		testWithCallgraphAlgorithm("none");
 	}	
 
-	@Test
-	public void test_spark() {		
-		testWithCallgraphAlgorithm("spark");
-	}	
+//	@Test
+//	public void test_spark() {		
+//		testWithCallgraphAlgorithm("spark");
+//	}	
 
 	//TODO: VTA and RTA are not yet working.
 //	@Test

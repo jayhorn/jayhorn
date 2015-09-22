@@ -15,6 +15,7 @@ import java.util.Set;
 
 import jayhorn.util.Log;
 import soot.ArrayType;
+import soot.Body;
 import soot.BooleanType;
 import soot.Local;
 import soot.Modifier;
@@ -36,8 +37,6 @@ import soot.jimple.NewExpr;
 import soot.jimple.StaticFieldRef;
 import soot.jimple.Stmt;
 import soot.jimple.ThrowStmt;
-import soot.shimple.PhiExpr;
-import soot.shimple.ShimpleBody;
 
 /**
  * @author schaef
@@ -89,7 +88,7 @@ public enum SootPreprocessing {
 	 * java assertions are translated into bytecode.
 	 * @param body
 	 */
-	public void removeAssertionRelatedNonsense(ShimpleBody body) {
+	public void removeAssertionRelatedNonsense(Body body) {
 		/*
 		 * Look for the following sequence and remove it.
 	        $r0 = class "translation_tests/TranslationTest01";
@@ -100,7 +99,6 @@ public enum SootPreprocessing {
 	     label1:
 	(1)     $z1_1 = 0;
 	     label2:
-	        $z1_2 = Phi($z1 #0, $z1_1 #1);
 	        <translation_tests.TranslationTest01: boolean $assertionsDisabled> = $z1_2;
 		 */
 		Set<Unit> unitsToRemove = new HashSet<Unit>();
@@ -115,8 +113,9 @@ public enum SootPreprocessing {
 					//search for $r0 = class "translation_tests/TranslationTest01";
 					if (rhs.getValue().equals(c)) {
 						unitsToRemove.add(u);
-						Stmt[] uslessBlock = new Stmt[7];
-						for (int i=0;i<7;i++) {
+						final int lookAhead = 6;
+						Stmt[] uslessBlock = new Stmt[lookAhead];
+						for (int i=0;i<lookAhead;i++) {
 							if (!iterator.hasNext()) {
 								unitsToRemove.clear();
 								break;
@@ -151,13 +150,8 @@ public enum SootPreprocessing {
 							unitsToRemove.clear();
 							continue;				        					        	
 				        }
-				        //$z1_2 = Phi($z1 #0, $z1_1 #1);				        
-				        if (!(uslessBlock[5] instanceof AssignStmt) || ! ( ((AssignStmt)uslessBlock[5]).getRightOp() instanceof PhiExpr)) {
-							unitsToRemove.clear();
-							continue;				        					        					        	
-				        }
 				        //<translation_tests.TranslationTest01: boolean $assertionsDisabled> = $z1_2;
-				        if (!(uslessBlock[6] instanceof AssignStmt) || !((AssignStmt)uslessBlock[6]).getLeftOp().toString().contains("$assertionsDisabled")) {
+				        if (!(uslessBlock[5] instanceof AssignStmt) || !((AssignStmt)uslessBlock[5]).getLeftOp().toString().contains("$assertionsDisabled")) {
 							unitsToRemove.clear();
 							continue;				        					        					        					        	
 				        }
@@ -193,7 +187,7 @@ public enum SootPreprocessing {
      *  
 	 * @param body
 	 */
-	public void reconstructJavaAssertions(ShimpleBody body) {
+	public void reconstructJavaAssertions(Body body) {
 		Set<Unit> unitsToRemove = new HashSet<Unit>();
 		Map<Unit, Value> assertionsToInsert = new HashMap<Unit,Value>();
 		

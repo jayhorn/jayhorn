@@ -12,20 +12,16 @@ public class TranslationTest01 {
 //		return 3;
 //	}
 
-	Object o;
+	String s1;
 	
 	public void virtualCalls(int i) {
+		Object o;
 		if (i>0) {
-			o = new TranslationTest01();
+			o = s1;
 		} else {
-			o = new String();
+			o = new TranslationTest01();
 		}
-		o.toString();
-	}
-	
-	@Override
-	public String toString() {
-		return null;
+		o.toString(); // may not be null.
 	}
 	
 //	public void withException() {

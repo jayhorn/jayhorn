@@ -22,6 +22,7 @@ package jayhorn.soot.visitors;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import jayhorn.cfg.Program;
 import jayhorn.cfg.Variable;
@@ -39,11 +40,13 @@ import jayhorn.cfg.statement.AssignStatement;
 import jayhorn.cfg.statement.CallStatement;
 import jayhorn.cfg.statement.Statement;
 import jayhorn.soot.SootPreprocessing;
-import jayhorn.soot.SootTranslationHelpers;
 import jayhorn.soot.inoke_resolver.InvokeResolver;
 import jayhorn.soot.inoke_resolver.SimpleInvokeResolver;
 import jayhorn.soot.util.MethodInfo;
+import jayhorn.soot.util.SootTranslationHelpers;
 import jayhorn.util.Log;
+import soot.Body;
+import soot.Immediate;
 import soot.PatchingChain;
 import soot.SootMethod;
 import soot.Unit;
@@ -51,6 +54,7 @@ import soot.Value;
 import soot.jimple.ArrayRef;
 import soot.jimple.AssignStmt;
 import soot.jimple.BreakpointStmt;
+import soot.jimple.DefinitionStmt;
 import soot.jimple.DynamicInvokeExpr;
 import soot.jimple.EnterMonitorStmt;
 import soot.jimple.ExitMonitorStmt;
@@ -72,7 +76,10 @@ import soot.jimple.Stmt;
 import soot.jimple.StmtSwitch;
 import soot.jimple.TableSwitchStmt;
 import soot.jimple.ThrowStmt;
-import soot.shimple.ShimpleBody;
+import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
+import soot.jimple.toolkits.pointer.LocalMayAliasAnalysis;
+import soot.toolkits.graph.CompleteUnitGraph;
+import soot.toolkits.graph.UnitGraph;
 
 /**
  * @author schaef
@@ -80,7 +87,7 @@ import soot.shimple.ShimpleBody;
 public class SootStmtSwitch implements StmtSwitch {
 
 	private final SootMethod sootMethod;
-	private final ShimpleBody shimpleBody;
+	private final Body sootBody;
 
 	private final MethodInfo methodInfo;
 	private final SootValueSwitch valueSwitch;
@@ -92,11 +99,20 @@ public class SootStmtSwitch implements StmtSwitch {
 	
 	private Stmt currentStmt;
 	private final Program program;
-
-	public SootStmtSwitch(ShimpleBody body, MethodInfo mi) {
+	
+	private final LocalMayAliasAnalysis localMayAlias; 
+	private final NullnessAnalysis  localNullness;
+	
+	public SootStmtSwitch(Body body, MethodInfo mi) {
 		this.methodInfo = mi;
-		this.sootMethod = body.getMethod();
-		this.shimpleBody = body;
+		this.sootBody = body;
+		this.sootMethod = sootBody.getMethod();
+
+		
+		UnitGraph unitGraph = new CompleteUnitGraph(sootBody);		
+		localNullness = new NullnessAnalysis(unitGraph);
+		localMayAlias = new LocalMayAliasAnalysis(unitGraph);
+		
 		this.program = SootTranslationHelpers.v().getProgram();
 
 		this.valueSwitch = new SootValueSwitch(this);
@@ -125,6 +141,25 @@ public class SootStmtSwitch implements StmtSwitch {
 		// TODO: connect stuff to exit.
 	}
 
+	/**
+	 * Get the set of possible aliases for the value v in the current body.
+	 * This uses Soots LocalMayAliasAnalysis.
+	 * @param v
+	 * @return
+	 */
+	public Set<Value> getMayAliasInCurrentUnit(Value v) {
+		return this.localMayAlias.mayAliases(v, this.currentStmt);
+	}
+	
+	public boolean mustBeNull(Unit u, Immediate i) {
+		return this.localNullness.isAlwaysNullBefore(u, i);		
+	}
+
+	public boolean mustBeNonNull(Unit u, Immediate i) {
+		return this.localNullness.isAlwaysNonNullBefore(u, i);
+	}
+
+	
 	public CfgBlock getEntryBlock() {
 		return this.entryBlock;
 	}
@@ -182,7 +217,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			translateMethodInvokation(arg0, arg0.getLeftOp(),
 					arg0.getInvokeExpr());
 		} else {
-			translateAssignment(arg0, arg0.getLeftOp(), arg0.getRightOp());
+			translateDefinitionStmt(arg0);
 		}
 	}
 
@@ -225,7 +260,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			translateMethodInvokation(arg0, arg0.getLeftOp(),
 					arg0.getInvokeExpr());
 		} else {
-			translateAssignment(arg0, arg0.getLeftOp(), arg0.getRightOp());
+			translateDefinitionStmt(arg0);
 		}
 	}
 
@@ -392,7 +427,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			// add the "this" variable to the list of args
 			args.addFirst(baseExpression);
 			// TODO: assert that base!=null
-
+						
 			// this include Interface-, Virtual, and SpecialInvokeExpr
 			if (call.getMethod().isConstructor()
 					&& call instanceof SpecialInvokeExpr) {
@@ -401,7 +436,7 @@ public class SootStmtSwitch implements StmtSwitch {
 				//TODO: Create the InvokeResolver elsewhere.
 //				InvokeResolver ivkr = new DefaultInvokeResolver();
 				InvokeResolver ivkr = new SimpleInvokeResolver();
-				possibleTargets.addAll(ivkr.resolveVirtualCall(this.shimpleBody, u, iivk));
+				possibleTargets.addAll(ivkr.resolveVirtualCall(this.sootBody, u, iivk));
 			}
 		} else if (call instanceof StaticInvokeExpr) {
 			possibleTargets.add(call.getMethod());
@@ -504,20 +539,22 @@ public class SootStmtSwitch implements StmtSwitch {
 		return false;
 	}
 
-	private void translateAssignment(Unit u, Value lhs, Value rhs) {
+	private void translateDefinitionStmt(DefinitionStmt def) {
+		Value lhs = def.getLeftOp();
+		Value rhs = def.getRightOp();
 		/*
 		 * Distinguish the case when the lhs is an array/instance access
 		 * to ensure that we create an ArrayStoreExpression and not an
 		 * assignment of two reads.
 		 */
 		if (lhs instanceof InstanceFieldRef || lhs instanceof ArrayRef) {
-			SootTranslationHelpers.v().getMemoryModel().mkHeapAssignment(u, lhs, rhs);
+			SootTranslationHelpers.v().getMemoryModel().mkHeapAssignment(def, lhs, rhs);
 		} else {
 			lhs.apply(valueSwitch);
 			Expression left = valueSwitch.popExpression();
 			rhs.apply(valueSwitch);
 			Expression right = valueSwitch.popExpression();
-			currentBlock.addStatement(new AssignStatement(u, left, right));
+			currentBlock.addStatement(new AssignStatement(def, left, right));
 		}
 	}
 

@@ -32,9 +32,9 @@ import jayhorn.cfg.expression.IntegerLiteral;
 import jayhorn.cfg.expression.IteExpression;
 import jayhorn.cfg.expression.UnaryExpression;
 import jayhorn.cfg.expression.UnaryExpression.UnaryOperator;
-import jayhorn.soot.SootTranslationHelpers;
 import jayhorn.soot.memory_model.MemoryModel;
 import jayhorn.soot.util.MethodInfo;
+import jayhorn.soot.util.SootTranslationHelpers;
 import soot.Local;
 import soot.RefType;
 import soot.jimple.AddExpr;
@@ -58,6 +58,7 @@ import soot.jimple.InstanceFieldRef;
 import soot.jimple.InstanceOfExpr;
 import soot.jimple.IntConstant;
 import soot.jimple.InterfaceInvokeExpr;
+import soot.jimple.JimpleValueSwitch;
 import soot.jimple.LeExpr;
 import soot.jimple.LengthExpr;
 import soot.jimple.LongConstant;
@@ -84,13 +85,11 @@ import soot.jimple.ThisRef;
 import soot.jimple.UshrExpr;
 import soot.jimple.VirtualInvokeExpr;
 import soot.jimple.XorExpr;
-import soot.shimple.PhiExpr;
-import soot.shimple.ShimpleValueSwitch;
 
 /**
  * @author schaef
  */
-public class SootValueSwitch implements ShimpleValueSwitch {
+public class SootValueSwitch implements JimpleValueSwitch {
 
 	private final List<Expression> expressionStack = new LinkedList<Expression>();
 	private final SootStmtSwitch statementSwitch;
@@ -462,13 +461,6 @@ public class SootValueSwitch implements ShimpleValueSwitch {
 	@Override
 	public void caseLocal(Local arg0) {
 		this.expressionStack.add(methodInfo.lookupLocal(arg0));
-	}
-
-	@Override
-	public void casePhiExpr(PhiExpr arg0) {
-		// TODO Auto-generated method stub
-//		System.err.println(arg0);
-		this.expressionStack.add(null);
 	}
 
 }

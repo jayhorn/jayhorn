@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import soot.Body;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
@@ -14,7 +15,6 @@ import soot.Unit;
 import soot.Value;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.ThisRef;
-import soot.shimple.ShimpleBody;
 
 /**
  * @author schaef
@@ -27,7 +27,7 @@ public class DefaultInvokeResolver extends InvokeResolver {
 	 * @see jayhorn.soot.inoke_translation.InvokeTranslation#resolveVirtualCall(soot.jimple.InstanceInvokeExpr)
 	 */
 	@Override
-	public List<SootMethod> resolveVirtualCall(ShimpleBody body, Unit u, InstanceInvokeExpr call) {
+	public List<SootMethod> resolveVirtualCall(Body body, Unit u, InstanceInvokeExpr call) {
 		SootMethod callee = call.getMethod();
 		SootClass sc = callee.getDeclaringClass();
 		Value base = call.getBase();

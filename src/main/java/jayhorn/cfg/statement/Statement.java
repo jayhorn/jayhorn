@@ -4,7 +4,7 @@
 package jayhorn.cfg.statement;
 
 import jayhorn.cfg.Node;
-import jayhorn.soot.SootTranslationHelpers;
+import jayhorn.soot.util.SootTranslationHelpers;
 import soot.Unit;
 
 /**

@@ -5,10 +5,10 @@ package jayhorn.soot.inoke_resolver;
 
 import java.util.List;
 
+import soot.Body;
 import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.InstanceInvokeExpr;
-import soot.shimple.ShimpleBody;
 
 /**
  * @author schaef
@@ -23,6 +23,6 @@ public abstract class InvokeResolver {
 		// TODO Auto-generated constructor stub
 	}
 
-	public abstract List<SootMethod> resolveVirtualCall(ShimpleBody body, Unit u, InstanceInvokeExpr call);
+	public abstract List<SootMethod> resolveVirtualCall(Body body, Unit u, InstanceInvokeExpr call);
 	
 }

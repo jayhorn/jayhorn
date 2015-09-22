@@ -5,14 +5,13 @@ package jayhorn.soot;
 
 import jayhorn.cfg.Program;
 import jayhorn.soot.util.MethodInfo;
+import jayhorn.soot.util.SootTranslationHelpers;
 import jayhorn.soot.visitors.SootStmtSwitch;
 import jayhorn.util.Log;
+import soot.Body;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
-import soot.shimple.Shimple;
-import soot.shimple.ShimpleBody;
-import soot.shimple.ShimpleFactory;
 
 /**
  * This is the main class for the translation. It first invokes Soot to load all
@@ -43,7 +42,10 @@ public class SootToCfg {
 		for (SootClass sc : Scene.v().getClasses()) {
 			processSootClass(sc);
 		}
-
+	}
+	
+	public Program getProgram() {
+		return SootTranslationHelpers.v().getProgram();
 	}
 
 	/**
@@ -78,20 +80,18 @@ public class SootToCfg {
 			
 			Log.info("\t" + sm.getBytecodeSignature());
 			SootTranslationHelpers.v().setCurrentMethod(sm);
-			processMethodBody(Shimple.v().newBody(sm.retrieveActiveBody()));
+			
+			Body body = sm.retrieveActiveBody();
+			processMethodBody(body);
 		}
 	}
 
-	private void processMethodBody(ShimpleBody body) {
+	private void processMethodBody(Body body) {
+		System.err.println(body.toString());
 		MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
-
+		
 		SootPreprocessing.v().removeAssertionRelatedNonsense(body);
 		SootPreprocessing.v().reconstructJavaAssertions(body);
-		
-		System.err.println(body.toString());
-
-		ShimpleFactory sf = soot.G.v().shimpleFactory;
-		sf.setBody(body);
 
 		SootStmtSwitch ss = new SootStmtSwitch(body, mi); 
 		mi.setSource(ss.getEntryBlock());

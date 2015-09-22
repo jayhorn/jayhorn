@@ -6,10 +6,10 @@ package jayhorn.soot.inoke_resolver;
 import java.util.LinkedList;
 import java.util.List;
 
+import soot.Body;
 import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.InstanceInvokeExpr;
-import soot.shimple.ShimpleBody;
 
 /**
  * @author schaef
@@ -23,7 +23,7 @@ public class SimpleInvokeResolver extends InvokeResolver {
 	 * @see jayhorn.soot.inoke_translation.InvokeTranslation#resolveVirtualCall(soot.jimple.InstanceInvokeExpr)
 	 */
 	@Override
-	public List<SootMethod> resolveVirtualCall(ShimpleBody body, Unit u, InstanceInvokeExpr call) {
+	public List<SootMethod> resolveVirtualCall(Body body, Unit u, InstanceInvokeExpr call) {
 		List<SootMethod> res = new LinkedList<SootMethod>();
 		res.add(call.getMethod());
 		return res;
