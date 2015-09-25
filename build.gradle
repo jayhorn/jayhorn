@@ -1,16 +1,26 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 //install the commit hook if possible.
-def hook = new File('pre-commit.sh')
 def hook_folder = new File('./.git/hooks')
+def hook = new File('pre-commit.sh')
+def hook_windows = new File('pre-commit.cmd')
 def installed_hook = new File('./.git/hooks/pre-commit')
 
-if (hook.exists() && hook_folder.exists() && !installed_hook.exists()) {
-  println("Installing pre-commit hook")
-// DD: This does not work on windows and I dont know how to ignore the error
-// But it should be on the top level  
-//  exec {
-//      workingDir '.'
-//	  commandLine 'copy', hook, installed_hook
-//  }  
+if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+ println("Installing pre-commit hook for WINDOWS")
+ if (hook_windows.exists() && hook_folder.exists() && !installed_hook.exists()) {
+  exec {
+   commandLine 'cmd', '/c', 'copy', hook_windows.getAbsolutePath(), installed_hook.getAbsolutePath()
+  }  
+ }
+} else {
+ println("Installing pre-commit hook for Unix/OS X")
+ if (hook.exists() && hook_folder.exists() && !installed_hook.exists()) {
+  exec {
+   workingDir '.'
+   commandLine 'cp', hook, installed_hook
+  }  
+ } 
 }
 
 subprojects {
