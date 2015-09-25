@@ -23,8 +23,67 @@ if (Os.isFamily(Os.FAMILY_WINDOWS)) {
  } 
 }
 
+buildscript {
+	repositories {
+		mavenCentral()
+		maven {
+			url "https://maven.eveoh.nl/content/repositories/releases"            
+		}        
+	}
+
+	dependencies {
+		classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.0.1'
+	}
+}
+
 subprojects {
+
     apply plugin: 'java'
+	apply plugin: 'eclipse'
+	apply plugin: 'jacoco'
+	apply plugin: 'com.github.kt3k.coveralls'
+	apply plugin: 'findbugs'
+	apply plugin: 'jdepend'
+	apply plugin: 'checkstyle'
+
+	tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:deprecation"
+        options.compilerArgs << "-Werror"
+    }
+	
+	// testing related activities -----------------
+	tasks.withType(FindBugs) {
+		effort = "default"
+		reportLevel = "medium"
+
+		reports {
+			xml.enabled = false
+			html.enabled = true
+		}
+	 }
+
+	jacocoTestReport {
+		reports {
+			xml.enabled true
+			html.enabled true
+			csv.enabled false
+			html.destination "${buildDir}/reports/coverage"
+		}
+	}
+
+	test {
+		jacoco {
+			enabled = true
+		}
+
+		testLogging {
+			events "failed"
+			exceptionFormat "full"
+		}
+
+		useJUnit()
+	}
+	
 }
 
 project(':jayhorn') {
