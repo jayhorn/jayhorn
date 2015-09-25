@@ -2,7 +2,7 @@
 language: java
 
 before_install:
-   - "export LD_LIBRARY_PATH=native_lib:$LD_LIBRARY_PATH"
+   - "export LD_LIBRARY_PATH=jayhorn/native_lib:$LD_LIBRARY_PATH"
 
 after_success:
    - gradle jacocoTestReport coveralls
