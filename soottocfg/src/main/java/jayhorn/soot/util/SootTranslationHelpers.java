@@ -62,7 +62,9 @@ public enum SootTranslationHelpers {
 	}
 
 	public Variable lookupClassConstant(ClassConstant cc) {
-		throw new RuntimeException("Not implemented");
+		return null;
+		//TODO
+		// throw new RuntimeException("Not implemented");
 	}
 
 	public Variable lookupTypeVariable(soot.Type t) {
@@ -78,8 +80,10 @@ public enum SootTranslationHelpers {
 			RefType rt = (RefType) t;
 			return rt.getClassName();
 		} else {
-			throw new UnsupportedOperationException(
-					"Did not expect type to be " + (null == t ? "null" : t.getClass().getSimpleName()));
+			return "HansWurst";
+			//TODO: handle this case ...
+			// throw new UnsupportedOperationException(
+			// 		"Did not expect type to be " + (null == t ? "null" : t.getClass().getSimpleName()));
 		}
 	}
 

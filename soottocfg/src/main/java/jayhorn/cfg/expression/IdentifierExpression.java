@@ -23,7 +23,11 @@ public class IdentifierExpression extends Expression {
 	@Override
 	public String toString(){
 		StringBuilder sb = new StringBuilder();
-		sb.append(this.variable.getName());
+		if (this.variable==null) {
+			sb.append("==NOT IMPLEMENTED==");
+		} else {
+			sb.append(this.variable.getName());
+		}
 		return sb.toString();		
 	}	
 }
