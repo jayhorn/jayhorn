@@ -160,6 +160,18 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 	/*
 	 * (non-Javadoc)
 	 * 
+	 * @see jayhorn.soot.memory_model.MemoryModel#mkStringLengthExpr(soot.Value)
+	 */
+	@Override
+	public Expression mkStringLengthExpr(Value arg0) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see
 	 * jayhorn.soot.memory_model.MemoryModel#mkInstanceFieldRefExpr(soot.jimple
 	 * .InstanceFieldRef)

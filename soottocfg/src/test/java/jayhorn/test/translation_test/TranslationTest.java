@@ -60,7 +60,7 @@ public class TranslationTest {
 
 	@Test
 	public void test_cha() {
-		testWithCallgraphAlgorithm(CallgraphAlgorithm.None);
+		testWithCallgraphAlgorithm(CallgraphAlgorithm.None);		
 	}
 
 	protected void testWithCallgraphAlgorithm(CallgraphAlgorithm algorithm) {

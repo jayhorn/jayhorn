@@ -28,6 +28,7 @@ import jayhorn.cfg.Program;
 import jayhorn.cfg.Variable;
 import jayhorn.cfg.expression.BinaryExpression;
 import jayhorn.cfg.expression.BinaryExpression.BinaryOperator;
+import jayhorn.cfg.expression.BooleanLiteral;
 import jayhorn.cfg.expression.Expression;
 import jayhorn.cfg.expression.InstanceOfExpression;
 import jayhorn.cfg.expression.IntegerLiteral;
@@ -516,16 +517,27 @@ public class SootStmtSwitch implements StmtSwitch {
 			return true;
 		}
 		if (call.getMethod().getSignature()
-				.contains("<java.lang.String: int length()>")
-				&& optionalLhs != null) {
-			throw new RuntimeException("todo");
+				.contains("<java.lang.String: int length()>") ) {
+			assert (call instanceof InstanceInvokeExpr);			
+			Expression rhs = SootTranslationHelpers.v().getMemoryModel().mkStringLengthExpr( ((InstanceInvokeExpr)call).getBase() );
+			if (optionalLhs!=null) {
+				optionalLhs.apply(valueSwitch);
+				Expression lhs = valueSwitch.popExpression();
+				currentBlock.addStatement(new AssignStatement(u, lhs, rhs));				
+			} 
+			return true;
 		}
 		if (call.getMethod().getSignature()
 				.contains("<java.lang.System: void exit(int)>")) {
 			throw new RuntimeException("todo");
 		}
 
-		if (call.getMethod().getDeclaringClass().getName().contains("Assert")) {
+		if (call.getMethod().getDeclaringClass().getName().contains("org.junit.Assert")) {
+			//staticinvoke <org.junit.Assert: void fail()>()
+			if (call.getMethod().getName().equals("fail")) {
+				currentBlock.addStatement(new AssertStatement(u, BooleanLiteral.falseLiteral()));
+				return true;
+			}
 			throw new RuntimeException("we should hardcode JUnit stuff "
 					+ call.getMethod().getDeclaringClass().getName());
 		}
