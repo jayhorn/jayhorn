@@ -1,183 +1,97 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 //install the commit hook if possible.
-def hook = new File('pre-commit.sh')
 def hook_folder = new File('./.git/hooks')
+def hook = new File('pre-commit.sh')
+def hook_windows = new File('pre-commit.cmd')
 def installed_hook = new File('./.git/hooks/pre-commit')
 
-if (hook.exists() && hook_folder.exists() && !installed_hook.exists()) {
-  println("Installing pre-commit hook")
+if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+ println("Installing pre-commit hook for WINDOWS")
+ if (hook_windows.exists() && hook_folder.exists() && !installed_hook.exists()) {
   exec {
-      workingDir '.'
-      commandLine 'cp', hook, installed_hook
+   commandLine 'cmd', '/c', 'copy', hook_windows.getAbsolutePath(), installed_hook.getAbsolutePath()
   }  
+ }
+} else {
+ println("Installing pre-commit hook for Unix/OS X")
+ if (hook.exists() && hook_folder.exists() && !installed_hook.exists()) {
+  exec {
+   workingDir '.'
+   commandLine 'cp', hook, installed_hook
+  }  
+ } 
 }
-
 
 buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            url "https://maven.eveoh.nl/content/repositories/releases"            
-        }        
-    }
-
-    dependencies {
-        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.0.1'
-        classpath 'net.ltgt.gradle:gradle-errorprone-plugin:latest.release'
-
-    }
-}
-
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'jacoco'
-apply plugin: 'com.github.kt3k.coveralls'
-apply plugin: 'findbugs'
-apply plugin: 'jdepend'
-apply plugin: 'net.ltgt.errorprone'
-apply plugin: 'checkstyle'
-
-def z3LibPath = 'native_lib'
-def File nativeLibFile = file(z3LibPath)
-
-//global properties
-def version = '1.0'
-jar.archiveName = 'j2h.jar'
-
-
-compileJava.options.fork = true
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.3'
-}
-
-sourceCompatibility = 1.7
-
-tasks.withType(Test) {
-  systemProperty  'java.library.path', nativeLibFile.absolutePath
-}
-
-configurations{
-    common
-}
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {    
-    compile 'args4j:args4j:2.32'    
-    compile 'log4j:log4j:1.2.17'
-    compile 'com.google.code.findbugs:annotations:3.0.0'
-    compile 'org.scala-lang:scala-actors:2.11.7'
-    compile 'org.scala-lang:scala-library:2.11.7'
-    compile fileTree(dir: 'lib', include: '*.jar')
-
-    testCompile "junit:junit:4.11"  // Or whatever version
-}
-
-
-//Add native dependency for Z3 to eclipse project.
-eclipse.classpath.file.withXml {
-  provider -> 
-    provider.asNode().findAll { it.@path.contains("JRE_CONTAINER") }.each { 
-      def attr = it.appendNode('attributes', [])
-      attr.appendNode('attribute', [name: 'org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY', value:nativeLibFile.absolutePath])
-  }
-}
-
-
-// building the jar ---------------------
-jar {
-
-    manifest {
-        attributes 'Main-Class': "jhorn.Main",
-                   'Class-Path': '.',
-                   'Implementation-Title': 'Bixie',
-                   'Implementation-Version': "$version"
-    }
-
-    from('src/main/resorces'){ include('log4j.properties')}
-
-    from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-}
-
-
-// testing related activities -----------------
-tasks.withType(FindBugs) {
-    effort = "default"
-    reportLevel = "medium"
-
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
- }
-
-jacocoTestReport {
-    reports {
-        xml.enabled true
-        html.enabled true
-        csv.enabled false
-        html.destination "${buildDir}/reports/coverage"
-    }
-}
-
-test {
-	jacoco {
-		enabled = true
+	repositories {
+		mavenCentral()
+		maven {
+			url "https://maven.eveoh.nl/content/repositories/releases"            
+		}        
 	}
 
-    testLogging {
-        events "failed"
-        exceptionFormat "full"
-    }
-
-   	useJUnit()
+	dependencies {
+		classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.0.1'
+	}
 }
 
-task coverityCheck {
-  group 'Verification'
-  description 'Send the build to coverity for analysis'
+subprojects {
 
-  doLast {
-    println("REQUIRES cov-build TO BE IN YOUR PATH.")
-    println("Running coverity")
-    exec {
-      workingDir '.'
-      commandLine 'cov-build', '--dir', 'cov-int', 'gradle', 'clean', 'compileJava'
+    apply plugin: 'java'
+	apply plugin: 'eclipse'
+	apply plugin: 'jacoco'
+	apply plugin: 'com.github.kt3k.coveralls'
+	apply plugin: 'findbugs'
+	apply plugin: 'jdepend'
+	apply plugin: 'checkstyle'
+
+	tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:deprecation"
+        options.compilerArgs << "-Werror"
     }
-    println("Packing the results")
-    exec {
-      workingDir '.'
-      commandLine 'tar', 'czvf', 'cov-report.tgz', 'cov-int'
-    }
-    println("Uploading to coverity")
-    exec {
-      workingDir '.'
-      commandLine 'curl', '--form', 'token=9ivvBXwUbgAQL5P0DfGBEA', '--form' , 'email=martinschaef@gmail.com', '--form', 'file=@cov-report.tgz', '--form', 'version="${version}"', 'https://scan.coverity.com/builds?project=martinschaef%2Fjhorn'
-    }
-    exec {
-      workingDir '.'
-      commandLine 'rm', 'cov-report.tgz'
-      commandLine 'rm', '-rf', 'cov-int/'
-    }    
-    println("Done")
-  }
+	
+	// testing related activities -----------------
+	tasks.withType(FindBugs) {
+		effort = "default"
+		reportLevel = "medium"
+
+		reports {
+			xml.enabled = false
+			html.enabled = true
+		}
+	 }
+
+	jacocoTestReport {
+		reports {
+			xml.enabled true
+			html.enabled true
+			csv.enabled false
+			html.destination "${buildDir}/reports/coverage"
+		}
+	}
+
+	test {
+		jacoco {
+			enabled = true
+		}
+
+		testLogging {
+			events "failed"
+			exceptionFormat "full"
+		}
+
+		useJUnit()
+	}
+	
 }
 
-task inferCheck {
-  group 'Verification'
-  description 'Run Facebook Infer on this project.'
-
-  doLast {
-    println("REQUIRES Infer TO BE IN YOUR PATH.")
-
-    exec {
-        workingDir '.'
-        commandLine 'infer', '--', 'gradle', 'clean', 'compileJava'
+project(':jayhorn') {
+    dependencies {
+        compile project(':soottocfg')
     }
-
-  }
 }
 
-
+project(':soottocfg') {
+ 
+}
