@@ -1,0 +1,91 @@
+def z3LibPath = 'native_lib'
+def File nativeLibFile = file(z3LibPath)
+
+//global properties
+def version = '1.0'
+jar.archiveName = 'jayhorn.jar'
+
+
+compileJava.options.fork = true
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.3'
+}
+
+tasks.withType(Test) {
+  systemProperty  'java.library.path', nativeLibFile.absolutePath
+}
+
+configurations{
+    common
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {    
+    compile 'args4j:args4j:2.32'    
+    compile 'log4j:log4j:1.2.17'
+    compile 'com.google.code.findbugs:annotations:3.0.0'
+    compile 'org.scala-lang:scala-actors:2.11.7'
+    compile 'org.scala-lang:scala-library:2.11.7'
+    compile fileTree(dir: 'lib', include: '*.jar')
+    compile project(':soottocfg')
+
+    testCompile "junit:junit:4.12"  // Or whatever version
+}
+
+
+//Add native dependency for Z3 to eclipse project.
+eclipse.classpath.file.withXml {
+  provider -> 
+    provider.asNode().findAll { it.@path.contains("JRE_CONTAINER") }.each { 
+      def attr = it.appendNode('attributes', [])
+      attr.appendNode('attribute', [name: 'org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY', value:nativeLibFile.absolutePath])
+  }
+}
+
+
+// building the jar ---------------------
+jar {
+
+    manifest {
+        attributes 'Main-Class': "jayhorn.Main",
+                   'Class-Path': '.',
+                   'Implementation-Title': 'JayHorn',
+                   'Implementation-Version': "$version"
+    }
+
+    from('src/main/resorces'){ include('log4j.properties')}
+
+    from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+}
+
+task inferCheck {
+  group 'Verification'
+  description 'Run Facebook Infer on this project.'
+
+  doLast {
+    println("REQUIRES Infer TO BE IN YOUR PATH.")
+
+    exec {
+        workingDir '.'
+        commandLine 'infer', '--', 'gradle', 'clean', 'compileJava'
+    }
+  }
+}
+
+//exclude integration tests when running regular check
+test {
+	include '**/regression_tests/**'
+	exclude '**/integration_tests/**'
+}
+
+task integration_test(type: Test) {
+  group 'Verification'
+  description 'Run integration tests.'
+
+	include '**/regression_tests/**'
+	include '**/integration_tests/**'
+}

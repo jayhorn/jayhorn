@@ -1,2 +1,0 @@
-Set of test cases borrowed from [Soot](https://github.com/Sable/soot/tree/develop/tests/soot/asm/backend/targets) 
-that should exercise all cases of of the statement and expression visitors.
