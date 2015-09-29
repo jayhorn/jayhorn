@@ -1,7 +1,14 @@
+
 language: java
 
+jdk:
+  - oraclejdk8
+  - oraclejdk7
+
 before_install:
-   - "export LD_LIBRARY_PATH=native_lib:$LD_LIBRARY_PATH"
+   - "export LD_LIBRARY_PATH=jayhorn/native_lib:$LD_LIBRARY_PATH"
+
+script: ./travis.sh
 
 script:
    - gradle check
@@ -9,4 +16,3 @@ script:
 
 after_success:
    - gradle jacocoTestReport coveralls
-
