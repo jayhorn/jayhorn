@@ -13,7 +13,7 @@ import jayhorn.util.Util;
 public class SootTranslationTest {
 
 	private static final String userDir = System.getProperty("user.dir") + "/";
-	private static final String testRoot = userDir + "../soottocfg/src/test/resources/";
+	private static final String testRoot = userDir + "src/test/resources/";
 
 	@Test
 	public void test() {
@@ -35,7 +35,7 @@ public class SootTranslationTest {
 
 			classFileDir = Util.compileJavaFiles(sourceFiles.toArray(new File[sourceFiles.size()]));
 
-			jayhorn.Main.main(new String[] { "-j", classFileDir.getAbsolutePath() });
+			jayhorn.Main.main(new String[] { classFileDir.getAbsolutePath() });
 		} catch (IOException e) {
 			e.printStackTrace();
 			fail("Translation failed.");

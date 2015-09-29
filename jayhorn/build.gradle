@@ -3,7 +3,7 @@ def File nativeLibFile = file(z3LibPath)
 
 //global properties
 def version = '1.0'
-jar.archiveName = 'j2h.jar'
+jar.archiveName = 'jayhorn.jar'
 
 
 compileJava.options.fork = true
@@ -51,45 +51,15 @@ eclipse.classpath.file.withXml {
 jar {
 
     manifest {
-        attributes 'Main-Class': "jhorn.Main",
+        attributes 'Main-Class': "jayhorn.Main",
                    'Class-Path': '.',
-                   'Implementation-Title': 'Bixie',
+                   'Implementation-Title': 'JayHorn',
                    'Implementation-Version': "$version"
     }
 
     from('src/main/resorces'){ include('log4j.properties')}
 
     from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-}
-
-task coverityCheck {
-  group 'Verification'
-  description 'Send the build to coverity for analysis'
-
-  doLast {
-    println("REQUIRES cov-build TO BE IN YOUR PATH.")
-    println("Running coverity")
-    exec {
-      workingDir '.'
-      commandLine 'cov-build', '--dir', 'cov-int', 'gradle', 'clean', 'compileJava', '-PcoverityMode'
-    }
-    println("Packing the results")
-    exec {
-      workingDir '.'
-      commandLine 'tar', 'czvf', 'cov-report.tgz', 'cov-int'
-    }
-    println("Uploading to coverity")
-    exec {
-      workingDir '.'
-      commandLine 'curl', '--form', 'token=9ivvBXwUbgAQL5P0DfGBEA', '--form' , 'email=martinschaef@gmail.com', '--form', 'file=@cov-report.tgz', '--form', 'version="${version}"', 'https://scan.coverity.com/builds?project=jayhorn%2Fjayhorn'
-    }
-    exec {
-      workingDir '.'
-      commandLine 'rm', 'cov-report.tgz'
-      commandLine 'rm', '-rf', 'cov-int/'
-    }    
-    println("Done")
-  }
 }
 
 task inferCheck {
@@ -101,9 +71,21 @@ task inferCheck {
 
     exec {
         workingDir '.'
-        commandLine 'infer', '--', 'gradle', 'clean', 'compileJava', '-PcoverityMode'
+        commandLine 'infer', '--', 'gradle', 'clean', 'compileJava'
     }
   }
 }
 
+//exclude integration tests when running regular check
+test {
+	include '**/regression_tests/**'
+	exclude '**/integration_tests/**'
+}
 
+task integration_test(type: Test) {
+  group 'Verification'
+  description 'Run integration tests.'
+
+	include '**/regression_tests/**'
+	include '**/integration_tests/**'
+}

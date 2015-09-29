@@ -3,11 +3,12 @@
  */
 package jayhorn;
 
-import jayhorn.soot.SootToCfg;
-import jayhorn.util.Log;
-
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+
+import jayhorn.checker.Checker;
+import jayhorn.soot.SootToCfg;
+import jayhorn.util.Log;
 
 public class Main {
 
@@ -19,6 +20,10 @@ public class Main {
 			parser.parseArgument(args);
 			SootToCfg soot2cfg = new SootToCfg();
 			soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath(), Options.v().getCallGraphAlgorithm());
+			
+			Checker checker = new Checker();
+			boolean result = checker.checkProgram(soot2cfg.getProgram());
+			System.out.println("checker says "+ result);
 		} catch (CmdLineException e) {
 			Log.error(e.toString());
 			Log.error("java -jar joogie.jar [options...] arguments...");

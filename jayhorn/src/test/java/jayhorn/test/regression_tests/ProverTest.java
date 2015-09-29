@@ -1,7 +1,7 @@
 /**
  * 
  */
-package jayhorn.test.prover_test;
+package jayhorn.test.regression_tests;
 
 import static org.junit.Assert.fail;
 
@@ -23,7 +23,7 @@ import jayhorn.solver.princess.PrincessProverFactory;
  *
  */
 @RunWith(Parameterized.class)
-public class AllProverTest {
+public class ProverTest {
 
 	private final String proverName;
 	private final ProverFactory proverFactory;
@@ -36,7 +36,7 @@ public class AllProverTest {
 	   return testData;
    }
 
-	public AllProverTest(String proverName, ProverFactory factory) {
+	public ProverTest(String proverName, ProverFactory factory) {
 		this.proverFactory = factory;
 		this.proverName = proverName;
 	}

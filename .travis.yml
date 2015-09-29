@@ -8,5 +8,12 @@ jdk:
 before_install:
    - "export LD_LIBRARY_PATH=jayhorn/native_lib:$LD_LIBRARY_PATH"
 
+script:
+	if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then
+	    ./gradlew check
+	else
+	    ./gradlew integration_test
+	fi
+
 after_success:
    - gradle jacocoTestReport coveralls
