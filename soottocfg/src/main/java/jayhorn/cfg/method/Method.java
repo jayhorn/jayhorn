@@ -11,7 +11,6 @@ import java.util.Set;
 
 import jayhorn.cfg.Node;
 import jayhorn.cfg.Variable;
-import soot.SootMethod;
 
 /**
  * @author schaef
@@ -24,9 +23,10 @@ public class Method implements Node {
 	private List<Variable> parameterList;
 	private Collection<Variable> locals;
 	private CfgBlock source;
+	private boolean isEntry = false;
 	
-	public Method(SootMethod m) {
-		methodName = m.getDeclaringClass().getName() + "." + m.getName();
+	public Method(String uniqueName) {
+		methodName = uniqueName;
 	}
 
 	public String getMethodName() {
@@ -35,13 +35,18 @@ public class Method implements Node {
 
 	public void initialize(Variable thisVariable, Variable returnVariable,
 			Variable exceptionalReturnVariable, List<Variable> parameterList,
-			Collection<Variable> locals, CfgBlock source) {
+			Collection<Variable> locals, CfgBlock source, boolean isEntryPoint) {
 		this.thisVariable = thisVariable;
 		this.returnVariable = returnVariable;
 		this.exceptionalReturnVariable = exceptionalReturnVariable;
 		this.parameterList = parameterList;
 		this.locals = locals;
 		this.source = source;
+		this.isEntry = isEntryPoint;
+	}
+	
+	public boolean isEntryPoint() {
+		return this.isEntry;
 	}
 	
 	@Override

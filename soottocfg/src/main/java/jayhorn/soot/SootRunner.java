@@ -41,7 +41,7 @@ import soot.SootClass;
  * The Soot Runner
  * 
  * @author schaef
- * @author Dietsch 
+ * @author Dietsch
  */
 public class SootRunner {
 
@@ -221,19 +221,14 @@ public class SootRunner {
 			}
 		}
 
-		// Iterator Hack
-		Scene.v().addBasicClass("org.eclipse.jdt.core.compiler.CategorizedProblem", SootClass.HIERARCHY);
-		Scene.v().addBasicClass("java.lang.Iterable", SootClass.SIGNATURES);
-		Scene.v().addBasicClass("java.util.Iterator", SootClass.SIGNATURES);
-		Scene.v().addBasicClass("java.lang.reflect.Array", SootClass.SIGNATURES);
-
 		try {
 			// redirect soot output into a stream.
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			soot.G.v().out = new PrintStream(baos, true, "utf-8");
 			// Now load the soot classes.
-			Scene.v().loadNecessaryClasses();
+
 			Scene.v().loadBasicClasses();
+			Scene.v().loadNecessaryClasses();
 
 			// We explicitly select the packs we want to run for performance
 			// reasons. Do not re-run the callgraph algorithm if the host
@@ -249,6 +244,10 @@ public class SootRunner {
 			 */
 
 			for (SootClass sc : Scene.v().getClasses()) {
+				if (sc.resolvingLevel() < SootClass.SIGNATURES) {
+					sc.setResolvingLevel(SootClass.SIGNATURES);
+				}
+
 				if (classes.contains(sc.getName())) {
 					sc.setApplicationClass();
 				}

@@ -458,7 +458,7 @@ public class SootStmtSwitch implements StmtSwitch {
 
 		if (possibleTargets.size() == 1) {
 			Method method = program.loopupMethod(
-					possibleTargets.get(0));
+					possibleTargets.get(0).getSignature());
 			CallStatement stmt = new CallStatement(u, method, args, receiver);
 			this.currentBlock.addStatement(stmt);
 		} else {
@@ -466,7 +466,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			assert (baseExpression != null);
 			CfgBlock join = new CfgBlock();
 			for (SootMethod m : possibleTargets) {
-				Method method = program.loopupMethod(m);
+				Method method = program.loopupMethod(m.getSignature());
 				Variable v = SootTranslationHelpers.v().lookupTypeVariable(m.getDeclaringClass().getType());
 
 				CfgBlock thenBlock = new CfgBlock();
@@ -538,8 +538,12 @@ public class SootStmtSwitch implements StmtSwitch {
 				currentBlock.addStatement(new AssertStatement(u, BooleanLiteral.falseLiteral()));
 				return true;
 			}
+			if (call.getMethod().getName().equals("assertTrue")) {
+				currentBlock.addStatement(new AssertStatement(u, BooleanLiteral.falseLiteral()));
+				return true;				
+			}
 			throw new RuntimeException("we should hardcode JUnit stuff "
-					+ call.getMethod().getDeclaringClass().getName());
+					+ call.getMethod().getDeclaringClass().getName() + "  method "+call.getMethod().getName());
 		}
 
 		if (call.getMethod().getDeclaringClass().getName()
