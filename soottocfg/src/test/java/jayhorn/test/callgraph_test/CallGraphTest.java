@@ -9,14 +9,14 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import jayhorn.soot.SootRunner.CallgraphAlgorithm;
-import jayhorn.soot.SootToCfg;
-import jayhorn.util.Util;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+
+import jayhorn.soot.SootRunner.CallgraphAlgorithm;
+import jayhorn.soot.SootToCfg;
+import jayhorn.util.Util;
 
 /**
  * @author schaef

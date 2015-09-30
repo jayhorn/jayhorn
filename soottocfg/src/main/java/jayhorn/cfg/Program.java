@@ -21,6 +21,10 @@ public class Program {
 	private final Map<String, Method> methods = new HashMap<String, Method>();
 	
 	private final Collection<Method> entryPoints = new HashSet<Method>();
+
+	public Variable[] getGlobalVariables() {
+		return this.globalVariables.values().toArray(new Variable[this.globalVariables.size()]);
+	}
 	
 	public Variable loopupGlobalVariable(String varName, Type t) {
 		if (!this.globalVariables.containsKey(varName)) {

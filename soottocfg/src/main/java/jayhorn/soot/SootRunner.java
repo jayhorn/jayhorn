@@ -32,6 +32,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+
 import jayhorn.util.Log;
 import soot.PackManager;
 import soot.Scene;

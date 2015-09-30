@@ -3,7 +3,12 @@
  */
 package jayhorn.cfg.expression;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import jayhorn.cfg.Variable;
+import jayhorn.cfg.type.BoolType;
+import jayhorn.cfg.type.Type;
 
 /**
  * @author schaef
@@ -31,5 +36,25 @@ public class InstanceOfExpression extends Expression {
 		sb.append(this.typeVariable.getName());
 		sb.append(")");
 		return sb.toString();
+	}
+	
+	@Override
+	public Set<Variable> getUsedVariables() {
+		Set<Variable> used = new HashSet<Variable>();
+		used.addAll(expression.getUsedVariables());
+		used.add(typeVariable);
+		return used;
+	}
+	
+	@Override
+	public Set<Variable> getLVariables() {
+		//because this can't happen on the left.
+		Set<Variable> used = new HashSet<Variable>();
+		return used;
+	}
+
+	@Override
+	public Type getType() {
+		return BoolType.instance();
 	}
 }

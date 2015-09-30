@@ -8,7 +8,6 @@ import jayhorn.soot.SootRunner.CallgraphAlgorithm;
 import jayhorn.soot.util.MethodInfo;
 import jayhorn.soot.util.SootTranslationHelpers;
 import jayhorn.soot.visitors.SootStmtSwitch;
-import jayhorn.util.Log;
 import soot.Body;
 import soot.Scene;
 import soot.SootClass;
