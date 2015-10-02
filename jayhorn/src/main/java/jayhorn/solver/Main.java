@@ -3,11 +3,7 @@ package jayhorn.solver;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.microsoft.z3.Context;
-import com.microsoft.z3.FuncDecl;
-
 import jayhorn.solver.princess.PrincessProverFactory;
-import jayhorn.solver.z3.Z3Prover;
 
 public class Main {
 
@@ -185,12 +181,11 @@ public class Main {
 				new ProverExpr[] { a }));
 	}
 
-	public void testHorn(Z3Prover p) {
+	public void testHorn(Prover p) {
 		p.setHornLogic(true);
 		System.out.println("Running Horn test..");
             final ProverFun r =
                 p.mkHornPredicate("r", new ProverType[] { p.getIntType() });
-            
             final ProverFun s =
                 p.mkHornPredicate("s", new ProverType[] { p.getIntType() });
             final ProverExpr x =
@@ -222,17 +217,16 @@ public class Main {
                                    r.mkExpr(new ProverExpr[] {x})
                                },
                                p.mkLt(x, p.mkLiteral(0)));
-           
 
             p.addAssertion(c1);
             p.addAssertion(c2);
             p.addAssertion(c3);
-            p.addAssertion(c4);
-            
+            p.addAssertion(c4);;
+
             if (p.checkSat(true)!=ProverResult.Sat) {
             	throw new RuntimeException("Solver failed.");
             }
-    
+
             p.addAssertion(c1b);
             if (p.checkSat(true)!=ProverResult.Unsat) {
             	throw new RuntimeException("Solver failed.");
@@ -241,8 +235,6 @@ public class Main {
             p.setHornLogic(false);
         }
 
-	
-	
 	public void runTests(ProverFactory factory) {
 		final Prover p = factory.spawn();
 		test01(p);
@@ -257,7 +249,7 @@ public class Main {
 		p.reset();
 		test06(p);
 		p.reset();
-		testHorn(new Z3Prover());
+		testHorn(p);
 		p.reset();
 
 		p.shutdown();

@@ -9,7 +9,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import soottocfg.util.Util;
+import soottocfg.test.Util;
 
 public class SootTranslationTest {
 

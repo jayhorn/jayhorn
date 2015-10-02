@@ -37,14 +37,10 @@ class Z3Fun implements ProverFun {
 			}			
 		}
 		
-		try {
-			if (this.resType == BoolType.INSTANCE) {
-				return new Z3BoolExpr((BoolExpr) ctx.mkApp(this.fun, z3args));
-			} else {
-				return new Z3TermExpr(ctx.mkApp(this.fun, z3args), this.resType);
-			}
-		} catch (Exception e) {
-			throw new RuntimeException(e.getMessage());
+		if (this.resType == BoolType.INSTANCE) {
+			return new Z3BoolExpr((BoolExpr) ctx.mkApp(this.fun, z3args));
+		} else {
+			return new Z3TermExpr(ctx.mkApp(this.fun, z3args), this.resType);
 		}
 	}
 	

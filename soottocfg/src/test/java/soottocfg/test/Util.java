@@ -1,4 +1,4 @@
-package soottocfg.util;
+package soottocfg.test;
 
 import java.io.BufferedReader;
 import java.io.File;

@@ -16,7 +16,7 @@ import org.junit.runners.Parameterized;
 
 import soottocfg.soot.SootToCfg;
 import soottocfg.soot.SootRunner.CallgraphAlgorithm;
-import soottocfg.util.Util;
+import soottocfg.test.Util;
 
 /**
  * @author schaef

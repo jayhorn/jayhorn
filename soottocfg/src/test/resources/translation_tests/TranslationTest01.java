@@ -12,25 +12,29 @@ public class TranslationTest01 {
 //		return 3;
 //	}
 
-	String s1;
+//	String s1;
+//	
+//	public void virtualCalls(int i) {
+//		Object o;
+//		if (i>0) {
+//			o = s1;
+//		} else {
+//			o = new TranslationTest01();
+//		}
+//		o.toString(); // may not be null.
+//	}
 	
-	public void virtualCalls(int i) {
-		Object o;
-		if (i>0) {
-			o = s1;
-		} else {
-			o = new TranslationTest01();
-		}
-		o.toString(); // may not be null.
+	int x,y;
+	
+	public void withException() {
+//		try {
+			int a[] = new int[2];
+			System.out.println("Access element three :" + a[3]);
+//		} catch (ArrayIndexOutOfBoundsException e) {
+//			x = 5;
+//		}
+		y=3;
 	}
 	
-//	public void withException() {
-//		try {
-//			int a[] = new int[2];
-//			System.out.println("Access element three :" + a[3]);
-//		} catch (ArrayIndexOutOfBoundsException e) {
-//			System.out.println("Exception thrown  :" + e);
-//		}
-//		System.out.println("Out of the block");
-//	}
+	
 }

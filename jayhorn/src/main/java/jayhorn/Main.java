@@ -22,7 +22,6 @@ public class Main {
 			
 			Checker checker = new Checker();
 			boolean result = checker.checkProgram(soot2cfg.getProgram());
-			
 			System.out.println("checker says "+ result);
 		} catch (CmdLineException e) {
 			Log.error(e.toString());
