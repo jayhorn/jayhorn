@@ -6,6 +6,7 @@ package jayhorn;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
+import jayhorn.cfg.Program;
 import jayhorn.checker.Checker;
 import jayhorn.soot.SootToCfg;
 import jayhorn.util.Log;
@@ -23,6 +24,7 @@ public class Main {
 			
 			Checker checker = new Checker();
 			boolean result = checker.checkProgram(soot2cfg.getProgram());
+			
 			System.out.println("checker says "+ result);
 		} catch (CmdLineException e) {
 			Log.error(e.toString());
