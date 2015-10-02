@@ -8,8 +8,7 @@ import org.kohsuke.args4j.CmdLineParser;
 
 import jayhorn.cfg.Program;
 import jayhorn.checker.Checker;
-import jayhorn.soot.SootToCfg;
-import jayhorn.util.Log;
+import soottocfg.soot.SootToCfg;
 
 public class Main {
 

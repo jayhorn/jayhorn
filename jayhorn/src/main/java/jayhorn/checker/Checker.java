@@ -13,25 +13,25 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import jayhorn.cfg.Program;
-import jayhorn.cfg.Variable;
-import jayhorn.cfg.method.CfgBlock;
-import jayhorn.cfg.method.Method;
-import jayhorn.cfg.statement.AssertStatement;
-import jayhorn.cfg.statement.AssignStatement;
-import jayhorn.cfg.statement.AssumeStatement;
-import jayhorn.cfg.statement.CallStatement;
-import jayhorn.cfg.statement.Statement;
-import jayhorn.cfg.type.BoolType;
-import jayhorn.cfg.type.IntType;
-import jayhorn.cfg.type.Type;
+import jayhorn.Log;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverType;
 import jayhorn.solver.princess.PrincessProverFactory;
-import jayhorn.util.Log;
+import soottocfg.cfg.Program;
+import soottocfg.cfg.Variable;
+import soottocfg.cfg.method.CfgBlock;
+import soottocfg.cfg.method.Method;
+import soottocfg.cfg.statement.AssertStatement;
+import soottocfg.cfg.statement.AssignStatement;
+import soottocfg.cfg.statement.AssumeStatement;
+import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.type.IntType;
+import soottocfg.cfg.type.Type;
 
 /**
  * @author schaef

@@ -19,10 +19,9 @@
 
 package jayhorn;
 
-import jayhorn.soot.SootRunner.CallgraphAlgorithm;
-import jayhorn.util.Log;
-
 import org.kohsuke.args4j.Option;
+
+import soottocfg.soot.SootRunner.CallgraphAlgorithm;
 
 /**
  * Options

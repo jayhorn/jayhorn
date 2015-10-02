@@ -12,8 +12,8 @@ import java.nio.charset.CharsetDecoder;
 import org.junit.Test;
 
 import jayhorn.checker.Checker;
-import jayhorn.soot.SootRunner.CallgraphAlgorithm;
-import jayhorn.soot.SootToCfg;
+import soottocfg.soot.SootToCfg;
+import soottocfg.soot.SootRunner.CallgraphAlgorithm;
 
 public class CbmcTest {
 
