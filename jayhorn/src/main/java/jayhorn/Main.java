@@ -6,7 +6,6 @@ package jayhorn;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
-import jayhorn.cfg.Program;
 import jayhorn.checker.Checker;
 import soottocfg.soot.SootToCfg;
 

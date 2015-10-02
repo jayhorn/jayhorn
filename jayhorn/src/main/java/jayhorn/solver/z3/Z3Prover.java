@@ -64,7 +64,6 @@ public class Z3Prover implements Prover {
 	static class Z3SolverThread implements Runnable {
 		private final Solver solver;
 		private Status status;
-		private Fixedpoint fx;
 
 		public Z3SolverThread(Solver s) {
 			this.solver = s;
