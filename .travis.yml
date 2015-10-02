@@ -6,7 +6,7 @@ jdk:
   - oraclejdk7
 
 before_install:
-   - "export LD_LIBRARY_PATH=jayhorn/native_lib:$LD_LIBRARY_PATH"
+   - "export LD_LIBRARY_PATH=jayhorn/jayhorn/native_lib:$LD_LIBRARY_PATH"
 
 script: ./travis.sh
 
