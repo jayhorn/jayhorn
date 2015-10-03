@@ -89,8 +89,8 @@ public class SootToCfg {
 
 	private void processSootMethod(SootMethod sm) {
 		if (sm.isConcrete()) {			
-//			//TODO
-//			if (!sm.getSignature().equals("<soottocfg.transformers.ExceptionMagic: java.util.List refMayThrowException(soot.Unit,soot.jimple.Ref)>")) {
+			//TODO
+//			if (!sm.getSignature().equals("<org.apache.tools.ant.taskdefs.optional.unix.Symlink: void delete()>")) {
 //				return;
 //			}
 //			System.err.println(sm.getSignature());
@@ -106,17 +106,15 @@ public class SootToCfg {
 		
 //		System.err.println(body.toString());		
 		preProcessBody(body);
-			
+//		System.err.println(body.toString());
+		
 		//generate the CFG structures on the processed body.
 		MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
-		
-		System.err.println(body.toString());
-
 		SootStmtSwitch ss = new SootStmtSwitch(body, mi);
 		mi.setSource(ss.getEntryBlock());
 
 		mi.finalizeAndAddToProgram();
-		System.err.println(mi.getMethod());
+//		System.err.println(mi.getMethod());
 	}
 	
 	private void preProcessBody(Body body) {

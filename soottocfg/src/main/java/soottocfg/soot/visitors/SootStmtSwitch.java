@@ -341,8 +341,6 @@ public class SootStmtSwitch implements StmtSwitch {
 			baseExpression = valueSwitch.popExpression();
 			// add the "this" variable to the list of args
 			args.addFirst(baseExpression);
-			// TODO: assert that base!=null
-
 			// this include Interface-, Virtual, and SpecialInvokeExpr
 			if (call.getMethod().isConstructor() && call instanceof SpecialInvokeExpr) {
 				possibleTargets.add(call.getMethod());
@@ -429,7 +427,9 @@ public class SootStmtSwitch implements StmtSwitch {
 			return true;
 		}
 		if (call.getMethod().getSignature().contains("<java.lang.System: void exit(int)>")) {
-			throw new RuntimeException("todo");
+			//TODO: this is not sufficient for interprocedural analysis.
+			currentBlock = null;
+			return true;
 		}
 
 		if (call.getMethod().getDeclaringClass().getName().contains("org.junit.Assert")) {

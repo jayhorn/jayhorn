@@ -1,5 +1,8 @@
 package translation_tests;
 
+import java.io.File;
+import java.io.IOException;
+
 public class TranslationTest01 {
 
 //	public int noExceptions(int i) {
@@ -25,18 +28,42 @@ public class TranslationTest01 {
 //	}
 	
 	int x,y;
+//	
+//	public int withException() {
+//		int b;
+//		try {
+//			int a[] = new int[2];
+//			b=a[3];
+//			
+//		} catch (ArrayIndexOutOfBoundsException e) {
+//			b = 20;
+//		}
+//		b=30;
+//		return b;
+//	}
 	
-	public int withException() {
-		int b;
+//	public void excpetions02() {
+//		File myFile = new File(new File("doesntexist"), "test.txt"); 
+//		try {
+//			myFile.createNewFile();
+//		} catch (FileNotFoundException e) {
+//			x =10;
+//		} catch (IOException e) {
+//			y = 20;
+//		}
+//		x = 30;
+//	}
+	
+	public void excpetions03() {
+		File myFile = new File(new File("doesntexist"), "test.txt"); 
 		try {
-			int a[] = new int[2];
-			b=a[3];
-			
-		} catch (ArrayIndexOutOfBoundsException e) {
-			b = 20;
+			myFile.createNewFile();
+		} catch (IOException e) {
+			x =10;
+		} finally {
+			y = 20;
 		}
-		b=30;
-		return b;
+		x = 30;
 	}
 	
 	

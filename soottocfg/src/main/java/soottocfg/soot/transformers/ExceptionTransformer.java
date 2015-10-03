@@ -57,7 +57,7 @@ import soottocfg.util.Pair;
 public class ExceptionTransformer extends AbstractTransformer {
 
 	private NullnessAnalysis nullnessAnalysis;
-	protected final SootClass exceptionClass, nulLPointerExceptionClass, indexOutOfBoundsExceptionClass,
+	protected final SootClass exceptionClass, nulLPointerExceptionClass, arrayIndexOutOfBoundsExceptionClass,
 			classCastExceptionClass;
 
 	protected Local exceptionVariable;
@@ -76,7 +76,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 		nullnessAnalysis = nna;
 		exceptionClass = Scene.v().getSootClass("java.lang.Exception");
 		nulLPointerExceptionClass = Scene.v().getSootClass("java.lang.NullPointerException");
-		indexOutOfBoundsExceptionClass = Scene.v().getSootClass("java.lang.IndexOutOfBoundsException");
+		arrayIndexOutOfBoundsExceptionClass = Scene.v().getSootClass("java.lang.ArrayIndexOutOfBoundsException");
 		classCastExceptionClass = Scene.v().getSootClass("java.lang.ClassCastException");
 
 		internalAssertMethod = AssertionReconstruction.v().getAssertMethod();
@@ -115,26 +115,62 @@ public class ExceptionTransformer extends AbstractTransformer {
 			List<Trap> possibleTraps = getTrapsGuardingUnit(u, body);
 			for (ConditionalExceptionContainer ce : entry.getValue()) {
 				Trap trap = null;
-				for (Trap t : possibleTraps) {
-					/*TODO:
-					 * it is not sufficient to only check the first trap when
-					 * checking exceptions thrown by methods. E.g., if a method
-					 * declares "throws Exception" and there are catch blocks
-					 * for several subtypes of Exception, we have to transition
-					 * to all of them. 
-					 */
-					if (h.isClassSubclassOfIncluding(t.getException(), ce.getException())) {
-						trap = t;
-						break;
+				List<Trap> relevantTraps = new LinkedList<Trap>();
+
+				/*
+				 * if the current exception is created from a throws clause of a
+				 * method invoke, we need special handling, because the thrown
+				 * exception might as well be a sub type of the declared one, in
+				 * which case a different trap might catch it.
+				 */
+				if (u instanceof InvokeStmt && ce.getValue() == null
+						&& ((InvokeStmt) u).getInvokeExpr().getMethod().getExceptions().contains(ce.getException())) {
+					for (Trap t : possibleTraps) {
+						// Check if the exception is either a sub-class or a
+						// super-class.
+						if (h.isClassSubclassOfIncluding(t.getException(), ce.getException())
+								|| h.isClassSubclassOfIncluding(ce.getException(), t.getException())) {
+							// check if we already have a trap for this
+							// exception
+							// then the other trap is unreachable.
+							boolean foundInPrevious = false;
+							for (Trap previous : relevantTraps) {
+								//Check if we already have a trap for this class (or a super class).
+								if (h.isClassSubclassOfIncluding(t.getException(), previous.getException())) {
+									foundInPrevious = true;
+									break;
+								}
+							}
+							if (!foundInPrevious) {
+								relevantTraps.add(t);
+							}
+							trap = t;
+							//Check if t is already of type ce.getException() or a super
+							//type of it. In this case, we are done.
+							if (h.isClassSubclassOfIncluding(ce.getException(), t.getException())) {
+								break;
+							}
+						}
+
+					}
+				} else {
+					// find the first trap that catches this exception.
+					for (Trap t : possibleTraps) {
+						if (h.isClassSubclassOfIncluding(ce.getException(), t.getException())) {
+							trap = t;
+							relevantTraps.add(t);
+							break;
+						}
 					}
 				}
+
 				if (trap != null) {
-					handleCaughtException(body, u, ce, trap);
+					handleCaughtException(body, u, ce, relevantTraps);
 				} else {
 					// check if the exception is declared in throws-clause
 					SootClass inThrowsClause = null;
 					for (SootClass sc : body.getMethod().getExceptions()) {
-						if (h.isClassSubclassOfIncluding(sc, ce.getException())) {
+						if (h.isClassSubclassOfIncluding(ce.getException(), sc)) {
 							inThrowsClause = sc;
 						}
 					}
@@ -163,21 +199,34 @@ public class ExceptionTransformer extends AbstractTransformer {
 	 * @param t
 	 *            The trap that catches this exception
 	 */
-	protected void handleCaughtException(Body b, Unit u, ConditionalExceptionContainer ce, Trap t) {
+	protected void handleCaughtException(Body b, Unit u, ConditionalExceptionContainer ce, List<Trap> traps) {
 		List<Pair<Value, List<Unit>>> guards = constructGuardExpression(b, ce, true, u);
-		// add a block that creates an exception object
-		// and assigns it to $exception.
-		Local execptionLocal = getFreshLocal(b, exceptionVariable.getType());
-		List<Unit> excCreation = createNewException(b, execptionLocal, ce.getException(), u);
-		excCreation.add(gotoStmtFor(t.getHandlerUnit(), u));
-		b.getUnits().addAll(excCreation);
+		Map<Trap, Unit> createExceptionMap = new HashMap<Trap, Unit>();
+		for (Trap t : traps) {
+			// add a block that creates an exception object
+			// and assigns it to $exception.
+			if (!caughtExceptionLocal.containsKey(t)) {
+				// only create one local per trap so that we can
+				// replace the CaughtExceptionRef later.
+				caughtExceptionLocal.put(t, getFreshLocal(b, exceptionVariable.getType()));
+			}
+			Local execptionLocal = caughtExceptionLocal.get(t);
+			List<Unit> excCreation = createNewException(b, execptionLocal, ce.getException(), u);
+			createExceptionMap.put(t, excCreation.get(0));
+			excCreation.add(gotoStmtFor(t.getHandlerUnit(), u));
+			b.getUnits().addAll(excCreation);
+		}
 
 		if (guards != null) {
+			// if this is RuntimeException that is not raised by a call
+			// there can only be one trap.
+			assert(traps.size() == 1);
+			Trap t = traps.get(0);
 			// now create the conditional jump to the trap.
 			for (Pair<Value, List<Unit>> pair : guards) {
 				List<Unit> toInsert = new LinkedList<Unit>();
 				toInsert.addAll(pair.getSecond());
-				toInsert.add(ifStmtFor(pair.getFirst(), excCreation.get(0), u));
+				toInsert.add(ifStmtFor(pair.getFirst(), createExceptionMap.get(t), u));
 				b.getUnits().insertBefore(toInsert, u);
 			}
 		} else {
@@ -185,31 +234,40 @@ public class ExceptionTransformer extends AbstractTransformer {
 			// exception.
 			// In that case, we have to insert the exception handling after the
 			// statement.
+			// Note that there also might be multiple traps since we don't
+			// know if the procedure throws a sub-type of the declared
+			// exception.
 			List<Unit> toInsert = new LinkedList<Unit>();
-			// l := $exceptionVariable instanceof t.getException
-			Local l = getFreshLocal(b, IntType.v());
-			toInsert.add(
-					assignStmtFor(l, Jimple.v().newInstanceOfExpr(exceptionVariable, t.getException().getType()), u));
-			toInsert.add(ifStmtFor(jimpleNeZero(l), excCreation.get(0), u));
+			for (Trap t : traps) {
+				// l := $exceptionVariable instanceof t.getException
+				Local l = getFreshLocal(b, IntType.v());
+				toInsert.add(assignStmtFor(l,
+						Jimple.v().newInstanceOfExpr(exceptionVariable, t.getException().getType()), u));
+				toInsert.add(ifStmtFor(jimpleNeZero(l), createExceptionMap.get(t), u));
+			}
 			b.getUnits().insertAfter(toInsert, u);
 		}
-		// Replace the caughtExceptionRef in the handler unit by
-		// the exception local so that we can remove the traps.
-		// For that we also need to add assignments that assign the exception
-		// variable to the corresponding new exception.
-		if (t.getHandlerUnit() instanceof DefinitionStmt) {
-			DefinitionStmt ds = (DefinitionStmt) t.getHandlerUnit();
-			if (ds.getRightOp() instanceof CaughtExceptionRef) {
-				Unit newAssign = assignStmtFor(ds.getLeftOp(), execptionLocal, u);
-				b.getUnits().insertAfter(newAssign, ds);				
-				b.getUnits().remove(ds);				
+		for (Trap t : traps) {
+			// Replace the caughtExceptionRef in the handler unit by
+			// the exception local so that we can remove the traps.
+			// For that we also need to add assignments that assign the
+			// exception
+			// variable to the corresponding new exception.
+			if (t.getHandlerUnit() instanceof DefinitionStmt) {
+				DefinitionStmt ds = (DefinitionStmt) t.getHandlerUnit();
+				if (ds.getRightOp() instanceof CaughtExceptionRef) {
+					Unit newAssign = assignStmtFor(ds.getLeftOp(), caughtExceptionLocal.get(t), u);
+					b.getUnits().insertAfter(newAssign, ds);
+					b.getUnits().remove(ds);
+				}
+			} else {
+				throw new RuntimeException("Unexpected " + t.getHandlerUnit());
 			}
-		} else {
-			throw new RuntimeException("Unexpected " + t.getHandlerUnit());
 		}
 	}
 
 	private Map<SootClass, Unit> generatedThrowStatements = new HashMap<SootClass, Unit>();
+	private Map<Trap, Local> caughtExceptionLocal = new HashMap<Trap, Local>();
 
 	/**
 	 * Handle an exception that has no catch block but is declared in the
@@ -281,10 +339,25 @@ public class ExceptionTransformer extends AbstractTransformer {
 			}
 		} else {
 			// This is only the case for procedures calls that may throw an
-			// exception.
+			// exception that is a sub-type of RuntimeException.
+			// Otherwise, the exception either has to be caught or add to the
+			// throws clause of this method.
 			// In that case, we have to insert the exception handling after the
 			// statement.
-			// TODO:
+
+			// TODO: emit a warning here because this is kind of dangerous.
+			List<Unit> toInsert = new LinkedList<Unit>();
+			// l := $exceptionVariable instanceof t.getException
+			// c := l == 0
+			// assert c
+			Local l = getFreshLocal(b, IntType.v());
+			toInsert.add(
+					assignStmtFor(l, Jimple.v().newInstanceOfExpr(exceptionVariable, ce.getException().getType()), u));
+			Local cond = getFreshLocal(b, IntType.v());
+			toInsert.add(assignStmtFor(cond, jimpleEqZero(l), u));
+			toInsert.add(
+					Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(internalAssertMethod.makeRef(), cond)));
+			b.getUnits().insertAfter(toInsert, u);
 		}
 
 	}
@@ -350,7 +423,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 						new LinkedList<Unit>()));
 			}
 			return result;
-		} else if (ce.exception == indexOutOfBoundsExceptionClass) {
+		} else if (ce.exception == arrayIndexOutOfBoundsExceptionClass) {
 			ArrayRef e = (ArrayRef) ce.getValue();
 			// index < array.length
 			/*
@@ -497,7 +570,8 @@ public class ExceptionTransformer extends AbstractTransformer {
 			ArrayRef e = (ArrayRef) r;
 			result.addAll(collectPossibleExceptions(u, e.getBase()));
 			result.addAll(collectPossibleExceptions(u, e.getIndex()));
-			ConditionalExceptionContainer ce = new ConditionalExceptionContainer(e, indexOutOfBoundsExceptionClass);
+			ConditionalExceptionContainer ce = new ConditionalExceptionContainer(e,
+					arrayIndexOutOfBoundsExceptionClass);
 			result.add(ce);
 		} else if (r instanceof IdentityRef || r instanceof StaticFieldRef) {
 			// do nothing.
