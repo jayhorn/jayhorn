@@ -116,6 +116,13 @@ public class ExceptionTransformer extends AbstractTransformer {
 			for (ConditionalExceptionContainer ce : entry.getValue()) {
 				Trap trap = null;
 				for (Trap t : possibleTraps) {
+					/*TODO:
+					 * it is not sufficient to only check the first trap when
+					 * checking exceptions thrown by methods. E.g., if a method
+					 * declares "throws Exception" and there are catch blocks
+					 * for several subtypes of Exception, we have to transition
+					 * to all of them. 
+					 */
 					if (h.isClassSubclassOfIncluding(t.getException(), ce.getException())) {
 						trap = t;
 						break;
@@ -160,7 +167,8 @@ public class ExceptionTransformer extends AbstractTransformer {
 		List<Pair<Value, List<Unit>>> guards = constructGuardExpression(b, ce, true, u);
 		// add a block that creates an exception object
 		// and assigns it to $exception.
-		List<Unit> excCreation = createNewException(b, ce.getException(), u);
+		Local execptionLocal = getFreshLocal(b, exceptionVariable.getType());
+		List<Unit> excCreation = createNewException(b, execptionLocal, ce.getException(), u);
 		excCreation.add(gotoStmtFor(t.getHandlerUnit(), u));
 		b.getUnits().addAll(excCreation);
 
@@ -185,15 +193,16 @@ public class ExceptionTransformer extends AbstractTransformer {
 			toInsert.add(ifStmtFor(jimpleNeZero(l), excCreation.get(0), u));
 			b.getUnits().insertAfter(toInsert, u);
 		}
-		// TODO: replace the caughtExceptionRef in the handler unit by
+		// Replace the caughtExceptionRef in the handler unit by
 		// the exception local so that we can remove the traps.
 		// For that we also need to add assignments that assign the exception
 		// variable to the corresponding new exception.
 		if (t.getHandlerUnit() instanceof DefinitionStmt) {
 			DefinitionStmt ds = (DefinitionStmt) t.getHandlerUnit();
-			if (ds.getRightOp() instanceof CaughtExceptionRef) {				
-				b.getUnits().insertAfter(assignStmtFor(ds.getLeftOp(), exceptionVariable, u), ds);
-				b.getUnits().remove(ds);
+			if (ds.getRightOp() instanceof CaughtExceptionRef) {
+				Unit newAssign = assignStmtFor(ds.getLeftOp(), execptionLocal, u);
+				b.getUnits().insertAfter(newAssign, ds);				
+				b.getUnits().remove(ds);				
 			}
 		} else {
 			throw new RuntimeException("Unexpected " + t.getHandlerUnit());
@@ -218,7 +227,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 	protected void handleDeclaredException(Body b, Unit u, ConditionalExceptionContainer ce, SootClass tc) {
 		List<Pair<Value, List<Unit>>> guards = constructGuardExpression(b, ce, true, u);
 		if (!generatedThrowStatements.containsKey(ce.getException())) {
-			List<Unit> exc = createNewException(b, ce.getException(), u);
+			List<Unit> exc = throwNewException(b, ce.getException(), u);
 			Unit newException = exc.get(0);
 			b.getUnits().addAll(exc);
 			generatedThrowStatements.put(ce.getException(), newException);
@@ -280,12 +289,12 @@ public class ExceptionTransformer extends AbstractTransformer {
 
 	}
 
-	protected List<Unit> createNewException(Body b, SootClass exc, Host createdFrom) {
+	protected List<Unit> createNewException(Body b, Local exLocal, SootClass exc, Host createdFrom) {
 		List<Unit> result = new LinkedList<Unit>();
 		/*
 		 * generate l := new Exception constructor call throw l
 		 */
-		Local l = exceptionVariable;
+		Local l = exLocal;
 		// l = new Exception
 		Unit newException = assignStmtFor(l, Jimple.v().newNewExpr(RefType.v(exc)), createdFrom);
 		result.add(newException);
@@ -301,7 +310,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 	}
 
 	protected List<Unit> throwNewException(Body b, SootClass exc, Host createdFrom) {
-		List<Unit> result = createNewException(b, exc, createdFrom);
+		List<Unit> result = createNewException(b, exceptionVariable, exc, createdFrom);
 		result.add(throwStmtFor(exceptionVariable, createdFrom));
 		return result;
 	}

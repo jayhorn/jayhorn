@@ -26,14 +26,17 @@ public class TranslationTest01 {
 	
 	int x,y;
 	
-	public void withException() {
+	public int withException() {
+		int b;
 		try {
 			int a[] = new int[2];
-			System.out.println("Access element three :" + a[3]);
+			b=a[3];
+			
 		} catch (ArrayIndexOutOfBoundsException e) {
-			x = 5;
+			b = 20;
 		}
-		y=3;
+		b=30;
+		return b;
 	}
 	
 	

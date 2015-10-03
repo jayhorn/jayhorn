@@ -89,7 +89,7 @@ public class SootStmtSwitch implements StmtSwitch {
 	private boolean insideMonitor = false;
 
 	private Stmt currentStmt;
-	private final Program program;	
+	private final Program program;
 
 	public SootStmtSwitch(Body body, MethodInfo mi) {
 		this.methodInfo = mi;
@@ -123,7 +123,6 @@ public class SootStmtSwitch implements StmtSwitch {
 		}
 		// TODO: connect stuff to exit.
 	}
-
 
 	public CfgBlock getEntryBlock() {
 		return this.entryBlock;
@@ -161,19 +160,22 @@ public class SootStmtSwitch implements StmtSwitch {
 
 	private void precheck(Stmt st) {
 		this.currentStmt = st;
-		// first check if we already created a block
-		// for this statement.
-		if (methodInfo.findBlock(st) != null) {
-			// TODO: connect to predecessor.
-			currentBlock = methodInfo.findBlock(st);
-		}
-		// If not, and we currently don't have a block,
-		// create a new one.
-		if (currentBlock == null) {
+
+		if (currentBlock != null) {
+			// first check if we already created a block
+			// for this statement.
+			CfgBlock block = methodInfo.findBlock(st);
+			if (block != null && block != currentBlock) {
+				currentBlock.addSuccessor(block);
+				currentBlock = block;
+			}
+		} else {
+			// If not, and we currently don't have a block,
+			// create a new one.
 			currentBlock = methodInfo.lookupCfgBlock(st);
 		}
 	}
-	
+
 	/*
 	 * Below follow the visitor methods from StmtSwitch
 	 * 
@@ -211,7 +213,7 @@ public class SootStmtSwitch implements StmtSwitch {
 	@Override
 	public void caseGotoStmt(GotoStmt arg0) {
 		precheck(arg0);
-		CfgBlock target = this.methodInfo.lookupCfgBlock(arg0.getTarget());
+		CfgBlock target = this.methodInfo.lookupCfgBlock(arg0.getTarget());		
 		this.currentBlock.addSuccessor(target);
 		this.currentBlock = null;
 	}
@@ -231,23 +233,22 @@ public class SootStmtSwitch implements StmtSwitch {
 		 * In jimple, conditionals are of the form if (x) goto y; So we end the
 		 * current block and create two new blocks for then and else branch. The
 		 * new currenBlock becomes the else branch.
-		 */		
-		
-		Unit next = units.getSuccOf(arg0);		
-		/* 
-		 * In rare cases of empty If- and Else- blocks,
-		 * next and arg0.getTraget() are the same. For these
-		 * cases, we do not generate an If statement, but
-		 * still translate the conditional in case it may
+		 */
+
+		Unit next = units.getSuccOf(arg0);
+		/*
+		 * In rare cases of empty If- and Else- blocks, next and
+		 * arg0.getTraget() are the same. For these cases, we do not generate an
+		 * If statement, but still translate the conditional in case it may
 		 * throw an exception.
 		 */
-		if (next==arg0.getTarget()) {
-			//ignore the IfStmt.
+		if (next == arg0.getTarget()) {
+			// ignore the IfStmt.
 			return;
 		}
-		
+
 		CfgBlock thenBlock = methodInfo.lookupCfgBlock(arg0.getTarget());
-		this.currentBlock.addConditionalSuccessor(cond, thenBlock);		
+		this.currentBlock.addConditionalSuccessor(cond, thenBlock);
 		if (next != null) {
 			CfgBlock elseBlock = methodInfo.lookupCfgBlock(next);
 			this.currentBlock.addConditionalSuccessor(new UnaryExpression(UnaryOperator.LNot, cond), elseBlock);
@@ -456,12 +457,12 @@ public class SootStmtSwitch implements StmtSwitch {
 	}
 
 	private void translateDefinitionStmt(DefinitionStmt def) {
-		
-		if (def.containsInvokeExpr()) {			
+
+		if (def.containsInvokeExpr()) {
 			translateMethodInvokation(def, def.getLeftOp(), def.getInvokeExpr());
 			return;
 		}
-		
+
 		Value lhs = def.getLeftOp();
 		Value rhs = def.getRightOp();
 		/*

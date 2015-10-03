@@ -160,10 +160,7 @@ public class MethodInfo {
 	}
 
 	public CfgBlock findBlock(Unit u) {
-		if (!unitToBlockMap.containsKey(u)) {
-			return unitToBlockMap.get(u);
-		}
-		return null;
+		return unitToBlockMap.get(u);
 	}
 
 	public CfgBlock getSource() {
@@ -177,5 +174,5 @@ public class MethodInfo {
 	public CfgBlock getSink() {
 		return sink;
 	}
-
+	
 }
