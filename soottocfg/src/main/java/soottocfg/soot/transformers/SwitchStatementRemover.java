@@ -84,10 +84,17 @@ public class SwitchStatementRemover extends BodyTransformer {
 		}
 		
 		for (int i=0; i<cases.size(); i++) {
-			result.add(Jimple.v().newIfStmt(cases.get(i), targets.get(i)));
+			//create the ifstmt
+			Unit ifstmt = Jimple.v().newIfStmt(cases.get(i), targets.get(i));
+			//add that tags (including the location) from the original switch.
+			System.err.println(s.getTags());
+			ifstmt.addAllTagsOf(s);
+			result.add(ifstmt);
 		}
 		if (defaultTarget!=null) {
-			result.add(Jimple.v().newGotoStmt(defaultTarget));
+			Unit gotoStmt = Jimple.v().newGotoStmt(defaultTarget);
+			gotoStmt.addAllTagsOf(s);
+			result.add(gotoStmt);
 		}
 		return result;
 	}

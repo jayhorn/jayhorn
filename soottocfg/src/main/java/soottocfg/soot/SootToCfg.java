@@ -104,10 +104,9 @@ public class SootToCfg {
 	}
 
 	private void processMethodBody(Body body) {
-
-		MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
-		System.err.println(body.toString());
 		
+//		System.err.println(body.toString());
+		//pre-process the body
 		UnitGraph unitGraph = new CompleteUnitGraph(body);
 		NullnessAnalysis localNullness = new NullnessAnalysis(unitGraph);
 		LocalMayAliasAnalysis localMayAlias = new LocalMayAliasAnalysis(unitGraph);
@@ -117,12 +116,16 @@ public class SootToCfg {
 		SwitchStatementRemover so = new SwitchStatementRemover();
 		so.transform(body);
 
+		
+		//generate the CFG structures on the processed body.
+		MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
+		
 		AssertionReconstruction.v().removeAssertionRelatedNonsense(body);
 		AssertionReconstruction.v().reconstructJavaAssertions(body);
 
-		System.err.println(body.toString());
+//		System.err.println(body.toString());
 
-		SootStmtSwitch ss = new SootStmtSwitch(body, mi, localMayAlias, localNullness);
+		SootStmtSwitch ss = new SootStmtSwitch(body, mi, localMayAlias);
 		mi.setSource(ss.getEntryBlock());
 
 		mi.finalizeAndAddToProgram();
