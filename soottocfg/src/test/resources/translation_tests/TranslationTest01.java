@@ -27,12 +27,12 @@ public class TranslationTest01 {
 	int x,y;
 	
 	public void withException() {
-//		try {
+		try {
 			int a[] = new int[2];
 			System.out.println("Access element three :" + a[3]);
-//		} catch (ArrayIndexOutOfBoundsException e) {
-//			x = 5;
-//		}
+		} catch (ArrayIndexOutOfBoundsException e) {
+			x = 5;
+		}
 		y=3;
 	}
 	

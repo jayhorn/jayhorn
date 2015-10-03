@@ -8,13 +8,12 @@ import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
-import soot.jimple.toolkits.pointer.LocalMayAliasAnalysis;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soot.toolkits.graph.UnitGraph;
 import soottocfg.cfg.Program;
 import soottocfg.soot.SootRunner.CallgraphAlgorithm;
-import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.AssertionReconstruction;
+import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.SwitchStatementRemover;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -105,30 +104,37 @@ public class SootToCfg {
 
 	private void processMethodBody(Body body) {
 		
-//		System.err.println(body.toString());
-		//pre-process the body
-		UnitGraph unitGraph = new CompleteUnitGraph(body);
-		NullnessAnalysis localNullness = new NullnessAnalysis(unitGraph);
-		LocalMayAliasAnalysis localMayAlias = new LocalMayAliasAnalysis(unitGraph);
-
-		ExceptionTransformer em = new ExceptionTransformer(localNullness);
-		em.transform(body);
-		SwitchStatementRemover so = new SwitchStatementRemover();
-		so.transform(body);
-
-		
+//		System.err.println(body.toString());		
+		preProcessBody(body);
+			
 		//generate the CFG structures on the processed body.
 		MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
 		
-		AssertionReconstruction.v().removeAssertionRelatedNonsense(body);
-		AssertionReconstruction.v().reconstructJavaAssertions(body);
+		System.err.println(body.toString());
 
-//		System.err.println(body.toString());
-
-		SootStmtSwitch ss = new SootStmtSwitch(body, mi, localMayAlias);
+		SootStmtSwitch ss = new SootStmtSwitch(body, mi);
 		mi.setSource(ss.getEntryBlock());
 
 		mi.finalizeAndAddToProgram();
-//		System.err.println(mi.getMethod());
+		System.err.println(mi.getMethod());
+	}
+	
+	private void preProcessBody(Body body) {
+		//pre-process the body
+		UnitGraph unitGraph = new CompleteUnitGraph(body);
+		NullnessAnalysis localNullness = new NullnessAnalysis(unitGraph);
+//		LocalMayAliasAnalysis localMayAlias = new LocalMayAliasAnalysis(unitGraph);
+		
+		//first reconstruct the assertions.
+		AssertionReconstruction.v().removeAssertionRelatedNonsense(body);
+		AssertionReconstruction.v().reconstructJavaAssertions(body);
+
+		//make the exception handling explicit
+		ExceptionTransformer em = new ExceptionTransformer(localNullness);
+		em.transform(body);
+		//replace all switches by sets of IfStmt
+		SwitchStatementRemover so = new SwitchStatementRemover();
+		so.transform(body);
+		
 	}
 }

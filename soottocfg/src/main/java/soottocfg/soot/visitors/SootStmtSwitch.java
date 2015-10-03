@@ -22,7 +22,6 @@ package soottocfg.soot.visitors;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import soot.Body;
 import soot.PatchingChain;
@@ -54,9 +53,6 @@ import soot.jimple.Stmt;
 import soot.jimple.StmtSwitch;
 import soot.jimple.TableSwitchStmt;
 import soot.jimple.ThrowStmt;
-import soot.jimple.toolkits.pointer.LocalMayAliasAnalysis;
-import soot.toolkits.graph.CompleteUnitGraph;
-import soot.toolkits.graph.UnitGraph;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BooleanLiteral;
@@ -93,17 +89,12 @@ public class SootStmtSwitch implements StmtSwitch {
 	private boolean insideMonitor = false;
 
 	private Stmt currentStmt;
-	private final Program program;
+	private final Program program;	
 
-	private final LocalMayAliasAnalysis localMayAlias;
-
-	public SootStmtSwitch(Body body, MethodInfo mi, LocalMayAliasAnalysis maa) {
+	public SootStmtSwitch(Body body, MethodInfo mi) {
 		this.methodInfo = mi;
 		this.sootBody = body;
 		this.sootMethod = sootBody.getMethod();
-
-		UnitGraph unitGraph = new CompleteUnitGraph(sootBody);
-		localMayAlias = new LocalMayAliasAnalysis(unitGraph);
 
 		this.program = SootTranslationHelpers.v().getProgram();
 
@@ -133,16 +124,6 @@ public class SootStmtSwitch implements StmtSwitch {
 		// TODO: connect stuff to exit.
 	}
 
-	/**
-	 * Get the set of possible aliases for the value v in the current body. This
-	 * uses Soots LocalMayAliasAnalysis.
-	 * 
-	 * @param v
-	 * @return
-	 */
-	public Set<Value> getMayAliasInCurrentUnit(Value v) {
-		return this.localMayAlias.mayAliases(v, this.currentStmt);
-	}
 
 	public CfgBlock getEntryBlock() {
 		return this.entryBlock;

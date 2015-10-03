@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import soot.Body;
-import soot.BodyTransformer;
 import soot.BooleanType;
 import soot.Hierarchy;
 import soot.Immediate;
@@ -23,13 +22,13 @@ import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.Trap;
-import soot.Type;
 import soot.Unit;
 import soot.Value;
 import soot.jimple.AnyNewExpr;
 import soot.jimple.ArrayRef;
 import soot.jimple.BinopExpr;
 import soot.jimple.CastExpr;
+import soot.jimple.CaughtExceptionRef;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.IdentityRef;
 import soot.jimple.IfStmt;
@@ -48,13 +47,14 @@ import soot.jimple.SwitchStmt;
 import soot.jimple.ThrowStmt;
 import soot.jimple.UnopExpr;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
+import soot.tagkit.Host;
 import soottocfg.util.Pair;
 
 /**
  * @author schaef
  *
  */
-public class ExceptionTransformer extends BodyTransformer {
+public class ExceptionTransformer extends AbstractTransformer {
 
 	private NullnessAnalysis nullnessAnalysis;
 	protected final SootClass exceptionClass, nulLPointerExceptionClass, indexOutOfBoundsExceptionClass,
@@ -62,8 +62,9 @@ public class ExceptionTransformer extends BodyTransformer {
 
 	protected Local exceptionVariable;
 	private final SootMethod internalAssertMethod;
-	
+
 	private static final String exceptionLocalName = "$exception";
+
 	public static final String getExceptionLocalName() {
 		return ExceptionTransformer.exceptionLocalName;
 	}
@@ -156,13 +157,19 @@ public class ExceptionTransformer extends BodyTransformer {
 	 *            The trap that catches this exception
 	 */
 	protected void handleCaughtException(Body b, Unit u, ConditionalExceptionContainer ce, Trap t) {
-		List<Pair<Value, List<Unit>>> guards = constructGuardExpression(b, ce, true);
+		List<Pair<Value, List<Unit>>> guards = constructGuardExpression(b, ce, true, u);
+		// add a block that creates an exception object
+		// and assigns it to $exception.
+		List<Unit> excCreation = createNewException(b, ce.getException(), u);
+		excCreation.add(gotoStmtFor(t.getHandlerUnit(), u));
+		b.getUnits().addAll(excCreation);
+
 		if (guards != null) {
 			// now create the conditional jump to the trap.
 			for (Pair<Value, List<Unit>> pair : guards) {
 				List<Unit> toInsert = new LinkedList<Unit>();
 				toInsert.addAll(pair.getSecond());
-				toInsert.add(Jimple.v().newIfStmt(pair.getFirst(), t.getHandlerUnit()));
+				toInsert.add(ifStmtFor(pair.getFirst(), excCreation.get(0), u));
 				b.getUnits().insertBefore(toInsert, u);
 			}
 		} else {
@@ -173,15 +180,24 @@ public class ExceptionTransformer extends BodyTransformer {
 			List<Unit> toInsert = new LinkedList<Unit>();
 			// l := $exceptionVariable instanceof t.getException
 			Local l = getFreshLocal(b, IntType.v());
-			toInsert.add(Jimple.v().newAssignStmt(l,
-					Jimple.v().newInstanceOfExpr(exceptionVariable, t.getException().getType())));
-			toInsert.add(Jimple.v().newIfStmt(jimpleNeZero(l), t.getHandlerUnit()));
+			toInsert.add(
+					assignStmtFor(l, Jimple.v().newInstanceOfExpr(exceptionVariable, t.getException().getType()), u));
+			toInsert.add(ifStmtFor(jimpleNeZero(l), excCreation.get(0), u));
 			b.getUnits().insertAfter(toInsert, u);
 		}
-		//TODO: replace the caughtExceptionRef in the handler unit by 
-		//the exception local so that we can remove the traps.
-		//For that we also need to add assignments that assign the exception 
-		//variable to the corresponding new exception.
+		// TODO: replace the caughtExceptionRef in the handler unit by
+		// the exception local so that we can remove the traps.
+		// For that we also need to add assignments that assign the exception
+		// variable to the corresponding new exception.
+		if (t.getHandlerUnit() instanceof DefinitionStmt) {
+			DefinitionStmt ds = (DefinitionStmt) t.getHandlerUnit();
+			if (ds.getRightOp() instanceof CaughtExceptionRef) {				
+				b.getUnits().insertAfter(assignStmtFor(ds.getLeftOp(), exceptionVariable, u), ds);
+				b.getUnits().remove(ds);
+			}
+		} else {
+			throw new RuntimeException("Unexpected " + t.getHandlerUnit());
+		}
 	}
 
 	private Map<SootClass, Unit> generatedThrowStatements = new HashMap<SootClass, Unit>();
@@ -200,19 +216,11 @@ public class ExceptionTransformer extends BodyTransformer {
 	 *            The class in the throws clause
 	 */
 	protected void handleDeclaredException(Body b, Unit u, ConditionalExceptionContainer ce, SootClass tc) {
-		List<Pair<Value, List<Unit>>> guards = constructGuardExpression(b, ce, true);
+		List<Pair<Value, List<Unit>>> guards = constructGuardExpression(b, ce, true, u);
 		if (!generatedThrowStatements.containsKey(ce.getException())) {
-			/*
-			 * generate 
-			 * l := new Exception
-			 * TODO: constructor call
-			 * throw l
-			 */
-			Local l = getFreshLocal(b, RefType.v(ce.getException()));
-			Unit newException = Jimple.v().newAssignStmt(l, Jimple.v().newNewExpr(RefType.v(ce.getException())));
-			b.getUnits().add(newException);
-			Unit throwStmt = Jimple.v().newThrowStmt(l);
-			b.getUnits().add(throwStmt);
+			List<Unit> exc = createNewException(b, ce.getException(), u);
+			Unit newException = exc.get(0);
+			b.getUnits().addAll(exc);
 			generatedThrowStatements.put(ce.getException(), newException);
 		}
 		Unit throwStmt = generatedThrowStatements.get(ce.getException());
@@ -222,7 +230,7 @@ public class ExceptionTransformer extends BodyTransformer {
 
 				List<Unit> toInsert = new LinkedList<Unit>();
 				toInsert.addAll(pair.getSecond());
-				toInsert.add(Jimple.v().newIfStmt(pair.getFirst(), throwStmt));
+				toInsert.add(ifStmtFor(pair.getFirst(), throwStmt, u));
 
 				b.getUnits().insertBefore(toInsert, u);
 			}
@@ -234,9 +242,8 @@ public class ExceptionTransformer extends BodyTransformer {
 			List<Unit> toInsert = new LinkedList<Unit>();
 			// l := $exceptionVariable instanceof t.getException
 			Local l = getFreshLocal(b, IntType.v());
-			toInsert.add(Jimple.v().newAssignStmt(l,
-					Jimple.v().newInstanceOfExpr(exceptionVariable, tc.getType())));
-			toInsert.add(Jimple.v().newIfStmt(jimpleNeZero(l), throwStmt));
+			toInsert.add(assignStmtFor(l, Jimple.v().newInstanceOfExpr(exceptionVariable, tc.getType()), u));
+			toInsert.add(ifStmtFor(jimpleNeZero(l), throwStmt, u));
 			b.getUnits().insertAfter(toInsert, u);
 		}
 	}
@@ -250,7 +257,7 @@ public class ExceptionTransformer extends BodyTransformer {
 	 * @param ce
 	 */
 	protected void handleUndeclaredException(Body b, Unit u, ConditionalExceptionContainer ce) {
-		List<Pair<Value, List<Unit>>> guards = constructGuardExpression(b, ce, false);
+		List<Pair<Value, List<Unit>>> guards = constructGuardExpression(b, ce, false, u);
 		if (guards != null) {
 			// now create the conditional jump to the trap.
 			for (Pair<Value, List<Unit>> pair : guards) {
@@ -258,7 +265,7 @@ public class ExceptionTransformer extends BodyTransformer {
 				toInsert.addAll(pair.getSecond());
 				// assert guard
 				Local l = getFreshLocal(b, BooleanType.v());
-				toInsert.add(Jimple.v().newAssignStmt(l, pair.getFirst()));
+				toInsert.add(assignStmtFor(l, pair.getFirst(), u));
 				toInsert.add(
 						Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(internalAssertMethod.makeRef(), l)));
 				b.getUnits().insertBefore(toInsert, u);
@@ -273,16 +280,53 @@ public class ExceptionTransformer extends BodyTransformer {
 
 	}
 
+	protected List<Unit> createNewException(Body b, SootClass exc, Host createdFrom) {
+		List<Unit> result = new LinkedList<Unit>();
+		/*
+		 * generate l := new Exception constructor call throw l
+		 */
+		Local l = exceptionVariable;
+		// l = new Exception
+		Unit newException = assignStmtFor(l, Jimple.v().newNewExpr(RefType.v(exc)), createdFrom);
+		result.add(newException);
+		// constructor call
+		for (SootMethod sm : exc.getMethods()) {
+			if (sm.isConstructor() && sm.getParameterCount() == 0) {
+				// This is the constructor we are looking for.
+				result.add(invokeStmtFor(Jimple.v().newSpecialInvokeExpr(l, sm.makeRef()), createdFrom));
+				break;
+			}
+		}
+		return result;
+	}
+
+	protected List<Unit> throwNewException(Body b, SootClass exc, Host createdFrom) {
+		List<Unit> result = createNewException(b, exc, createdFrom);
+		result.add(throwStmtFor(exceptionVariable, createdFrom));
+		return result;
+	}
+
 	/**
-	 * TODO
+	 * Generates for a given ConditionalExceptionContainer a list of pairs of
+	 * the Value under which the exception occurs (or the negated version if
+	 * negated is true), and the list of supporting statements, such as temp
+	 * variables.
+	 * 
+	 * In most cases, the list contains only one element. Only for
+	 * IndexOutOfBoundsExceptions it returns two elements. One checking the
+	 * lower bound and one checking the upper bound. This is because Jimple does
+	 * not have disjunctions.
 	 * 
 	 * @param body
+	 *            The current body
 	 * @param ce
+	 *            ConditionalExceptionContainer
 	 * @param negated
-	 * @return
+	 *            If the conditions should be negated.
+	 * @return List of pairs
 	 */
 	protected List<Pair<Value, List<Unit>>> constructGuardExpression(Body body, ConditionalExceptionContainer ce,
-			boolean negated) {
+			boolean negated, Host createdFrom) {
 		List<Pair<Value, List<Unit>>> result = new LinkedList<Pair<Value, List<Unit>>>();
 		if (ce.value == null) {
 			// that is, the exception came from the throws clause of a function.
@@ -306,11 +350,11 @@ public class ExceptionTransformer extends BodyTransformer {
 			 */
 			List<Unit> helperStatements = new LinkedList<Unit>();
 			Local len = getFreshLocal(body, IntType.v());
-			Unit helperStmt = Jimple.v().newAssignStmt(len, Jimple.v().newLengthExpr(e.getBase()));
+			Unit helperStmt = assignStmtFor(len, Jimple.v().newLengthExpr(e.getBase()), createdFrom);
 			helperStatements.add(helperStmt);
 
 			Local left = getFreshLocal(body, IntType.v());
-			helperStmt = Jimple.v().newAssignStmt(left, Jimple.v().newLtExpr(e.getIndex(), len));
+			helperStmt = assignStmtFor(left, Jimple.v().newLtExpr(e.getIndex(), len), createdFrom);
 			helperStatements.add(helperStmt);
 			// !(index < array.length)
 			if (negated) {
@@ -322,7 +366,7 @@ public class ExceptionTransformer extends BodyTransformer {
 			// index >= 0
 			helperStatements = new LinkedList<Unit>();
 			Local right = getFreshLocal(body, IntType.v());
-			helperStmt = Jimple.v().newAssignStmt(right, Jimple.v().newGeExpr(e.getIndex(), IntConstant.v(0)));
+			helperStmt = assignStmtFor(right, Jimple.v().newGeExpr(e.getIndex(), IntConstant.v(0)), createdFrom);
 			helperStatements.add(helperStmt);
 			// !(index>=0)
 			if (negated) {
@@ -342,8 +386,8 @@ public class ExceptionTransformer extends BodyTransformer {
 			 */
 			List<Unit> helperStatements = new LinkedList<Unit>();
 			Local helperLocal = getFreshLocal(body, IntType.v());
-			Unit helperStmt = Jimple.v().newAssignStmt(helperLocal,
-					Jimple.v().newInstanceOfExpr(e.getOp(), e.getCastType()));
+			Unit helperStmt = assignStmtFor(helperLocal, Jimple.v().newInstanceOfExpr(e.getOp(), e.getCastType()),
+					createdFrom);
 			helperStatements.add(helperStmt);
 			if (negated) {
 				result.add(new Pair<Value, List<Unit>>(jimpleEqZero(helperLocal), helperStatements));
@@ -353,22 +397,6 @@ public class ExceptionTransformer extends BodyTransformer {
 			return result;
 		}
 		throw new RuntimeException("not implemented");
-	}
-
-	private Value jimpleEqZero(Value v) {
-		return Jimple.v().newEqExpr(v, IntConstant.v(0));
-	}
-
-	private Value jimpleNeZero(Value v) {
-		return Jimple.v().newNeExpr(v, IntConstant.v(0));
-	}
-
-	private long counter = 0;
-
-	protected Local getFreshLocal(Body body, Type t) {
-		Local local = Jimple.v().newLocal("$helper" + (counter++), t);
-		body.getLocals().add(local);
-		return local;
 	}
 
 	private List<ConditionalExceptionContainer> collectPossibleExceptions(Unit u) {
