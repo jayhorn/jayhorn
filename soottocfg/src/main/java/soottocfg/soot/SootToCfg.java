@@ -90,7 +90,7 @@ public class SootToCfg {
 	private void processSootMethod(SootMethod sm) {
 		if (sm.isConcrete()) {			
 			//TODO
-//			if (!sm.getSignature().equals("<org.apache.tools.ant.taskdefs.optional.unix.Symlink: void delete()>")) {
+//			if (!sm.getSignature().equals("<org.apache.tools.ant.ArgumentProcessorRegistry: org.apache.tools.ant.ArgumentProcessor getProcessorByService(java.io.InputStream)>")) {
 //				return;
 //			}
 //			System.err.println(sm.getSignature());
