@@ -36,11 +36,23 @@ buildscript {
 	}
 }
 
-subprojects {
-
+allprojects {
     apply plugin: 'java'
-	apply plugin: 'eclipse'
+    apply plugin: 'jacoco'
+
+    repositories {
+        jcenter()
+    }
+
+    jacoco {
+        toolVersion = '0.7.1.201405082137'
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
 	apply plugin: 'jacoco'
+	apply plugin: 'eclipse'
 	apply plugin: 'com.github.kt3k.coveralls'
 	apply plugin: 'findbugs'
 	apply plugin: 'jdepend'
@@ -63,6 +75,9 @@ subprojects {
 	 }
 
 	jacocoTestReport {
+		additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
+        sourceDirectories = files(sourceSets.main.allSource.srcDirs)
+        classDirectories =  files(sourceSets.main.output)
 		reports {
 			xml.enabled true
 			html.enabled true
@@ -83,7 +98,27 @@ subprojects {
 
 		useJUnit()
 	}
-	
+}
+
+task jacocoRootReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
+    dependsOn = subprojects.test
+    additionalSourceDirs = files(subprojects.sourceSets.main.allSource.srcDirs)
+    sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs)
+    classDirectories =  files(subprojects.sourceSets.main.output)
+    executionData = files(subprojects.jacocoTestReport.executionData)
+    reports {
+        html.enabled = true
+        xml.enabled = true
+        csv.enabled = false
+    }
+	onlyIf = {
+        true
+    }
+    doFirst {
+        executionData = files(executionData.findAll {
+            it.exists()
+        })
+    }
 }
 
 project(':jayhorn') {
