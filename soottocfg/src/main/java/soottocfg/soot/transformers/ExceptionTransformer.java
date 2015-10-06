@@ -165,20 +165,21 @@ public class ExceptionTransformer extends AbstractTransformer {
 		if (body.getTraps().isEmpty()) {
 			// System.err.println("OK");
 		} else {
-			StringBuilder sb = new StringBuilder();
-			sb.append(body.getMethod().getSignature());
-			sb.append("\n\t");
-			for (Trap t : body.getTraps()) {
-				sb.append(t.getException().getName());
-				sb.append(", ");
-			}
-			System.err.println(sb.toString());
+//			StringBuilder sb = new StringBuilder();
+//			sb.append(body.getMethod().getSignature());
+//			sb.append("\n\t");
+//			for (Trap t : body.getTraps()) {
+//				sb.append(t.getException().getName());
+//				sb.append(", ");
+//			}
+//			System.err.println(sb.toString());
 			// in theory, all the remaining traps should be unreachable
 			// so we can just throw them away.
 			// if the body.validate() fires an exception, its most likely
 			// a bug in our code.
 //			System.err.println(body);
 //			body.getTraps().removeAll(body.getTraps());
+			
 //			System.err.println("\t" + body.getMethod().getSignature());
 		}
 		body.validate();

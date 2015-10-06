@@ -90,7 +90,7 @@ public class SootToCfg {
 	private void processSootMethod(SootMethod sm) {
 		if (sm.isConcrete()) {			
 			//TODO
-//			if (!sm.getSignature().equals("<org.apache.tools.ant.AntClassLoader: java.lang.Class findClassInComponents(java.lang.String)>")) {
+//			if (!sm.getSignature().equals("<org.apache.tools.ant.taskdefs.condition.Socket: boolean eval()>")) {
 //				return;
 //			}
 //			System.err.println(sm.getSignature());
