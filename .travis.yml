@@ -15,4 +15,4 @@ script:
    - 'if [[ $TRAVIS_PULL_REQUEST != "false" ]]; then gradle integration_test ; fi'
 
 after_success:
-   - gradle jacocoTestReport coveralls
+   - gradle jacocoRootReport coveralls
