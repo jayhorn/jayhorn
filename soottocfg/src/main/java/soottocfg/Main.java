@@ -17,7 +17,7 @@ public class Main {
 				classPath = args[1];
 			}
 			SootToCfg soot2cfg = new SootToCfg();
-			soot2cfg.run(javaInput, classPath, CallgraphAlgorithm.None);
+			soot2cfg.run(javaInput, classPath, CallgraphAlgorithm.None);			
 		} else {
 			System.err.println("usage: [class_dir/jar_file] [(optional)classpath]");
 		}
