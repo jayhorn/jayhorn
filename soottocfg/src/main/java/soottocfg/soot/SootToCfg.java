@@ -9,12 +9,12 @@ import soot.SootClass;
 import soot.SootMethod;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
 import soot.toolkits.graph.CompleteUnitGraph;
-import soot.toolkits.graph.UnitGraph;
 import soottocfg.cfg.Program;
 import soottocfg.soot.SootRunner.CallgraphAlgorithm;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.SwitchStatementRemover;
+import soottocfg.soot.transformers.VirtualCallResolver;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.soot.visitors.SootStmtSwitch;
@@ -51,11 +51,11 @@ public class SootToCfg {
 		for (SootClass sc : Scene.v().getClasses()) {
 			processSootClass(sc);
 		}
-		
+
 		// now set the entry points.
 		for (SootMethod entryPoint : Scene.v().getEntryPoints()) {
 			if (entryPoint.getDeclaringClass().isApplicationClass()) {
-				//TODO: maybe we want to add all Main methods instead.
+				// TODO: maybe we want to add all Main methods instead.
 				program.addEntryPoint(program.loopupMethod(entryPoint.getSignature()));
 			}
 		}
@@ -76,7 +76,7 @@ public class SootToCfg {
 		}
 
 		if (sc.isApplicationClass()) {
-//			Log.info("Class " + sc.getName() + "  " + sc.resolvingLevel());
+			// Log.info("Class " + sc.getName() + " " + sc.resolvingLevel());
 
 			SootTranslationHelpers.v().setCurrentClass(sc);
 
@@ -88,13 +88,15 @@ public class SootToCfg {
 	}
 
 	private void processSootMethod(SootMethod sm) {
-		if (sm.isConcrete()) {			
-			//TODO
-//			if (!sm.getSignature().equals("<org.apache.tools.ant.taskdefs.condition.Socket: boolean eval()>")) {
-//				return;
-//			}
+		if (sm.isConcrete()) {
+			// TODO
+			// if
+			// (!sm.getSignature().equals("<org.apache.tools.ant.taskdefs.SubAnt:
+			// void execute()>")) {
+			// return;
+			// }
 //			System.err.println(sm.getSignature());
-			
+
 			SootTranslationHelpers.v().setCurrentMethod(sm);
 
 			Body body = sm.retrieveActiveBody();
@@ -103,36 +105,36 @@ public class SootToCfg {
 	}
 
 	private void processMethodBody(Body body) {
-		
-//		System.err.println(body.toString());		
+
+//		 System.err.println(body.toString());
 		preProcessBody(body);
-//		System.err.println(body.toString());
-		
-		//generate the CFG structures on the processed body.
+		 System.err.println(body.toString());
+
+		// generate the CFG structures on the processed body.
 		MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
 		SootStmtSwitch ss = new SootStmtSwitch(body, mi);
 		mi.setSource(ss.getEntryBlock());
 
 		mi.finalizeAndAddToProgram();
-//		System.err.println(mi.getMethod());
+		// System.err.println(mi.getMethod());
 	}
-	
+
 	private void preProcessBody(Body body) {
-		//pre-process the body
-		UnitGraph unitGraph = new CompleteUnitGraph(body);
-		NullnessAnalysis localNullness = new NullnessAnalysis(unitGraph);
-//		LocalMayAliasAnalysis localMayAlias = new LocalMayAliasAnalysis(unitGraph);
-		
-		//first reconstruct the assertions.
+		// pre-process the body
+
+		// first reconstruct the assertions.
 		AssertionReconstruction.v().removeAssertionRelatedNonsense(body);
 		AssertionReconstruction.v().reconstructJavaAssertions(body);
 
-		//make the exception handling explicit
-		ExceptionTransformer em = new ExceptionTransformer(localNullness);
+		// make the exception handling explicit
+		ExceptionTransformer em = new ExceptionTransformer(new NullnessAnalysis(new CompleteUnitGraph(body)));
 		em.transform(body);
-		//replace all switches by sets of IfStmt
+		// replace all switches by sets of IfStmt
 		SwitchStatementRemover so = new SwitchStatementRemover();
 		so.transform(body);
-		
+
+		VirtualCallResolver vc = new VirtualCallResolver();
+		vc.transform(body);
+
 	}
 }

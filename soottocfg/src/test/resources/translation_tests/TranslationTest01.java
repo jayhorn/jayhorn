@@ -1,9 +1,5 @@
 package translation_tests;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
 public class TranslationTest01 {
 
 //	public int noExceptions(int i) {
@@ -16,17 +12,20 @@ public class TranslationTest01 {
 //		return 3;
 //	}
 
-//	String s1;
-//	
-//	public void virtualCalls(int i) {
-//		Object o;
-//		if (i>0) {
-//			o = s1;
-//		} else {
-//			o = new TranslationTest01();
-//		}
-//		o.toString(); // may not be null.
-//	}
+	String s1;
+	
+	public void virtualCalls(int i) {
+		Object o;
+		if (i>0) {
+			o = s1;
+		} else {
+			o = new TranslationTest01();
+		}
+		o.toString(); // may not be null.
+	}
+	@Override
+	public String toString() {return "";}
+	
 	
 	int x,y;
 //	
@@ -43,17 +42,17 @@ public class TranslationTest01 {
 //		return b;
 //	}
 	
-	public void excpetions02() {
-		File myFile = new File(new File("doesntexist"), "test.txt"); 
-		try {
-			myFile.createNewFile();
-		} catch (FileNotFoundException e) {
-			x =10;
-		} catch (IOException e) {
-			y = 20;
-		}
-		x = 30;
-	}
+//	public void excpetions02() {
+//		File myFile = new File(new File("doesntexist"), "test.txt"); 
+//		try {
+//			myFile.createNewFile();
+//		} catch (FileNotFoundException e) {
+//			x =10;
+//		} catch (IOException e) {
+//			y = 20;
+//		}
+//		x = 30;
+//	}
 //	
 //	public void excpetions03() {
 //		File myFile = new File(new File("doesntexist"), "test.txt"); 

@@ -10,6 +10,7 @@ import soot.SootField;
 import soot.Unit;
 import soot.Value;
 import soot.jimple.ArrayRef;
+import soot.jimple.Constant;
 import soot.jimple.DoubleConstant;
 import soot.jimple.FloatConstant;
 import soot.jimple.InstanceFieldRef;
@@ -23,10 +24,10 @@ import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.ArrayAccessExpression;
 import soottocfg.cfg.expression.ArrayStoreExpression;
 import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.InstanceOfExpression;
-import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.type.IntType;
@@ -45,6 +46,8 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 	private final Map<soot.Type, soottocfg.cfg.type.Type> types = new HashMap<soot.Type, soottocfg.cfg.type.Type>();
 	private final Map<SootField, Variable> fieldGlobals = new HashMap<SootField, Variable>();
 
+	private final Map<Constant, Variable> constantDictionary = new HashMap<Constant, Variable>();
+	
 	public SimpleBurstallBornatModel() {
 		this.program = SootTranslationHelpers.v().getProgram();
 		// TODO
@@ -229,10 +232,12 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkStringConstant(StringConstant arg0) {
-		// TODO Auto-generated method stub
-		return new IdentifierExpression(SootTranslationHelpers.v().getProgram().loopupGlobalVariable("TODO", IntType.instance()));
+		if (!constantDictionary.containsKey(arg0)) {
+			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().loopupGlobalVariable("$string"+constantDictionary.size(), IntType.instance()));
+		}
+		return new IdentifierExpression(constantDictionary.get(arg0));
 	}
-
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -241,10 +246,13 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkDoubleConstant(DoubleConstant arg0) {
-		// TODO Auto-generated method stub
-		return new IdentifierExpression(SootTranslationHelpers.v().getProgram().loopupGlobalVariable("TODO", IntType.instance()));
+		if (!constantDictionary.containsKey(arg0)) {
+			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().loopupGlobalVariable("$double"+constantDictionary.size(), IntType.instance()));
+		}
+		return new IdentifierExpression(constantDictionary.get(arg0));
 	}
 
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -253,8 +261,10 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkFloatConstant(FloatConstant arg0) {
-		// TODO Auto-generated method stub
-		return new IdentifierExpression(SootTranslationHelpers.v().getProgram().loopupGlobalVariable("TODO", IntType.instance()));
+		if (!constantDictionary.containsKey(arg0)) {
+			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().loopupGlobalVariable("$float"+constantDictionary.size(), IntType.instance()));
+		}
+		return new IdentifierExpression(constantDictionary.get(arg0));
 	}
 
 	@Override
