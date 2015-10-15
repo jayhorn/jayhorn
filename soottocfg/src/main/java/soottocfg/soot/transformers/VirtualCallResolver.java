@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.SootMethodRef;
+import soot.Type;
 import soot.Unit;
 import soot.Value;
 import soot.jimple.AssignStmt;
@@ -33,6 +35,8 @@ import soot.jimple.Jimple;
 import soot.jimple.SpecialInvokeExpr;
 import soot.jimple.Stmt;
 import soot.tagkit.Host;
+import soot.toolkits.graph.CompleteUnitGraph;
+import soottocfg.soot.util.LocalTypeFinder;
 import soottocfg.util.Pair;
 
 /**
@@ -42,7 +46,10 @@ import soottocfg.util.Pair;
 public class VirtualCallResolver extends AbstractTransformer {
 
 	private final Hierarchy hierarchy;
+	
 
+	private LocalTypeFinder ltf;
+	
 	/**
 	 * 
 	 */
@@ -58,7 +65,9 @@ public class VirtualCallResolver extends AbstractTransformer {
 	 */
 	@Override
 	protected void internalTransform(Body body, String arg1, Map<String, String> arg2) {
-		// TODO Auto-generated method stub
+		
+		ltf = new LocalTypeFinder(new CompleteUnitGraph(body));
+		
 		Map<Unit, Pair<InstanceInvokeExpr, List<SootMethod>>> callsToResolve = new HashMap<Unit, Pair<InstanceInvokeExpr, List<SootMethod>>>();
 
 		for (Unit u : body.getUnits()) {
@@ -79,10 +88,20 @@ public class VirtualCallResolver extends AbstractTransformer {
 			}
 		}
 
-		for (Entry<Unit, Pair<InstanceInvokeExpr, List<SootMethod>>> entry : callsToResolve.entrySet()) {
+		for (Entry<Unit, Pair<InstanceInvokeExpr, List<SootMethod>>> entry : callsToResolve.entrySet()) {			
 			Unit originalCall = entry.getKey();
 			InstanceInvokeExpr ivk = entry.getValue().getFirst();
 			List<SootMethod> callees = entry.getValue().getSecond();
+			
+//			System.err.println(originalCall + " may have base");
+//			if (ivk.getBase() instanceof Local) {
+//				for (Type t : ltf.getLocalTypesBefore(originalCall, (Local)ivk.getBase())) {
+//					System.err.println("\t"+t);
+//				}
+//			} else {
+//				System.err.println("\t"+ivk.getBase() + " "+ivk.getBase().getType());
+//			}
+			
 			for (SootMethod callee : callees) {
 				List<Unit> vcall = createVirtualCall(body, callee, originalCall, ivk);
 				body.getUnits().addAll(vcall);
@@ -137,18 +156,18 @@ public class VirtualCallResolver extends AbstractTransformer {
 		List<SootMethod> res = new LinkedList<SootMethod>();
 
 		SootMethod callee = call.getMethod();
-		SootClass sc = callee.getDeclaringClass();
-		if (call.getBase().getType() instanceof RefType) {
-			//then we can use a tighter type.
-			RefType rt = (RefType)call.getBase().getType();
-			sc = rt.getSootClass();			
-		} else if (call.getBase().getType() instanceof ArrayType) {
-			//TODO: this should be array.clone
-			res.add(callee);
-			return res;
-		} else {
-			System.err.println(call.getBase().getType().getClass());
-		}
+//		SootClass sc = callee.getDeclaringClass();
+//		if (call.getBase().getType() instanceof RefType) {
+//			//then we can use a tighter type.
+//			RefType rt = (RefType)call.getBase().getType();
+//			sc = rt.getSootClass();			
+//		} else if (call.getBase().getType() instanceof ArrayType) {
+//			//TODO: this should be array.clone
+//			res.add(callee);
+//			return res;
+//		} else {
+//			System.err.println(call.getBase().getType().getClass());
+//		}
 		
 		if (call instanceof SpecialInvokeExpr) {
 			//TODO: is this correct?
@@ -158,19 +177,22 @@ public class VirtualCallResolver extends AbstractTransformer {
 				return res;				
 			}
 		}
-				
-		Collection<SootClass> possibleClasses;
-		if (sc.isInterface()) {	
-			possibleClasses = hierarchy.getImplementersOf(sc);
-		} else {
-			possibleClasses = hierarchy.getSubclassesOfIncluding(sc);
-		}		
-		
+
+		//in jimple, the base must be a local.
+		assert (call.getBase() instanceof Local);
+		Collection<SootClass> possibleClasses = new HashSet<SootClass>();
+		for (Type t : ltf.getLocalTypesBefore(u, (Local)call.getBase())) {
+			if (t instanceof RefType) {
+				possibleClasses.add(((RefType)t).getSootClass()); 
+			}
+		}
+
+					
 		for (SootClass sub : possibleClasses) {
 			if (sub.resolvingLevel() < SootClass.SIGNATURES) {
 				// Log.error("Not checking subtypes of " + sub.getName());
 				// Then we probably really don't care.
-			} else {
+			} else {				
 				if (sub.declaresMethod(callee.getName(), callee.getParameterTypes(), callee.getReturnType())) {
 //					if (callee.hasActiveBody()) {
 						// TODO: does it make sense to only add methods
@@ -184,13 +206,22 @@ public class VirtualCallResolver extends AbstractTransformer {
 		if (res.isEmpty()) {
 			//TODO check when this happens... usually when we have no body for any version 
 			//of this method.
-			res.add(callee);			
+			res.add(callee);
 		}
 		if (res.size()==1) {
 			return res;
 		}
+		
+		//magic constant to keep the class file small.
+		if (res.size()>30) {
+			System.err.println("Ignoring " + res.size() + " cases for " + u);
+			res.clear();
+			res.add(callee);
+			return res;
+		}
+		
 //		System.err.println(res.size());
-//		if (res.size()>10) {
+//		if (res.size()>100) {
 //			
 //			StringBuilder sb = new StringBuilder();
 //			sb.append(body);
