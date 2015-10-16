@@ -16,7 +16,7 @@ import soottocfg.cfg.expression.Expression;
  */
 public class AssignStatement extends Statement {
 
-	private final Expression left, right; 
+	public final Expression left, right; 
 	/**
 	 * @param createdFrom
 	 */

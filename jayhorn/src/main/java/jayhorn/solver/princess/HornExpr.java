@@ -49,6 +49,6 @@ class HornExpr implements ProverHornClause {
 
   @Override
   public String toString() {
-	  return this.clause.toString();
+	  return this.clause.toPrologString();
   }
 }

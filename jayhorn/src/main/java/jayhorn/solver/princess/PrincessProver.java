@@ -125,14 +125,7 @@ public class PrincessProver implements Prover {
 			public ProverExpr mkExpr(ProverExpr[] args) {
 				final ArrayBuffer<ITerm> argsBuf = new ArrayBuffer<ITerm>();
 				for (int i = 0; i < args.length; ++i) {
-					ITerm termArg;
-					if (args[i].getType() == BoolType.INSTANCE)
-						termArg = new ITermITE(((FormulaExpr) args[i]).formula,
-								new IIntLit(IdealInt$.MODULE$.apply(0)),
-								new IIntLit(IdealInt$.MODULE$.apply(1)));
-					else
-						termArg = ((TermExpr) args[i]).term;
-					argsBuf.$plus$eq(termArg);
+                                    argsBuf.$plus$eq(((PrincessProverExpr) args[i]).toTerm());
 				}
 				final List<ITerm> argsList = argsBuf.toList();
 
@@ -148,23 +141,20 @@ public class PrincessProver implements Prover {
 	}
 
 	public ProverExpr mkAll(ProverExpr body, ProverType type) {
-		return new FormulaExpr(
-				IExpression$.MODULE$.all(((FormulaExpr) body).formula));
+            return new FormulaExpr
+                (IExpression$.MODULE$.all(((PrincessProverExpr) body).toFormula()));
 	}
 
 	public ProverExpr mkEx(ProverExpr body, ProverType type) {
-		return new FormulaExpr(
-				IExpression$.MODULE$.ex(((FormulaExpr) body).formula));
+            return new FormulaExpr
+                (IExpression$.MODULE$.ex(((PrincessProverExpr) body).toFormula()));
 	}
 
 	public ProverExpr mkTrigger(ProverExpr body, ProverExpr[] triggers) {
 		final ArrayBuffer<IExpression> triggerExprs = new ArrayBuffer<IExpression>();
 
 		for (int i = 0; i < triggers.length; ++i) {
-			if (triggers[i] instanceof TermExpr)
-				triggerExprs.$plus$eq(((TermExpr) triggers[i]).term);
-			else
-				triggerExprs.$plus$eq(((FormulaExpr) triggers[i]).formula);
+                    triggerExprs.$plus$eq(((PrincessProverExpr) triggers[i]).toExpression());
 		}
 
 		return new FormulaExpr(IExpression.trig(((FormulaExpr) body).formula,
@@ -172,13 +162,15 @@ public class PrincessProver implements Prover {
 	}
 
 	public ProverExpr mkEq(ProverExpr left, ProverExpr right) {
-		if (left instanceof TermExpr)
-			return new FormulaExpr(
-					((TermExpr) left).term.$eq$eq$eq(((TermExpr) right).term));
+            PrincessProverExpr pLeft = (PrincessProverExpr)left;
+            PrincessProverExpr pRight = (PrincessProverExpr)right;
+            if (pLeft.isBoolean() && pRight.isBoolean())
+                return new FormulaExpr(
+                                       pLeft.toFormula()
+                                       .$less$eq$greater(pRight.toFormula()));
 		else
 			return new FormulaExpr(
-					((FormulaExpr) left).formula
-							.$less$eq$greater(((FormulaExpr) right).formula));
+                                               pLeft.toTerm().$eq$eq$eq(pRight.toTerm()));
 	}
 
 	public ProverExpr mkLiteral(boolean value) {
@@ -186,30 +178,32 @@ public class PrincessProver implements Prover {
 	}
 
 	public ProverExpr mkNot(ProverExpr body) {
-		return new FormulaExpr(new INot(((FormulaExpr) body).formula));
+            return new FormulaExpr(new INot(((PrincessProverExpr) body).toFormula()));
 	}
 
 	public ProverExpr mkAnd(ProverExpr left, ProverExpr right) {
 		return new FormulaExpr(new IBinFormula(IBinJunctor.And(),
-				((FormulaExpr) left).formula, ((FormulaExpr) right).formula));
+                                                       ((PrincessProverExpr) left).toFormula(),
+                                                       ((PrincessProverExpr) right).toFormula()));
 	}
 
 	public ProverExpr mkAnd(ProverExpr[] args) {
 		final ArrayBuffer<IFormula> argsBuf = new ArrayBuffer<IFormula>();
 		for (int i = 0; i < args.length; ++i)
-			argsBuf.$plus$eq(((FormulaExpr) args[i]).formula);
+                    argsBuf.$plus$eq(((PrincessProverExpr) args[i]).toFormula());
 		return new FormulaExpr(IExpression$.MODULE$.and(argsBuf));
 	}
 
 	public ProverExpr mkOr(ProverExpr left, ProverExpr right) {
 		return new FormulaExpr(new IBinFormula(IBinJunctor.Or(),
-				((FormulaExpr) left).formula, ((FormulaExpr) right).formula));
+                                                       ((PrincessProverExpr) left).toFormula(),
+                                                       ((PrincessProverExpr) right).toFormula()));
 	}
 
 	public ProverExpr mkOr(ProverExpr[] args) {
 		final ArrayBuffer<IFormula> argsBuf = new ArrayBuffer<IFormula>();
 		for (int i = 0; i < args.length; ++i)
-			argsBuf.$plus$eq(((FormulaExpr) args[i]).formula);
+                    argsBuf.$plus$eq(((PrincessProverExpr) args[i]).toFormula());
 		return new FormulaExpr(IExpression$.MODULE$.or(argsBuf));
 	}
 
@@ -220,14 +214,14 @@ public class PrincessProver implements Prover {
 	public ProverExpr mkIte(ProverExpr cond, ProverExpr thenExpr,
 			ProverExpr elseExpr) {
 		if (thenExpr instanceof TermExpr)
-			return new TermExpr(new ITermITE(((FormulaExpr) cond).formula,
-					((TermExpr) thenExpr).term, ((TermExpr) elseExpr).term),
+                    return new TermExpr(new ITermITE(((PrincessProverExpr) cond).toFormula(),
+                                                     ((PrincessProverExpr) thenExpr).toTerm(),
+                                                     ((PrincessProverExpr) elseExpr).toTerm()),
 					thenExpr.getType());
 		else
-			return new FormulaExpr(new IFormulaITE(
-					((FormulaExpr) cond).formula,
-					((FormulaExpr) thenExpr).formula,
-					((FormulaExpr) elseExpr).formula));
+			return new FormulaExpr(new IFormulaITE(((PrincessProverExpr) cond).toFormula(),
+                                                               ((PrincessProverExpr) thenExpr).toFormula(),
+                                                               ((PrincessProverExpr) elseExpr).toFormula()));
 	}
 
 	public ProverExpr mkLiteral(int value) {
@@ -346,7 +340,7 @@ public class PrincessProver implements Prover {
             if (assertion instanceof HornExpr)
                 assertedClauses.add((HornExpr)assertion);
             else
-		api.addAssertion(((FormulaExpr) assertion).formula);
+		api.addAssertion(((PrincessProverExpr) assertion).toFormula());
 	}
 
 	// ////////////////////////////////////////////////////////////////////////////
@@ -438,12 +432,12 @@ public class PrincessProver implements Prover {
 	}
 
 	public ProverExpr evaluate(ProverExpr expr) {
-		if (expr instanceof TermExpr)
-			return new TermExpr(new IIntLit(api.eval(((TermExpr) expr).term)),
-					((TermExpr) expr).getType());
-		else
+            if (((PrincessProverExpr)expr).isBoolean())
 			return new FormulaExpr(new IBoolLit(
-					api.eval(((FormulaExpr) expr).formula)));
+                                   api.eval(((PrincessProverExpr) expr).toFormula())));
+		else
+                    return new TermExpr(new IIntLit(api.eval(((PrincessProverExpr) expr).toTerm())),
+					((TermExpr) expr).getType());
 	}
 
 	public ProverExpr[] freeVariables(ProverExpr expr) {
@@ -552,6 +546,11 @@ public class PrincessProver implements Prover {
 
     private final Stack<Integer> assertedClausesStack =
         new Stack<Integer>();
+
+    public ProverExpr mkHornVariable(String name, ProverType type) {
+        // always use terms as Horn variables/arguments
+        return new TermExpr(api.createConstant(name), type);
+    }
 
     public ProverFun mkHornPredicate(String name, ProverType[] argTypes) {
 	return new PredicateFun(api.createRelation(name, argTypes.length));

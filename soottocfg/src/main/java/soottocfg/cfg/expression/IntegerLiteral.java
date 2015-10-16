@@ -55,6 +55,10 @@ public class IntegerLiteral extends Expression {
 		return used;
 	}
 
+    public long getValue() {
+        return value;
+    }
+
 	@Override
 	public Type getType() {
 		return IntType.instance();

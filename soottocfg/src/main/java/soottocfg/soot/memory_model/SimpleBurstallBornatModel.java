@@ -31,6 +31,7 @@ import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.type.IntType;
+import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.Type;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -53,6 +54,15 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 		// TODO
 		this.nullConstant = this.program.loopupGlobalVariable("$null", null);
 		this.heapVariable = this.program.loopupGlobalVariable("$heap", null);
+
+                this.types.put(soot.IntType.v(), IntType.instance());
+                this.types.put(soot.BooleanType.v(), BoolType.instance());
+
+                // this should be refined
+                this.types.put(soot.LongType.v(), IntType.instance());
+                this.types.put(soot.ByteType.v(), IntType.instance());
+                this.types.put(soot.CharType.v(), IntType.instance());
+                this.types.put(soot.ShortType.v(), IntType.instance());
 	}
 
 	@Override
@@ -271,8 +281,8 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 	public Type lookupType(soot.Type t) {
 		if (!types.containsKey(t)) {
                     //                    throw new IllegalArgumentException("type " + t + " is unknown");
-                    System.err.println("Warning: type " + t + " is unknown");
-                    return null;
+                    System.err.println("Warning: type " + t + " is unknown, assuming int");
+                    return IntType.instance();
 		}
 		return types.get(t);
 	}
