@@ -129,7 +129,7 @@ public class Checker {
 		if (t == BoolType.instance()) {
 			return p.getBooleanType();
 		}
-		return null;
+                throw new IllegalArgumentException("don't know what to do with " + t);
 	}
 
 	private void blockToHorn(Prover p, CfgBlock block) {

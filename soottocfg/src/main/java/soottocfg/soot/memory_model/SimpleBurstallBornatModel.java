@@ -270,7 +270,9 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 	@Override
 	public Type lookupType(soot.Type t) {
 		if (!types.containsKey(t)) {
-			// TODO:
+                    //                    throw new IllegalArgumentException("type " + t + " is unknown");
+                    System.err.println("Warning: type " + t + " is unknown");
+                    return null;
 		}
 		return types.get(t);
 	}

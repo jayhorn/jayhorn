@@ -29,4 +29,8 @@ public class Variable {
 	public Type getType() {
 		return this.type;
 	}
+
+    public String toString() {
+        return this.variableName + "/" + this.type;
+    }
 }
