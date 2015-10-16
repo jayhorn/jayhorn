@@ -156,7 +156,12 @@ public class ExceptionTransformer extends AbstractTransformer {
 		}
 		// now replace all @caughtexceptionrefs in on go.
 		for (Entry<Unit, Unit> entry : replacementMap.entrySet()) {
-			body.getUnits().insertAfter(entry.getValue(), entry.getKey());
+			List<Unit> toInsert = new LinkedList<Unit>();
+			toInsert.add(entry.getValue());
+			//after the exception is caught, set the
+			//$exception variable back to Null.
+			toInsert.add(assignStmtFor(exceptionVariable, NullConstant.v(), entry.getKey()));
+			body.getUnits().insertAfter(toInsert, entry.getKey());
 			body.getUnits().remove(entry.getKey());
 		}
 		// finally, remove those traps:
@@ -469,8 +474,9 @@ public class ExceptionTransformer extends AbstractTransformer {
 	}
 
 	protected List<Unit> throwNewException(Body b, SootClass exc, Host createdFrom) {
-		List<Unit> result = createNewException(b, exceptionVariable, exc, createdFrom);
-		result.add(throwStmtFor(exceptionVariable, createdFrom));
+		Local l = getFreshLocal(b, exc.getType());
+		List<Unit> result = createNewException(b, l, exc, createdFrom);
+		result.add(throwStmtFor(l, createdFrom));
 		return result;
 	}
 

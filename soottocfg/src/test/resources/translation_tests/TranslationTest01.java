@@ -12,35 +12,37 @@ public class TranslationTest01 {
 //		return 3;
 //	}
 
-	String s1;
-	
-	public void virtualCalls(int i) {
-		Object o;
-		if (i>0) {
-			o = s1;
-		} else {
-			o = new TranslationTest01();
-		}
-		o.toString(); // may not be null.
-	}
-	@Override
-	public String toString() {return "";}
+//	String s1;
+//	
+//	public void virtualCalls(int i) {
+//		Object o;
+//		if (i>0) {
+//			o = s1;
+//		} else {
+//			o = new TranslationTest01();
+//		}
+//		o.toString(); // may not be null.
+//	}
+//	@Override
+//	public String toString() {return "";}
 	
 	
 	int x,y;
-//	
-//	public int withException() {
-//		int b;
-//		try {
+	
+	public void foo() {}
+	
+	public int withException() {
+		int b;
+		try {
 //			int a[] = new int[2];
 //			b=a[3];
-//			
-//		} catch (ArrayIndexOutOfBoundsException e) {
-//			b = 20;
-//		}
-//		b=30;
-//		return b;
-//	}
+			foo();
+		} catch (ArrayIndexOutOfBoundsException e) {
+			b = 20;
+		}
+		b=30;
+		return b;
+	}
 	
 //	public void excpetions02() {
 //		File myFile = new File(new File("doesntexist"), "test.txt"); 
