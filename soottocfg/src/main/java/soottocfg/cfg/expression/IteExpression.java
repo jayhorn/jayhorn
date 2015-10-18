@@ -51,6 +51,18 @@ public class IteExpression extends Expression {
 		Set<Variable> used = new HashSet<Variable>();
 		return used;
 	}
+
+    public Expression getCondition() {
+        return condition;
+    }
+	
+    public Expression getThen() {
+        return thenExpr;
+    }
+	
+    public Expression getElse() {
+        return elseExpr;
+    }
 	
 	@Override
 	public Type getType() {

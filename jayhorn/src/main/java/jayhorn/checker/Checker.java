@@ -39,6 +39,7 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.UnaryExpression;
+import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.Type;
@@ -84,25 +85,82 @@ public class Checker {
 		return true;
 	}
 
-	private void checkEntryPoint(Prover p, Program program, Method method) {
-		Log.info("\tVerification from entry " + method.getMethodName());
+    private void checkEntryPoint(Prover p, Program program, Method method) {
+        Log.info("\tVerification from entry " + method.getMethodName());
+        p.push();
 
-		makeBlockPredicates(p, method);
+        makeBlockPredicates(p, method);
 
-		List<CfgBlock> todo = new LinkedList<CfgBlock>();
-		todo.add(method.getSource());
-		Set<CfgBlock> done = new HashSet<CfgBlock>();
-		while (!todo.isEmpty()) {
-			CfgBlock current = todo.remove(0);
-			done.add(current);
-			blockToHorn(p, current);
-			for (CfgBlock succ : current.getSuccessors()) {
-				if (!todo.contains(succ) && !done.contains(succ)) {
-					todo.add(succ);
-				}
-			}
-		}
-	}
+        List<CfgBlock> todo = new LinkedList<CfgBlock>();
+        todo.add(method.getSource());
+        Set<CfgBlock> done = new HashSet<CfgBlock>();
+        List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
+
+        {
+            // add an entry clause
+            final HornPredicate entryPred = blockPredicates.get(method.getSource());
+            final List<ProverExpr> entryVars = new ArrayList<ProverExpr>();
+            final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
+            createVarMap(p, entryPred, entryVars, varMap);
+            
+            final ProverExpr entryAtom =
+                entryPred.predicate.mkExpr(entryVars.toArray(new ProverExpr[0]));
+            
+            clauses.add(p.mkHornClause(entryAtom,
+                                       new ProverExpr[0],
+                                       p.mkLiteral(true)));
+        }
+
+        // translate reachable blocks
+        while (!todo.isEmpty()) {
+            CfgBlock current = todo.remove(0);
+            done.add(current);
+            final HornPredicate exitPred = blockToHorn(p, current, clauses);
+
+            // take care of successors
+            if (!current.getSuccessors().isEmpty()) {
+                final List<ProverExpr> exitVars = new ArrayList<ProverExpr>();
+                final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
+                createVarMap(p, exitPred, exitVars, varMap);
+
+                final ProverExpr exitAtom =
+                    exitPred.predicate.mkExpr(exitVars.toArray(new ProverExpr[0]));
+
+                for (CfgBlock succ : current.getSuccessors()) {
+                    if (!todo.contains(succ) && !done.contains(succ))
+                        todo.add(succ);
+
+                    final Expression exitCond = current.getSuccessorCondition(succ);
+                    final ProverExpr exitCondExpr;
+                    if (exitCond == null)
+                        exitCondExpr = p.mkLiteral(true);
+                    else
+                        exitCondExpr = exprToProverExpr(p, exitCond, varMap);
+                    
+                    // assume that the live entry variable are the same as the exit variables
+                    final ProverExpr entryAtom =
+                        blockPredicates.get(succ).predicate
+                                       .mkExpr(exitVars.toArray(new ProverExpr[0]));
+
+                    clauses.add(p.mkHornClause(entryAtom,
+                                               new ProverExpr[] { exitAtom },
+                                               exitCondExpr));
+                }
+            }
+        }
+
+        // for the time being, just check whether all clauses together are satisfiable
+        Log.info("\tNumber of clauses:  " + clauses.size());
+
+        for (ProverHornClause clause : clauses) {
+            Log.info("\t\t" + clause);
+            p.addAssertion(clause);
+        }
+
+        Log.info("\tResult:  " + p.checkSat(true));
+
+        p.pop();
+    }
 
 	/**
 	 * Creates one HornPredicate for each block. The predicate contains the list of live variables
@@ -150,7 +208,8 @@ public class Checker {
                 throw new IllegalArgumentException("don't know what to do with " + t);
 	}
 
-    private void blockToHorn(Prover p, CfgBlock block) {
+    private HornPredicate blockToHorn(Prover p, CfgBlock block,
+                                      List<ProverHornClause> clauseBuffer) {
         final HornPredicate initPred = blockPredicates.get(block);
         final String initName = initPred.name;
         HornPredicate prePred = initPred;
@@ -162,8 +221,21 @@ public class Checker {
                 new HornPredicate(postName,
                                   initPred.variables,
                                   freshHornPredicate(p, postName, initPred.variables));
-            System.err.println(statementToClause(p, s, prePred, postPred));
+            clauseBuffer.add(statementToClause(p, s, prePred, postPred));
             prePred = postPred;
+        }
+
+        return prePred;
+    }
+
+    private void createVarMap(Prover p,
+                              HornPredicate pred,
+                              List<ProverExpr> vars,
+                              Map<Variable, ProverExpr> varMap) {
+        for (Variable v : pred.variables) {
+            final ProverExpr e = p.mkHornVariable(v.getName(), getProverType(p, v.getType()));
+            vars.add(e);
+            varMap.put(v, e);
         }
     }
 	
@@ -172,22 +244,21 @@ public class Checker {
                                                HornPredicate postPred) {
         final List<ProverExpr> preVars = new ArrayList<ProverExpr>();
         final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
-        for (Variable v : prePred.variables) {
-            final ProverExpr e = p.mkHornVariable(v.getName(), getProverType(p, v.getType()));
-            preVars.add(e);
-            varMap.put(v, e);
-        }
+        createVarMap(p, prePred, preVars, varMap);
 
         final ProverExpr preAtom =
             prePred.predicate.mkExpr(preVars.toArray(new ProverExpr[0]));
 
         if (s instanceof AssertStatement) {
-            return null; //TODO
-        } else if (s instanceof AssumeStatement) {
-            return null; //TODO
-        } else if (s instanceof AssignStatement) {
-            System.err.println(s);
+            final AssertStatement as = (AssertStatement)s;
+            final ProverExpr cond = exprToProverExpr(p, as.getExpression(), varMap);
 
+            return p.mkHornClause(p.mkLiteral(false),
+                                  new ProverExpr[] { preAtom },
+                                  p.mkNot(cond));
+        } else if (s instanceof AssumeStatement) {
+            throw new RuntimeException("Statement type " + s + " not implemented!");
+        } else if (s instanceof AssignStatement) {
             final AssignStatement as = (AssignStatement)s;
             final Expression lhs = as.left;
             final int lhsIndex;
@@ -214,7 +285,7 @@ public class Checker {
                                   new ProverExpr[] { preAtom },
                                   p.mkLiteral(true));
         } else if (s instanceof CallStatement) {
-            return null; //TODO
+            throw new RuntimeException("Statement type " + s + " not implemented!");
         } else {
             throw new RuntimeException("Statement type " + s + " not implemented!");
         }
@@ -228,8 +299,8 @@ public class Checker {
             return p.mkLiteral(BigInteger.valueOf(((IntegerLiteral)e).getValue()));
         } else if (e instanceof BinaryExpression) {
             final BinaryExpression be = (BinaryExpression)e;
-            ProverExpr left = exprToProverExpr(p, be.getLeft(), varMap);
-            ProverExpr right = exprToProverExpr(p, be.getRight(), varMap);
+            final ProverExpr left = exprToProverExpr(p, be.getLeft(), varMap);
+            final ProverExpr right = exprToProverExpr(p, be.getRight(), varMap);
 
             // TODO: the following choices encode Java semantics of various
             // operators; need a good schema to choose how precise the encoding
@@ -245,8 +316,19 @@ public class Checker {
                 return p.mkTDiv(left, right);
             case Mod:
                 return p.mkTMod(left, right);
+
             case Eq:
                 return p.mkEq(left, right);
+            case Ne:
+                return p.mkNot(p.mkEq(left, right));
+            case Gt:
+                return p.mkGt(left, right);
+            case Ge:
+                return p.mkGeq(left, right);
+            case Lt:
+                return p.mkLt(left, right);
+            case Le:
+                return p.mkLeq(left, right);
                 
             default: {
                 throw new RuntimeException("Not implemented for " + be.getOp());
@@ -254,7 +336,7 @@ public class Checker {
             }
         } else if (e instanceof UnaryExpression) {
             final UnaryExpression ue = (UnaryExpression)e;
-            ProverExpr subExpr = exprToProverExpr(p, ue.getExpression(), varMap);
+            final ProverExpr subExpr = exprToProverExpr(p, ue.getExpression(), varMap);
 
             // TODO: the following choices encode Java semantics of various
             // operators; need a good schema to choose how precise the encoding
@@ -265,6 +347,12 @@ public class Checker {
             case LNot:
                 return p.mkNot(subExpr);
             }
+        } else if (e instanceof IteExpression) {
+            final IteExpression ie = (IteExpression)e;
+            final ProverExpr condExpr = exprToProverExpr(p, ie.getCondition(), varMap);
+            final ProverExpr thenExpr = exprToProverExpr(p, ie.getThen(), varMap);
+            final ProverExpr elseExpr = exprToProverExpr(p, ie.getElse(), varMap);
+            return p.mkIte(condExpr, thenExpr, elseExpr);
         }
         throw new RuntimeException("Expression type " + e + " not implemented!");
     }
