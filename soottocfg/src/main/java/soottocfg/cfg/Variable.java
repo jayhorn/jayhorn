@@ -18,6 +18,7 @@ public class Variable {
 	 */
 	public Variable(String name, Type t) {
 		// TODO Auto-generated constructor stub
+		assert (t!=null);
 		this.variableName = name;
 		this.type = t;
 	}

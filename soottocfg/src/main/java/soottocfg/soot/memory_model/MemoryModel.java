@@ -66,4 +66,9 @@ public abstract class MemoryModel {
 	public abstract Expression mkFloatConstant(FloatConstant arg0);
 
 	public abstract Type lookupType(soot.Type t);
+	
+	public abstract Type getNullType();
+	
+	public abstract Type getHeapType();
+	
 }

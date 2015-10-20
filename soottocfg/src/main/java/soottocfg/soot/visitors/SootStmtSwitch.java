@@ -52,6 +52,7 @@ import soot.jimple.Stmt;
 import soot.jimple.StmtSwitch;
 import soot.jimple.TableSwitchStmt;
 import soot.jimple.ThrowStmt;
+import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
@@ -79,6 +80,7 @@ public class SootStmtSwitch implements StmtSwitch {
 	private final SootValueSwitch valueSwitch;
 
 	private final PatchingChain<Unit> units;
+	private final CompleteUnitGraph unitGraph;
 
 	private CfgBlock currentBlock, entryBlock, exitBlock;
 	private boolean insideMonitor = false;
@@ -97,6 +99,7 @@ public class SootStmtSwitch implements StmtSwitch {
 
 		units = body.getUnits();
 		Unit head = units.getFirst();
+		unitGraph = new CompleteUnitGraph(sootBody);
 		// check if the block is empty.
 		if (head != null) {
 			this.entryBlock = methodInfo.lookupCfgBlock(head);
@@ -156,14 +159,29 @@ public class SootStmtSwitch implements StmtSwitch {
 	private void precheck(Stmt st) {
 		this.currentStmt = st;
 
+		
 		if (currentBlock != null) {
 			// first check if we already created a block
 			// for this statement.
 			CfgBlock block = methodInfo.findBlock(st);
-			if (block != null && block != currentBlock) {
-				currentBlock.addSuccessor(block);
-				currentBlock = block;
-			}
+			if (block != null) {
+				if (block != currentBlock) {
+					currentBlock.addSuccessor(block);
+					currentBlock = block;
+				} else {
+					//do nothing.
+				}
+			} else {
+				if (unitGraph.getPredsOf(st).size()>1) {
+					//then this statement might be reachable via a back edge
+					//and we have to create a new block for it.
+					CfgBlock newBlock = methodInfo.lookupCfgBlock(st);
+					currentBlock.addSuccessor(newBlock);
+					currentBlock = newBlock;
+				} else {
+					//do nothing.
+				}
+			}			
 		} else {
 			// If not, and we currently don't have a block,
 			// create a new one.
