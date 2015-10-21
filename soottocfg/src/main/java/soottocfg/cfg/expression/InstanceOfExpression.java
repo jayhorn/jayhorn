@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import soottocfg.cfg.Variable;
-import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.Type;
 
 /**
@@ -55,6 +55,6 @@ public class InstanceOfExpression extends Expression {
 
 	@Override
 	public Type getType() {
-		return BoolType.instance();
+		return IntType.instance();
 	}
 }
