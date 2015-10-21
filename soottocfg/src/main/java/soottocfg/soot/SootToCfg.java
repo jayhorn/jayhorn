@@ -32,8 +32,9 @@ public class SootToCfg {
 	/**
 	 * Run Soot and translate classes into Boogie/Horn
 	 * 
-	 * @param input
-	 * @param classPath
+	 * @param input class folder, jar file, or apk file
+	 * @param classPath class path, or platform jar folder for apk.
+	 * see https://github.com/Sable/android-platforms 
 	 * @param cfg
 	 */
 	public void run(String input, String classPath, CallgraphAlgorithm cfg) {
