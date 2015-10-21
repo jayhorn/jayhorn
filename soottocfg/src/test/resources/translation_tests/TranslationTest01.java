@@ -31,21 +31,11 @@ public class TranslationTest01 {
 //		}
 //		o.toString(); // may not be null.
 //	}
+//	@Override
+//	public String toString() {return "";}
+	
 	
 	int x,y;
-//	
-//	public int withException() {
-//		int b;
-//		try {
-//			int a[] = new int[2];
-//			b=a[3];
-//			
-//		} catch (ArrayIndexOutOfBoundsException e) {
-//			b = 20;
-//		}
-//		b=30;
-//		return b;
-//	}
 	
 	// public void excpetions02() {
 	// 	File myFile = new File(new File("doesntexist"), "test.txt"); 
@@ -70,6 +60,32 @@ public class TranslationTest01 {
 	    return x;
 	}
     }
+	public void foo() {}
+	
+	public int withException() {
+		int b;
+		try {
+//			int a[] = new int[2];
+//			b=a[3];
+			foo();
+		} catch (ArrayIndexOutOfBoundsException e) {
+			b = 20;
+		}
+		b=30;
+		return b;
+	}
+	
+//	public void excpetions02() {
+//		File myFile = new File(new File("doesntexist"), "test.txt"); 
+//		try {
+//			myFile.createNewFile();
+//		} catch (FileNotFoundException e) {
+//			x =10;
+//		} catch (IOException e) {
+//			y = 20;
+//		}
+//		x = 30;
+//	}
 //	
 //	public void excpetions03() {
 //		File myFile = new File(new File("doesntexist"), "test.txt"); 

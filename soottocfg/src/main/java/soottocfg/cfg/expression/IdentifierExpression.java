@@ -15,8 +15,7 @@ import soottocfg.cfg.type.Type;
  */
 public class IdentifierExpression extends Expression {
 
-	private Variable variable;
-	public Variable getVariable() {return variable;}
+	private final Variable variable;
 	
 	/**
 	 * 
@@ -48,6 +47,9 @@ public class IdentifierExpression extends Expression {
 		return getUsedVariables();
 	}
 
+    public Variable getVariable() {
+        return variable;
+    }
 	
 	@Override
 	public Type getType() {

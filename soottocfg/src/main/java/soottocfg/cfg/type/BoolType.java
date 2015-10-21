@@ -18,8 +18,11 @@ public class BoolType extends Type {
 	/**
 	 * 
 	 */
-	public BoolType() {
+	private BoolType() {
 		// TODO Auto-generated constructor stub
 	}
 
+    public String toString() {
+        return "boolean";
+    }
 }

@@ -4,11 +4,16 @@ import java.math.BigInteger;
 
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverType;
+import jayhorn.solver.BoolType;
 import ap.SimpleAPI$;
+import ap.parser.IExpression;
+import ap.parser.IExpression$;
 import ap.parser.IIntLit;
 import ap.parser.ITerm;
+import ap.parser.IFormula;
+import ap.parser.IExpression;
 
-class TermExpr implements ProverExpr {
+class TermExpr extends PrincessProverExpr {
 
 	protected final ProverType type;
 	protected final ITerm term;
@@ -21,6 +26,22 @@ class TermExpr implements ProverExpr {
 	public String toString() {
             return SimpleAPI$.MODULE$.pp(term);
 	}
+
+    public ITerm toTerm() {
+        return term;
+    }
+    
+    public IFormula toFormula() {
+        return IExpression$.MODULE$.eqZero(term);
+    }
+
+    public IExpression toExpression() {
+        return term;
+    }
+
+    public boolean isBoolean() {
+        return type == BoolType.INSTANCE;
+    }
 
 	public ProverType getType() {
 		return type;

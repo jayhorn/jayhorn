@@ -357,7 +357,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 	public void caseNegExpr(NegExpr arg0) {
 		arg0.getOp().apply(this);
 		Expression expr = popExpression();
-		this.expressionStack.add(new UnaryExpression(UnaryOperator.LNot, expr));
+		this.expressionStack.add(new UnaryExpression(UnaryOperator.Neg /* LNot */, expr));
 	}
 
 	@Override

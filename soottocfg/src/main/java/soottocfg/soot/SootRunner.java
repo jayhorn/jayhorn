@@ -55,10 +55,11 @@ public class SootRunner {
 		if (null == input || input.isEmpty()) {
 			return;
 		}
-
 		if (input.endsWith(".jar")) {
 			// run with JAR file
 			runWithJar(input, classPath, cga);
+		} else if (input.endsWith(".apk")) {
+			runWithApk(input, classPath, cga);
 		} else {
 			File file = new File(input);
 			if (file.isDirectory()) {
@@ -69,6 +70,7 @@ public class SootRunner {
 		}
 	}
 
+	
 	/**
 	 * Runs Soot by using a JAR file
 	 * 
@@ -81,7 +83,7 @@ public class SootRunner {
 	 *            null.
 	 * 
 	 */
-	public void runWithJar(String jarFile, String classPath, CallgraphAlgorithm cga) {
+	private void runWithJar(String jarFile, String classPath, CallgraphAlgorithm cga) {
 		try {
 			// extract dependent JARs
 			List<File> jarFiles = new ArrayList<File>();
@@ -104,6 +106,27 @@ public class SootRunner {
 			throw e;
 		}
 	}
+	
+	private void runWithApk(String apkFile, String androidPlatformPath, CallgraphAlgorithm cga) {
+		try {
+			sootOpt.set_src_prec(soot.options.Options.src_prec_apk);
+			//https://github.com/Sable/android-platforms
+			if (androidPlatformPath==null) {
+				throw new RuntimeException("You need to pass the android-platforms folder from https://github.com/Sable/android-platforms");
+			}
+			sootOpt.set_android_jars(androidPlatformPath);
+			List<String> procdir = new LinkedList<String>();
+			procdir.add(apkFile);
+			sootOpt.set_process_dir(procdir);
+			
+			// finally, run soot
+			runSootAndAnalysis(enumClasses(new File(apkFile)), cga);
+
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+	
 
 	/**
 	 * Runs Soot by using a path (e.g., from Joogie)
@@ -116,7 +139,7 @@ public class SootRunner {
 	 *            Which {@link CallgraphAlgorithm} should be used? May not be
 	 *            null.
 	 */
-	public void runWithPath(String path, String classPath, CallgraphAlgorithm cga) {
+	private void runWithPath(String path, String classPath, CallgraphAlgorithm cga) {
 		assert cga != null;
 		try {
 			// dependent JAR files
@@ -135,7 +158,7 @@ public class SootRunner {
 			List<String> processDirs = new LinkedList<String>();
 			processDirs.add(path);
 			sootOpt.set_process_dir(processDirs);
-
+			
 			// finally, run soot
 			runSootAndAnalysis(new LinkedList<String>(), cga);
 
@@ -242,7 +265,6 @@ public class SootRunner {
 			 * TODO: apply some preprocessing stuff like:
 			 * soot.jimple.toolkits.base or maybe the optimize option from soot.
 			 */
-
 			for (SootClass sc : Scene.v().getClasses()) {
 				if (sc.resolvingLevel() < SootClass.SIGNATURES) {
 					sc.setResolvingLevel(SootClass.SIGNATURES);

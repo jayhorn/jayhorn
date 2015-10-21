@@ -18,10 +18,6 @@ public class IntegerLiteral extends Expression {
 
 	private final long value;
 	
-	public long getValue() {
-		return value;
-	}
-
 	private static final IntegerLiteral one = new IntegerLiteral(1);
 	private static final IntegerLiteral zero = new IntegerLiteral(0);
 	private static final IntegerLiteral minusOne = new IntegerLiteral(-1);
@@ -66,6 +62,10 @@ public class IntegerLiteral extends Expression {
 		Set<Variable> used = new HashSet<Variable>();
 		return used;
 	}
+
+    public long getValue() {
+        return value;
+    }
 
 	@Override
 	public Type getType() {

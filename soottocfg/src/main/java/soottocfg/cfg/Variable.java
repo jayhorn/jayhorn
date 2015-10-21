@@ -18,6 +18,7 @@ public class Variable {
 	 */
 	public Variable(String name, Type t) {
 		// TODO Auto-generated constructor stub
+		assert (t!=null);
 		this.variableName = name;
 		this.type = t;
 	}
@@ -29,15 +30,8 @@ public class Variable {
 	public Type getType() {
 		return this.type;
 	}
-	
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("(");
-		sb.append(type);
-		sb.append(" , ");
-		sb.append(variableName);
-		sb.append(")");
-		return sb.toString();
-	}
+
+    public String toString() {
+        return this.variableName + "/" + this.type;
+    }
 }

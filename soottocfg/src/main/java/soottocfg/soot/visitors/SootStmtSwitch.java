@@ -47,17 +47,15 @@ import soot.jimple.NopStmt;
 import soot.jimple.RetStmt;
 import soot.jimple.ReturnStmt;
 import soot.jimple.ReturnVoidStmt;
-import soot.jimple.SpecialInvokeExpr;
 import soot.jimple.StaticInvokeExpr;
 import soot.jimple.Stmt;
 import soot.jimple.StmtSwitch;
 import soot.jimple.TableSwitchStmt;
 import soot.jimple.ThrowStmt;
+import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.cfg.Program;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.method.CfgBlock;
@@ -66,8 +64,6 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.soot.invoke_resolver.InvokeResolver;
-import soottocfg.soot.invoke_resolver.SimpleInvokeResolver;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -84,6 +80,7 @@ public class SootStmtSwitch implements StmtSwitch {
 	private final SootValueSwitch valueSwitch;
 
 	private final PatchingChain<Unit> units;
+	private final CompleteUnitGraph unitGraph;
 
 	private CfgBlock currentBlock, entryBlock, exitBlock;
 	private boolean insideMonitor = false;
@@ -102,6 +99,7 @@ public class SootStmtSwitch implements StmtSwitch {
 
 		units = body.getUnits();
 		Unit head = units.getFirst();
+		unitGraph = new CompleteUnitGraph(sootBody);
 		// check if the block is empty.
 		if (head != null) {
 			this.entryBlock = methodInfo.lookupCfgBlock(head);
@@ -161,14 +159,29 @@ public class SootStmtSwitch implements StmtSwitch {
 	private void precheck(Stmt st) {
 		this.currentStmt = st;
 
+		
 		if (currentBlock != null) {
 			// first check if we already created a block
 			// for this statement.
 			CfgBlock block = methodInfo.findBlock(st);
-			if (block != null && block != currentBlock) {
-				currentBlock.addSuccessor(block);
-				currentBlock = block;
-			}
+			if (block != null) {
+				if (block != currentBlock) {
+					currentBlock.addSuccessor(block);
+					currentBlock = block;
+				} else {
+					//do nothing.
+				}
+			} else {
+				if (unitGraph.getPredsOf(st).size()>1) {
+					//then this statement might be reachable via a back edge
+					//and we have to create a new block for it.
+					CfgBlock newBlock = methodInfo.lookupCfgBlock(st);
+					currentBlock.addSuccessor(newBlock);
+					currentBlock = newBlock;
+				} else {
+					//do nothing.
+				}
+			}			
 		} else {
 			// If not, and we currently don't have a block,
 			// create a new one.
@@ -320,6 +333,13 @@ public class SootStmtSwitch implements StmtSwitch {
 		throw new RuntimeException("Case not implemented");
 	}
 
+	/**
+	 * Translate method invokation. This assumes that exceptions and 
+	 * virtual calls have already been removed.
+	 * @param u
+	 * @param optionalLhs
+	 * @param call
+	 */
 	private void translateMethodInvokation(Unit u, Value optionalLhs, InvokeExpr call) {
 		if (isHandledAsSpecialCase(u, optionalLhs, call)) {
 			return;
@@ -334,7 +354,6 @@ public class SootStmtSwitch implements StmtSwitch {
 		Expression baseExpression = null;
 		// List of possible virtual methods that can be called at this point.
 		// Order matters here.
-		List<SootMethod> possibleTargets = new LinkedList<SootMethod>();
 		if (call instanceof InstanceInvokeExpr) {
 			InstanceInvokeExpr iivk = (InstanceInvokeExpr) call;
 			iivk.getBase().apply(valueSwitch);
@@ -342,16 +361,8 @@ public class SootStmtSwitch implements StmtSwitch {
 			// add the "this" variable to the list of args
 			args.addFirst(baseExpression);
 			// this include Interface-, Virtual, and SpecialInvokeExpr
-			if (call.getMethod().isConstructor() && call instanceof SpecialInvokeExpr) {
-				possibleTargets.add(call.getMethod());
-			} else {
-				// TODO: Create the InvokeResolver elsewhere.
-				// InvokeResolver ivkr = new DefaultInvokeResolver();
-				InvokeResolver ivkr = new SimpleInvokeResolver();
-				possibleTargets.addAll(ivkr.resolveVirtualCall(this.sootBody, u, iivk));
-			}
 		} else if (call instanceof StaticInvokeExpr) {
-			possibleTargets.add(call.getMethod());
+			//no need to handle the base.
 		} else if (call instanceof DynamicInvokeExpr) {
 			DynamicInvokeExpr divk = (DynamicInvokeExpr) call;
 			throw new RuntimeException("Ignoring dynamic invoke: " + divk.toString());
@@ -366,33 +377,11 @@ public class SootStmtSwitch implements StmtSwitch {
 		}
 		receiver.add(this.methodInfo.getExceptionVariable());
 
-		if (possibleTargets.size() == 1) {
-			Method method = program.loopupMethod(possibleTargets.get(0).getSignature());
-			CallStatement stmt = new CallStatement(SootTranslationHelpers.v().getSourceLocation(u), method, args,
-					receiver);
-			this.currentBlock.addStatement(stmt);
-		} else {
-			assert(!possibleTargets.isEmpty());
-			assert(baseExpression != null);
-			CfgBlock join = new CfgBlock();
-			for (SootMethod m : possibleTargets) {
-				Method method = program.loopupMethod(m.getSignature());
-				Variable v = SootTranslationHelpers.v().lookupTypeVariable(m.getDeclaringClass().getType());
-
-				CfgBlock thenBlock = new CfgBlock();
-				thenBlock.addStatement(
-						new CallStatement(SootTranslationHelpers.v().getSourceLocation(u), method, args, receiver));
-				thenBlock.addSuccessor(join);
-				this.currentBlock.addConditionalSuccessor(new InstanceOfExpression(baseExpression, v), thenBlock);
-				CfgBlock elseBlock = new CfgBlock();
-				this.currentBlock.addConditionalSuccessor(
-						new UnaryExpression(UnaryOperator.LNot, new InstanceOfExpression(baseExpression, v)),
-						elseBlock);
-				this.currentBlock = elseBlock;
-			}
-			this.currentBlock.addSuccessor(join);
-			this.currentBlock = join;
-		}
+		
+		Method method = program.loopupMethod(call.getMethod().getSignature());
+		CallStatement stmt = new CallStatement(SootTranslationHelpers.v().getSourceLocation(u), method, args,
+				receiver);
+		this.currentBlock.addStatement(stmt);
 	}
 
 	/**

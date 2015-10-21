@@ -18,8 +18,11 @@ public class IntType extends Type {
 	/**
 	 * 
 	 */
-	public IntType() {
+	private IntType() {
 		// TODO Auto-generated constructor stub
 	}
 
+    public String toString() {
+        return "int";
+    }
 }

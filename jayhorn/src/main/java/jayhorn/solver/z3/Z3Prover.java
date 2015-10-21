@@ -757,6 +757,11 @@ public class Z3Prover implements Prover {
 	// //////////////////////////////////////////////////////////////////////////
 	// Horn clause interface
 
+	@Override
+	public ProverExpr mkHornVariable(String name, ProverType type) {
+            return mkVariable(name, type);
+        }
+
 	public ProverFun mkHornPredicate(String name, ProverType[] argTypes) {
 		return this.mkUnintFunction(name, argTypes, this.getBooleanType());
 	}
