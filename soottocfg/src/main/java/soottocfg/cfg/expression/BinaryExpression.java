@@ -88,6 +88,7 @@ public class BinaryExpression extends Expression {
 		switch (op) {
 		case Plus:
 		case Minus:
+		case Mul:
 		case Div:
 		case Mod: {
 			assert(left.getType().equals(right.getType()));

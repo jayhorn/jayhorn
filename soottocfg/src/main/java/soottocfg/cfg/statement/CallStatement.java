@@ -36,6 +36,14 @@ public class CallStatement extends Statement {
 		return method;
 	}
 
+	public List<Expression> getArguments() {
+		return arguments;
+	}
+
+	public List<Expression> getReceiver() {
+		return receiver;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

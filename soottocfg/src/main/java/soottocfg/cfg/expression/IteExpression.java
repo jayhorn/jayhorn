@@ -17,6 +17,18 @@ public class IteExpression extends Expression {
 
 	private final Expression condition, thenExpr, elseExpr;
 	
+	public Expression getCondition() {
+		return condition;
+	}
+
+	public Expression getThenExpr() {
+		return thenExpr;
+	}
+
+	public Expression getElseExpr() {
+		return elseExpr;
+	}
+
 	public IteExpression(Expression condition, Expression thenExpr, Expression elseExpr) {
 		this.condition = condition;
 		this.thenExpr = thenExpr;

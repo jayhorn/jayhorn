@@ -15,6 +15,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import soottocfg.soot.SootToCfg;
+import soottocfg.cfg.Program;
 import soottocfg.soot.SootRunner.CallgraphAlgorithm;
 import soottocfg.test.Util;
 
@@ -78,6 +79,8 @@ public class TranslationTest {
 			Assert.fail();
 		}
 		soot2cfg.run(classDir.getAbsolutePath(), null, algorithm);
+		Program p = soot2cfg.getProgram();
+		System.err.println(p.getEntryPoints().length);
 	}
 
 }

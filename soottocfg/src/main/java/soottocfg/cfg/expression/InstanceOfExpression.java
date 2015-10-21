@@ -17,7 +17,16 @@ import soottocfg.cfg.type.Type;
 public class InstanceOfExpression extends Expression {
 
 	private final Expression expression;
+	public Expression getExpression() {
+		return expression;
+	}
+
+	public Variable getTypeVariable() {
+		return typeVariable;
+	}
+
 	private final Variable typeVariable;
+	
 	
 	/**
 	 * 

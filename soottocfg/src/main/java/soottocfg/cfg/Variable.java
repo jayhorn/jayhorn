@@ -29,4 +29,15 @@ public class Variable {
 	public Type getType() {
 		return this.type;
 	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("(");
+		sb.append(type);
+		sb.append(" , ");
+		sb.append(variableName);
+		sb.append(")");
+		return sb.toString();
+	}
 }

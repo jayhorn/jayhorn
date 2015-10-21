@@ -11,6 +11,7 @@ import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soot.toolkits.graph.UnitGraph;
 import soottocfg.cfg.Program;
+import soottocfg.cfg.method.Method;
 import soottocfg.soot.SootRunner.CallgraphAlgorithm;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
@@ -29,6 +30,7 @@ import soottocfg.soot.visitors.SootStmtSwitch;
  */
 public class SootToCfg {
 
+	private boolean debug = true;
 	/**
 	 * Run Soot and translate classes into Boogie/Horn
 	 * 
@@ -88,6 +90,7 @@ public class SootToCfg {
 	}
 
 	private void processSootMethod(SootMethod sm) {
+		System.out.println("Processing method: " + sm);
 		if (sm.isConcrete()) {			
 			//TODO
 //			if (!sm.getSignature().equals("<org.apache.tools.ant.taskdefs.condition.Socket: boolean eval()>")) {
@@ -114,7 +117,11 @@ public class SootToCfg {
 		mi.setSource(ss.getEntryBlock());
 
 		mi.finalizeAndAddToProgram();
-//		System.err.println(mi.getMethod());
+		Method m = mi.getMethod();
+		if(debug){
+			System.out.println("adding method: " + m.getMethodName());
+			getProgram().addEntryPoint(m);
+		}
 	}
 	
 	private void preProcessBody(Body body) {

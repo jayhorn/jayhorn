@@ -16,7 +16,7 @@ import soottocfg.cfg.type.Type;
  */
 public class BooleanLiteral extends Expression {
 
-	private boolean value;
+	private final boolean value;
 
 	public static BooleanLiteral trueLiteral() {
 		return new BooleanLiteral(true);
@@ -28,6 +28,10 @@ public class BooleanLiteral extends Expression {
 
 	public BooleanLiteral(boolean value) {
 		this.value = value;
+	}
+
+	public boolean getValue() {
+		return value;
 	}
 
 	@Override
