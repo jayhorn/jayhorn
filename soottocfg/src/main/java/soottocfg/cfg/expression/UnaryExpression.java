@@ -20,28 +20,28 @@ public class UnaryExpression extends Expression {
 		Neg("-"), LNot("!");
 		private final String name;       
 
-	    private UnaryOperator(String s) {
-	        name = s;
-	    }
+		private UnaryOperator(String s) {
+			name = s;
+		}
 
-	    public boolean equalsName(String otherName) {
-	        return (otherName == null) ? false : name.equals(otherName);
-	    }
+		public boolean equalsName(String otherName) {
+			return (otherName == null) ? false : name.equals(otherName);
+		}
 
-	    @Override
+		@Override
 		public String toString() {
-	       return this.name;
-	    }			
+			return this.name;
+		}			
 	}
-	
+
 	private final Expression expression;
 	private final UnaryOperator op;
-	
+
 	public UnaryExpression(UnaryOperator op, Expression inner) {
 		this.expression = inner;
 		this.op = op;
 	}
-	
+
 	public Expression getExpression() {
 		return expression;
 	}
@@ -73,7 +73,7 @@ public class UnaryExpression extends Expression {
 		Set<Variable> used = new HashSet<Variable>();
 		return used;
 	}
-	
+
 	@Override
 	public Type getType() {
 		switch (op) {
@@ -86,5 +86,4 @@ public class UnaryExpression extends Expression {
 		}
 		throw new RuntimeException("Unknown case " + op);
 	}
-
 }

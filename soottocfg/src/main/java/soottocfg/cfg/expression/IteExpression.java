@@ -77,5 +77,4 @@ public class IteExpression extends Expression {
 		assert (thenExpr.getType().equals(elseExpr.getType()));
 		return thenExpr.getType();
 	}
-	
 }

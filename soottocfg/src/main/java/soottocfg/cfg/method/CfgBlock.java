@@ -7,14 +7,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Node;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.soot.util.SootTranslationHelpers;
+import soottocfg.util.SetOperations;
 
 import java.util.Set;
 
@@ -147,5 +150,45 @@ public class CfgBlock implements Node {
 		}
 		return used;
 	}	
+	
+
+	
+	//Calculates the live-in variables for each statement
+	public LiveVars<Statement> computeLiveVariables(LiveVars<CfgBlock> vars) {
+
+		//Reserve the necessary size in the hashmap
+		Map<Statement,Set<Variable>> in = new HashMap<Statement,Set<Variable>>(getStatements().size());
+		Map<Statement,Set<Variable>> out = new HashMap<Statement,Set<Variable>>(getStatements().size());
+
+		//Start by initializing in to empty.  
+		for (Statement s: getStatements()){
+			in.put(s, new HashSet<Variable>());
+		}
+
+		//Start with the variables that are live out of the block are also live out of the last statement
+		Set<Variable> currentLiveOut = vars.liveOut.get(this);
+		
+		//Go through the statements in reverse order 
+		for (ListIterator<Statement> li = getStatements().listIterator(getStatements().size()); li.hasPrevious(); ){
+			Statement stmt = li.previous();
+			out.put(stmt, currentLiveOut);
+			Set<Variable> liveIn = SetOperations.union(stmt.getUsedVariables(), SetOperations.minus(currentLiveOut, stmt.getLVariables()));
+			in.put(stmt, liveIn);
+			currentLiveOut = liveIn;
+		}
+		
+		//The live in of the 0th statement should be the same as the live in of the whole block
+		assert(currentLiveOut.equals(vars.liveIn.get(this)));
+		return new LiveVars<Statement>(in, out);
+	}
+	
+	public Set<Variable> computeLiveOut(Map<CfgBlock,Set<Variable>> in)
+	{
+		Set<Variable> out = new HashSet<Variable>();
+		for(CfgBlock s : getSuccessors()){
+			out.addAll(in.get(s));
+		}
+		return out;
+	}
 	
 }
