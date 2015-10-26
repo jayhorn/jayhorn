@@ -19,7 +19,8 @@ public class ArrayAccessExpression extends Expression {
 
 	private final Expression base;
 	private final List<Expression> indices;
-
+	public Expression getBase() {return base;}
+	public List<Expression> getIndicies() {return indices;}
 	/**
 	 * 
 	 */

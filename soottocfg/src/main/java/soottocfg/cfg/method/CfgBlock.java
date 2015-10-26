@@ -26,9 +26,9 @@ public class CfgBlock implements Node {
 
 	protected final String label;
 	
-	
+	protected final List<CfgBlock> predecessors;
 	protected final List<CfgBlock> successors;
-	protected final List<Statement> statements;
+	protected List<Statement> statements;
 	protected final Map<CfgBlock, Expression> successorConditions;
 	
 	public CfgBlock() {
@@ -37,6 +37,7 @@ public class CfgBlock implements Node {
 		this.successors = new LinkedList<CfgBlock>();
 		this.statements = new LinkedList<Statement>();
 		this.successorConditions = new HashMap<CfgBlock, Expression>();
+		this.predecessors = new LinkedList<CfgBlock>();
 	}
 	
 	public String getLabel() {
@@ -50,22 +51,36 @@ public class CfgBlock implements Node {
 	public List<Statement> getStatements() {
 		return this.statements;
 	}
+		
+	public void setStatements(List<Statement> statements) {
+		this.statements = statements;
+	}
+
+	public void addPredecessor(CfgBlock pred)
+	{
+		if (this.predecessors.contains(pred)) {
+			throw new RuntimeException("Already connected: " + pred);
+		}
+		this.predecessors.add(pred);
+	}
 	
 	public void addSuccessor(CfgBlock suc) {
 		if (this.successors.contains(suc)) {
 			throw new RuntimeException("Already connected");
 		}
 		this.successors.add(suc);
+		suc.addPredecessor(this);
 	}
 
 	public void addConditionalSuccessor(Expression condition, CfgBlock suc) {
-		if (this.successors.contains(suc)) {
-			throw new RuntimeException("Already connected");
-		}		
-		this.successors.add(suc);
+		this.addSuccessor(suc);
 		this.successorConditions.put(suc, condition);
 	}
 	
+	public Map<CfgBlock, Expression> getSuccessorConditions() {
+		return successorConditions;
+	}
+
 	public List<CfgBlock> getSuccessors() {
 		return this.successors;
 	}
@@ -77,6 +92,9 @@ public class CfgBlock implements Node {
     public Expression getSuccessorCondition(CfgBlock succ) {
         return successorConditions.get(succ);
     }
+	public List<CfgBlock> getPredecessors() {
+		return predecessors;
+	}
 
 	@Override
 	public String toString() {

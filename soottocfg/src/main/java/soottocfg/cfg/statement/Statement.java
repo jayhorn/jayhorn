@@ -15,6 +15,10 @@ import soottocfg.cfg.Variable;
  */
 public abstract class Statement implements Node {
 
+	public SourceLocation getSourceLocation() {
+		return sourceLocation;
+	}
+
 	private final SourceLocation sourceLocation;
 
 	public Statement(SourceLocation loc) {
