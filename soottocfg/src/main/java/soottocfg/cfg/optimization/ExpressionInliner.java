@@ -1,6 +1,7 @@
 package soottocfg.cfg.optimization;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -18,14 +19,18 @@ public class ExpressionInliner extends CfgUpdater {
 	private Variable toReplace;
 	private Expression replaceWith;
 
+	protected Variable getLhsVariable(AssignStatement s){
+		Expression lhs = s.getLeft();
+		//DSN - I Assume that it can only be a variable.
+		assert(lhs instanceof IdentifierExpression);
+		return ((IdentifierExpression) lhs).getVariable();
+	}
+	
 	//Given an assignment statement, replace the readers with the rhs of the statement
 	//TODO make this boolean
 	public void inlineExpression(AssignStatement s, Method m)
 	{
-		Expression lhs = s.getLeft();
-		//DSN - I Assume that it can only be a variable.
-		assert(lhs instanceof IdentifierExpression);
-		toReplace = ((IdentifierExpression) lhs).getVariable();
+		toReplace = getLhsVariable(s);
 		replaceWith = s.getRight();
 
 		Set<Statement> definingStmts = m.computeDefiningStatements().get(toReplace);
@@ -48,6 +53,19 @@ public class ExpressionInliner extends CfgUpdater {
 		changed = false;
 		for(AssignStatement s : candidatesForInlining(m)){
 			inlineExpression(s,m) ;
+		}
+		return changed;
+	}
+	
+	public boolean inlineIfUsesLessThan(Method m, int maxUses)
+	{
+		changed = false;
+		Map<Variable,Set<Statement>> usingStmts = m.computeUsingStatements();
+		for(AssignStatement s : candidatesForInlining(m)){
+			Variable v = getLhsVariable(s);
+			if(usingStmts.get(v).size() < maxUses){
+				inlineExpression(s,m);
+			}
 		}
 		return changed;
 	}
