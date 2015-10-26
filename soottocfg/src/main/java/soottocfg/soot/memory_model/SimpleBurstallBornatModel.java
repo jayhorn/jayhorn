@@ -118,7 +118,6 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 				SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
 				new BinaryExpression(BinaryOperator.Ne, new IdentifierExpression(newLocal), this.mkNullConstant())));
 		// add: assume newLocal instanceof newType
-
 		Expression instof = new InstanceOfExpression(new IdentifierExpression(newLocal),
 				SootTranslationHelpers.v().lookupTypeVariable(arg0.getBaseType()));
 		this.statementSwitch.push(

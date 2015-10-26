@@ -262,6 +262,7 @@ public class Checker {
             throw new RuntimeException("Statement type " + s + " not implemented!");
         } else if (s instanceof AssignStatement) {
             final AssignStatement as = (AssignStatement)s;
+
             final Expression lhs = as.getLeft();
             final int lhsIndex;
 
