@@ -25,6 +25,7 @@ import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverType;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.princess.PrincessProverFactory;
+import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.CfgBlock;
@@ -170,8 +171,9 @@ public class Checker {
 	 * @param method
 	 */
     private void makeBlockPredicates(Prover p, Method method) {
-        Map<CfgBlock, Set<Variable>> liveVariables = method.computeLiveVariables();
-        for (Entry<CfgBlock, Set<Variable>> entry : liveVariables.entrySet()) {
+        LiveVars<CfgBlock> liveVariables = method.computeBlockLiveVariables();
+        //Todo is this live in or live out
+        for (Entry<CfgBlock, Set<Variable>> entry : liveVariables.liveOut.entrySet()) {
             // First sort the list of variables by name to make access and
             // reading easier.
             List<Variable> sortedVars = setToSortedList(entry.getValue());
