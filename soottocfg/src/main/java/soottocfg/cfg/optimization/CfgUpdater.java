@@ -2,10 +2,12 @@ package soottocfg.cfg.optimization;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.*;
 import soottocfg.cfg.method.CfgBlock;
+import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
@@ -15,23 +17,36 @@ import soottocfg.cfg.statement.Statement;
 //DSN should this be an abstract class
 //DSN There might be value in tracking whether an expression actually changed.  Possible optimization
 public class CfgUpdater extends CfgVisitor {
+	
 	protected Boolean changed = false;
 	
-	public Boolean getChanged() {
+	boolean updateMethod(Method m){
+		changed = false;
+		processMethod(m);
 		return changed;
 	}
-
-	public void setChanged(Boolean changed) {
-		this.changed = changed;
+	
+	boolean runFixpt(Method m){
+		boolean everChanged = false;
+		while (updateMethod(m)){
+			everChanged = true;
+		}
+		return everChanged;
 	}
-
+		
 	public CfgUpdater () {}
 	
 	@Override
 	protected void processCfgBlock(CfgBlock block) {
+		setCurrentCfgBlock(block);
+		//We need to update the statements
 		block.setStatements(processStatementList(block.getStatements()));
+		//and also the graph conditions, in case those have been changed by the analysis
+		for(Entry<CfgBlock, Expression> e : block.getSuccessorConditions().entrySet()){
+			block.updateConditionalSuccessor(processExpression(e.getValue()), e.getKey());
+		}
+		setCurrentCfgBlock(null);
 	}
-
 	
 	@Override
 	protected List<Statement> processStatementList(List<Statement> sl){

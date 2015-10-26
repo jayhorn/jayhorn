@@ -22,12 +22,30 @@ import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
 
 public abstract class CfgVisitor {
+	private Method currentMethod = null;
+	protected void setCurrentMethod(Method m){
+		currentMethod = m;
+	}
+	protected Method getCurrentMethod() {
+		return currentMethod;
+	}
+	
+	//IF you override this, you must include the setCurrentMethod calls in the overridden fn
 	protected void processMethod(Method m) {
+		setCurrentMethod(m);
 		for(CfgBlock b : m.getCfg()){
 			processCfgBlock(b);
 		}
+		setCurrentMethod(null);
 	}
 
+	private CfgBlock currentCfgBlock = null;
+	protected void setCurrentCfgBlock(CfgBlock c){
+		currentCfgBlock = c;
+	}
+	protected CfgBlock getCurrentCfgBlock() {
+		return currentCfgBlock;
+	}
 	protected abstract void processCfgBlock(CfgBlock block);
 
 	public CfgVisitor() {}
