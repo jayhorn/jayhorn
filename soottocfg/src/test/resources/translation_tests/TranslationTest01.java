@@ -60,6 +60,7 @@ public class TranslationTest01 {
 	    return x;
 	}
     }
+
 	public void foo() {}
 	
 	public int withException() {

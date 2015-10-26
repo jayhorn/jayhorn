@@ -100,7 +100,7 @@ public class BinaryExpression extends Expression {
 		case Ge:
 		case Lt:
 		case Le: {
-			assert(left.getType().equals(right.getType()));
+//			assert(left.getType().equals(right.getType()));
 			return BoolType.instance();			
 		}
 		case And:

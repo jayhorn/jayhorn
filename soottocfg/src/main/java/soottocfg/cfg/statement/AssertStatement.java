@@ -9,6 +9,7 @@ import java.util.Set;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.type.BoolType;
 
 /**
  * @author teme
@@ -23,6 +24,7 @@ public class AssertStatement extends Statement {
 	 */
 	public AssertStatement(SourceLocation loc, Expression expr) {
 		super(loc);
+		assert(expr.getType() == BoolType.instance());
 		this.expression = expr; 
 	}
 

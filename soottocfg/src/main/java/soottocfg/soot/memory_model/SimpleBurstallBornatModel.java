@@ -28,6 +28,7 @@ import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.InstanceOfExpression;
+import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.type.BoolType;
@@ -117,11 +118,12 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 				SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
 				new BinaryExpression(BinaryOperator.Ne, new IdentifierExpression(newLocal), this.mkNullConstant())));
 		// add: assume newLocal instanceof newType
-		//TODO: make instanceof Boolean!!!!!!!!
+
+		Expression instof = new InstanceOfExpression(new IdentifierExpression(newLocal),
+				SootTranslationHelpers.v().lookupTypeVariable(arg0.getBaseType()));
 		this.statementSwitch.push(
 				new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
-						new InstanceOfExpression(new IdentifierExpression(newLocal),
-								SootTranslationHelpers.v().lookupTypeVariable(arg0.getBaseType()))));
+						new BinaryExpression(BinaryOperator.Ne, instof, IntegerLiteral.zero())));
 
 		return new IdentifierExpression(newLocal);
 	}

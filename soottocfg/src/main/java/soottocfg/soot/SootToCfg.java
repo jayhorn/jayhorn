@@ -100,6 +100,7 @@ public class SootToCfg {
 			// return;
 			// }
 			//			System.err.println(sm.getSignature());
+//			System.err.println(sm.getSignature());
 
 			SootTranslationHelpers.v().setCurrentMethod(sm);
 
@@ -110,9 +111,10 @@ public class SootToCfg {
 
 	private void processMethodBody(Body body) {
 
-		//		 System.err.println(body.toString());
+
+//		 System.err.println(body.toString());
 		preProcessBody(body);
-		System.err.println(body.toString());
+		 System.err.println(body.toString());
 
 		// generate the CFG structures on the processed body.
 		MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
