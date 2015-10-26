@@ -7,14 +7,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Node;
 import soottocfg.cfg.Variable;
+import soottocfg.cfg.statement.Statement;
+import soottocfg.util.SetOperations;
 
 /**
  * @author schaef
@@ -166,95 +168,119 @@ public class Method implements Node {
 			}
 		}
 
-		List<CfgBlock> todo = new LinkedList<CfgBlock>();
-		todo.add(this.source);
-		Set<CfgBlock> done = new HashSet<CfgBlock>();
-		while (!todo.isEmpty()) {
-			CfgBlock current = todo.remove(0);
-			done.add(current);
-			if (this.source == current) {
+		for(CfgBlock b : getCfg()){
+			if (this.source == b) {
 				sb.append("Root ->");
 			}
-			sb.append(current);
-			for (CfgBlock succ : current.getSuccessors()) {
-				if (!todo.contains(succ) && !done.contains(succ)) {
-					todo.add(succ);
-				}
-			}
+			sb.append(b);
 		}
+
 		return sb.toString();
 	}
 
 	@Override
 	public Set<Variable> getUsedVariables() {
 		Set<Variable> used = new HashSet<Variable>();
-		List<CfgBlock> todo = new LinkedList<CfgBlock>();
-		todo.add(this.source);
-		Set<CfgBlock> done = new HashSet<CfgBlock>();
-		while (!todo.isEmpty()) {
-			CfgBlock current = todo.remove(0);
-			done.add(current);
-			used.addAll(current.getUsedVariables());
-			for (CfgBlock succ : current.getSuccessors()) {
-				if (!todo.contains(succ) && !done.contains(succ)) {
-					todo.add(succ);
-				}
-			}
+		for (CfgBlock b : getCfg()){
+			used.addAll(b.getUsedVariables());
 		}
 		return used;
 	}
 
 	@Override
 	public Set<Variable> getLVariables() {
-		Set<Variable> used = new HashSet<Variable>();
-		List<CfgBlock> todo = new LinkedList<CfgBlock>();
-		todo.add(this.source);
-		Set<CfgBlock> done = new HashSet<CfgBlock>();
-		while (!todo.isEmpty()) {
-			CfgBlock current = todo.remove(0);
-			done.add(current);
-			used.addAll(current.getLVariables());
-			for (CfgBlock succ : current.getSuccessors()) {
-				if (!todo.contains(succ) && !done.contains(succ)) {
-					todo.add(succ);
-				}
-			}
+		Set<Variable> rval = new HashSet<Variable>();
+		for (CfgBlock b : getCfg()){
+			rval.addAll(b.getLVariables());
 		}
-		return used;
+		return rval;
 	}
 
-
-	protected <T> Set<T> intersect(Set<T> s1 ,Set<T> s2){
-		Set<T> intersection = new HashSet<T>(s1);
-		intersection.retainAll(s2);
-		return intersection;
-	} 
-
-	protected <T> Set<T> union(Set<T> s1 ,Set<T> s2){
-		Set<T> rval = new HashSet<T>(s1);
-		rval.addAll(s2);
+	//Really simple for now: Just get all blocks that define each variable.  Don't worry too much about 
+	//dominators, etc
+	//TODO worry about dominators etc
+	public Map<Variable,Set<CfgBlock>> computeDefiningBlocks() {
+		Map<Variable,Set<CfgBlock>> rval = new HashMap<Variable,Set<CfgBlock>>();
+		for(CfgBlock b : getCfg()){
+			for(Variable v : b.getLVariables()){
+				Set<CfgBlock> definingBlocks = rval.get(v);
+				if(definingBlocks == null){
+					definingBlocks = new HashSet<CfgBlock>();
+					rval.put(v, definingBlocks);
+				}
+				definingBlocks.add(b);
+			}
+		}
 		return rval;
-	} 	
+	}
 
-	protected <T> Set<T> minus(Set<T> s1 ,Set<T> s2){
-		Set<T> rval = new HashSet<T>(s1);
-		rval.removeAll(s2);
+	public Map<Variable,Set<Statement>> computeDefiningStatements() {
+		Map<Variable,Set<Statement>> rval = new HashMap<Variable,Set<Statement>>();
+
+		for (Map.Entry<Variable, Set<CfgBlock>> entry : computeDefiningBlocks().entrySet()){
+			Variable v = entry.getKey();
+			Set<Statement> set = new HashSet<Statement>();
+			for(CfgBlock b : entry.getValue()){
+				for(Statement s : b.getStatements()){
+					if(s.getLVariables().contains(v)){
+						set.add(s);
+					}
+				}
+			}
+			rval.put(v,set);
+		}
 		return rval;
-	} 		
+	}
 
+	public Map<Variable,Set<Statement>> computeUsingStatements() {
+		Map<Variable,Set<Statement>> rval = new HashMap<Variable,Set<Statement>>();
+
+		for (Map.Entry<Variable, Set<CfgBlock>> entry : computeUsingBlocks().entrySet()){
+			Variable v = entry.getKey();
+			Set<Statement> set = new HashSet<Statement>();
+			for(CfgBlock b : entry.getValue()){
+				for(Statement s : b.getStatements()){
+					if(s.getUsedVariables().contains(v)){
+						set.add(s);
+					}
+				}
+			}
+			rval.put(v,set);
+		}
+		return rval;
+	}
+
+	//Really simple for now: Just get all blocks that define each variable.  Don't worry too much about 
+	//dominators, etc
+	//TODO worry about dominators etc
+	public Map<Variable,Set<CfgBlock>> computeUsingBlocks() {
+		Map<Variable,Set<CfgBlock>> rval = new HashMap<Variable,Set<CfgBlock>>();
+		for(CfgBlock b : getCfg()){
+			for(Variable v : b.getUsedVariables()){
+				Set<CfgBlock> usingBlocks = rval.get(v);
+				if(usingBlocks == null){
+					usingBlocks = new HashSet<CfgBlock>();
+					rval.put(v, usingBlocks);
+				}
+				usingBlocks.add(b);
+			}
+		}
+		return rval;
+	}
+
+	
 	/**
-	 * Return the set of live variable per block. A variable is live between its
+	 * Return the set of live variable at the entry of each block. A variable is live between its
 	 * first and last use. 
 	 * Following the algorithm on p610 of the dragon book, 2nd ed.
 	 * @return
 	 */
-	public Map<CfgBlock, Set<Variable>> computeLiveVariables() {
+	public LiveVars<CfgBlock> computeBlockLiveVariables() {
 		Set<CfgBlock> cfg = this.getCfg();
-		Set<CfgBlock> exitBlocks = this.getExitBlocks();
-		Set<CfgBlock> nonExitBlocks = minus(cfg,exitBlocks);
 
 		//Reserve the necessary size in the hashmap
 		Map<CfgBlock,Set<Variable>> in = new HashMap<CfgBlock,Set<Variable>>(cfg.size());
+		Map<CfgBlock,Set<Variable>> out =  new HashMap<CfgBlock,Set<Variable>>(cfg.size());
 
 		//cache these to save time
 		Map<CfgBlock,Set<Variable>> use = new HashMap<CfgBlock,Set<Variable>>(cfg.size());
@@ -272,12 +298,9 @@ public class Method implements Node {
 
 		do {
 			changed = false;
-			for(CfgBlock b : nonExitBlocks){
-				Set<Variable> out = new HashSet<Variable>();
-				for(CfgBlock s : b.getSuccessors()){
-					out.addAll(in.get(s));
-				}
-				Set<Variable> newIn = union(use.get(b),minus(out,def.get(b)));
+			for(CfgBlock b : cfg){
+				out.put(b,b.computeLiveOut(in));
+				Set<Variable> newIn = SetOperations.union(use.get(b),SetOperations.minus(out.get(b),def.get(b)));
 
 				if (! newIn.equals(in.get(b))){
 					changed=true;
@@ -286,6 +309,6 @@ public class Method implements Node {
 			}
 		} while (changed);
 
-		return in;
+		return new LiveVars<CfgBlock>(in,out);
 	}
 }

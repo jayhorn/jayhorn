@@ -19,7 +19,9 @@ public class CfgScanner extends CfgVisitor {
 	@Override
 	protected void processCfgBlock(CfgBlock block) {
 		//Update the node
+		setCurrentCfgBlock(block);
 		processStatementList(block.getStatements());
+		setCurrentCfgBlock(null);
 	}
 
 	
