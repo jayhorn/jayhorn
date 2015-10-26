@@ -3,6 +3,7 @@
  */
 package soottocfg.soot.memory_model;
 
+import soot.SootClass;
 import soot.Unit;
 import soot.Value;
 import soot.jimple.ArrayRef;
@@ -15,6 +16,7 @@ import soot.jimple.NewMultiArrayExpr;
 import soot.jimple.StaticFieldRef;
 import soot.jimple.StringConstant;
 import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.type.ClassConstant;
 import soottocfg.cfg.type.Type;
 import soottocfg.soot.visitors.SootStmtSwitch;
 import soottocfg.soot.visitors.SootValueSwitch;
@@ -67,8 +69,6 @@ public abstract class MemoryModel {
 
 	public abstract Type lookupType(soot.Type t);
 	
-	public abstract Type getNullType();
-	
-	public abstract Type getHeapType();
-	
+	public abstract ClassConstant lookupClassConstant(SootClass c);
+		
 }

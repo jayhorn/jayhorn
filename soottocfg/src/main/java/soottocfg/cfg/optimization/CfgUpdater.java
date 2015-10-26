@@ -5,9 +5,18 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import soottocfg.cfg.Variable;
-import soottocfg.cfg.expression.*;
+import soottocfg.cfg.expression.ArrayAccessExpression;
+import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.BooleanLiteral;
+import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.InstanceOfExpression;
+import soottocfg.cfg.expression.IntegerLiteral;
+import soottocfg.cfg.expression.IteExpression;
+import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.statement.ArrayStoreStatement;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
@@ -72,6 +81,20 @@ public class CfgUpdater extends CfgVisitor {
 		Expression rhs = processExpression(s.getRight());
 		return new AssignStatement(s.getSourceLocation(),lhs,rhs);
 	}
+
+	@Override
+	protected Statement processStatement(ArrayStoreStatement s)
+	{
+		Expression base = processExpression(s.getBase());
+		Expression[] ids = s.getIndices();
+		List<Expression> indices = new LinkedList<Expression>();
+		for (int i = 0; i < ids.length; i++) {
+			indices.add(processExpression(ids[i]));
+		}		
+		Expression value = processExpression(s.getValue());
+		return new ArrayStoreStatement(s.getSourceLocation(),base, indices.toArray(new Expression[indices.size()]), value);
+	}
+
 	
 	
 	@Override

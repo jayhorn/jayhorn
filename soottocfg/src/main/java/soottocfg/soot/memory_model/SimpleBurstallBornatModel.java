@@ -3,9 +3,14 @@
  */
 package soottocfg.soot.memory_model;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
+import soot.SootClass;
 import soot.SootField;
 import soot.Unit;
 import soot.Value;
@@ -22,16 +27,15 @@ import soot.jimple.StringConstant;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.ArrayAccessExpression;
-import soottocfg.cfg.expression.ArrayStoreExpression;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
-import soottocfg.cfg.statement.AssignStatement;
+import soottocfg.cfg.statement.ArrayStoreStatement;
 import soottocfg.cfg.statement.AssumeStatement;
-import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.type.ClassConstant;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.MapType;
 import soottocfg.cfg.type.ReferenceType;
@@ -58,18 +62,15 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 		this.program = SootTranslationHelpers.v().getProgram();
 		// TODO
 		nullType = new ReferenceType(null);
-		heapType = new MapType();
+		
+		//Heap is a map from <Type, Type> to Type
+		List<Type> ids = new LinkedList<Type>();
+		ids.add(Type.instance());
+		ids.add(Type.instance());
+		heapType = new MapType(ids, Type.instance());
 		this.nullConstant = this.program.loopupGlobalVariable("$null", nullType);
 		this.heapVariable = this.program.loopupGlobalVariable("$heap", heapType);
 
-		this.types.put(soot.IntType.v(), IntType.instance());
-		this.types.put(soot.BooleanType.v(), BoolType.instance());
-
-		// this should be refined
-		this.types.put(soot.LongType.v(), IntType.instance());
-		this.types.put(soot.ByteType.v(), IntType.instance());
-		this.types.put(soot.CharType.v(), IntType.instance());
-		this.types.put(soot.ShortType.v(), IntType.instance());
 	}
 
 	@Override
@@ -82,7 +83,7 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 			InstanceFieldRef ifr = (InstanceFieldRef) lhs;
 			ifr.getBase().apply(valueSwitch);
 			Expression base = valueSwitch.popExpression();
-			// TODO: assert that base!=null
+
 			Variable fieldVar = lookupField(ifr.getField());
 			indices = new Expression[] { base, new IdentifierExpression(fieldVar) };
 			target = new IdentifierExpression(this.heapVariable);
@@ -90,7 +91,7 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 			ArrayRef ar = (ArrayRef) lhs;
 			ar.getBase().apply(valueSwitch);
 			Expression base = valueSwitch.popExpression();
-			// TODO: assert that idx is in bounds.
+
 			ar.getIndex().apply(valueSwitch);
 			Expression arrayIdx = valueSwitch.popExpression();
 			indices = new Expression[] { base, arrayIdx };
@@ -99,8 +100,7 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 		} else {
 			throw new RuntimeException();
 		}
-		this.statementSwitch.push(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(u),
-				new IdentifierExpression(heapVariable), new ArrayStoreExpression(target, indices, value)));
+		this.statementSwitch.push(new ArrayStoreStatement(SootTranslationHelpers.v().getSourceLocation(u), target, indices, value));
 	}
 
 	/*
@@ -288,23 +288,65 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 	@Override
 	public Type lookupType(soot.Type t) {
 		if (!types.containsKey(t)) {
-			// throw new IllegalArgumentException("type " + t + " is unknown");
-			System.err.println("Warning: type " + t + " is unknown, assuming int");
-			return IntType.instance();
+			Type type = null;
+			if (t instanceof soot.BooleanType) {
+				System.err.println("Warning: type " + t + " is unknown, assuming int");
+				type =  IntType.instance();
+			} else if (t instanceof soot.ByteType) {
+				System.err.println("Warning: type " + t + " is unknown, assuming int");
+				type =  IntType.instance();
+			} else if (t instanceof soot.CharType) {
+				System.err.println("Warning: type " + t + " is unknown, assuming int");
+				type =  IntType.instance();
+			} else if (t instanceof soot.DoubleType) {
+				System.err.println("Warning: type " + t + " is unknown, assuming int");
+				type =  IntType.instance();
+			} else if (t instanceof soot.FloatType) {
+				System.err.println("Warning: type " + t + " is unknown, assuming int");
+				type =  IntType.instance();				
+			} else if (t instanceof soot.IntType) {
+				System.err.println("Warning: type " + t + " is unknown, assuming int");
+				type =  IntType.instance();
+			} else if (t instanceof soot.LongType) {
+				System.err.println("Warning: type " + t + " is unknown, assuming int");
+				type =  IntType.instance();
+			} else if (t instanceof soot.ShortType) {
+				System.err.println("Warning: type " + t + " is unknown, assuming int");
+				type =  IntType.instance();							
+			} else if (t instanceof soot.ArrayType) {
+				soot.ArrayType at = (soot.ArrayType)t;
+				Type baseType = lookupType(at.baseType);
+				List<Type> ids = new LinkedList<Type>();
+				for (int i = 0; i < at.numDimensions; i++) {
+					ids.add(IntType.instance());
+				}
+				type = new MapType(ids, baseType);				
+			} else if (t instanceof soot.NullType) {
+				return this.nullConstant.getType();
+			} else if (t instanceof soot.RefType) {
+				soot.RefType rt = (soot.RefType)t;
+				ClassConstant cc = lookupClassConstant(rt.getSootClass());
+				type = new ReferenceType(cc);
+			} else {
+				throw new RuntimeException("Don't know what to do with type " + t);
+			}
+			types.put(t, type);
 		}
 		return types.get(t);
 	}
 
+	private Map<SootClass, ClassConstant> classConstants = new HashMap<SootClass, ClassConstant>();
+	
 	@Override
-	public Type getNullType() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Type getHeapType() {
-		// TODO Auto-generated method stub
-		return null;
+	public ClassConstant lookupClassConstant(SootClass c) {
+		if (!classConstants.containsKey(c)) {
+			Collection<ClassConstant> parents = new HashSet<ClassConstant>();
+			if (c.hasSuperclass()) {
+				parents.add(lookupClassConstant(c.getSuperclass()));
+			}
+			classConstants.put(c, new ClassConstant(c.getJavaStyleName(), parents));
+		}
+		return classConstants.get(c);
 	}
 
 }

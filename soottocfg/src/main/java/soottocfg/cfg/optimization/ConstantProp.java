@@ -1,11 +1,14 @@
 package soottocfg.cfg.optimization;
 
 import soottocfg.cfg.Variable;
-import soottocfg.cfg.expression.*;
+import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.BooleanLiteral;
+import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.InstanceOfExpression;
+import soottocfg.cfg.expression.IntegerLiteral;
+import soottocfg.cfg.expression.IteExpression;
+import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
-import soottocfg.cfg.method.*;
-import soottocfg.cfg.statement.*;
-import soottocfg.cfg.type.BoolType;
 
 
 public class ConstantProp extends CfgUpdater {

@@ -6,6 +6,7 @@ import java.util.List;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.*;
 import soottocfg.cfg.method.CfgBlock;
+import soottocfg.cfg.statement.ArrayStoreStatement;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
@@ -63,6 +64,20 @@ public class CfgScanner extends CfgVisitor {
 		List<Expression> receivers = processExpressionList(s.getReceiver());
 		return new CallStatement(s.getSourceLocation(),s.getCallTarget(),args,receivers);
 	}
+	
+	@Override
+	protected Statement processStatement(ArrayStoreStatement s)
+	{
+		Expression base = processExpression(s.getBase());
+		Expression[] ids = s.getIndices();
+		List<Expression> indices = new LinkedList<Expression>();
+		for (int i = 0; i < ids.length; i++) {
+			indices.add(processExpression(ids[i]));
+		}		
+		Expression value = processExpression(s.getValue());
+		return new ArrayStoreStatement(s.getSourceLocation(),base, indices.toArray(new Expression[indices.size()]), value);
+	}	
+	
 	///Expressions
 	@Override
 	protected List<Expression> processExpressionList(List<Expression> el) {

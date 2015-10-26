@@ -1,10 +1,8 @@
 package soottocfg.cfg.optimization;
 
-import java.util.HashSet;
 import java.util.List;
 
 import soottocfg.cfg.expression.ArrayAccessExpression;
-import soottocfg.cfg.expression.ArrayStoreExpression;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
@@ -15,6 +13,7 @@ import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.statement.ArrayStoreStatement;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
@@ -59,6 +58,8 @@ public abstract class CfgVisitor {
 			return processStatement((AssumeStatement) s);
 		} else if (s instanceof CallStatement){
 			return processStatement((CallStatement) s);
+		} else if (s instanceof ArrayStoreStatement){
+			return processStatement((ArrayStoreStatement) s);			
 		} else {
 			throw new RuntimeException("unexpected statement type: " + s);
 		}
@@ -70,12 +71,11 @@ public abstract class CfgVisitor {
 	protected abstract Statement processStatement(AssertStatement s);
 	protected abstract Statement processStatement(AssumeStatement s);
 	protected abstract Statement processStatement(CallStatement s);
+	protected abstract Statement processStatement(ArrayStoreStatement s);
 
 	protected Expression processExpression(Expression e) {
 		if(e instanceof ArrayAccessExpression){
 			return processExpression((ArrayAccessExpression) e);
-		} else if (e instanceof ArrayStoreExpression){
-			return processExpression((ArrayStoreExpression) e);
 		} else if (e instanceof BinaryExpression){
 			return processExpression((BinaryExpression) e);
 		} else if (e instanceof BooleanLiteral){
