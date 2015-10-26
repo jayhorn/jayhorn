@@ -13,15 +13,17 @@ public class DeadCodeElimination extends CfgUpdater {
 	//Given a method, eliminate the dead code in it
 	DeadCodeElimination(){}
 
-	private boolean changed = false;
-	public void removeDeadCode(Method m){
-
-		do {
-			LiveVars<CfgBlock> blockLiveVars = m.computeBlockLiveVariables();
-			for(CfgBlock block : m.getCfg()){
-				removeDeadCode(block,blockLiveVars);
-			}			
-		} while(changed);
+	private LiveVars<CfgBlock> blockLiveVars;
+	
+	@Override
+	public boolean updateMethod(Method m){
+		blockLiveVars = m.computeBlockLiveVariables();
+		changed = false;
+		for(CfgBlock block : m.getCfg()){
+			processCfgBlock(block);
+		}
+		blockLiveVars = null;
+		return changed;
 	}
 
 	protected boolean isDead(Statement stmt, LiveVars<Statement> liveVars) {
@@ -30,15 +32,20 @@ public class DeadCodeElimination extends CfgUpdater {
 		return SetOperations.intersect(stmt.getLVariables(), liveVars.liveOut.get(stmt)).isEmpty();
 	}
 
-	protected void removeDeadCode(CfgBlock block, LiveVars<CfgBlock> blockLiveVars) {
+	protected void processCfgBlock(CfgBlock block) {
+		setCurrentCfgBlock(block);
 		List<Statement> rval = new LinkedList<Statement>();
 		LiveVars<Statement> stmtLiveVars = block.computeLiveVariables(blockLiveVars);
 		for(Statement s : block.getStatements()){
-			if(!isDead(s,stmtLiveVars)){
+			if(isDead(s,stmtLiveVars)){
+				//If the statements is dead, just remove it from the list
 				changed = true;
+			} else {
+				//otherwise, it stays in the list 
 				rval.add(processStatement(s));
 			}
 		}	
 		block.setStatements(rval);
+		setCurrentCfgBlock(null);
 	}
 }

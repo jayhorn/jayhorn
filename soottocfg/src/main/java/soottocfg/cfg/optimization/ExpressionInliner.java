@@ -18,9 +18,8 @@ public class ExpressionInliner extends CfgUpdater {
 	private Variable toReplace;
 	private Expression replaceWith;
 
-
-
 	//Given an assignment statement, replace the readers with the rhs of the statement
+	//TODO make this boolean
 	public void inlineExpression(AssignStatement s, Method m)
 	{
 		Expression lhs = s.getLeft();
@@ -39,11 +38,18 @@ public class ExpressionInliner extends CfgUpdater {
 		}
 	}
 
-	public void inlineAllCandidates(Method m)
+	@Override
+	public boolean updateMethod(Method m){
+		return inlineAllCandidates(m);
+	}
+	
+	public boolean inlineAllCandidates(Method m)
 	{
+		changed = false;
 		for(AssignStatement s : candidatesForInlining(m)){
-			inlineExpression(s,m);
+			inlineExpression(s,m) ;
 		}
+		return changed;
 	}
 	
 	public Set<AssignStatement> candidatesForInlining(Method m)
@@ -63,6 +69,7 @@ public class ExpressionInliner extends CfgUpdater {
 	@Override 
 	protected Expression processExpression(IdentifierExpression e) {
 		if(e.getVariable().equals(toReplace)){
+			changed = true;
 			return replaceWith;
 		} else {
 			return e;

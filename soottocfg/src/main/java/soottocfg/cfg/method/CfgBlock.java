@@ -80,6 +80,13 @@ public class CfgBlock implements Node {
 		this.successorConditions.put(suc, condition);
 	}
 	
+	public void updateConditionalSuccessor(Expression cond, CfgBlock suc)
+	{
+		assert(successorConditions.containsKey(suc));
+		assert(successors.contains(suc));
+		successorConditions.put(suc,cond);
+	}
+	
 	public Map<CfgBlock, Expression> getSuccessorConditions() {
 		return successorConditions;
 	}
