@@ -16,16 +16,24 @@ import soottocfg.cfg.type.Type;
  */
 public class IntegerLiteral extends Expression {
 
-	private long value;
+	private final long value;
+
+	private static final IntegerLiteral one = new IntegerLiteral(1);
+	private static final IntegerLiteral zero = new IntegerLiteral(0);
+	private static final IntegerLiteral minusOne = new IntegerLiteral(-1);
+
 	
-	public static IntegerLiteral one() {
-		return new IntegerLiteral(1);
+	public static IntegerLiteral one() { 
+		return one;
 	}
 
 	public static IntegerLiteral zero() {
-		return new IntegerLiteral(0);
+		return zero;
 	}
 
+	public static IntegerLiteral minusOne() {
+		return minusOne;
+	}
 	
 	public IntegerLiteral(int value) {
 		this.value = value;

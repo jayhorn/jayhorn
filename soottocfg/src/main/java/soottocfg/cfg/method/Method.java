@@ -5,6 +5,7 @@ package soottocfg.cfg.method;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -65,6 +66,33 @@ public class Method implements Node {
 		return this.source;
 	}
 
+	public Set<CfgBlock> getCfg(){
+		class Visitor {
+			private Set<CfgBlock> set;
+			Visitor(){set = new  HashSet<CfgBlock>();}
+			public Set<CfgBlock> visit(CfgBlock block){
+				if (!set.contains(block)) {
+					set.add(block);
+					for(CfgBlock b : block.getSuccessors()){
+						visit(b);
+					}
+				}
+				return set;
+			}
+		}
+		return (new Visitor()).visit(this.getSource());
+	}
+
+	public Set<CfgBlock> getExitBlocks(){
+		Set<CfgBlock> rval = new HashSet<CfgBlock>();
+		for(CfgBlock b : getCfg()){
+			if(b.getSuccessors().size() == 0){
+				rval.add(b);
+			}
+		}
+		return rval;
+	}
+
 	public Collection<Variable> getInParams() {
 		final List<Variable> rtr = new ArrayList<Variable>();
 		if (thisVariable != null) {
@@ -88,7 +116,7 @@ public class Method implements Node {
 	public Collection<Variable> getModifiedGlobals() {
 		return modifiedGlobals;
 	}
-	
+
 	public Collection<Variable> getLocals() {
 		return locals;
 	}
@@ -195,28 +223,69 @@ public class Method implements Node {
 		return used;
 	}
 
+
+	protected <T> Set<T> intersect(Set<T> s1 ,Set<T> s2){
+		Set<T> intersection = new HashSet<T>(s1);
+		intersection.retainAll(s2);
+		return intersection;
+	} 
+
+	protected <T> Set<T> union(Set<T> s1 ,Set<T> s2){
+		Set<T> rval = new HashSet<T>(s1);
+		rval.addAll(s2);
+		return rval;
+	} 	
+
+	protected <T> Set<T> minus(Set<T> s1 ,Set<T> s2){
+		Set<T> rval = new HashSet<T>(s1);
+		rval.removeAll(s2);
+		return rval;
+	} 		
+
 	/**
 	 * Return the set of live variable per block. A variable is live between its
-	 * first and last use. TODO: this is not implemented! For each block, it
-	 * returns all variables.
-	 * 
+	 * first and last use. 
+	 * Following the algorithm on p610 of the dragon book, 2nd ed.
 	 * @return
 	 */
 	public Map<CfgBlock, Set<Variable>> computeLiveVariables() {
-		Map<CfgBlock, Set<Variable>> res = new LinkedHashMap<CfgBlock, Set<Variable>>();
-		List<CfgBlock> todo = new LinkedList<CfgBlock>();
-		todo.add(this.source);
-		Set<CfgBlock> done = new HashSet<CfgBlock>();
-		while (!todo.isEmpty()) {
-			CfgBlock current = todo.remove(0);
-			done.add(current);
-			res.put(current, getUsedVariables());
-			for (CfgBlock succ : current.getSuccessors()) {
-				if (!todo.contains(succ) && !done.contains(succ)) {
-					todo.add(succ);
+		Set<CfgBlock> cfg = this.getCfg();
+		Set<CfgBlock> exitBlocks = this.getExitBlocks();
+		Set<CfgBlock> nonExitBlocks = minus(cfg,exitBlocks);
+
+		//Reserve the necessary size in the hashmap
+		Map<CfgBlock,Set<Variable>> in = new HashMap<CfgBlock,Set<Variable>>(cfg.size());
+
+		//cache these to save time
+		Map<CfgBlock,Set<Variable>> use = new HashMap<CfgBlock,Set<Variable>>(cfg.size());
+		Map<CfgBlock,Set<Variable>> def = new HashMap<CfgBlock,Set<Variable>>(cfg.size());
+
+		//Start by initializing in to empty.  The book does this separately for exit and non exit blocks, but that's not necessary
+		//TODO can exit blocks have variables?  E.g. can they return values?  In which case we should actually recurse over all blocks!
+		for (CfgBlock b: cfg){
+			in.put(b, new HashSet<Variable>());
+			use.put(b, b.getUsedVariables());
+			def.put(b,  b.getLVariables());
+		}
+
+		boolean	changed = false;
+
+		do {
+			changed = false;
+			for(CfgBlock b : nonExitBlocks){
+				Set<Variable> out = new HashSet<Variable>();
+				for(CfgBlock s : b.getSuccessors()){
+					out.addAll(in.get(s));
+				}
+				Set<Variable> newIn = union(use.get(b),minus(out,def.get(b)));
+
+				if (! newIn.equals(in.get(b))){
+					changed=true;
+					in.put(b,newIn);
 				}
 			}
-		}
-		return res;
+		} while (changed);
+
+		return in;
 	}
 }

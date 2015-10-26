@@ -42,7 +42,6 @@ public class Program {
 	}
 
 	public void addEntryPoint(Method entry) {
-		assert(entry.isEntryPoint());
 		this.entryPoints.add(entry);
 	}
 	

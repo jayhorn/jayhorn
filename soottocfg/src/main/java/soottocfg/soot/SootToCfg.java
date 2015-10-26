@@ -10,6 +10,7 @@ import soot.SootMethod;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.cfg.Program;
+import soottocfg.cfg.method.Method;
 import soottocfg.soot.SootRunner.CallgraphAlgorithm;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
@@ -29,6 +30,7 @@ import soottocfg.soot.visitors.SootStmtSwitch;
  */
 public class SootToCfg {
 
+	private boolean debug = true;
 	/**
 	 * Run Soot and translate classes into Boogie/Horn
 	 * 
@@ -90,12 +92,11 @@ public class SootToCfg {
 
 	private void processSootMethod(SootMethod sm) {
 		if (sm.isConcrete()) {
-			// TODO
-			// if
-			// (!sm.getSignature().equals("<org.apache.tools.ant.taskdefs.SubAnt:
-			// void execute()>")) {
-			// return;
-			// }
+		System.out.println("Processing method: " + sm);
+			//TODO
+//			if (!sm.getSignature().equals("<org.apache.tools.ant.taskdefs.condition.Socket: boolean eval()>")) {
+//				return;
+//			}
 //			System.err.println(sm.getSignature());
 
 			SootTranslationHelpers.v().setCurrentMethod(sm);
@@ -117,7 +118,11 @@ public class SootToCfg {
 		mi.setSource(ss.getEntryBlock());
 
 		mi.finalizeAndAddToProgram();
-		 System.err.println(mi.getMethod());
+		Method m = mi.getMethod();
+		if(debug){
+			System.out.println("adding method: " + m.getMethodName());
+			getProgram().addEntryPoint(m);
+		}
 	}
 
 	private void preProcessBody(Body body) {

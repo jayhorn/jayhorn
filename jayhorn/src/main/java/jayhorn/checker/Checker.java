@@ -260,7 +260,7 @@ public class Checker {
             throw new RuntimeException("Statement type " + s + " not implemented!");
         } else if (s instanceof AssignStatement) {
             final AssignStatement as = (AssignStatement)s;
-            final Expression lhs = as.left;
+            final Expression lhs = as.getLeft();
             final int lhsIndex;
 
             if (lhs instanceof IdentifierExpression) {
@@ -276,7 +276,7 @@ public class Checker {
 
             final List<ProverExpr> postVars = new ArrayList<ProverExpr>();
             postVars.addAll(preVars);
-            postVars.set(lhsIndex, exprToProverExpr(p, as.right, varMap));
+            postVars.set(lhsIndex, exprToProverExpr(p, as.getRight(), varMap));
 
             final ProverExpr postAtom =
                 postPred.predicate.mkExpr(postVars.toArray(new ProverExpr[0]));
