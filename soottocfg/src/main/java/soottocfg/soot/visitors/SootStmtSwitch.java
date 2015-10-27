@@ -28,17 +28,16 @@ import soot.PatchingChain;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
-import soot.jimple.ArrayRef;
 import soot.jimple.AssignStmt;
 import soot.jimple.BreakpointStmt;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.DynamicInvokeExpr;
 import soot.jimple.EnterMonitorStmt;
 import soot.jimple.ExitMonitorStmt;
+import soot.jimple.FieldRef;
 import soot.jimple.GotoStmt;
 import soot.jimple.IdentityStmt;
 import soot.jimple.IfStmt;
-import soot.jimple.InstanceFieldRef;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.InvokeStmt;
@@ -454,14 +453,22 @@ public class SootStmtSwitch implements StmtSwitch {
 
 		Value lhs = def.getLeftOp();
 		Value rhs = def.getRightOp();
-		/*
-		 * Distinguish the case when the lhs is an array/instance access to
-		 * ensure that we create an ArrayStoreExpression and not an assignment
-		 * of two reads.
-		 */
-		if (lhs instanceof InstanceFieldRef || lhs instanceof ArrayRef) {
-			SootTranslationHelpers.v().getMemoryModel().mkHeapAssignment(def, lhs, rhs);
+
+		if (def.containsFieldRef()) {
+			//panic programming
+			assert (! (lhs instanceof FieldRef && rhs instanceof FieldRef));
+			
+			if (lhs instanceof FieldRef) {
+				SootTranslationHelpers.v().getMemoryModel().mkHeapWriteStatement(def, def.getFieldRef(), rhs);	
+			} else if (rhs instanceof FieldRef) {
+				SootTranslationHelpers.v().getMemoryModel().mkHeapReadStatement(def, def.getFieldRef(), lhs);
+			} else {
+				throw new RuntimeException("what?");
+			}
+		} else if (def.containsArrayRef()) {
+			//TODO:
 		} else {
+			//local to local assignment.
 			lhs.apply(valueSwitch);
 			Expression left = valueSwitch.popExpression();
 			rhs.apply(valueSwitch);

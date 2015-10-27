@@ -17,6 +17,7 @@ import soot.Value;
 import soot.jimple.ArrayRef;
 import soot.jimple.Constant;
 import soot.jimple.DoubleConstant;
+import soot.jimple.FieldRef;
 import soot.jimple.FloatConstant;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.NewArrayExpr;
@@ -26,14 +27,15 @@ import soot.jimple.StaticFieldRef;
 import soot.jimple.StringConstant;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.Variable;
-import soottocfg.cfg.expression.ArrayAccessExpression;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
+import soottocfg.cfg.statement.ArrayReadStatement;
 import soottocfg.cfg.statement.ArrayStoreStatement;
+import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.type.ClassConstant;
 import soottocfg.cfg.type.IntType;
@@ -74,35 +76,73 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 	}
 
 	@Override
-	public void mkHeapAssignment(Unit u, Value lhs, Value rhs) {
-		rhs.apply(valueSwitch);
-		Expression value = valueSwitch.popExpression();
-		Expression target;
-		Expression[] indices;
-		if (lhs instanceof InstanceFieldRef) {
-			InstanceFieldRef ifr = (InstanceFieldRef) lhs;
+	public void mkHeapWriteStatement(Unit u, FieldRef field, Value rhs) {
+		Variable fieldVar = lookupField(field.getField());
+		if (field instanceof InstanceFieldRef) {
+			InstanceFieldRef ifr = (InstanceFieldRef) field;
 			ifr.getBase().apply(valueSwitch);
 			Expression base = valueSwitch.popExpression();
-
-			Variable fieldVar = lookupField(ifr.getField());
+			rhs.apply(valueSwitch);
+			Expression value = valueSwitch.popExpression();
+			Expression target;
+			Expression[] indices;			
 			indices = new Expression[] { base, new IdentifierExpression(fieldVar) };
 			target = new IdentifierExpression(this.heapVariable);
-		} else if (lhs instanceof ArrayRef) {
-			ArrayRef ar = (ArrayRef) lhs;
-			ar.getBase().apply(valueSwitch);
-			Expression base = valueSwitch.popExpression();
-
-			ar.getIndex().apply(valueSwitch);
-			Expression arrayIdx = valueSwitch.popExpression();
-			indices = new Expression[] { base, arrayIdx };
-			target = new IdentifierExpression(this.heapVariable);
-			// TODO: only a hack.
+			this.statementSwitch.push(new ArrayStoreStatement(SootTranslationHelpers.v().getSourceLocation(u), target, indices, value));
+		} else if (field instanceof StaticFieldRef) {			
+			Expression left = new IdentifierExpression(fieldVar);
+			rhs.apply(valueSwitch);
+			Expression right = valueSwitch.popExpression();
+			this.statementSwitch.push(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(u), left, right));			
 		} else {
-			throw new RuntimeException();
+			throw new RuntimeException("not implemented");
 		}
-		this.statementSwitch.push(new ArrayStoreStatement(SootTranslationHelpers.v().getSourceLocation(u), target, indices, value));
+		
+		
+//		else if (lhs instanceof ArrayRef) {
+//			ArrayRef ar = (ArrayRef) lhs;
+//			ar.getBase().apply(valueSwitch);
+//			Expression base = valueSwitch.popExpression();
+//
+//			ar.getIndex().apply(valueSwitch);
+//			Expression arrayIdx = valueSwitch.popExpression();
+//			indices = new Expression[] { base, arrayIdx };
+//			target = new IdentifierExpression(this.heapVariable);
+//			// TODO: only a hack.
+//		} else {
+//			throw new RuntimeException();
+//		}
+
+		
 	}
 
+	
+	@Override
+	public void mkHeapReadStatement(Unit u, FieldRef field, Value lhs) {
+		Variable fieldVar = lookupField(field.getField());
+		if (field instanceof InstanceFieldRef) {
+			lhs.apply(valueSwitch);
+			IdentifierExpression left = (IdentifierExpression)valueSwitch.popExpression();
+
+			InstanceFieldRef ifr = (InstanceFieldRef) field;
+			ifr.getBase().apply(valueSwitch);
+			Expression base = valueSwitch.popExpression();			
+			Expression target;
+			Expression[] indices;			
+			indices = new Expression[] { base, new IdentifierExpression(fieldVar) };
+			target = new IdentifierExpression(this.heapVariable);
+			this.statementSwitch.push(new ArrayReadStatement(SootTranslationHelpers.v().getSourceLocation(u), target, indices, left));
+		} else if (field instanceof StaticFieldRef) {			
+			lhs.apply(valueSwitch);
+			Expression left = valueSwitch.popExpression();
+			Expression right = new IdentifierExpression(fieldVar);
+			this.statementSwitch.push(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(u), left, right));			
+		} else {
+			throw new RuntimeException("not implemented");
+		}
+	}
+
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -190,34 +230,6 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 		// TODO Auto-generated method stub
 		return new IdentifierExpression(
 				SootTranslationHelpers.v().getProgram().loopupGlobalVariable("TODO", IntType.instance()));
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * jayhorn.soot.memory_model.MemoryModel#mkInstanceFieldRefExpr(soot.jimple
-	 * .InstanceFieldRef)
-	 */
-	@Override
-	public Expression mkInstanceFieldRefExpr(InstanceFieldRef arg0) {
-		arg0.getBase().apply(valueSwitch);
-		Expression base = valueSwitch.popExpression();
-		Variable fieldVar = lookupField(arg0.getField());
-		return new ArrayAccessExpression(new IdentifierExpression(this.heapVariable),
-				new Expression[] { base, new IdentifierExpression(fieldVar) });
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * jayhorn.soot.memory_model.MemoryModel#mkStaticFieldRefExpr(soot.jimple
-	 * .StaticFieldRef)
-	 */
-	@Override
-	public Expression mkStaticFieldRefExpr(StaticFieldRef arg0) {
-		return new IdentifierExpression(lookupField(arg0.getField()));
 	}
 
 	private Variable lookupField(SootField field) {

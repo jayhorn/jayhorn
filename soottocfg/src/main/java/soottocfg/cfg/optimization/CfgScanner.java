@@ -6,6 +6,7 @@ import java.util.List;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.*;
 import soottocfg.cfg.method.CfgBlock;
+import soottocfg.cfg.statement.ArrayReadStatement;
 import soottocfg.cfg.statement.ArrayStoreStatement;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
@@ -65,6 +66,20 @@ public class CfgScanner extends CfgVisitor {
 		return new CallStatement(s.getSourceLocation(),s.getCallTarget(),args,receivers);
 	}
 	
+	
+	@Override
+	protected Statement processStatement(ArrayReadStatement s)
+	{
+		Expression base = processExpression(s.getBase());
+		Expression[] ids = s.getIndices();
+		List<Expression> indices = new LinkedList<Expression>();
+		for (int i = 0; i < ids.length; i++) {
+			indices.add(processExpression(ids[i]));
+		}		
+		IdentifierExpression lhs = (IdentifierExpression) processExpression(s.getLeftValue());
+		return new ArrayReadStatement(s.getSourceLocation(),base, indices.toArray(new Expression[indices.size()]), lhs);
+	}
+	
 	@Override
 	protected Statement processStatement(ArrayStoreStatement s)
 	{
@@ -88,14 +103,6 @@ public class CfgScanner extends CfgVisitor {
 		return rval;
 	}
 
-	@Override
-	protected Expression processExpression(ArrayAccessExpression e) {
-		Expression newBase = processExpression(e.getBase());
-		List<Expression> newIndicies = processExpressionList(e.getIndicies());
-		Expression[] indexArray = newIndicies.toArray(new Expression[newIndicies.size()]);
-		Expression rval = new ArrayAccessExpression(newBase,indexArray);
-		return rval;
-	}
 
 	@Override
 	protected Expression processExpression(BinaryExpression e) {
