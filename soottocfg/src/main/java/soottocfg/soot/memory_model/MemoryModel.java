@@ -8,12 +8,11 @@ import soot.Unit;
 import soot.Value;
 import soot.jimple.ArrayRef;
 import soot.jimple.DoubleConstant;
+import soot.jimple.FieldRef;
 import soot.jimple.FloatConstant;
-import soot.jimple.InstanceFieldRef;
 import soot.jimple.NewArrayExpr;
 import soot.jimple.NewExpr;
 import soot.jimple.NewMultiArrayExpr;
-import soot.jimple.StaticFieldRef;
 import soot.jimple.StringConstant;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.type.ClassConstant;
@@ -41,7 +40,9 @@ public abstract class MemoryModel {
 		this.valueSwitch = vs;
 	}
 	
-	public abstract void mkHeapAssignment(Unit u, Value lhs, Value rhs);
+	public abstract void mkHeapWriteStatement(Unit u, FieldRef field, Value rhs);
+	
+	public abstract void mkHeapReadStatement(Unit u, FieldRef field, Value lhs);
 	
 	public abstract Expression mkNewExpr(NewExpr arg0);
 
@@ -55,10 +56,6 @@ public abstract class MemoryModel {
 	
 	public abstract Expression mkStringLengthExpr(Value arg0);
 	
-	public abstract Expression mkInstanceFieldRefExpr(InstanceFieldRef arg0);
-
-	public abstract Expression mkStaticFieldRefExpr(StaticFieldRef arg0);
-
 	public abstract Expression mkNullConstant();
 
 	public abstract Expression mkStringConstant(StringConstant arg0);

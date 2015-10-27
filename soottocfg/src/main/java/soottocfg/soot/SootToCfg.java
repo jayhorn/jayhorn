@@ -108,9 +108,9 @@ public class SootToCfg {
 
 	private void processMethodBody(Body body) {
 
-//		 System.err.println(body.toString());
-		preProcessBody(body);
 		 System.err.println(body.toString());
+		preProcessBody(body);
+//		 System.err.println(body.toString());
 
 		// generate the CFG structures on the processed body.
 		MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
@@ -120,9 +120,10 @@ public class SootToCfg {
 		mi.finalizeAndAddToProgram();
 		Method m = mi.getMethod();
 		if(debug){
-			System.out.println("adding method: " + m.getMethodName());
+//			System.out.println("adding method: " + m.getMethodName());
 			getProgram().addEntryPoint(m);
 		}
+		System.out.println(m.toString());
 	}
 
 	private void preProcessBody(Body body) {

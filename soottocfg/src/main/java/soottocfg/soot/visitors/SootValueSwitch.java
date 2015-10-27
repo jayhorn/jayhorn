@@ -23,7 +23,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import soot.Local;
-import soot.RefType;
 import soot.jimple.AddExpr;
 import soot.jimple.AndExpr;
 import soot.jimple.ArrayRef;
@@ -74,13 +73,13 @@ import soot.jimple.VirtualInvokeExpr;
 import soot.jimple.XorExpr;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
-import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.util.MethodInfo;
@@ -432,15 +431,13 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseCaughtExceptionRef(CaughtExceptionRef arg0) {
-		assert (arg0.getType() instanceof RefType);
-		// TODO add an assumption that the exception variable has
-		//the appropriate type.
-		expressionStack.add(methodInfo.getExceptionVariable());
+		//This should have been eliminated by the exception translation.
+		throw new RuntimeException("must not be called");
 	}
 
 	@Override
 	public void caseInstanceFieldRef(InstanceFieldRef arg0) {
-		this.expressionStack.add(this.memoryModel.mkInstanceFieldRefExpr(arg0));
+		throw new RuntimeException("must not be called");
 	}
 
 	@Override
@@ -450,7 +447,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseStaticFieldRef(StaticFieldRef arg0) {
-		this.expressionStack.add(this.memoryModel.mkStaticFieldRefExpr(arg0));
+		throw new RuntimeException("must not be called");
 	}
 
 	@Override
