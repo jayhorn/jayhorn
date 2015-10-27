@@ -19,7 +19,6 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.BoolType;
-import soottocfg.cfg.type.IntType;
 import soottocfg.soot.util.SootTranslationHelpers;
 
 public class OptimizationExample {
@@ -52,7 +51,6 @@ public class OptimizationExample {
 		List<Statement> b1Stmts = new LinkedList<Statement>();
 		b1Stmts.add(s1);
 		b1.setStatements(b1Stmts);
-
 		
 		final CfgBlock b2 = new CfgBlock(m);
 		List<Statement> b2Stmts = new LinkedList<Statement>();

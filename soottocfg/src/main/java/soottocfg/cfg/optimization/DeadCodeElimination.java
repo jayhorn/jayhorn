@@ -2,8 +2,13 @@ package soottocfg.cfg.optimization;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
+
+import javax.xml.stream.events.EntityReference;
 
 import soottocfg.cfg.LiveVars;
+import soottocfg.cfg.expression.BooleanLiteral;
+import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
@@ -46,6 +51,15 @@ public class DeadCodeElimination extends CfgUpdater {
 			}
 		}	
 		block.setStatements(rval);
+		
+		//Now, check if any of the graph itself is dead
+		for(Entry<CfgBlock,Expression> entry : block.getSuccessorConditions().entrySet()){
+			Expression e = entry.getValue();
+			if (e instanceof BooleanLiteral && ((BooleanLiteral) e).getValue() == false) {
+				block.removeSuccessorCondition(entry.getKey());
+				changed = true;
+			}
+		}
 		setCurrentCfgBlock(null);
 	}
 }

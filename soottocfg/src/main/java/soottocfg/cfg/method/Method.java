@@ -87,7 +87,7 @@ public class Method implements Node {
 	public Set<CfgBlock> getExitBlocks(){
 		Set<CfgBlock> rval = new HashSet<CfgBlock>();
 		for(CfgBlock b : getCfg()){
-			if(b.getSuccessors().size() == 0){
+			if(b.isExit()){
 				rval.add(b);
 			}
 		}
@@ -106,7 +106,7 @@ public class Method implements Node {
 	public Collection<Variable> getOutParams() {
 		final List<Variable> rtr = new ArrayList<Variable>();
 		if (returnVariable != null) {
-			rtr.add(thisVariable);
+			rtr.add(returnVariable);
 		}
 		if (exceptionalReturnVariable != null) {
 			rtr.add(exceptionalReturnVariable);
