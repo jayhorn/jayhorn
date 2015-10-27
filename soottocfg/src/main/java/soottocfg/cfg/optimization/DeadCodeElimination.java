@@ -11,7 +11,7 @@ import soottocfg.util.SetOperations;
 
 public class DeadCodeElimination extends CfgUpdater {
 	//Given a method, eliminate the dead code in it
-	DeadCodeElimination(){}
+	public DeadCodeElimination(){}
 
 	private LiveVars<CfgBlock> blockLiveVars;
 	

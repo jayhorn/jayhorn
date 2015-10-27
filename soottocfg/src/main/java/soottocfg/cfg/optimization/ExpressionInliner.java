@@ -14,7 +14,7 @@ import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.Statement;
 
 public class ExpressionInliner extends CfgUpdater {
-	ExpressionInliner(){}
+	public ExpressionInliner(){}
 
 	private Variable toReplace;
 	private Expression replaceWith;
@@ -84,6 +84,19 @@ public class ExpressionInliner extends CfgUpdater {
 		return rval;
 	}
 
+	@Override
+	protected Statement processStatement(AssignStatement s)
+	{
+		//We don't process the lhs of the assign statement, because otherwise we'd get 
+		// b:= e
+		//turns into
+		// e := e
+		Expression lhs = s.getLeft();
+		Expression rhs = processExpression(s.getRight());
+		return new AssignStatement(s.getSourceLocation(),lhs,rhs);
+	}
+
+	
 	@Override 
 	protected Expression processExpression(IdentifierExpression e) {
 		if(e.getVariable().equals(toReplace)){

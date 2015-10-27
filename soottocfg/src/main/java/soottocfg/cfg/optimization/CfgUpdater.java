@@ -29,13 +29,13 @@ public class CfgUpdater extends CfgVisitor {
 	
 	protected Boolean changed = false;
 	
-	boolean updateMethod(Method m){
+	public boolean updateMethod(Method m){
 		changed = false;
 		processMethod(m);
 		return changed;
 	}
 	
-	boolean runFixpt(Method m){
+	public boolean runFixpt(Method m){
 		boolean everChanged = false;
 		while (updateMethod(m)){
 			everChanged = true;
