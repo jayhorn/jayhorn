@@ -34,10 +34,10 @@ import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
-import soottocfg.cfg.statement.ArrayReadStatement;
-import soottocfg.cfg.statement.ArrayStoreStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
+import soottocfg.cfg.statement.PackStatement;
+import soottocfg.cfg.statement.UnPackStatement;
 import soottocfg.cfg.type.ClassConstant;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.MapType;
@@ -50,30 +50,27 @@ import soottocfg.soot.util.SootTranslationHelpers;
  * @author schaef
  *
  */
-public class SimpleBurstallBornatModel extends MemoryModel {
+public class NewMemoryModel extends MemoryModel {
 
-	private final Variable nullConstant, heapVariable;
+	private final Variable nullConstant;
 	private Program program;
 	private final Map<soot.Type, soottocfg.cfg.type.Type> types = new HashMap<soot.Type, soottocfg.cfg.type.Type>();
 	private final Map<SootField, Variable> fieldGlobals = new HashMap<SootField, Variable>();
 
 	private final Map<Constant, Variable> constantDictionary = new HashMap<Constant, Variable>();
 
-	private final Type nullType, heapType;
+	private final Type nullType;
 
-	public SimpleBurstallBornatModel() {
+	public NewMemoryModel() {
 		this.program = SootTranslationHelpers.v().getProgram();
 
 		nullType = new ReferenceType(null);
 		this.nullConstant = this.program.loopupGlobalVariable("$null", nullType);
-		
-		//Heap is a map from <Type, Type> to Type
+
+		// Heap is a map from <Type, Type> to Type
 		List<Type> ids = new LinkedList<Type>();
 		ids.add(Type.instance());
 		ids.add(Type.instance());
-		heapType = new MapType(ids, Type.instance());
-		this.heapVariable = this.program.loopupGlobalVariable("$heap", heapType);
-
 	}
 
 	@Override
@@ -83,52 +80,77 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 		if (field instanceof InstanceFieldRef) {
 			InstanceFieldRef ifr = (InstanceFieldRef) field;
 			ifr.getBase().apply(valueSwitch);
-			Expression base = valueSwitch.popExpression();
+			IdentifierExpression base = (IdentifierExpression) valueSwitch.popExpression();
 			rhs.apply(valueSwitch);
 			Expression value = valueSwitch.popExpression();
-			Expression target;
-			Expression[] indices;
-			indices = new Expression[] { base, new IdentifierExpression(fieldVar) };
-			target = new IdentifierExpression(this.heapVariable);
-			this.statementSwitch.push(new ArrayStoreStatement(loc, target, indices, value));
-		} else if (field instanceof StaticFieldRef) {			
+
+			// ------------- unpack ---------------
+			ClassConstant c = lookupClassConstant(field.getField().getDeclaringClass());
+			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
+			Variable[] vars = c.getAssociatedFields();
+			for (int i = 0; i < vars.length; i++) {
+				unpackedVars.add(new IdentifierExpression(vars[i]));
+			}
+			this.statementSwitch.push(new UnPackStatement(loc, c, base, unpackedVars));
+			// ------------------------------------
+			this.statementSwitch.push(new AssignStatement(loc, new IdentifierExpression(fieldVar), value));
+			// ------------- pack -----------------
+			List<Expression> packedVars = new LinkedList<Expression>();
+			for (int i = 0; i < vars.length; i++) {
+				packedVars.add(new IdentifierExpression(vars[i]));
+			}
+			this.statementSwitch.push(new PackStatement(loc, c, base, packedVars));
+			// ------------------------------------
+
+		} else if (field instanceof StaticFieldRef) {
 			Expression left = new IdentifierExpression(fieldVar);
 			rhs.apply(valueSwitch);
 			Expression right = valueSwitch.popExpression();
-			this.statementSwitch.push(new AssignStatement(loc, left, right));			
+			this.statementSwitch.push(new AssignStatement(loc, left, right));
 		} else {
 			throw new RuntimeException("not implemented");
 		}
 	}
 
-	
 	@Override
 	public void mkHeapReadStatement(Unit u, FieldRef field, Value lhs) {
 		SourceLocation loc = SootTranslationHelpers.v().getSourceLocation(u);
 		Variable fieldVar = lookupField(field.getField());
 		if (field instanceof InstanceFieldRef) {
 			lhs.apply(valueSwitch);
-			IdentifierExpression left = (IdentifierExpression)valueSwitch.popExpression();
+			IdentifierExpression left = (IdentifierExpression) valueSwitch.popExpression();
 
 			InstanceFieldRef ifr = (InstanceFieldRef) field;
 			ifr.getBase().apply(valueSwitch);
-			Expression base = valueSwitch.popExpression();			
-			Expression target;
-			Expression[] indices;			
-			indices = new Expression[] { base, new IdentifierExpression(fieldVar) };
-			target = new IdentifierExpression(this.heapVariable);
-			this.statementSwitch.push(new ArrayReadStatement(loc, target, indices, left));
-		} else if (field instanceof StaticFieldRef) {			
+			IdentifierExpression base = (IdentifierExpression) valueSwitch.popExpression();
+
+			// ------------- unpack ---------------
+			ClassConstant c = lookupClassConstant(field.getField().getDeclaringClass());
+			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
+			Variable[] vars = c.getAssociatedFields();
+			for (int i = 0; i < vars.length; i++) {
+				unpackedVars.add(new IdentifierExpression(vars[i]));
+			}
+			this.statementSwitch.push(new UnPackStatement(loc, c, base, unpackedVars));
+			// ------------------------------------
+			this.statementSwitch.push(new AssignStatement(loc, left, new IdentifierExpression(fieldVar)));
+			// ------------- pack -----------------
+			List<Expression> packedVars = new LinkedList<Expression>();
+			for (int i = 0; i < vars.length; i++) {
+				packedVars.add(new IdentifierExpression(vars[i]));
+			}
+			this.statementSwitch.push(new PackStatement(loc, c, base, packedVars));
+			// ------------------------------------
+		} else if (field instanceof StaticFieldRef) {
 			lhs.apply(valueSwitch);
 			Expression left = valueSwitch.popExpression();
 			Expression right = new IdentifierExpression(fieldVar);
-			this.statementSwitch.push(new AssignStatement(loc, left, right));			
+			this.statementSwitch.push(new AssignStatement(loc, left, right));
 		} else {
 			throw new RuntimeException("not implemented");
 		}
 	}
 
-	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -288,40 +310,40 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 			Type type = null;
 			if (t instanceof soot.BooleanType) {
 				System.err.println("Warning: type " + t + " is unknown, assuming int");
-				type =  IntType.instance();
+				type = IntType.instance();
 			} else if (t instanceof soot.ByteType) {
 				System.err.println("Warning: type " + t + " is unknown, assuming int");
-				type =  IntType.instance();
+				type = IntType.instance();
 			} else if (t instanceof soot.CharType) {
 				System.err.println("Warning: type " + t + " is unknown, assuming int");
-				type =  IntType.instance();
+				type = IntType.instance();
 			} else if (t instanceof soot.DoubleType) {
 				System.err.println("Warning: type " + t + " is unknown, assuming int");
-				type =  IntType.instance();
+				type = IntType.instance();
 			} else if (t instanceof soot.FloatType) {
 				System.err.println("Warning: type " + t + " is unknown, assuming int");
-				type =  IntType.instance();				
+				type = IntType.instance();
 			} else if (t instanceof soot.IntType) {
 				System.err.println("Warning: type " + t + " is unknown, assuming int");
-				type =  IntType.instance();
+				type = IntType.instance();
 			} else if (t instanceof soot.LongType) {
 				System.err.println("Warning: type " + t + " is unknown, assuming int");
-				type =  IntType.instance();
+				type = IntType.instance();
 			} else if (t instanceof soot.ShortType) {
 				System.err.println("Warning: type " + t + " is unknown, assuming int");
-				type =  IntType.instance();							
+				type = IntType.instance();
 			} else if (t instanceof soot.ArrayType) {
-				soot.ArrayType at = (soot.ArrayType)t;
+				soot.ArrayType at = (soot.ArrayType) t;
 				Type baseType = lookupType(at.baseType);
 				List<Type> ids = new LinkedList<Type>();
 				for (int i = 0; i < at.numDimensions; i++) {
 					ids.add(IntType.instance());
 				}
-				type = new MapType(ids, baseType);				
+				type = new MapType(ids, baseType);
 			} else if (t instanceof soot.NullType) {
 				return this.nullConstant.getType();
 			} else if (t instanceof soot.RefType) {
-				soot.RefType rt = (soot.RefType)t;
+				soot.RefType rt = (soot.RefType) t;
 				ClassConstant cc = lookupClassConstant(rt.getSootClass());
 				type = new ReferenceType(cc);
 			} else {
@@ -333,7 +355,7 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 	}
 
 	private Map<SootClass, ClassConstant> classConstants = new HashMap<SootClass, ClassConstant>();
-	
+
 	@Override
 	public ClassConstant lookupClassConstant(SootClass c) {
 		if (!classConstants.containsKey(c)) {

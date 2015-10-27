@@ -3,6 +3,9 @@
  */
 package soottocfg.soot;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import soot.Body;
 import soot.Scene;
 import soot.SootClass;
@@ -51,7 +54,8 @@ public class SootToCfg {
 		Program program = new Program();
 		SootTranslationHelpers.v().setProgram(program);
 
-		for (SootClass sc : Scene.v().getClasses()) {
+		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
+		for (SootClass sc : classes) {
 			processSootClass(sc);
 		}
 
@@ -108,7 +112,7 @@ public class SootToCfg {
 
 	private void processMethodBody(Body body) {
 
-		 System.err.println(body.toString());
+//		 System.err.println(body.toString());
 		preProcessBody(body);
 //		 System.err.println(body.toString());
 
@@ -123,7 +127,7 @@ public class SootToCfg {
 //			System.out.println("adding method: " + m.getMethodName());
 			getProgram().addEntryPoint(m);
 		}
-		System.out.println(m.toString());
+//		System.out.println(m.toString());
 	}
 
 	private void preProcessBody(Body body) {
