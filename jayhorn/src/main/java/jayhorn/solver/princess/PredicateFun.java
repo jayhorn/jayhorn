@@ -1,12 +1,11 @@
 package jayhorn.solver.princess;
 
-import jayhorn.solver.BoolType;
-import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverFun;
-import scala.collection.mutable.ArrayBuffer;
 import ap.parser.IAtom;
 import ap.parser.ITerm;
 import ap.terfor.preds.Predicate;
+import jayhorn.solver.ProverExpr;
+import jayhorn.solver.ProverFun;
+import scala.collection.mutable.ArrayBuffer;
 
 class PredicateFun implements ProverFun {
 

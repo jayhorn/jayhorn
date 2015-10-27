@@ -2,16 +2,14 @@ package jayhorn.solver.princess;
 
 import java.math.BigInteger;
 
-import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverType;
-import jayhorn.solver.BoolType;
 import ap.SimpleAPI$;
 import ap.parser.IExpression;
 import ap.parser.IExpression$;
+import ap.parser.IFormula;
 import ap.parser.IIntLit;
 import ap.parser.ITerm;
-import ap.parser.IFormula;
-import ap.parser.IExpression;
+import jayhorn.solver.BoolType;
+import jayhorn.solver.ProverType;
 
 class TermExpr extends PrincessProverExpr {
 

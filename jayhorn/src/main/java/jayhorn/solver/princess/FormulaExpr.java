@@ -2,17 +2,16 @@ package jayhorn.solver.princess;
 
 import java.math.BigInteger;
 
-import jayhorn.solver.BoolType;
-import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverType;
 import ap.SimpleAPI$;
-import ap.parser.ITermITE;
-import ap.parser.IIntLit;
-import ap.parser.IBoolLit;
-import ap.parser.IFormula;
-import ap.parser.ITerm;
-import ap.parser.IExpression;
 import ap.basetypes.IdealInt$;
+import ap.parser.IBoolLit;
+import ap.parser.IExpression;
+import ap.parser.IFormula;
+import ap.parser.IIntLit;
+import ap.parser.ITerm;
+import ap.parser.ITermITE;
+import jayhorn.solver.BoolType;
+import jayhorn.solver.ProverType;
 
 class FormulaExpr extends PrincessProverExpr {
 

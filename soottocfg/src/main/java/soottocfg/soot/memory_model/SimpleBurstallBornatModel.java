@@ -60,15 +60,15 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 
 	public SimpleBurstallBornatModel() {
 		this.program = SootTranslationHelpers.v().getProgram();
-		// TODO
+
 		nullType = new ReferenceType(null);
+		this.nullConstant = this.program.loopupGlobalVariable("$null", nullType);
 		
 		//Heap is a map from <Type, Type> to Type
 		List<Type> ids = new LinkedList<Type>();
 		ids.add(Type.instance());
 		ids.add(Type.instance());
 		heapType = new MapType(ids, Type.instance());
-		this.nullConstant = this.program.loopupGlobalVariable("$null", nullType);
 		this.heapVariable = this.program.loopupGlobalVariable("$heap", heapType);
 
 	}
@@ -204,7 +204,6 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 		arg0.getBase().apply(valueSwitch);
 		Expression base = valueSwitch.popExpression();
 		Variable fieldVar = lookupField(arg0.getField());
-		// TODO call the error model.
 		return new ArrayAccessExpression(new IdentifierExpression(this.heapVariable),
 				new Expression[] { base, new IdentifierExpression(fieldVar) });
 	}
@@ -250,7 +249,7 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 	public Expression mkStringConstant(StringConstant arg0) {
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram()
-					.loopupGlobalVariable("$string" + constantDictionary.size(), IntType.instance()));
+					.loopupGlobalVariable("$string" + constantDictionary.size(), lookupType(arg0.getType())));
 		}
 		return new IdentifierExpression(constantDictionary.get(arg0));
 	}
@@ -265,7 +264,7 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 	public Expression mkDoubleConstant(DoubleConstant arg0) {
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram()
-					.loopupGlobalVariable("$double" + constantDictionary.size(), IntType.instance()));
+					.loopupGlobalVariable("$double" + constantDictionary.size(), lookupType(arg0.getType())));
 		}
 		return new IdentifierExpression(constantDictionary.get(arg0));
 	}
@@ -280,7 +279,7 @@ public class SimpleBurstallBornatModel extends MemoryModel {
 	public Expression mkFloatConstant(FloatConstant arg0) {
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram()
-					.loopupGlobalVariable("$float" + constantDictionary.size(), IntType.instance()));
+					.loopupGlobalVariable("$float" + constantDictionary.size(), lookupType(arg0.getType())));
 		}
 		return new IdentifierExpression(constantDictionary.get(arg0));
 	}
