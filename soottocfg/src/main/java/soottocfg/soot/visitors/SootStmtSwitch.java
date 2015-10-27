@@ -109,7 +109,7 @@ public class SootStmtSwitch implements StmtSwitch {
 				u.apply(this);
 			}
 		} else {
-			this.entryBlock = new CfgBlock();
+			this.entryBlock = new CfgBlock(methodInfo.getMethod());
 			this.currentBlock = this.entryBlock;
 		}
 

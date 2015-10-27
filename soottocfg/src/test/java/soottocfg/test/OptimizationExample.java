@@ -27,6 +27,8 @@ public class OptimizationExample {
 	public OptimizationExample() {}
 	
 	public Method getMethod1(){	
+		final Method m = new Method("testM");
+		
 		SootTranslationHelpers.v().reset();
 		final SourceLocation fakeSl = new SourceLocation("fake",0);
 		
@@ -46,25 +48,24 @@ public class OptimizationExample {
 		final Expression e = new BinaryExpression(BinaryOperator.Gt,lhs,rhs);
 		Statement s1 = new AssignStatement(fakeSl,b,e);
 		
-		final CfgBlock b1 = new CfgBlock();
+		final CfgBlock b1 = new CfgBlock(m);
 		List<Statement> b1Stmts = new LinkedList<Statement>();
 		b1Stmts.add(s1);
 		b1.setStatements(b1Stmts);
 
 		
-		final CfgBlock b2 = new CfgBlock();
+		final CfgBlock b2 = new CfgBlock(m);
 		List<Statement> b2Stmts = new LinkedList<Statement>();
 		b2Stmts.add(new AssignStatement(fakeSl,rvalIdent,notB));
 		b2.setStatements(b2Stmts);
 		
-		final CfgBlock b3 = new CfgBlock();
+		final CfgBlock b3 = new CfgBlock(m);
 		List<Statement> b3Stmts = new LinkedList<Statement>();
 		b3Stmts.add(new AssignStatement(fakeSl,rvalIdent,b));
 		b3.setStatements(b3Stmts);
 		
 		b1.addConditionalSuccessor(b, b2);
 		b1.addConditionalSuccessor(notB, b3);
-		final Method m = new Method("testM");
 		m.initialize(null, rval, exceptional, new LinkedList<Variable>(), localVars, b1, true);
 		return m;
 	}

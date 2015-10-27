@@ -52,7 +52,7 @@ public class MethodInfo {
 	public MethodInfo(SootMethod sm, String sourceFileName) {
 		this.sootMethod = sm;
 		this.memoryModel = SootTranslationHelpers.v().getMemoryModel();
-		sink = new CfgBlock();
+		sink = new CfgBlock(getMethod());
 		this.sourceFileName = sourceFileName;
 
 		// create a return variable if the method does not
@@ -154,7 +154,7 @@ public class MethodInfo {
 
 	public CfgBlock lookupCfgBlock(Unit u) {
 		if (!unitToBlockMap.containsKey(u)) {
-			unitToBlockMap.put(u, new CfgBlock());
+			unitToBlockMap.put(u, new CfgBlock(getMethod()));
 		}
 		return unitToBlockMap.get(u);
 	}

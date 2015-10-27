@@ -27,28 +27,28 @@ public class OptimizationTest {
 		Method m = testGen.getMethod1();
 
 		CfgUpdater ie = new ExpressionInliner();
-CfgUpdater dce = new DeadCodeElimination();
+		CfgUpdater dce = new DeadCodeElimination();
 		ie.runFixpt(m);
-dce.runFixpt(m);
+		dce.runFixpt(m);
 
 		for(CfgBlock b : m.getCfg()){
 			System.out.println(b);
-//			if(b.getLabel().equals("Block0")){
-//				String expected = "Block0:\n(ln 0)\tb := ((12 * 0) > ((--1) + 0))\n\tgoto:\n\t  if ((12 * 0) > ((--1) + 0)): Block1\n\t  if (!((12 * 0) > ((--1) + 0))): Block2\n";
-//				Assert.assertTrue(expected.equals(b.toString()));
-//			} else if(b.getLabel().equals("Block1")){
-//				String expected = "Block1:\n(ln 0)	rval := (!((12 * 0) > ((--1) + 0)))\n	return\n";
-//				Assert.assertTrue(expected.equals(b.toString()));
-//			} else if (b.getLabel().equals("Block2")) {
-//				String expected = "Block2:\n(ln 0)	rval := (((12 * 0) > ((--1) + 0)))\n	return\n";
-//				Assert.assertTrue(expected.equals(b.toString()));
-//			}	else {
-//				Assert.fail("Shouldn't be an extra block here");
-//			}
+			//			if(b.getLabel().equals("Block0")){
+			//				String expected = "Block0:\n(ln 0)\tb := ((12 * 0) > ((--1) + 0))\n\tgoto:\n\t  if ((12 * 0) > ((--1) + 0)): Block1\n\t  if (!((12 * 0) > ((--1) + 0))): Block2\n";
+			//				Assert.assertTrue(expected.equals(b.toString()));
+			//			} else if(b.getLabel().equals("Block1")){
+			//				String expected = "Block1:\n(ln 0)	rval := (!((12 * 0) > ((--1) + 0)))\n	return\n";
+			//				Assert.assertTrue(expected.equals(b.toString()));
+			//			} else if (b.getLabel().equals("Block2")) {
+			//				String expected = "Block2:\n(ln 0)	rval := (((12 * 0) > ((--1) + 0)))\n	return\n";
+			//				Assert.assertTrue(expected.equals(b.toString()));
+			//			}	else {
+			//				Assert.fail("Shouldn't be an extra block here");
+			//			}
 		}		
 	}
-	
-	
+
+
 	@Test
 	public void test_ie(){
 		System.out.println("Testing Expression Inliner");

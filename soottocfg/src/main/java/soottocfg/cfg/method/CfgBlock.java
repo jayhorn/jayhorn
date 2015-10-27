@@ -33,14 +33,16 @@ public class CfgBlock implements Node {
 	protected final List<CfgBlock> successors;
 	protected List<Statement> statements;
 	protected final Map<CfgBlock, Expression> successorConditions;
+	protected final Method method;
 	
-	public CfgBlock() {
+	public CfgBlock(Method m) {
 		this.label = "Block"+(SootTranslationHelpers.v().getUniqueNumber());
 		
 		this.successors = new LinkedList<CfgBlock>();
 		this.statements = new LinkedList<Statement>();
 		this.successorConditions = new HashMap<CfgBlock, Expression>();
 		this.predecessors = new LinkedList<CfgBlock>();
+		this.method = m;
 	}
 	
 	public String getLabel() {
