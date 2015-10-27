@@ -40,9 +40,18 @@ public enum SootTranslationHelpers {
 
 	private MemoryModel memoryModel;
 	private Program program;
-
 	private long uniqueNumber = 0L;
 
+	public void reset() {
+		typeVariables.clear();
+		currentMethod = null;
+		currentClass = null;
+		currentSourceFileName = null;
+		memoryModel = null;
+		program = null;
+		uniqueNumber = 0L;
+	}
+	
 	public long getUniqueNumber() {
 		return this.uniqueNumber++;
 	}
