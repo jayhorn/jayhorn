@@ -1,8 +1,10 @@
 package soottocfg.cfg.optimization;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.stream.events.EntityReference;
 
@@ -19,7 +21,7 @@ public class DeadCodeElimination extends CfgUpdater {
 	public DeadCodeElimination(){}
 
 	private LiveVars<CfgBlock> blockLiveVars;
-	
+
 	@Override
 	public boolean updateMethod(Method m){
 		blockLiveVars = m.computeBlockLiveVariables();
@@ -51,15 +53,23 @@ public class DeadCodeElimination extends CfgUpdater {
 			}
 		}	
 		block.setStatements(rval);
-		
+
 		//Now, check if any of the graph itself is dead
+		//We can't remove successors as we are iterating over them, so instead I'll keep a set of 
+		//blocks to remove, then take them out at the end.
+		Set<CfgBlock> toRemove = new HashSet<CfgBlock>();
+
 		for(Entry<CfgBlock,Expression> entry : block.getSuccessorConditions().entrySet()){
 			Expression e = entry.getValue();
 			if (e instanceof BooleanLiteral && ((BooleanLiteral) e).getValue() == false) {
-				block.removeSuccessorCondition(entry.getKey());
-				changed = true;
+				toRemove.add(entry.getKey());
 			}
 		}
+		for(CfgBlock b : toRemove){
+			block.removeSuccessorCondition(b);
+			changed = true;
+		}
+
 		setCurrentCfgBlock(null);
 	}
 }
