@@ -15,9 +15,11 @@ import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
 
 //DSN should this be an abstract class
+//The scanner visits all nodes, but does not modify them.
+//Whereas the updater visits and rebuilds all nodes
 public class CfgScanner extends CfgVisitor {
 	public CfgScanner () {}
-	
+
 	@Override
 	protected void processCfgBlock(CfgBlock block) {
 		//Update the node
@@ -26,7 +28,7 @@ public class CfgScanner extends CfgVisitor {
 		setCurrentCfgBlock(null);
 	}
 
-	
+
 	@Override
 	protected List<Statement> processStatementList(List<Statement> sl){
 		for(Statement s : sl){
@@ -35,80 +37,77 @@ public class CfgScanner extends CfgVisitor {
 		return sl;
 	}
 
-	
+
 	@Override
 	protected Statement processStatement(AssertStatement s)
 	{
 		processExpression(s.getExpression());
 		return s;
 	}
-	
+
 	@Override
 	protected Statement processStatement(AssignStatement s)
 	{
-		Expression lhs = processExpression(s.getLeft());
-		Expression rhs = processExpression(s.getRight());
-		return new AssignStatement(s.getSourceLocation(),lhs,rhs);
+		processExpression(s.getLeft());
+		processExpression(s.getRight());
+		return s;
 	}
-	
-	
+
+
 	@Override
 	protected Statement processStatement(AssumeStatement s)
 	{
-		Expression e = processExpression(s.getExpression());
-		return new AssumeStatement(s.getSourceLocation(),e);
+		processExpression(s.getExpression());
+		return s;
 	}
 
 	protected Statement processStatement(CallStatement s)
 	{
-		List<Expression> args = processExpressionList(s.getArguments());
-		List<Expression> receivers = processExpressionList(s.getReceiver());
-		return new CallStatement(s.getSourceLocation(),s.getCallTarget(),args,receivers);
+		processExpressionList(s.getArguments());
+		processExpressionList(s.getReceiver());
+		return s;
 	}
-	
-	
+
+
 	@Override
 	protected Statement processStatement(ArrayReadStatement s)
 	{
-		Expression base = processExpression(s.getBase());
+		processExpression(s.getBase());
 		Expression[] ids = s.getIndices();
-		List<Expression> indices = new LinkedList<Expression>();
 		for (int i = 0; i < ids.length; i++) {
-			indices.add(processExpression(ids[i]));
+			processExpression(ids[i]);
 		}		
-		IdentifierExpression lhs = (IdentifierExpression) processExpression(s.getLeftValue());
-		return new ArrayReadStatement(s.getSourceLocation(),base, indices.toArray(new Expression[indices.size()]), lhs);
+		processExpression(s.getLeftValue());
+		return s;
 	}
-	
+
 	@Override
 	protected Statement processStatement(ArrayStoreStatement s)
 	{
-		Expression base = processExpression(s.getBase());
+		processExpression(s.getBase());
 		Expression[] ids = s.getIndices();
-		List<Expression> indices = new LinkedList<Expression>();
 		for (int i = 0; i < ids.length; i++) {
-			indices.add(processExpression(ids[i]));
+			processExpression(ids[i]);
 		}		
-		Expression value = processExpression(s.getValue());
-		return new ArrayStoreStatement(s.getSourceLocation(),base, indices.toArray(new Expression[indices.size()]), value);
+		processExpression(s.getValue());
+		return s;
 	}	
-	
+
 	///Expressions
 	@Override
 	protected List<Expression> processExpressionList(List<Expression> el) {
-		List<Expression> rval = new LinkedList<Expression>();
 		for(Expression e : el){
-			rval.add(processExpression(e));
+			processExpression(e);
 		}
-		return rval;
+		return el;
 	}
 
 
 	@Override
 	protected Expression processExpression(BinaryExpression e) {
-		Expression left = processExpression(e.getLeft());
-		Expression right = processExpression(e.getRight());
-		return new BinaryExpression(e.getOp(),left,right);
+		processExpression(e.getLeft());
+		processExpression(e.getRight());
+		return e;
 	}
 
 	@Override
@@ -135,15 +134,15 @@ public class CfgScanner extends CfgVisitor {
 
 	@Override
 	protected Expression processExpression(IteExpression ite) {
-		Expression i = processExpression(ite.getCondition());
-		Expression t = processExpression(ite.getThenExpr());
-		Expression e = processExpression(ite.getElseExpr());
-		return new IteExpression(i,t,e);
+		processExpression(ite.getCondition());
+		processExpression(ite.getThenExpr());
+		processExpression(ite.getElseExpr());
+		return ite;
 	}
 
 	@Override
 	protected Expression processExpression(UnaryExpression e) {
-		Expression exp = processExpression(e.getExpression());
-		return new UnaryExpression(e.getOp(),exp);
+		processExpression(e.getExpression());
+		return e;
 	}
 }
