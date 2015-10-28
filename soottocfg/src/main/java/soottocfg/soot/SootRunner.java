@@ -215,7 +215,17 @@ public class SootRunner {
 		for (String s : classes) {
 			Scene.v().addBasicClass(s, SootClass.BODIES);
 		}
-
+		
+		//TODO: hack for the implicit entry points.
+		Scene.v().addBasicClass("java.lang.System", SootClass.SIGNATURES);
+		Scene.v().addBasicClass("java.lang.Thread", SootClass.SIGNATURES);
+		Scene.v().addBasicClass("java.lang.ThreadGroup", SootClass.SIGNATURES);
+		
+		Scene.v().addBasicClass("java.lang.ClassLoader", SootClass.SIGNATURES);
+		Scene.v().addBasicClass("java.security.PrivilegedActionException", SootClass.SIGNATURES);
+		Scene.v().addBasicClass("java.lang.ref.Finalizer", SootClass.SIGNATURES);
+		
+		
 		if (cga != CallgraphAlgorithm.None) {
 			sootOpt.set_whole_program(true);
 			// Configure the callgraph algorithm
