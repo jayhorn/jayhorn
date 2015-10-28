@@ -18,6 +18,7 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.soot.memory_model.MemoryModel;
+import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.memory_model.SimpleBurstallBornatModel;
 
 /**
@@ -73,10 +74,17 @@ public enum SootTranslationHelpers {
 		return new SourceLocation(this.currentSourceFileName, lineNumber);
 	}
 
+	
+	protected boolean debug = true;
+	
 	public MemoryModel getMemoryModel() {
 		if (this.memoryModel == null) {
 			// TODO:
-			this.memoryModel = new SimpleBurstallBornatModel();
+			if (debug) {
+				this.memoryModel = new NewMemoryModel();
+			} else {
+				this.memoryModel = new SimpleBurstallBornatModel();
+			}
 		}
 		return this.memoryModel;
 	}
