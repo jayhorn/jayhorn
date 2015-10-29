@@ -1,6 +1,8 @@
 package soottocfg.test;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -15,9 +17,47 @@ import soottocfg.cfg.optimization.DeadCodeElimination;
 import soottocfg.cfg.optimization.ExpressionInliner;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.util.PrettyPrinter;
 
 public class OptimizationTest {
 	public OptimizationTest() {}
+
+	@Test 
+	public void test_dom1() {
+		System.out.println("Testing dominators 1");
+
+		OptimizationExample testGen = new OptimizationExample();
+		Method m = testGen.getMethod1();
+		Map<CfgBlock,Set<CfgBlock>> dom = m.computeDominators();
+		String actual = PrettyPrinter.ppCfgBlockMapSet(dom);
+		String expected = 
+				"{Block0=[Block0],\n" + 
+				" Block1=[Block0, Block1],\n" + 
+				" Block2=[Block0, Block2]}";
+		Assert.assertEquals(expected, actual);
+	}
+
+	@Test
+	public void test_dom2() {
+		System.out.println("Testing dominators 2");
+
+		OptimizationExample testGen = new OptimizationExample();
+		Method m = testGen.getMethod2();
+		Map<CfgBlock,Set<CfgBlock>> dom = m.computeDominators();
+		String actual = PrettyPrinter.ppCfgBlockMapSet(dom);
+		String expected = 
+				"{Block1=[Block1],\n" +
+				" Block10=[Block1, Block10, Block3, Block4, Block7, Block8],\n" + 
+				" Block2=[Block1, Block2],\n" + 
+				" Block3=[Block1, Block3],\n" + 
+				" Block4=[Block1, Block3, Block4],\n" + 
+				" Block5=[Block1, Block3, Block4, Block5],\n" + 
+				" Block6=[Block1, Block3, Block4, Block6],\n" + 
+				" Block7=[Block1, Block3, Block4, Block7],\n" + 
+				" Block8=[Block1, Block3, Block4, Block7, Block8],\n" + 
+				" Block9=[Block1, Block3, Block4, Block7, Block8, Block9]}";
+		Assert.assertEquals(expected, actual);
+	}
 
 	@Test
 	public void test_ie_dce_cp(){

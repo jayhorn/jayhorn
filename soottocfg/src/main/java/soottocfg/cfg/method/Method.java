@@ -195,6 +195,50 @@ public class Method implements Node {
 		return rval;
 	}
 
+	//Implemented using the algorithm in Aho 2nd ed, p 658.
+	public Map<CfgBlock,Set<CfgBlock>> computeDominators() {
+		Set<CfgBlock> cfg = getCfg();
+		Map<CfgBlock,Set<CfgBlock>> dominators = new HashMap<CfgBlock,Set<CfgBlock>>(cfg.size());
+		
+		//Initialize the set
+		for(CfgBlock b : cfg){
+			if(b == getSource()){
+				//The Source node only dominates itself
+				Set<CfgBlock> tmp = new HashSet<CfgBlock>();
+				tmp.add(b);
+				dominators.put(b,tmp);
+			} else {
+				//All other nodes are initilized to be the full cfg.  They will shrink later
+				Set<CfgBlock> tmp = new HashSet<CfgBlock>(cfg);
+				dominators.put(b,tmp);
+			}
+		}
+		
+		boolean changed;
+		do {
+			changed = false;
+			for(CfgBlock b : cfg){
+				//only nodes with predecessors can change
+				if(b != getSource() && b.getPredecessors().size()!=0){
+					//This is a bit ugly way to handle the initialization of the intersection problem
+					//but it should work
+					Set<CfgBlock> newDom = new HashSet<CfgBlock>(cfg);
+					for(CfgBlock inBlock : b.getPredecessors()){
+						newDom.retainAll(dominators.get(inBlock));
+					}
+					//every node dominates itself
+					newDom.add(b);
+					if(!newDom.equals(dominators.get(b))){
+						dominators.put(b,newDom);
+						changed = true;
+					}
+				}			
+			}
+		} while (changed);
+		
+		return dominators;
+	}
+	
 	//Really simple for now: Just get all blocks that define each variable.  Don't worry too much about 
 	//dominators, etc
 	//TODO worry about dominators etc
