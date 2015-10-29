@@ -218,8 +218,10 @@ public class Method implements Node {
 		do {
 			changed = false;
 			for(CfgBlock b : cfg){
-				//only nodes with predecessors can change
-				if(b != getSource() && b.getPredecessors().size()!=0){
+				//Source node is always only dominated by itself.
+				if(b != getSource()){
+					//non source nodes should always have predecessors, so this should be safe
+					assert(b.getPredecessors().size() != 0);
 					//This is a bit ugly way to handle the initialization of the intersection problem
 					//but it should work
 					Set<CfgBlock> newDom = new HashSet<CfgBlock>(cfg);
