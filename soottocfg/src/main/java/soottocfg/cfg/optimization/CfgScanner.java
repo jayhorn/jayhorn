@@ -1,10 +1,16 @@
 package soottocfg.cfg.optimization;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import soottocfg.cfg.Variable;
-import soottocfg.cfg.expression.*;
+import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.BooleanLiteral;
+import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.InstanceOfExpression;
+import soottocfg.cfg.expression.IntegerLiteral;
+import soottocfg.cfg.expression.IteExpression;
+import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.statement.ArrayReadStatement;
 import soottocfg.cfg.statement.ArrayStoreStatement;

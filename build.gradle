@@ -36,13 +36,15 @@ buildscript {
 	}
 }
 
+
+
 allprojects {
     apply plugin: 'java'
     apply plugin: 'jacoco'
 	apply plugin: 'com.github.kt3k.coveralls'
 	
     repositories {
-        jcenter()
+        mavenCentral()
     }
 
     jacoco {

@@ -131,7 +131,7 @@ public enum SootTranslationHelpers {
 		}
 	}
 
-	public SootMethod getCurrentMethod() {
+	public SootMethod getCurrentMethod() {       
 		return currentMethod;
 	}
 

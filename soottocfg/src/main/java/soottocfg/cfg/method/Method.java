@@ -19,7 +19,7 @@ import soottocfg.util.SetOperations;
 
 /**
  * @author schaef
- *
+ *extends DefaultDirectedGraph<Statement, DefaultEdge>
  */
 public class Method implements Node {
 

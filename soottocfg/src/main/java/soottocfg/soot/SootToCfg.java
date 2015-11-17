@@ -34,6 +34,9 @@ import soottocfg.soot.visitors.SootStmtSwitch;
 public class SootToCfg {
 
 	private boolean debug = true;
+	
+	public boolean resolveVirtualCalls = true;
+	
 	/**
 	 * Run Soot and translate classes into Boogie/Horn
 	 * 
@@ -144,8 +147,10 @@ public class SootToCfg {
 		SwitchStatementRemover so = new SwitchStatementRemover();
 		so.transform(body);
 
-		VirtualCallResolver vc = new VirtualCallResolver();
-		vc.transform(body);
+		if (resolveVirtualCalls) {
+			VirtualCallResolver vc = new VirtualCallResolver();
+			vc.transform(body);
+		}
 
 	}
 }

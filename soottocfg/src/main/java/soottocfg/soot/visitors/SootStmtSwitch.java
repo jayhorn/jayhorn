@@ -23,6 +23,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
+
 import soot.Body;
 import soot.PatchingChain;
 import soot.SootMethod;
@@ -53,6 +55,8 @@ import soot.jimple.TableSwitchStmt;
 import soot.jimple.ThrowStmt;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.cfg.Program;
+import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.UnaryExpression;
@@ -158,7 +162,6 @@ public class SootStmtSwitch implements StmtSwitch {
 	private void precheck(Stmt st) {
 		this.currentStmt = st;
 
-		
 		if (currentBlock != null) {
 			// first check if we already created a block
 			// for this statement.
@@ -168,19 +171,19 @@ public class SootStmtSwitch implements StmtSwitch {
 					currentBlock.addSuccessor(block);
 					currentBlock = block;
 				} else {
-					//do nothing.
+					// do nothing.
 				}
 			} else {
-				if (unitGraph.getPredsOf(st).size()>1) {
-					//then this statement might be reachable via a back edge
-					//and we have to create a new block for it.
+				if (unitGraph.getPredsOf(st).size() > 1) {
+					// then this statement might be reachable via a back edge
+					// and we have to create a new block for it.
 					CfgBlock newBlock = methodInfo.lookupCfgBlock(st);
 					currentBlock.addSuccessor(newBlock);
 					currentBlock = newBlock;
 				} else {
-					//do nothing.
+					// do nothing.
 				}
-			}			
+			}
 		} else {
 			// If not, and we currently don't have a block,
 			// create a new one.
@@ -225,7 +228,7 @@ public class SootStmtSwitch implements StmtSwitch {
 	@Override
 	public void caseGotoStmt(GotoStmt arg0) {
 		precheck(arg0);
-		CfgBlock target = this.methodInfo.lookupCfgBlock(arg0.getTarget());		
+		CfgBlock target = this.methodInfo.lookupCfgBlock(arg0.getTarget());
 		this.currentBlock.addSuccessor(target);
 		this.currentBlock = null;
 	}
@@ -333,8 +336,9 @@ public class SootStmtSwitch implements StmtSwitch {
 	}
 
 	/**
-	 * Translate method invokation. This assumes that exceptions and 
-	 * virtual calls have already been removed.
+	 * Translate method invokation. This assumes that exceptions and virtual
+	 * calls have already been removed.
+	 * 
 	 * @param u
 	 * @param optionalLhs
 	 * @param call
@@ -361,7 +365,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			args.addFirst(baseExpression);
 			// this include Interface-, Virtual, and SpecialInvokeExpr
 		} else if (call instanceof StaticInvokeExpr) {
-			//no need to handle the base.
+			// no need to handle the base.
 		} else if (call instanceof DynamicInvokeExpr) {
 			DynamicInvokeExpr divk = (DynamicInvokeExpr) call;
 			throw new RuntimeException("Ignoring dynamic invoke: " + divk.toString());
@@ -376,10 +380,8 @@ public class SootStmtSwitch implements StmtSwitch {
 		}
 		receiver.add(this.methodInfo.getExceptionVariable());
 
-		
 		Method method = program.loopupMethod(call.getMethod().getSignature());
-		CallStatement stmt = new CallStatement(SootTranslationHelpers.v().getSourceLocation(u), method, args,
-				receiver);
+		CallStatement stmt = new CallStatement(SootTranslationHelpers.v().getSourceLocation(u), method, args, receiver);
 		this.currentBlock.addStatement(stmt);
 	}
 
@@ -415,7 +417,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			return true;
 		}
 		if (call.getMethod().getSignature().contains("<java.lang.System: void exit(int)>")) {
-			//TODO: this is not sufficient for interprocedural analysis.
+			// TODO: this is not sufficient for interprocedural analysis.
 			currentBlock = null;
 			return true;
 		}
@@ -428,17 +430,35 @@ public class SootStmtSwitch implements StmtSwitch {
 				return true;
 			}
 			if (call.getMethod().getName().equals("assertTrue")) {
-				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u),
-						BooleanLiteral.falseLiteral()));
+				Preconditions.checkArgument(optionalLhs == null);
+				call.getArg(0).apply(valueSwitch);
+				Expression guard = valueSwitch.popExpression();
+				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u), guard));
 				return true;
 			}
-			throw new RuntimeException("we should hardcode JUnit stuff "
-					+ call.getMethod().getDeclaringClass().getName() + "  method " + call.getMethod().getName());
+			if (call.getMethod().getName().equals("assertEquals")) {
+				Preconditions.checkArgument(optionalLhs == null);
+				call.getArg(0).apply(valueSwitch);
+				Expression left = valueSwitch.popExpression();
+				call.getArg(1).apply(valueSwitch);
+				Expression right = valueSwitch.popExpression();
+				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u), new BinaryExpression(BinaryOperator.Eq, left, right)));
+				return true;
+			}
+
+			System.err.println("We should hardcode JUnit stuff " + call.getMethod().getDeclaringClass().getName()
+					+ "  method " + call.getMethod().getName());
 		}
 
-		if (call.getMethod().getDeclaringClass().getName().contains("Preconditions")) {
-			throw new RuntimeException(
-					"we should hardcode Guava stuff " + call.getMethod().getDeclaringClass().getName());
+		if (call.getMethod().getDeclaringClass().getName().contains("com.google.common.base.")) {
+			if (call.getMethod().getSignature().contains("void checkArgument(boolean)")) {
+				Preconditions.checkArgument(optionalLhs == null);
+				call.getArg(0).apply(valueSwitch);
+				Expression guard = valueSwitch.popExpression();
+				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u), guard));
+				return true;
+			}
+			System.err.println("TODO: handle Guava properly: " + call.getMethod().getSignature());
 		}
 
 		return false;
@@ -455,20 +475,20 @@ public class SootStmtSwitch implements StmtSwitch {
 		Value rhs = def.getRightOp();
 
 		if (def.containsFieldRef()) {
-			//panic programming
-			assert (! (lhs instanceof FieldRef && rhs instanceof FieldRef));
-			
+			// panic programming
+			assert(!(lhs instanceof FieldRef && rhs instanceof FieldRef));
+
 			if (lhs instanceof FieldRef) {
-				SootTranslationHelpers.v().getMemoryModel().mkHeapWriteStatement(def, def.getFieldRef(), rhs);	
+				SootTranslationHelpers.v().getMemoryModel().mkHeapWriteStatement(def, def.getFieldRef(), rhs);
 			} else if (rhs instanceof FieldRef) {
 				SootTranslationHelpers.v().getMemoryModel().mkHeapReadStatement(def, def.getFieldRef(), lhs);
 			} else {
 				throw new RuntimeException("what?");
 			}
 		} else if (def.containsArrayRef()) {
-			//TODO:
+			// TODO:
 		} else {
-			//local to local assignment.
+			// local to local assignment.
 			lhs.apply(valueSwitch);
 			Expression left = valueSwitch.popExpression();
 			rhs.apply(valueSwitch);

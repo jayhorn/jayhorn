@@ -435,6 +435,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 		// runtime exceptions that also occur in the throws clause get re-thrown
 		List<Pair<Value, List<Unit>>> guards = constructGuardExpression(v, exception, true, u);
 		Unit throwStmt = generateThrowStatement(u, exception);
+		//TODO: put in a switch to turn uncaught runtime exceptions into assertions
 		for (Pair<Value, List<Unit>> pair : guards) {
 			List<Unit> toInsert = new LinkedList<Unit>();
 			toInsert.addAll(pair.getSecond());
