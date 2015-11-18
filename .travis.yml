@@ -10,7 +10,6 @@ before_install:
 
 script:
    - gradle check
-   - 'if [[ $TRAVIS_PULL_REQUEST != "false" ]]; then gradle integration_test ; fi'
 
 after_success:
    - gradle jacocoRootReport coveralls
