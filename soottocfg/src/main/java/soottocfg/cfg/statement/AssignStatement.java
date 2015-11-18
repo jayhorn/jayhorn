@@ -16,6 +16,10 @@ import soottocfg.cfg.expression.Expression;
  */
 public class AssignStatement extends Statement {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6725099779878843508L;
 	public Expression getLeft() {
 		return left;
 	}

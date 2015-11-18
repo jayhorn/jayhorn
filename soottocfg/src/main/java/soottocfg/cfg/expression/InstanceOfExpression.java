@@ -16,6 +16,10 @@ import soottocfg.cfg.type.Type;
  */
 public class InstanceOfExpression extends Expression {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3697139804431041726L;
 	private final Expression expression;
 	public Expression getExpression() {
 		return expression;

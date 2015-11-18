@@ -159,6 +159,16 @@ public class SootStmtSwitch implements StmtSwitch {
 		this.currentBlock.addStatement(stmt);
 	}
 
+	private void connectBlocks(CfgBlock from, CfgBlock to) {
+		this.methodInfo.getMethod().addEdge(from, to);
+	}
+
+	private void connectBlocks(CfgBlock from, CfgBlock to, Expression label) {
+		this.methodInfo.getMethod().addEdge(from, to).setLabel(label);;
+	}
+
+	
+	
 	private void precheck(Stmt st) {
 		this.currentStmt = st;
 
@@ -168,7 +178,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			CfgBlock block = methodInfo.findBlock(st);
 			if (block != null) {
 				if (block != currentBlock) {
-					currentBlock.addSuccessor(block);
+					connectBlocks(currentBlock, block);
 					currentBlock = block;
 				} else {
 					// do nothing.
@@ -178,7 +188,7 @@ public class SootStmtSwitch implements StmtSwitch {
 					// then this statement might be reachable via a back edge
 					// and we have to create a new block for it.
 					CfgBlock newBlock = methodInfo.lookupCfgBlock(st);
-					currentBlock.addSuccessor(newBlock);
+					connectBlocks(currentBlock, newBlock);
 					currentBlock = newBlock;
 				} else {
 					// do nothing.
@@ -229,7 +239,7 @@ public class SootStmtSwitch implements StmtSwitch {
 	public void caseGotoStmt(GotoStmt arg0) {
 		precheck(arg0);
 		CfgBlock target = this.methodInfo.lookupCfgBlock(arg0.getTarget());
-		this.currentBlock.addSuccessor(target);
+		connectBlocks(currentBlock, target);
 		this.currentBlock = null;
 	}
 
@@ -263,14 +273,13 @@ public class SootStmtSwitch implements StmtSwitch {
 		}
 
 		CfgBlock thenBlock = methodInfo.lookupCfgBlock(arg0.getTarget());
-		this.currentBlock.addConditionalSuccessor(cond, thenBlock);
+		connectBlocks(currentBlock, thenBlock, cond);
 		if (next != null) {
 			CfgBlock elseBlock = methodInfo.lookupCfgBlock(next);
-			this.currentBlock.addConditionalSuccessor(new UnaryExpression(UnaryOperator.LNot, cond), elseBlock);
+			connectBlocks(currentBlock, elseBlock, new UnaryExpression(UnaryOperator.LNot, cond));			
 			this.currentBlock = elseBlock;
 		} else {
-			this.currentBlock.addConditionalSuccessor(new UnaryExpression(UnaryOperator.LNot, cond),
-					methodInfo.getSink());
+			connectBlocks(currentBlock, methodInfo.getSink(), new UnaryExpression(UnaryOperator.LNot, cond));
 			this.currentBlock = null;
 		}
 	}
@@ -303,14 +312,14 @@ public class SootStmtSwitch implements StmtSwitch {
 		Expression returnValue = valueSwitch.popExpression();
 		currentBlock.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(arg0),
 				methodInfo.getReturnVariable(), returnValue));
-		currentBlock.addSuccessor(methodInfo.getSink());
+		connectBlocks(currentBlock, methodInfo.getSink());
 		currentBlock = null;
 	}
 
 	@Override
 	public void caseReturnVoidStmt(ReturnVoidStmt arg0) {
 		precheck(arg0);
-		currentBlock.addSuccessor(methodInfo.getSink());
+		connectBlocks(currentBlock, methodInfo.getSink());
 		currentBlock = null;
 	}
 
@@ -326,7 +335,7 @@ public class SootStmtSwitch implements StmtSwitch {
 		Expression exception = valueSwitch.popExpression();
 		currentBlock.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(arg0),
 				methodInfo.getExceptionVariable(), exception));
-		currentBlock.addSuccessor(methodInfo.getSink());
+		connectBlocks(currentBlock, methodInfo.getSink());
 		currentBlock = null;
 	}
 

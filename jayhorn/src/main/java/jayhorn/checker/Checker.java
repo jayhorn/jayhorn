@@ -3,44 +3,44 @@
  */
 package jayhorn.checker;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import java.math.BigInteger;
 
 import jayhorn.Log;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverFun;
-import jayhorn.solver.ProverType;
 import jayhorn.solver.ProverHornClause;
+import jayhorn.solver.ProverType;
 import jayhorn.solver.princess.PrincessProverFactory;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.Variable;
+import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.IntegerLiteral;
+import soottocfg.cfg.expression.IteExpression;
+import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.method.CfgBlock;
+import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.IntegerLiteral;
-import soottocfg.cfg.expression.BinaryExpression;
-import soottocfg.cfg.expression.UnaryExpression;
-import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.Type;
@@ -118,8 +118,9 @@ public class Checker {
             done.add(current);
             final HornPredicate exitPred = blockToHorn(p, current, clauses);
 
+            
             // take care of successors
-            if (!current.getSuccessors().isEmpty()) {
+            if (!method.outgoingEdgesOf(current).isEmpty()) {
                 final List<ProverExpr> exitVars = new ArrayList<ProverExpr>();
                 final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
                 createVarMap(p, exitPred, exitVars, varMap);
@@ -127,11 +128,12 @@ public class Checker {
                 final ProverExpr exitAtom =
                     exitPred.predicate.mkExpr(exitVars.toArray(new ProverExpr[0]));
 
-                for (CfgBlock succ : current.getSuccessors()) {
+                for (CfgEdge edge : method.outgoingEdgesOf(current)) {
+                	CfgBlock succ = edge.getTarget();
                     if (!todo.contains(succ) && !done.contains(succ))
                         todo.add(succ);
 
-                    final Expression exitCond = current.getSuccessorCondition(succ);
+                    final Expression exitCond = edge.getLabel().get();
                     final ProverExpr exitCondExpr;
                     if (exitCond == null)
                         exitCondExpr = p.mkLiteral(true);

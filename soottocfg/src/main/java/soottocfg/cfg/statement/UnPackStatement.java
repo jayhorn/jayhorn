@@ -19,6 +19,10 @@ import soottocfg.cfg.type.ClassConstant;
  */
 public class UnPackStatement extends Statement {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 9221818898828469398L;
 	private final ClassConstant classConstant;
 	private final IdentifierExpression object;
 	private final List<IdentifierExpression> left;

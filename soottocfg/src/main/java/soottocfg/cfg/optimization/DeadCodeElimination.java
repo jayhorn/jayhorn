@@ -3,13 +3,14 @@ package soottocfg.cfg.optimization;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
+
+import com.google.common.base.Preconditions;
 
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.expression.BooleanLiteral;
-import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.method.CfgBlock;
+import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.util.SetOperations;
@@ -22,11 +23,13 @@ public class DeadCodeElimination extends CfgUpdater {
 
 	@Override
 	public boolean updateMethod(Method m){
-		blockLiveVars = m.computeBlockLiveVariables();
+		currentMethod = m;
+		blockLiveVars = currentMethod.computeBlockLiveVariables();
 		changed = false;
-		for(CfgBlock block : m.getCfg()){
+		for(CfgBlock block : currentMethod.vertexSet()){
 			processCfgBlock(block);
 		}
+		currentMethod.pruneUnreachableNodes();
 		blockLiveVars = null;
 		return changed;
 	}
@@ -38,6 +41,7 @@ public class DeadCodeElimination extends CfgUpdater {
 	}
 
 	protected void processCfgBlock(CfgBlock block) {
+		Preconditions.checkNotNull(currentMethod);
 		setCurrentCfgBlock(block);
 		List<Statement> rval = new LinkedList<Statement>();
 		LiveVars<Statement> stmtLiveVars = block.computeLiveVariables(blockLiveVars);
@@ -55,19 +59,22 @@ public class DeadCodeElimination extends CfgUpdater {
 		//Now, check if any of the graph itself is dead
 		//We can't remove successors as we are iterating over them, so instead I'll keep a set of 
 		//blocks to remove, then take them out at the end.
-		Set<CfgBlock> toRemove = new HashSet<CfgBlock>();
+		Set<CfgEdge> toRemove = new HashSet<CfgEdge>();		
 
-		for(Entry<CfgBlock,Expression> entry : block.getSuccessorConditions().entrySet()){
-			Expression e = entry.getValue();
-			if (e instanceof BooleanLiteral && ((BooleanLiteral) e).getValue() == false) {
-				toRemove.add(entry.getKey());
+		for (CfgEdge edge : currentMethod.outgoingEdgesOf(block)) {
+			if (edge.getLabel().isPresent()) {
+				if (edge.getLabel().get().equals(BooleanLiteral.falseLiteral())) {
+					toRemove.add(edge);
+				} else {
+					System.err.println(edge.getLabel().get());
+				}
 			}
 		}
-		for(CfgBlock b : toRemove){
-			block.removeSuccessorCondition(b);
+		if (!toRemove.isEmpty()) {
+			currentMethod.removeAllEdges(toRemove);
 			changed = true;
 		}
-
+		
 		setCurrentCfgBlock(null);
 	}
 }

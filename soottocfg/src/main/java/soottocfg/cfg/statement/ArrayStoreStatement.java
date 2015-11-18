@@ -18,6 +18,10 @@ import soottocfg.cfg.expression.Expression;
  */
 public class ArrayStoreStatement extends Statement {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5637930701746354268L;
 	private final Expression base, value;
 	private final List<Expression> indices;
 

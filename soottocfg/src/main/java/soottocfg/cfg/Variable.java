@@ -3,14 +3,21 @@
  */
 package soottocfg.cfg;
 
+import java.io.Serializable;
+
 import soottocfg.cfg.type.Type;
 
 /**
  * @author schaef
  *
  */
-public class Variable {
+public class Variable implements Serializable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2599846473306218710L;
+	
 	private final String variableName;
 	private final Type type;
 	/**

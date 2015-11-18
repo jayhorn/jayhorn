@@ -16,6 +16,11 @@ import soottocfg.cfg.type.Type;
  */
 public class BinaryExpression extends Expression {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1992559147136566989L;
+
 	public enum BinaryOperator {
 		Plus("+"), Minus("-"), Mul("*"), Div("/"), Mod("%"), And("&&"), Or("||"), Xor("^"), Implies("->"), Eq("=="), Ne(
 				"!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&");

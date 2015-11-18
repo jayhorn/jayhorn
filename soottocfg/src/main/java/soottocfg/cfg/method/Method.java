@@ -11,9 +11,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jgrapht.DirectedGraph;
+import org.jgrapht.alg.ConnectivityInspector;
+import org.jgrapht.graph.AbstractBaseGraph;
+import org.jgrapht.graph.ClassBasedEdgeFactory;
+
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Node;
 import soottocfg.cfg.Variable;
+import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.util.SetOperations;
 
@@ -21,18 +27,26 @@ import soottocfg.util.SetOperations;
  * @author schaef
  *extends DefaultDirectedGraph<Statement, DefaultEdge>
  */
-public class Method implements Node {
+public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node, DirectedGraph<CfgBlock, CfgEdge> {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3367382274895641548L;
+	
+	
 	private final String methodName;
 	private Variable thisVariable, returnVariable, exceptionalReturnVariable;
 	private List<Variable> parameterList;
 	private Collection<Variable> locals;
 	private Collection<Variable> modifiedGlobals;
 	private CfgBlock source;
-	private boolean isEntry = false;
-
+	private boolean isEntry = false;	
+	
 	public Method(String uniqueName) {
+		super(new ClassBasedEdgeFactory<CfgBlock, CfgEdge>(CfgEdge.class), true, true);
 		methodName = uniqueName;
+				
 	}
 
 	public String getMethodName() {
@@ -56,9 +70,47 @@ public class Method implements Node {
 		this.modifiedGlobals.removeAll(parameterList);
 		this.modifiedGlobals.remove(exceptionalReturnVariable);
 		this.modifiedGlobals.remove(returnVariable);
-		this.modifiedGlobals.remove(thisVariable);
+		this.modifiedGlobals.remove(thisVariable);		
+			
 	}
 
+	/**
+	 * Adds a guard expression as label to an edge.
+	 * The label must not be null
+	 * @param edge Existing edge in this Method.
+	 * @param label Non-null guard expression.
+	 */
+	public void setEdgeLabel(CfgEdge edge, Expression label) {
+		edge.setLabel(label);
+	}
+	
+	/**
+	 * Removes all nodes and edges from the control-flow graph
+	 * that are not connected to the source.
+	 */
+	public void pruneUnreachableNodes() {
+		ConnectivityInspector<CfgBlock, CfgEdge> insp = new ConnectivityInspector<CfgBlock, CfgEdge>(this);
+		//collect all unreachable nodes.
+		Set<CfgBlock> verticesToRemove = new HashSet<CfgBlock>(this.vertexSet());
+		verticesToRemove.removeAll(insp.connectedSetOf(source));
+		//collect all unreachable edges
+		Set<CfgEdge> egdesToRemove = new HashSet<CfgEdge>();
+		for (CfgBlock b : verticesToRemove) {
+			for (CfgEdge edge : incomingEdgesOf(b)) {
+				if (verticesToRemove.contains(edge.getSource())) {
+					egdesToRemove.add(edge);
+				}
+			}
+			for (CfgEdge edge : outgoingEdgesOf(b)) {
+				if (verticesToRemove.contains(edge.getTarget())) {
+					egdesToRemove.add(edge);
+				}
+			}
+		}
+		this.removeAllVertices(verticesToRemove);
+		this.removeAllEdges(egdesToRemove);
+	}
+	
 	public boolean isEntryPoint() {
 		return this.isEntry;
 	}
@@ -67,31 +119,14 @@ public class Method implements Node {
 		return this.source;
 	}
 
-	public Set<CfgBlock> getCfg(){
-		class Visitor {
-			private Set<CfgBlock> set;
-			Visitor(){set = new  HashSet<CfgBlock>();}
-			public Set<CfgBlock> visit(CfgBlock block){
-				if (!set.contains(block)) {
-					set.add(block);
-					for(CfgBlock b : block.getSuccessors()){
-						visit(b);
-					}
-				}
-				return set;
-			}
-		}
-		return (new Visitor()).visit(this.getSource());
-	}
-
 	public Set<CfgBlock> getExitBlocks(){
-		Set<CfgBlock> rval = new HashSet<CfgBlock>();
-		for(CfgBlock b : getCfg()){
-			if(b.isExit()){
-				rval.add(b);
+		Set<CfgBlock> ret = new HashSet<CfgBlock>();
+		for (CfgBlock b : this.vertexSet()) {
+			if (this.outDegreeOf(b)==0) {
+				ret.add(b);
 			}
 		}
-		return rval;
+		return ret;
 	}
 
 	public Collection<Variable> getInParams() {
@@ -167,12 +202,12 @@ public class Method implements Node {
 			}
 		}
 
-		for(CfgBlock b : getCfg()){
-			if (this.source == b) {
-				sb.append("Root ->");
-			}
-			sb.append(b);
-		}
+//		for(CfgBlock b : getCfg()){
+//			if (this.source == b) {
+//				sb.append("Root ->");
+//			}
+//			sb.append(b);
+//		}
 
 		return sb.toString();
 	}
@@ -180,7 +215,7 @@ public class Method implements Node {
 	@Override
 	public Set<Variable> getUsedVariables() {
 		Set<Variable> used = new HashSet<Variable>();
-		for (CfgBlock b : getCfg()){
+		for (CfgBlock b : this.vertexSet()){
 			used.addAll(b.getUsedVariables());
 		}
 		return used;
@@ -189,7 +224,7 @@ public class Method implements Node {
 	@Override
 	public Set<Variable> getLVariables() {
 		Set<Variable> rval = new HashSet<Variable>();
-		for (CfgBlock b : getCfg()){
+		for (CfgBlock b : this.vertexSet()){
 			rval.addAll(b.getLVariables());
 		}
 		return rval;
@@ -197,7 +232,7 @@ public class Method implements Node {
 
 	//Implemented using the algorithm in Aho 2nd ed, p 658.
 	public Map<CfgBlock,Set<CfgBlock>> computeDominators() {
-		Set<CfgBlock> cfg = getCfg();
+		Set<CfgBlock> cfg = this.vertexSet();
 		Map<CfgBlock,Set<CfgBlock>> dominators = new HashMap<CfgBlock,Set<CfgBlock>>(cfg.size());
 		
 		//Initialize the set
@@ -221,11 +256,12 @@ public class Method implements Node {
 				//Source node is always only dominated by itself.
 				if(b != getSource()){
 					//non source nodes should always have predecessors, so this should be safe
-					assert(b.getPredecessors().size() != 0);
+					assert(this.inDegreeOf(b) != 0);
 					//This is a bit ugly way to handle the initialization of the intersection problem
 					//but it should work
 					Set<CfgBlock> newDom = new HashSet<CfgBlock>(cfg);
-					for(CfgBlock inBlock : b.getPredecessors()){
+					for(CfgEdge edge : this.incomingEdgesOf(b)){
+						CfgBlock inBlock = edge.getSource();
 						newDom.retainAll(dominators.get(inBlock));
 					}
 					//every node dominates itself
@@ -246,7 +282,7 @@ public class Method implements Node {
 	//TODO worry about dominators etc
 	public Map<Variable,Set<CfgBlock>> computeDefiningBlocks() {
 		Map<Variable,Set<CfgBlock>> rval = new HashMap<Variable,Set<CfgBlock>>();
-		for(CfgBlock b : getCfg()){
+		for(CfgBlock b : this.vertexSet()){
 			for(Variable v : b.getLVariables()){
 				Set<CfgBlock> definingBlocks = rval.get(v);
 				if(definingBlocks == null){
@@ -300,7 +336,7 @@ public class Method implements Node {
 	//TODO worry about dominators etc
 	public Map<Variable,Set<CfgBlock>> computeUsingBlocks() {
 		Map<Variable,Set<CfgBlock>> rval = new HashMap<Variable,Set<CfgBlock>>();
-		for(CfgBlock b : getCfg()){
+		for(CfgBlock b : this.vertexSet()){
 			for(Variable v : b.getUsedVariables()){
 				Set<CfgBlock> usingBlocks = rval.get(v);
 				if(usingBlocks == null){
@@ -321,7 +357,7 @@ public class Method implements Node {
 	 * @return
 	 */
 	public LiveVars<CfgBlock> computeBlockLiveVariables() {
-		Set<CfgBlock> cfg = this.getCfg();
+		Set<CfgBlock> cfg = this.vertexSet();
 
 		//Reserve the necessary size in the hashmap
 		Map<CfgBlock,Set<Variable>> in = new HashMap<CfgBlock,Set<Variable>>(cfg.size());
@@ -356,4 +392,6 @@ public class Method implements Node {
 
 		return new LiveVars<CfgBlock>(in,out);
 	}
+
+	
 }

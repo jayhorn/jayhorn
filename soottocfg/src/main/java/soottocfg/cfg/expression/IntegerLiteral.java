@@ -16,7 +16,12 @@ import soottocfg.cfg.type.Type;
  */
 public class IntegerLiteral extends Expression {
 
-	private final long value;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7913206010686231183L;
+
+	private final Long value;
 
 	private static final IntegerLiteral one = new IntegerLiteral(1);
 	private static final IntegerLiteral zero = new IntegerLiteral(0);
@@ -36,7 +41,7 @@ public class IntegerLiteral extends Expression {
 	}
 	
 	public IntegerLiteral(int value) {
-		this.value = value;
+		this.value = Long.valueOf(value);
 	}
 	
 	public IntegerLiteral(long value) {
@@ -63,7 +68,7 @@ public class IntegerLiteral extends Expression {
 		return used;
 	}
 
-    public long getValue() {
+    public Long getValue() {
         return value;
     }
 
@@ -71,4 +76,17 @@ public class IntegerLiteral extends Expression {
 	public Type getType() {
 		return IntType.instance();
 	}
+	
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof IntegerLiteral) {
+			return ((IntegerLiteral)other).getValue().equals(this.value);
+		}
+		return false;
+	}
+	
+	@Override
+	public int hashCode() { 
+		return value.hashCode();
+	}	
 }

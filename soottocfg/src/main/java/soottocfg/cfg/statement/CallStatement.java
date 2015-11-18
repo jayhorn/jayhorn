@@ -18,6 +18,10 @@ import soottocfg.cfg.method.Method;
  */
 public class CallStatement extends Statement {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7267962774002374725L;
 	private final Method method;
 	private final List<Expression> arguments;
 	private final List<Expression> receiver;

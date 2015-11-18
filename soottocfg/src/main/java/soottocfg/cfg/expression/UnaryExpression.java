@@ -16,6 +16,11 @@ import soottocfg.cfg.type.Type;
  */
 public class UnaryExpression extends Expression {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3534248180235954114L;
+
 	public enum UnaryOperator {
 		Neg("-"), LNot("!");
 		private final String name;       

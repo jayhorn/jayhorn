@@ -1,4 +1,4 @@
-package soottocfg.test;
+package soottocfg.test.optimization_test;
 
 import java.util.List;
 import java.util.Map;
@@ -75,7 +75,7 @@ public class OptimizationTest {
 		cp.runFixpt(m);
 		dce.runFixpt(m);
 
-		for(CfgBlock b : m.getCfg()){
+		for(CfgBlock b : m.vertexSet()){
 			if(b.getLabel().equals("Block0")){
 				String expected = "Block0:\n	goto:\n	  if true: Block2\n";
 				Assert.assertEquals(expected, b.toString());
@@ -101,7 +101,7 @@ public class OptimizationTest {
 
 		opt.runFixpt(m);
 
-		for(CfgBlock b : m.getCfg()){
+		for(CfgBlock b : m.vertexSet()){
 			if(b.getLabel().equals("Block0")){
 				String expected = "Block0:\n(ln 0)\tb := ((12 * 0) > ((--1) + 0))\n\tgoto:\n\t  if ((12 * 0) > ((--1) + 0)): Block1\n\t  if (!((12 * 0) > ((--1) + 0))): Block2\n";
 				Assert.assertEquals(expected, b.toString());
@@ -130,7 +130,7 @@ public class OptimizationTest {
 
 		cp.runFixpt(m);
 
-		for(CfgBlock b : m.getCfg()){
+		for(CfgBlock b : m.vertexSet()){
 			if(b.getLabel().equals("Block0")){
 				List<Statement> sl = b.getStatements();
 				Assert.assertEquals(1, sl.size());

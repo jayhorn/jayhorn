@@ -12,6 +12,10 @@ import java.util.List;
  */
 public class MapType extends Type {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3060597489570467332L;
 	private final List<Type> indices;
 	private final Type valueType; 
 	
