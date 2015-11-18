@@ -3,6 +3,7 @@
  */
 package soottocfg.cfg.expression;
 
+import java.io.Serializable;
 import java.util.Set;
 
 import soottocfg.cfg.Node;
@@ -16,7 +17,12 @@ import soottocfg.cfg.type.Type;
  * @author schaef
  *
  */
-public abstract class Expression implements Node {
+public abstract class Expression implements Node, Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6933938841592139875L;
 
 	public abstract Set<Variable> getUsedVariables();
 	

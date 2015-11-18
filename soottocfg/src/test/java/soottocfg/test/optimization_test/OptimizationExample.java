@@ -1,4 +1,4 @@
-package soottocfg.test;
+package soottocfg.test.optimization_test;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -62,8 +62,9 @@ public class OptimizationExample {
 		b3Stmts.add(new AssignStatement(fakeSl,rvalIdent,b));
 		b3.setStatements(b3Stmts);
 		
-		b1.addConditionalSuccessor(b, b2);
-		b1.addConditionalSuccessor(notB, b3);
+		m.addEdge(b1, b2).setLabel(b);
+		m.addEdge(b1, b3).setLabel(notB);
+
 		m.initialize(null, rval, exceptional, new LinkedList<Variable>(), localVars, b1, true);
 		return m;
 	}
@@ -73,9 +74,15 @@ public class OptimizationExample {
 		SootTranslationHelpers.v().reset();
 		final Method m = new Method("testM2");
 		
-		CfgBlock b0 = new CfgBlock(m);//Don't bother using this :)  Just to get the blocks numbering to work cause aho starts at b1
-		b0.getPredecessors();//useless call to quiet findbugs
-		
+		/*
+		 * Create a dummy block to increase the counter for the block label.
+		 * Just to get the blocks numbering to work cause aho starts at b1
+		 * @Daniel, do we actually need this? Why don't you just change the oracle?
+		 */
+		CfgBlock b0 = new CfgBlock(m);
+		//and remove that block again immediately.
+		m.removeVertex(b0);
+				
 		CfgBlock b1 = new CfgBlock(m);
 		CfgBlock b2 = new CfgBlock(m);
 		CfgBlock b3 = new CfgBlock(m);
@@ -87,29 +94,28 @@ public class OptimizationExample {
 		CfgBlock b9 = new CfgBlock(m);
 		CfgBlock b10 = new CfgBlock(m);
 		
-		b1.addSuccessor(b2);
-		b1.addSuccessor(b3);
+		m.addEdge(b1, b2);
+		m.addEdge(b1, b3);
 		
-		b2.addSuccessor(b3);
-		
-		b3.addSuccessor(b4);
+		m.addEdge(b2, b3);		
+		m.addEdge(b3, b4);
 
-		b4.addSuccessor(b3);
-		b4.addSuccessor(b5);
-		b4.addSuccessor(b6);
+		m.addEdge(b4, b3);
+		m.addEdge(b4, b5);
+		m.addEdge(b4, b6);
 		
-		b5.addSuccessor(b7);
+		m.addEdge(b5, b7);
 		
-		b6.addSuccessor(b7);
+		m.addEdge(b6, b7);
 
-		b7.addSuccessor(b4);
-		b7.addSuccessor(b8);
+		m.addEdge(b7, b4);
+		m.addEdge(b7, b8);
 		
-		b8.addSuccessor(b9);
-		b8.addSuccessor(b10);
+		m.addEdge(b8, b9);
+		m.addEdge(b8, b10);
 		
-		b9.addSuccessor(b1);
-		b10.addSuccessor(b7);
+		m.addEdge(b9, b1);
+		m.addEdge(b10, b7);
 		
 		m.initialize(null, null, null, new LinkedList<Variable>(), new HashSet<Variable>(), b1, true);		
 		return m;

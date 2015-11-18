@@ -21,7 +21,7 @@ import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
 
 public abstract class CfgVisitor {
-	private Method currentMethod = null;
+	protected Method currentMethod = null;
 
 	protected void setCurrentMethod(Method m) {
 		currentMethod = m;
@@ -35,7 +35,7 @@ public abstract class CfgVisitor {
 	// overridden fn
 	protected void processMethod(Method m) {
 		setCurrentMethod(m);
-		for (CfgBlock b : m.getCfg()) {
+		for (CfgBlock b : m.vertexSet()) {
 			processCfgBlock(b);
 		}
 		setCurrentMethod(null);

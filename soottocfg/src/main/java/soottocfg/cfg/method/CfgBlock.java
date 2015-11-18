@@ -3,48 +3,45 @@
  */
 package soottocfg.cfg.method;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
+
+import com.google.common.base.Preconditions;
 
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Node;
 import soottocfg.cfg.Variable;
-import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.util.SetOperations;
-
-import java.util.Set;
 
 /**
  * @author schaef
  *
  */
-public class CfgBlock implements Node {
+public class CfgBlock implements Node, Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8807957025110526199L;
 
 	protected final String label;
-
-	protected final List<CfgBlock> predecessors;
-	protected final List<CfgBlock> successors;
 	protected List<Statement> statements;
-	protected final Map<CfgBlock, Expression> successorConditions;
+
 	protected final Method method;
 
-
-
 	public CfgBlock(Method m) {
-		this.label = "Block"+(SootTranslationHelpers.v().getUniqueNumber());
-
-		this.successors = new LinkedList<CfgBlock>();
+		this.label = "Block" + (SootTranslationHelpers.v().getUniqueNumber());
 		this.statements = new LinkedList<Statement>();
-		this.successorConditions = new HashMap<CfgBlock, Expression>();
-		this.predecessors = new LinkedList<CfgBlock>();
 		this.method = m;
+		this.method.addVertex(this);
 	}
 
 	public Method getMethod() {
@@ -67,79 +64,12 @@ public class CfgBlock implements Node {
 		this.statements = statements;
 	}
 
-	public void addPredecessor(CfgBlock pred)
-	{
-		if (this.predecessors.contains(pred)) {
-			throw new RuntimeException("Already connected: " + pred);
-		}
-		this.predecessors.add(pred);
-	}
-	
-	public void removePredecessor(CfgBlock pred) {
-		if (this.predecessors.contains(pred)) {
-			this.predecessors.remove(pred);
-		} else {
-			throw new RuntimeException("Cannot remove pred: " + pred);
-		}
-	}
-
-	public void addSuccessor(CfgBlock suc) {
-		if (this.successors.contains(suc)) {
-			throw new RuntimeException("Already connected: " + suc);
-		}
-		this.successors.add(suc);
-		suc.addPredecessor(this);
-	}
-	
-	public void removeSuccessor(CfgBlock suc) {
-		if (this.successors.contains(suc)) {
-			this.successors.remove(suc);
-			suc.removePredecessor(this);
-		} else {
-			throw new RuntimeException("Cannot remove " + suc);
-		}
-	}
-
-	public void addConditionalSuccessor(Expression condition, CfgBlock suc) {
-		this.addSuccessor(suc);
-		this.successorConditions.put(suc, condition);
-	}
-
-	public void removeSuccessorCondition(CfgBlock suc) {
-		this.removeSuccessor(suc);
-		assert(this.successorConditions.containsKey(suc));
-		this.successorConditions.remove(suc);
-	}
-	
-	public void updateConditionalSuccessor(Expression cond, CfgBlock suc)
-	{
-		assert(successorConditions.containsKey(suc));
-		assert(successors.contains(suc));
-		successorConditions.put(suc,cond);
-	}
-
-	public Map<CfgBlock, Expression> getSuccessorConditions() {
-		return successorConditions;
-	}
-
-	public List<CfgBlock> getSuccessors() {
-		return this.successors;
-	}
-
-	public List<CfgBlock> getPredecessors() {
-		return predecessors;
-	}
-
-	/**
-	 * Return the condition associated with the exit edge from this
-	 * block, or <code>null</code> if no condition exists.
-	 */
-	public Expression getSuccessorCondition(CfgBlock succ) {
-		return successorConditions.get(succ);
-	}
-
 	@Override
 	public String toString() {
+		Preconditions.checkArgument(this.method.containsVertex(this),
+				String.format(
+						"Block %s has never been added to the method. This should have happened in the constructor fo CfgBlock.",
+						this.label));
 		StringBuilder sb = new StringBuilder();
 		sb.append(this.label);
 		sb.append(":\n");
@@ -150,16 +80,16 @@ public class CfgBlock implements Node {
 			sb.append(s.toString());
 			sb.append("\n");
 		}
-		if (!this.successors.isEmpty()) {
+		if (this.method.outDegreeOf(this) != 0) {
 			sb.append("\tgoto:\n");
-			for (CfgBlock suc : this.successors) {
+			for (CfgEdge edge : this.method.outgoingEdgesOf(this)) {
 				sb.append("\t  ");
-				if (this.successorConditions.containsKey(suc)) {
+				if (edge.getLabel().isPresent()) {
 					sb.append("if ");
-					sb.append(this.successorConditions.get(suc));
+					sb.append(edge.getLabel().get());
 					sb.append(": ");
 				}
-				sb.append(suc.getLabel());
+				sb.append(edge.getTarget().getLabel());
 				sb.append("\n");
 			}
 		} else {
@@ -174,9 +104,11 @@ public class CfgBlock implements Node {
 		for (Statement s : statements) {
 			used.addAll(s.getUsedVariables());
 		}
-		//TODO: do the variables in the conditional belong to this block?
-		for (Entry<CfgBlock, Expression> entry : successorConditions.entrySet()) {
-			used.addAll(entry.getValue().getUsedVariables());
+		// TODO: do the variables in the conditional belong to this block?
+		for (CfgEdge edge : this.method.outgoingEdgesOf(this)) {
+			if (edge.getLabel().isPresent()) {
+				used.addAll(edge.getLabel().get().getUsedVariables());
+			}
 		}
 		return used;
 	}
@@ -188,56 +120,57 @@ public class CfgBlock implements Node {
 			used.addAll(s.getLVariables());
 		}
 		return used;
-	}	
-
-	public boolean isExit() {
-		return getSuccessors().size() == 0;
 	}
 
-	//Calculates the live-in variables for each statement
+	public boolean isExit() {
+		return this.method.outDegreeOf(this) == 0;
+	}
+
+	// Calculates the live-in variables for each statement
 	public LiveVars<Statement> computeLiveVariables(LiveVars<CfgBlock> vars) {
 
-		//Reserve the necessary size in the hashmap
-		Map<Statement,Set<Variable>> in = new HashMap<Statement,Set<Variable>>(getStatements().size());
-		Map<Statement,Set<Variable>> out = new HashMap<Statement,Set<Variable>>(getStatements().size());
+		// Reserve the necessary size in the hashmap
+		Map<Statement, Set<Variable>> in = new HashMap<Statement, Set<Variable>>(getStatements().size());
+		Map<Statement, Set<Variable>> out = new HashMap<Statement, Set<Variable>>(getStatements().size());
 
-		//Start by initializing in to empty.  
-		for (Statement s: getStatements()){
+		// Start by initializing in to empty.
+		for (Statement s : getStatements()) {
 			in.put(s, new HashSet<Variable>());
 		}
 
-		//Start with the variables that are live out of the block are also live out of the last statement
+		// Start with the variables that are live out of the block are also live
+		// out of the last statement
 		Set<Variable> currentLiveOut = vars.liveOut.get(this);
 
-		//Go through the statements in reverse order 
-		for (ListIterator<Statement> li = getStatements().listIterator(getStatements().size()); li.hasPrevious(); ){
+		// Go through the statements in reverse order
+		for (ListIterator<Statement> li = getStatements().listIterator(getStatements().size()); li.hasPrevious();) {
 			Statement stmt = li.previous();
 			out.put(stmt, currentLiveOut);
-			Set<Variable> liveIn = SetOperations.union(stmt.getUsedVariables(), SetOperations.minus(currentLiveOut, stmt.getLVariables()));
+			Set<Variable> liveIn = SetOperations.union(stmt.getUsedVariables(),
+					SetOperations.minus(currentLiveOut, stmt.getLVariables()));
 			in.put(stmt, liveIn);
 			currentLiveOut = liveIn;
 		}
 
-		//The live in of the 0th statement should be the same as the live in of the whole block
+		// The live in of the 0th statement should be the same as the live in of
+		// the whole block
 		assert(currentLiveOut.equals(vars.liveIn.get(this)));
 		return new LiveVars<Statement>(in, out);
 	}
 
-	public Set<Variable> computeLiveOut(Map<CfgBlock,Set<Variable>> in)
-	{
+	public Set<Variable> computeLiveOut(Map<CfgBlock, Set<Variable>> in) {
 		Set<Variable> out = new HashSet<Variable>();
 
-		//Exit blocks have all globals and all out params live at exit
-		if (isExit()){
+		// Exit blocks have all globals and all out params live at exit
+		if (isExit()) {
 			out.addAll(getMethod().getModifiedGlobals());
 			out.addAll(getMethod().getOutParams());
 		} else {
-			for(CfgBlock s : getSuccessors()){
-				out.addAll(in.get(s));
+			for (CfgEdge edge : this.method.outgoingEdgesOf(this)) {
+				out.addAll(in.get(edge.getTarget()));
 			}
 		}
 		return out;
 	}
-
 
 }

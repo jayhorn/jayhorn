@@ -9,6 +9,10 @@ package soottocfg.cfg.type;
  */
 public class ReferenceType extends Type {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4056715121602313972L;
 	private final ClassConstant classConstant;
 	
 	/**

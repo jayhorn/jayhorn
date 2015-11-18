@@ -16,6 +16,10 @@ import soottocfg.cfg.expression.Expression;
  */
 public class AssertStatement extends Statement {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2043514337815140767L;
 	private final Expression expression;
 	
 	/**

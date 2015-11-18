@@ -3,6 +3,7 @@
  */
 package soottocfg.cfg.type;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -13,10 +14,15 @@ import soottocfg.cfg.Variable;
 
 /**
  * @author schaef
- * 
+ * TODO ... this surely should be a subtype of something.
  */
-public class ClassConstant {
+public class ClassConstant implements Serializable {
+	
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1647842783828780974L;
 	private final String className;
 	private final Set<ClassConstant> parentConstants;
 	private List<Variable> associatedFields;

@@ -17,6 +17,10 @@ import soottocfg.cfg.type.BoolType;
  */
 public class AssumeStatement extends Statement {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4719730863944690585L;
 	private final Expression expression;
 	
 	/**

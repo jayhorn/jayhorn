@@ -19,6 +19,10 @@ import soottocfg.cfg.expression.IdentifierExpression;
  */
 public class ArrayReadStatement extends Statement {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 602143184115962549L;
 	private final Expression base;
 	private final List<Expression> indices;
 	private final IdentifierExpression left;

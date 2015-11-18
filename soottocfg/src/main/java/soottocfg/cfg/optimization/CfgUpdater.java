@@ -2,7 +2,6 @@ package soottocfg.cfg.optimization;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BinaryExpression;
@@ -14,6 +13,7 @@ import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.method.CfgBlock;
+import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.ArrayReadStatement;
 import soottocfg.cfg.statement.ArrayStoreStatement;
@@ -50,9 +50,11 @@ public class CfgUpdater extends CfgVisitor {
 		setCurrentCfgBlock(block);
 		//We need to update the statements
 		block.setStatements(processStatementList(block.getStatements()));
-		//and also the graph conditions, in case those have been changed by the analysis
-		for(Entry<CfgBlock, Expression> e : block.getSuccessorConditions().entrySet()){
-			block.updateConditionalSuccessor(processExpression(e.getValue()), e.getKey());
+		//and also the graph conditions, in case those have been changed by the analysis		
+		for (CfgEdge edge : block.getMethod().outgoingEdgesOf(block)) {
+			if (edge.getLabel().isPresent()) {
+				edge.setLabel(processExpression(edge.getLabel().get()));
+			}
 		}
 		setCurrentCfgBlock(null);
 	}

@@ -16,6 +16,11 @@ import soottocfg.cfg.type.Type;
  */
 public class BooleanLiteral extends Expression {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8808519364513150612L;
+	
 	private final boolean value;
 
 	public static BooleanLiteral trueLiteral() {
@@ -58,4 +63,17 @@ public class BooleanLiteral extends Expression {
 		return BoolType.instance();
 	}
 
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof BooleanLiteral) {
+			return ((BooleanLiteral)other).getValue()==this.value;
+		}
+		return false;
+	}
+	
+	@Override
+	public int hashCode() {
+		//same hash code as Boolean.hashCode 
+		return value ? 1231 : 1237;
+	}
 }
