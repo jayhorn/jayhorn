@@ -57,7 +57,8 @@ public enum AssertionReconstruction {
 	private static final String javaAssertionType = "java.lang.AssertionError";
 	private static final String javaAssertionFlag = "$assertionsDisabled";
 		
-	private SootMethod internalAssertMethod = null;
+	//TODO: why do we have to make this transient? Shouldn't be serialized in the first place.
+	private transient SootMethod internalAssertMethod = null;
 	
 	/**
 	 * Initialize the helper classes and methods that
