@@ -202,12 +202,12 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 			}
 		}
 
-//		for(CfgBlock b : getCfg()){
-//			if (this.source == b) {
-//				sb.append("Root ->");
-//			}
-//			sb.append(b);
-//		}
+		for(CfgBlock b : this.vertexSet()){
+			if (this.source == b) {
+				sb.append("Root ->");
+			}
+			sb.append(b);
+		}
 
 		return sb.toString();
 	}
