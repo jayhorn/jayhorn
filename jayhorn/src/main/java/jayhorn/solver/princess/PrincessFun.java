@@ -48,4 +48,24 @@ class PrincessFun implements ProverFun {
 		return fun.toString();
 	}
 
+    public int hashCode() {
+        return fun.hashCode() + 17;
+    }
+
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        PrincessFun other = (PrincessFun) obj;
+        if (fun == null) {
+            if (other.fun != null)
+                return false;
+        } else if (!fun.equals(other.fun))
+            return false;
+        return true;
+    }
+
 }

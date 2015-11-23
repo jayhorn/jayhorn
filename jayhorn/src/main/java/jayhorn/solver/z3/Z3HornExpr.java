@@ -11,6 +11,7 @@ import jayhorn.solver.BoolType;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverType;
+import jayhorn.solver.ProverFun;
 
 /**
  * @author schaef
@@ -88,4 +89,40 @@ public class Z3HornExpr implements ProverHornClause {
 		}
 		return sb.toString();
 	}
+
+    /**
+     * Get the head predicate symbol.
+     */
+    public ProverFun getHeadFun() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Get the head argument terms.
+     */
+    public ProverExpr[] getHeadArgs() {
+        throw new UnsupportedOperationException();
+    }
+    
+    /**
+     * Get the number of body literals.
+     */
+    public int getArity() {
+        throw new UnsupportedOperationException();
+    }
+    
+    /**
+     * Get the predicate symbol of the body literal <code>num</code>.
+     */
+    public ProverFun getBodyFun(int num) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Get the arguments of the body literal <code>num</code>.
+     */
+    public ProverExpr[] getBodyArgs(int num) {
+        throw new UnsupportedOperationException();
+    }
+
 }

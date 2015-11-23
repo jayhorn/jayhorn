@@ -24,8 +24,28 @@ class PredicateFun implements ProverFun {
  	        return new FormulaExpr(new IAtom(pred, argsBuf.toSeq()));
 	}
 
-	public String toString() {
-		return pred.toString();
-	}
+    public String toString() {
+        return pred.toString();
+    }
+
+    public int hashCode() {
+        return pred.hashCode() + 13;
+    }
+    
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        PredicateFun other = (PredicateFun) obj;
+        if (pred == null) {
+            if (other.pred != null)
+                return false;
+        } else if (!pred.equals(other.pred))
+            return false;
+        return true;
+    }
 
 }
