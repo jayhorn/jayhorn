@@ -260,11 +260,8 @@ public enum AssertionReconstruction {
 		// generated from the assertions.
 		for (Entry<Unit, Value> entry : assertionsToInsert.entrySet()) {
 			List<Unit> unitsToInsert = new LinkedList<Unit>();
-			List<Value> args = new LinkedList<Value>();
-			args.add(assertionLocal);
 			unitsToInsert.add(Jimple.v().newAssignStmt(assertionLocal, entry.getValue()));
-			unitsToInsert.add(
-					Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(internalAssertMethod.makeRef(), args)));
+			unitsToInsert.add(makeAssertion(assertionLocal));
 
 			body.getUnits().insertBefore(unitsToInsert, entry.getKey());
 			unitsToRemove.add(entry.getKey());
@@ -272,6 +269,12 @@ public enum AssertionReconstruction {
 
 		body.getUnits().removeAll(unitsToRemove);
 		body.validate();
+	}
+	
+	public Unit makeAssertion(Value cond) {
+		List<Value> args = new LinkedList<Value>();
+		args.add(cond);
+		return Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(internalAssertMethod.makeRef(), args));
 	}
 
 	/**

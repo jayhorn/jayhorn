@@ -36,6 +36,7 @@ public class SootToCfg {
 	private boolean debug = true;
 	
 	public boolean resolveVirtualCalls = true;
+	public boolean createAssertionsForUncaughtExceptions = false;
 	
 	/**
 	 * Run Soot and translate classes into Boogie/Horn
@@ -117,7 +118,7 @@ public class SootToCfg {
 
 //		 System.err.println(body.toString());
 		preProcessBody(body);
-		 System.err.println(body.toString());
+//		 System.err.println(body.toString());
 
 		// generate the CFG structures on the processed body.
 		MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
@@ -141,7 +142,7 @@ public class SootToCfg {
 		AssertionReconstruction.v().reconstructJavaAssertions(body);
 
 		// make the exception handling explicit
-		ExceptionTransformer em = new ExceptionTransformer(new NullnessAnalysis(new CompleteUnitGraph(body)));
+		ExceptionTransformer em = new ExceptionTransformer(new NullnessAnalysis(new CompleteUnitGraph(body)), createAssertionsForUncaughtExceptions);
 		em.transform(body);
 		// replace all switches by sets of IfStmt
 		SwitchStatementRemover so = new SwitchStatementRemover();

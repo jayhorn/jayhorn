@@ -22,7 +22,6 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.type.Type;
-import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.transformers.ExceptionTransformer;
 
 /**
@@ -37,7 +36,6 @@ public class MethodInfo {
 	private static final String returnVariableName = "$ret_";
 	private static final String thisVariableName = "$this_";
 
-	private final MemoryModel memoryModel;
 	private final SootMethod sootMethod;
 
 	private CfgBlock source = null, sink = null;
@@ -51,7 +49,6 @@ public class MethodInfo {
 	
 	public MethodInfo(SootMethod sm, String sourceFileName) {
 		this.sootMethod = sm;
-		this.memoryModel = SootTranslationHelpers.v().getMemoryModel();
 		sink = new CfgBlock(getMethod());
 		this.sourceFileName = sourceFileName;
 
@@ -59,7 +56,7 @@ public class MethodInfo {
 		// return void.
 		if (!(sm.getReturnType() instanceof VoidType)) {
 			this.returnVariable = new Variable(returnVariableName,
-					memoryModel.lookupType(sm.getReturnType()));
+					SootTranslationHelpers.v().getMemoryModel().lookupType(sm.getReturnType()));
 		} else {
 			this.returnVariable = null;
 		}
@@ -77,12 +74,12 @@ public class MethodInfo {
 		// passed as the first parameter to the method.
 		if (!sm.isStatic()) {
 			this.thisVariable = new Variable(thisVariableName,
-					memoryModel.lookupType(sm.getDeclaringClass().getType()));
+					SootTranslationHelpers.v().getMemoryModel().lookupType(sm.getDeclaringClass().getType()));
 		}
 
 		for (int i = 0; i < sm.getParameterCount(); i++) {
 			String param_name = parameterPrefix + i;
-			parameterList.add(new Variable(param_name, memoryModel
+			parameterList.add(new Variable(param_name, SootTranslationHelpers.v().getMemoryModel()
 					.lookupType(sm.getParameterType(i))));
 
 			// assumeParameterType(id, sm.getParameterType(i));
@@ -142,7 +139,7 @@ public class MethodInfo {
 
 	private Variable createLocalVariable(Local arg0) {
 		// TODO
-		return new Variable(arg0.getName(), memoryModel.lookupType(arg0
+		return new Variable(arg0.getName(), SootTranslationHelpers.v().getMemoryModel().lookupType(arg0
 				.getType()));
 	}
 	

@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import soot.Body;
+import soot.BooleanType;
 import soot.Hierarchy;
 import soot.Immediate;
 import soot.IntType;
@@ -52,6 +53,7 @@ import soot.jimple.ThrowStmt;
 import soot.jimple.UnopExpr;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
 import soot.tagkit.Host;
+import soottocfg.soot.util.DuplicatedCatchDetection;
 import soottocfg.util.Pair;
 
 /**
@@ -64,6 +66,8 @@ public class ExceptionTransformer extends AbstractTransformer {
 	protected final SootClass exceptionClass, runtimeExceptionClass, nullPointerExceptionClass,
 			arrayIndexOutOfBoundsExceptionClass, classCastExceptionClass, errorExceptionClass, throwableClass;
 
+	private final boolean treatUncaughtExceptionsAsAssertions;
+	
 	private Body body;
 	protected Local exceptionVariable;
 
@@ -87,6 +91,11 @@ public class ExceptionTransformer extends AbstractTransformer {
 	 * 
 	 */
 	public ExceptionTransformer(NullnessAnalysis nna) {
+		this(nna, true);
+	}
+	
+	public ExceptionTransformer(NullnessAnalysis nna, boolean uncaughtAsAssertion) {
+		treatUncaughtExceptionsAsAssertions = uncaughtAsAssertion;
 		nullnessAnalysis = nna;
 		exceptionClass = Scene.v().getSootClass("java.lang.Exception");
 		throwableClass = Scene.v().getSootClass("java.lang.Throwable");
@@ -109,14 +118,17 @@ public class ExceptionTransformer extends AbstractTransformer {
 	 */
 	@Override
 	protected void internalTransform(Body b, String arg1, Map<String, String> arg2) {
+		hierarchy = Scene.v().getActiveHierarchy();
 		body = b;
 		exceptionVariable = Jimple.v().newLocal(ExceptionTransformer.exceptionLocalName, RefType.v(exceptionClass));
 		body.getLocals().add(exceptionVariable);
 
+		// TODO just a test. remove at some point.
+		DuplicatedCatchDetection xyz = new DuplicatedCatchDetection();
+		xyz.identifiedDuplicatedUnitsFromFinallyBlocks(body);
+
 		// first remove all the monitor related exceptions
 		removeMonitorTraps(body);
-
-		hierarchy = Scene.v().getActiveHierarchy();
 
 		PatchingChain<Unit> units = body.getUnits();
 		for (Unit u : units) {
@@ -125,11 +137,10 @@ public class ExceptionTransformer extends AbstractTransformer {
 
 		Set<Trap> usedTraps = new HashSet<Trap>();
 
-		
 		usedTraps.addAll(handleRuntimeException());
 		usedTraps.addAll(handleMethodCalls());
-		usedTraps.addAll(handleThrowStatements());	
-		
+		usedTraps.addAll(handleThrowStatements());
+
 		// now remove the @caughtexceptionrefs
 		Map<Unit, Unit> replacementMap = new HashMap<Unit, Unit>();
 		for (Trap t : usedTraps) {
@@ -158,8 +169,8 @@ public class ExceptionTransformer extends AbstractTransformer {
 		for (Entry<Unit, Unit> entry : replacementMap.entrySet()) {
 			List<Unit> toInsert = new LinkedList<Unit>();
 			toInsert.add(entry.getValue());
-			//after the exception is caught, set the
-			//$exception variable back to Null.
+			// after the exception is caught, set the
+			// $exception variable back to Null.
 			toInsert.add(assignStmtFor(exceptionVariable, NullConstant.v(), entry.getKey()));
 			body.getUnits().insertAfter(toInsert, entry.getKey());
 			body.getUnits().remove(entry.getKey());
@@ -170,22 +181,22 @@ public class ExceptionTransformer extends AbstractTransformer {
 		if (body.getTraps().isEmpty()) {
 			// System.err.println("OK");
 		} else {
-//			StringBuilder sb = new StringBuilder();
-//			sb.append(body.getMethod().getSignature());
-//			sb.append("\n\t");
-//			for (Trap t : body.getTraps()) {
-//				sb.append(t.getException().getName());
-//				sb.append(", ");
-//			}
-//			System.err.println(sb.toString());
+			// StringBuilder sb = new StringBuilder();
+			// sb.append(body.getMethod().getSignature());
+			// sb.append("\n\t");
+			// for (Trap t : body.getTraps()) {
+			// sb.append(t.getException().getName());
+			// sb.append(", ");
+			// }
+			// System.err.println(sb.toString());
 			// in theory, all the remaining traps should be unreachable
 			// so we can just throw them away.
 			// if the body.validate() fires an exception, its most likely
 			// a bug in our code.
-//			System.err.println(body);
-//			body.getTraps().removeAll(body.getTraps());
-			
-//			System.err.println("\t" + body.getMethod().getSignature());
+			// System.err.println(body);
+			// body.getTraps().removeAll(body.getTraps());
+
+			// System.err.println("\t" + body.getMethod().getSignature());
 		}
 		body.validate();
 	}
@@ -194,7 +205,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 		Set<Trap> usedTraps = new HashSet<Trap>();
 		// handle the runtime exceptions first.
 		for (Entry<Unit, List<Pair<Value, SootClass>>> entry : runtimeExceptions.entrySet()) {
-			Unit u = entry.getKey();			
+			Unit u = entry.getKey();
 			List<Trap> surroundingTraps = getTrapsGuardingUnit(u, body);
 			for (Pair<Value, SootClass> pair : entry.getValue()) {
 				Trap trap = null;
@@ -212,10 +223,10 @@ public class ExceptionTransformer extends AbstractTransformer {
 					handleUncaughtRuntimeException(u, pair.getFirst(), pair.getSecond());
 				}
 			}
-		}	
+		}
 		return usedTraps;
 	}
-	
+
 	private Set<Trap> handleMethodCalls() {
 		Set<Trap> usedTraps = new HashSet<Trap>();
 		// now handle method calls.
@@ -223,9 +234,9 @@ public class ExceptionTransformer extends AbstractTransformer {
 			Unit u = pair.getFirst();
 			InvokeExpr ivk = pair.getSecond();
 			List<SootClass> possibleExceptions = new LinkedList<SootClass>();
-			//first, add everything in the throws clause.
+			// first, add everything in the throws clause.
 			possibleExceptions.addAll(ivk.getMethod().getExceptions());
-			//now get all caught exceptions of type RuntimeException or Error
+			// now get all caught exceptions of type RuntimeException or Error
 			List<Trap> surroundingTraps = getTrapsGuardingUnit(u, body);
 			for (Trap t : surroundingTraps) {
 				if (hierarchy.isClassSubclassOfIncluding(t.getException(), runtimeExceptionClass)
@@ -234,19 +245,21 @@ public class ExceptionTransformer extends AbstractTransformer {
 						possibleExceptions.add(t.getException());
 					}
 				}
-				//if there is a catch block for exception or throwable add that as well.
+				// if there is a catch block for exception or throwable add that
+				// as well.
 				if (hierarchy.isClassSubclassOfIncluding(exceptionClass, t.getException())) {
 					if (!possibleExceptions.contains(t.getException())) {
 						possibleExceptions.add(t.getException());
-					}					
+					}
 				}
-				//also add the exceptions of all catch blocks that are sub-classes
-				//of what is declared in the throws clause.
+				// also add the exceptions of all catch blocks that are
+				// sub-classes
+				// of what is declared in the throws clause.
 				for (SootClass sc : ivk.getMethod().getExceptions()) {
 					if (hierarchy.isClassSubclassOfIncluding(t.getException(), sc)) {
 						if (!possibleExceptions.contains(t.getException())) {
 							possibleExceptions.add(t.getException());
-						}						
+						}
 					}
 				}
 			}
@@ -264,14 +277,14 @@ public class ExceptionTransformer extends AbstractTransformer {
 					return 0;
 				}
 			});
-			//create the exception handling statements
+			// create the exception handling statements
 			List<Unit> toInsert = new LinkedList<Unit>();
 			for (SootClass exception : possibleExceptions) {
 				Trap trap = null;
 				for (Trap t : surroundingTraps) {
-					//check if the trap is either super- or sub-class
-					//because the procedure might throw a sub type of
-					//what it declares.
+					// check if the trap is either super- or sub-class
+					// because the procedure might throw a sub type of
+					// what it declares.
 					if (hierarchy.isClassSubclassOfIncluding(exception, t.getException())) {
 						trap = t;
 						break;
@@ -280,41 +293,42 @@ public class ExceptionTransformer extends AbstractTransformer {
 				if (trap == null) {
 					Unit throwStmt = generateThrowStatement(u, exception);
 					Local l = getFreshLocal(body, IntType.v());
-					toInsert.add(assignStmtFor(l, Jimple.v().newInstanceOfExpr(exceptionVariable, exception.getType()), u));
+					toInsert.add(
+							assignStmtFor(l, Jimple.v().newInstanceOfExpr(exceptionVariable, exception.getType()), u));
 					toInsert.add(ifStmtFor(jimpleNeZero(l), throwStmt, u));
 				} else {
 					usedTraps.add(trap);
 					Unit newTarget = createNewExceptionAndGoToTrap(u, exception, trap);
 					Local l = getFreshLocal(body, IntType.v());
-					toInsert.add(assignStmtFor(l,
-							Jimple.v().newInstanceOfExpr(exceptionVariable, exception.getType()), u));
-					toInsert.add(ifStmtFor(jimpleNeZero(l), newTarget, u));					
+					toInsert.add(
+							assignStmtFor(l, Jimple.v().newInstanceOfExpr(exceptionVariable, exception.getType()), u));
+					toInsert.add(ifStmtFor(jimpleNeZero(l), newTarget, u));
 				}
 			}
-			//now insert everything after the call
+			// now insert everything after the call
 			body.getUnits().insertAfter(toInsert, u);
 		}
 		return usedTraps;
 	}
-	
+
 	private Set<Trap> handleThrowStatements() {
 		Set<Trap> usedTraps = new HashSet<Trap>();
-		//last but not least eliminate all throw statements that are caught.
+		// last but not least eliminate all throw statements that are caught.
 		Set<Unit> removeThrowStatements = new HashSet<Unit>();
 		for (Pair<Unit, Value> pair : throwStatements) {
 			Unit u = pair.getFirst();
-			//must be a RefType
-			RefType rt = (RefType)pair.getSecond().getType();
+			// must be a RefType
+			RefType rt = (RefType) pair.getSecond().getType();
 			SootClass thrownException = rt.getSootClass();
 			List<Trap> surroundingTraps = getTrapsGuardingUnit(u, body);
-			
+
 			List<SootClass> possibleExceptions = new LinkedList<SootClass>();
 			possibleExceptions.add(thrownException);
-			//TODO: maybe we should treat the case where thrownException
-			//is Throwable as a special case because then we have a 
-			//finally block.
+			// TODO: maybe we should treat the case where thrownException
+			// is Throwable as a special case because then we have a
+			// finally block.
 			for (Trap t : surroundingTraps) {
-				//find any trap that is sub- or super-class
+				// find any trap that is sub- or super-class
 				if (hierarchy.isClassSubclassOfIncluding(t.getException(), thrownException)
 						|| hierarchy.isClassSubclassOfIncluding(thrownException, t.getException())) {
 					if (!possibleExceptions.contains(t.getException())) {
@@ -336,16 +350,16 @@ public class ExceptionTransformer extends AbstractTransformer {
 					return 0;
 				}
 			});
-			//insert a jump for each possible exception.
+			// insert a jump for each possible exception.
 			List<Unit> toInsert = new LinkedList<Unit>();
 			boolean caughtThrowable = false;
-			
+
 			for (SootClass exception : possibleExceptions) {
 				Trap trap = null;
 				for (Trap t : surroundingTraps) {
-					//check if the trap is either super- or sub-class
-					//because the procedure might throw a sub type of
-					//what it declares.
+					// check if the trap is either super- or sub-class
+					// because the procedure might throw a sub type of
+					// what it declares.
 					if (hierarchy.isClassSubclassOfIncluding(exception, t.getException())) {
 						trap = t;
 						break;
@@ -358,28 +372,27 @@ public class ExceptionTransformer extends AbstractTransformer {
 					usedTraps.add(trap);
 					Unit newTarget = createNewExceptionAndGoToTrap(u, exception, trap);
 					Local l = getFreshLocal(body, IntType.v());
-					toInsert.add(assignStmtFor(l,
-							Jimple.v().newInstanceOfExpr(exceptionVariable, exception.getType()), u));
-					toInsert.add(ifStmtFor(jimpleNeZero(l), newTarget, u));					
+					toInsert.add(
+							assignStmtFor(l, Jimple.v().newInstanceOfExpr(exceptionVariable, exception.getType()), u));
+					toInsert.add(ifStmtFor(jimpleNeZero(l), newTarget, u));
 				}
-				//if we caught Throwable, we can remove the
-				//throw statement.
+				// if we caught Throwable, we can remove the
+				// throw statement.
 				if (caughtThrowable) {
 					removeThrowStatements.add(u);
 				}
- 			}
-			if (!toInsert.isEmpty()) {
-				body.getUnits().insertBefore(toInsert, u);				
 			}
-			
+			if (!toInsert.isEmpty()) {
+				body.getUnits().insertBefore(toInsert, u);
+			}
+
 		}
 		for (Unit u : removeThrowStatements) {
 			body.getUnits().remove(u);
 		}
 		return usedTraps;
 	}
-	
-	
+
 	/**
 	 * Handle an exception that has a catch block
 	 * 
@@ -432,16 +445,33 @@ public class ExceptionTransformer extends AbstractTransformer {
 	 *            The class in the throws clause
 	 */
 	protected void handleUncaughtRuntimeException(Unit u, Value v, SootClass exception) {
-		// runtime exceptions that also occur in the throws clause get re-thrown
-		List<Pair<Value, List<Unit>>> guards = constructGuardExpression(v, exception, true, u);
-		Unit throwStmt = generateThrowStatement(u, exception);
-		//TODO: put in a switch to turn uncaught runtime exceptions into assertions
-		for (Pair<Value, List<Unit>> pair : guards) {
-			List<Unit> toInsert = new LinkedList<Unit>();
-			toInsert.addAll(pair.getSecond());
-			toInsert.add(ifStmtFor(pair.getFirst(), throwStmt, u));
-			body.getUnits().insertBefore(toInsert, u);
+		// runtime exceptions that also occur in the throws clause get re-thrown		
+		if (!treatUncaughtExceptionsAsAssertions) {			
+			List<Pair<Value, List<Unit>>> guards = constructGuardExpression(v, exception, true, u);
+			Unit throwStmt = generateThrowStatement(u, exception);
+			for (Pair<Value, List<Unit>> pair : guards) {
+				List<Unit> toInsert = new LinkedList<Unit>();
+				toInsert.addAll(pair.getSecond());
+				toInsert.add(ifStmtFor(pair.getFirst(), throwStmt, u));
+				body.getUnits().insertBefore(toInsert, u);
+			}
+		} else {
+			List<Pair<Value, List<Unit>>> guards = constructGuardExpression(v, exception, false, u);
+			Local assertionLocal = null;
+			if (!guards.isEmpty()) {
+				assertionLocal = Jimple.v().newLocal("$assert_condition", BooleanType.v());
+				body.getLocals().add(assertionLocal);
+			}
+			
+			for (Pair<Value, List<Unit>> pair : guards) {
+				List<Unit> toInsert = new LinkedList<Unit>();
+				toInsert.addAll(pair.getSecond());
+				toInsert.add(Jimple.v().newAssignStmt(assertionLocal, pair.getFirst()));				
+				toInsert.add(AssertionReconstruction.v().makeAssertion(assertionLocal));
+				body.getUnits().insertBefore(toInsert, u);
+			}			
 		}
+
 	}
 
 	private Unit generateThrowStatement(Unit u, SootClass exception) {
