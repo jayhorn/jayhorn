@@ -71,14 +71,14 @@ public class BinaryExpression extends Expression {
 		sb.append(this.right);
 		sb.append(")");
 		return sb.toString();
-	}
-
+	}	
+	
 	@Override
-	public Set<Variable> getUsedVariables() {
-		Set<Variable> used = new HashSet<Variable>();
-		used.addAll(left.getUsedVariables());
-		used.addAll(right.getUsedVariables());
-		return used;
+	public Set<IdentifierExpression> getIdentifierExpressions() {
+		Set<IdentifierExpression> ret = new HashSet<IdentifierExpression>();
+		ret.addAll(left.getIdentifierExpressions());
+		ret.addAll(right.getIdentifierExpressions());
+		return ret;
 	}
 
 	@Override

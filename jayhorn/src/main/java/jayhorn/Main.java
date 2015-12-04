@@ -7,6 +7,7 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
 import jayhorn.checker.Checker;
+import jayhorn.old_inconsistency_check.InconsistencyChecker;
 import soottocfg.soot.SootToCfg;
 
 public class Main {
@@ -17,12 +18,23 @@ public class Main {
 		try {
 			// parse command-line arguments
 			parser.parseArgument(args);
-			SootToCfg soot2cfg = new SootToCfg();
-			soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath(), Options.v().getCallGraphAlgorithm());
 			
-			Checker checker = new Checker();
-			boolean result = checker.checkProgram(soot2cfg.getProgram());
-			System.out.println("checker says "+ result);
+			if ("safety".equals(Options.v().getChecker())) {
+				SootToCfg soot2cfg = new SootToCfg();
+				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath(), Options.v().getCallGraphAlgorithm());			
+				Checker checker = new Checker();
+				boolean result = checker.checkProgram(soot2cfg.getProgram());
+				System.out.println("checker says "+ result);		
+			} else if ("inconsistency".equals(Options.v().getChecker())) {
+				SootToCfg soot2cfg = new SootToCfg(false, true);
+				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath(), Options.v().getCallGraphAlgorithm());			
+				InconsistencyChecker checker = new InconsistencyChecker();
+				boolean result = checker.checkProgram(soot2cfg.getProgram());
+				System.out.println("checker says "+ result);
+			} else {
+				Log.error(String.format("Checker %s is unknown", Options.v().getChecker()) );
+			}
+			
 		} catch (CmdLineException e) {
 			Log.error(e.toString());
 			Log.error("java -jar joogie.jar [options...] arguments...");

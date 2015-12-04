@@ -9,6 +9,7 @@ import java.util.Set;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
 
 /**
  * @author schaef
@@ -48,10 +49,10 @@ public class AssignStatement extends Statement {
 	}
 
 	@Override
-	public Set<Variable> getUsedVariables() {
-		Set<Variable> used = new HashSet<Variable>();
-		used.addAll(left.getUsedVariables());
-		used.addAll(right.getUsedVariables());
+	public Set<IdentifierExpression> getIdentifierExpressions() {
+		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
+		used.addAll(left.getIdentifierExpressions());
+		used.addAll(right.getIdentifierExpressions());
 		return used;
 	}
 

@@ -47,11 +47,10 @@ public class BooleanLiteral extends Expression {
 	}
 	
 	@Override
-	public Set<Variable> getUsedVariables() {
-		Set<Variable> used = new HashSet<Variable>();
-		return used;
+	public Set<IdentifierExpression> getIdentifierExpressions() {
+		return new HashSet<IdentifierExpression>();
 	}
-
+	
 	@Override
 	public Set<Variable> getLVariables() {
 		Set<Variable> used = new HashSet<Variable>();

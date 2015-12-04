@@ -56,11 +56,10 @@ public class IntegerLiteral extends Expression {
 	}	
 	
 	@Override
-	public Set<Variable> getUsedVariables() {
-		Set<Variable> used = new HashSet<Variable>();
-		return used;
+	public Set<IdentifierExpression> getIdentifierExpressions() {
+		return new HashSet<IdentifierExpression>();
 	}
-
+	
 	@Override
 	public Set<Variable> getLVariables() {
 		//because this can't happen on the left.

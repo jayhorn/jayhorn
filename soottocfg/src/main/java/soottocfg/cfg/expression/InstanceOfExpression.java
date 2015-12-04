@@ -52,11 +52,8 @@ public class InstanceOfExpression extends Expression {
 	}
 	
 	@Override
-	public Set<Variable> getUsedVariables() {
-		Set<Variable> used = new HashSet<Variable>();
-		used.addAll(expression.getUsedVariables());
-		used.add(typeVariable);
-		return used;
+	public Set<IdentifierExpression> getIdentifierExpressions() {
+		return expression.getIdentifierExpressions();
 	}
 	
 	@Override

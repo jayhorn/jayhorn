@@ -83,7 +83,7 @@ public class OptimizationTest {
 				String expected = "Block2:\n(ln 0)	rval := false\n	return\n";
 				Assert.assertEquals(expected, b.toString());
 			}	else {
-				Assert.fail("Shouldn't be an extra block here");
+				Assert.fail("Shouldn't be an extra block here "+m.vertexSet().size());
 			}
 		}		
 		System.out.println("success at ie_dce_cp");

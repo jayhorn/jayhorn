@@ -49,4 +49,8 @@ public class Program {
 		return entryPoints.toArray(new Method[entryPoints.size()]);
 	}
 	
+	public Method[] getMethods() {
+		return methods.values().toArray(new Method[methods.size()]);
+	}
+	
 }

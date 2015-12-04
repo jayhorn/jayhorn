@@ -42,6 +42,15 @@ public class Options {
 		this.androidStubPath = path;
 	}
 	
+	/**
+	 * JAR file
+	 */
+	@Option(name = "-checker", usage = "Select a checker [inconsistency, or safety]", required = false)
+	private String checker = "safety";
+	public String getChecker() {
+		return checker;
+	}
+	
 	
 	/**
 	 * JAR file
@@ -95,6 +104,13 @@ public class Options {
 	 */
 	@Option(name = "-cp", usage = "Classpath")
 	private String classpath;
+
+	@Option(name = "-t", usage = "Timeout per procedure in seconds. Use 0 for no timeout. (Default is 0)")
+	private int timeout=0;
+	
+	public int getTimeout() {
+		return this.timeout;
+	}
 
 
 	/**

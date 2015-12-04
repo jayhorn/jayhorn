@@ -13,6 +13,7 @@ import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.util.UnreachableNodeRemover;
 import soottocfg.util.SetOperations;
 
 public class DeadCodeElimination extends CfgUpdater {
@@ -28,8 +29,9 @@ public class DeadCodeElimination extends CfgUpdater {
 		changed = false;
 		for(CfgBlock block : currentMethod.vertexSet()){
 			processCfgBlock(block);
-		}
-		currentMethod.pruneUnreachableNodes();
+		}		
+		UnreachableNodeRemover<CfgBlock, CfgEdge> remover = new UnreachableNodeRemover<CfgBlock, CfgEdge>(currentMethod, currentMethod.getSource(), currentMethod.getSink());
+		remover.pruneUnreachableNodes();		
 		blockLiveVars = null;
 		return changed;
 	}

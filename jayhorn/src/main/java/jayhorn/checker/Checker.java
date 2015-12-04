@@ -129,7 +129,7 @@ public class Checker {
                     exitPred.predicate.mkExpr(exitVars.toArray(new ProverExpr[0]));
 
                 for (CfgEdge edge : method.outgoingEdgesOf(current)) {
-                	CfgBlock succ = edge.getTarget();
+                	CfgBlock succ = method.getEdgeTarget(edge);
                     if (!todo.contains(succ) && !done.contains(succ))
                         todo.add(succ);
 
@@ -354,8 +354,8 @@ public class Checker {
         } else if (e instanceof IteExpression) {
             final IteExpression ie = (IteExpression)e;
             final ProverExpr condExpr = exprToProverExpr(p, ie.getCondition(), varMap);
-            final ProverExpr thenExpr = exprToProverExpr(p, ie.getThen(), varMap);
-            final ProverExpr elseExpr = exprToProverExpr(p, ie.getElse(), varMap);
+            final ProverExpr thenExpr = exprToProverExpr(p, ie.getThenExpr(), varMap);
+            final ProverExpr elseExpr = exprToProverExpr(p, ie.getElseExpr(), varMap);
             return p.mkIte(condExpr, thenExpr, elseExpr);
         }
         throw new RuntimeException("Expression type " + e + " not implemented!");

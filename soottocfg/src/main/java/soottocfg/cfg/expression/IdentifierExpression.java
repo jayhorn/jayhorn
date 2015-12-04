@@ -20,12 +20,27 @@ public class IdentifierExpression extends Expression {
 	 */
 	private static final long serialVersionUID = 4897450861767209309L;
 	private final Variable variable;
+	private Integer ssaIncarnation = -1;
 	
 	/**
 	 * 
 	 */
 	public IdentifierExpression(Variable v) {
 		this.variable = v;
+	}
+
+	public IdentifierExpression(Variable v, int incarnation) {
+		this.variable = v;
+		this.ssaIncarnation = incarnation;
+	}
+
+	
+	public Integer getIncarnation() {
+		return ssaIncarnation;
+	}
+	
+	public void setIncarnation(Integer inc) {
+		ssaIncarnation = inc;
 	}
 
 	@Override
@@ -40,12 +55,13 @@ public class IdentifierExpression extends Expression {
 	}	
 	
 	@Override
-	public Set<Variable> getUsedVariables() {
-		Set<Variable> used = new HashSet<Variable>();
-		used.add(variable);
-		return used;
+	public Set<IdentifierExpression> getIdentifierExpressions() {
+		Set<IdentifierExpression> ret = new HashSet<IdentifierExpression>();
+		ret.add(this);
+		return ret;
 	}
-	
+
+		
 	@Override
 	public Set<Variable> getLVariables() {
 		return getUsedVariables();

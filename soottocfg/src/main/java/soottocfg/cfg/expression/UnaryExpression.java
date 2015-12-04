@@ -66,10 +66,8 @@ public class UnaryExpression extends Expression {
 	}
 
 	@Override
-	public Set<Variable> getUsedVariables() {
-		Set<Variable> used = new HashSet<Variable>();
-		used.addAll(expression.getUsedVariables());
-		return used;
+	public Set<IdentifierExpression> getIdentifierExpressions() {
+		return expression.getIdentifierExpressions();
 	}
 
 	@Override

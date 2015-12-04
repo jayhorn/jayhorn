@@ -440,16 +440,25 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 			if (call.getMethod().getName().equals("assertTrue")) {
 				Preconditions.checkArgument(optionalLhs == null);
-				call.getArg(0).apply(valueSwitch);
+				int idx = 0;
+				if (call.getArgCount()>1) {
+					idx = 1;
+				}
+				call.getArg(idx).apply(valueSwitch);
 				Expression guard = valueSwitch.popExpression();
 				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u), guard));
 				return true;
 			}
 			if (call.getMethod().getName().equals("assertEquals")) {
+				int idx = 0;
+				if (call.getArgCount()>2) {
+					idx = 1;
+				}
+
 				Preconditions.checkArgument(optionalLhs == null);
-				call.getArg(0).apply(valueSwitch);
+				call.getArg(idx).apply(valueSwitch);
 				Expression left = valueSwitch.popExpression();
-				call.getArg(1).apply(valueSwitch);
+				call.getArg(idx+1).apply(valueSwitch);
 				Expression right = valueSwitch.popExpression();
 				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u), new BinaryExpression(BinaryOperator.Eq, left, right)));
 				return true;

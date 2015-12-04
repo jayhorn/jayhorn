@@ -60,8 +60,6 @@ public class DuplicatedCatchDetection {
 	public Map<Unit, Set<Unit>> identifiedDuplicatedUnitsFromFinallyBlocks(Body body) {
 		Hierarchy hierarchy = Scene.v().getActiveHierarchy();
 		SootClass throwableClass = Scene.v().getSootClass("java.lang.Throwable");
-
-		System.err.println(body);
 		
 		Map<Trap, List<Unit>> catchBlocks = new HashMap<Trap, List<Unit>>();
 		// first collect all monitor traps.
@@ -97,18 +95,18 @@ public class DuplicatedCatchDetection {
 					List<Unit> finallyCopy = new LinkedList<Unit>(entry.getValue());
 					Map<Unit, Unit> dupl = findDuplicates(graph, u, finallyCopy);
 					if (dupl.size() > 0) {
-						StringBuilder sb = new StringBuilder();						
+//						StringBuilder sb = new StringBuilder();						
 						for (Entry<Unit, Unit> en : dupl.entrySet()) {
 							if (!duplicatedUnits.containsKey(en.getKey())) {
 								duplicatedUnits.put(en.getKey(), new HashSet<Unit>());
 							}
 							duplicatedUnits.get(en.getKey()).add(en.getValue());
-							sb.append(en.getKey() +
-							 "\t"+en.getValue());
-							sb.append("\n");
+//							sb.append(en.getKey() +
+//							 "\t"+en.getValue());
+//							sb.append("\n");
 						}
-						sb.append("***\n");
-						System.err.println(sb.toString());
+//						sb.append("***\n");
+//						System.err.println(sb.toString());
 					}
 				}
 			}

@@ -41,17 +41,5 @@ public class CfgEdge extends DefaultEdge {
 		return label;
 	}
 
-	public CfgBlock getSource() {
-		return (CfgBlock) super.getSource();
-	}
 
-	/**
-	 * Retrieves the target of this edge. This is protected, for use by
-	 * subclasses only (e.g. for implementing toString).
-	 *
-	 * @return target of this edge
-	 */
-	public CfgBlock getTarget() {
-		return (CfgBlock) super.getTarget();
-	}
 }

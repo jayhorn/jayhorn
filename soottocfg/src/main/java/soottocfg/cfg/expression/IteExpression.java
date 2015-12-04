@@ -53,12 +53,12 @@ public class IteExpression extends Expression {
 	}	
 
 	@Override
-	public Set<Variable> getUsedVariables() {
-		Set<Variable> used = new HashSet<Variable>();
-		used.addAll(condition.getUsedVariables());
-		used.addAll(thenExpr.getUsedVariables());
-		used.addAll(elseExpr.getUsedVariables());
-		return used;
+	public Set<IdentifierExpression> getIdentifierExpressions() {
+		Set<IdentifierExpression> ret = new HashSet<IdentifierExpression>();
+		ret.addAll(condition.getIdentifierExpressions());
+		ret.addAll(thenExpr.getIdentifierExpressions());
+		ret.addAll(elseExpr.getIdentifierExpressions());
+		return ret;
 	}
 
 	@Override
@@ -67,15 +67,7 @@ public class IteExpression extends Expression {
 		Set<Variable> used = new HashSet<Variable>();
 		return used;
 	}
-	
-    public Expression getThen() {
-        return thenExpr;
-    }
-	
-    public Expression getElse() {
-        return elseExpr;
-    }
-	
+		
 	@Override
 	public Type getType() {
 		assert (thenExpr.getType().equals(elseExpr.getType()));

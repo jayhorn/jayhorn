@@ -4,6 +4,7 @@
 package soottocfg.cfg.expression;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 import soottocfg.cfg.Node;
@@ -24,8 +25,17 @@ public abstract class Expression implements Node, Serializable {
 	 */
 	private static final long serialVersionUID = 6933938841592139875L;
 
-	public abstract Set<Variable> getUsedVariables();
+	public abstract Set<IdentifierExpression> getIdentifierExpressions();
 	
+	public Set<Variable> getUsedVariables() {
+		Set<Variable> res = new HashSet<Variable>();
+		for (IdentifierExpression id : this.getIdentifierExpressions()) {
+			res.add(id.getVariable());
+		}
+		return res;
+	}
+	
+	//TODO: remove?
 	public abstract Set<Variable> getLVariables();
 	
 	public abstract Type getType();
@@ -41,7 +51,7 @@ public abstract class Expression implements Node, Serializable {
 		} else if (this.getType()==BoolType.instance()) {
 			return this;
 		} else {
-			throw new RuntimeException("Cannot cast "+ this + " to Boolean.");
+			throw new RuntimeException("Cannot cast "+ this + " of type"+this.getType()+" to Boolean.");
 		}
 	}
 		

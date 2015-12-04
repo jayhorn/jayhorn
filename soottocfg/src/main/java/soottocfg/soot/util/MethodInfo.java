@@ -103,7 +103,9 @@ public class MethodInfo {
 		locals.addAll(this.localsMap.values());
 		locals.addAll(this.freshLocals);
 		m.initialize(this.thisVariable, this.returnVariable, this.exceptionalReturnVariable, this.parameterList, locals, source, sootMethod.isEntryMethod());
-		
+		CfgBlock uniqueSink = m.findOrCreateUniqueSink();
+		assert (sink == uniqueSink);
+		sink = uniqueSink;
 	}
 
 	public String getSourceFileName() {

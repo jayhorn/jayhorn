@@ -89,7 +89,7 @@ public class CfgBlock implements Node, Serializable {
 					sb.append(edge.getLabel().get());
 					sb.append(": ");
 				}
-				sb.append(edge.getTarget().getLabel());
+				sb.append(method.getEdgeTarget(edge).getLabel());
 				sb.append("\n");
 			}
 		} else {
@@ -167,7 +167,7 @@ public class CfgBlock implements Node, Serializable {
 			out.addAll(getMethod().getOutParams());
 		} else {
 			for (CfgEdge edge : this.method.outgoingEdgesOf(this)) {
-				out.addAll(in.get(edge.getTarget()));
+				out.addAll(in.get(method.getEdgeTarget(edge)));
 			}
 		}
 		return out;

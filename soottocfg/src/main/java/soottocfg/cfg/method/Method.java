@@ -7,12 +7,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
-import org.jgrapht.alg.ConnectivityInspector;
 import org.jgrapht.graph.AbstractBaseGraph;
 import org.jgrapht.graph.ClassBasedEdgeFactory;
 
@@ -40,8 +40,8 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	private List<Variable> parameterList;
 	private Collection<Variable> locals;
 	private Collection<Variable> modifiedGlobals;
-	private CfgBlock source;
-	private boolean isEntry = false;	
+	private CfgBlock source, sink;
+	private boolean isProgramEntry = false;	
 	
 	public Method(String uniqueName) {
 		super(new ClassBasedEdgeFactory<CfgBlock, CfgEdge>(CfgEdge.class), true, true);
@@ -53,6 +53,33 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		return this.methodName;
 	}
 
+	/**
+	 * Returns the set of predecessor vertices of b
+	 * @param b
+	 * @return
+	 */
+	public Set<CfgBlock> getPredsOf(CfgBlock b) {
+		Set<CfgBlock> result = new LinkedHashSet<CfgBlock>();
+		for (CfgEdge e : incomingEdgesOf(b)) {
+			result.add(getEdgeSource(e));
+		}
+		return result;
+	}
+
+	/**
+	 * Returns the set of successor vertices of b
+	 * @param b
+	 * @return
+	 */
+	public Set<CfgBlock> getSuccsOf(CfgBlock b) {
+		Set<CfgBlock> result = new LinkedHashSet<CfgBlock>();
+		for (CfgEdge e : outgoingEdgesOf(b)) {
+			result.add(getEdgeTarget(e));
+		}
+		return result;
+	}
+
+	
 	public void initialize(Variable thisVariable, Variable returnVariable, Variable exceptionalReturnVariable,
 			List<Variable> parameterList, Collection<Variable> locals, CfgBlock source, boolean isEntryPoint) {
 		this.thisVariable = thisVariable;
@@ -61,9 +88,10 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		this.parameterList = parameterList;
 		this.locals = locals;
 		this.source = source;
-		this.isEntry = isEntryPoint;
+		this.isProgramEntry = isEntryPoint;
 
 		// compute the modifies clause.
+		//TODO: this has to be done transitive at some point!
 		this.modifiedGlobals = new HashSet<Variable>();
 		this.modifiedGlobals.addAll(this.getLVariables());
 		this.modifiedGlobals.removeAll(locals);
@@ -84,41 +112,49 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		edge.setLabel(label);
 	}
 	
-	/**
-	 * Removes all nodes and edges from the control-flow graph
-	 * that are not connected to the source.
-	 */
-	public void pruneUnreachableNodes() {
-		ConnectivityInspector<CfgBlock, CfgEdge> insp = new ConnectivityInspector<CfgBlock, CfgEdge>(this);
-		//collect all unreachable nodes.
-		Set<CfgBlock> verticesToRemove = new HashSet<CfgBlock>(this.vertexSet());
-		verticesToRemove.removeAll(insp.connectedSetOf(source));
-		//collect all unreachable edges
-		Set<CfgEdge> egdesToRemove = new HashSet<CfgEdge>();
-		for (CfgBlock b : verticesToRemove) {
-			for (CfgEdge edge : incomingEdgesOf(b)) {
-				if (verticesToRemove.contains(edge.getSource())) {
-					egdesToRemove.add(edge);
-				}
-			}
-			for (CfgEdge edge : outgoingEdgesOf(b)) {
-				if (verticesToRemove.contains(edge.getTarget())) {
-					egdesToRemove.add(edge);
-				}
-			}
-		}
-		this.removeAllVertices(verticesToRemove);
-		this.removeAllEdges(egdesToRemove);
-	}
-	
 	public boolean isEntryPoint() {
-		return this.isEntry;
+		return this.isProgramEntry;
 	}
 
 	public CfgBlock getSource() {
 		return this.source;
 	}
 
+	public CfgBlock getSink() {
+		return this.sink;
+	}
+
+	/**
+	 * Checks if the graph has a unique sink vertex and returns it.
+	 * If more than one such vertex exists, it collects all sink vertices 
+	 * and connects them to a new unique sink. 
+	 * 
+	 * @return The unique sink vertex of the graph.
+	 */
+	public CfgBlock findOrCreateUniqueSink() {
+		if (sink==null) {
+			Set<CfgBlock> currentSinks = new HashSet<CfgBlock>();
+			for (CfgBlock b : this.vertexSet()) {
+				if (this.outDegreeOf(b)==0) {
+					currentSinks.add(b);
+				}
+			}
+			if (currentSinks.isEmpty()) {
+				System.err.println("No exit for " + this.methodName);
+				sink = null;
+			} else if (currentSinks.size()==1) {
+				sink = currentSinks.iterator().next();
+			} else {
+				CfgBlock newSink = new CfgBlock(this);
+				for (CfgBlock b : currentSinks) {
+					this.addEdge(b, newSink);
+				}
+				sink = newSink;
+			}
+		}
+		return sink;
+	}
+	
 	public Set<CfgBlock> getExitBlocks(){
 		Set<CfgBlock> ret = new HashSet<CfgBlock>();
 		for (CfgBlock b : this.vertexSet()) {
@@ -261,7 +297,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 					//but it should work
 					Set<CfgBlock> newDom = new HashSet<CfgBlock>(cfg);
 					for(CfgEdge edge : this.incomingEdgesOf(b)){
-						CfgBlock inBlock = edge.getSource();
+						CfgBlock inBlock = getEdgeSource(edge);
 						newDom.retainAll(dominators.get(inBlock));
 					}
 					//every node dominates itself

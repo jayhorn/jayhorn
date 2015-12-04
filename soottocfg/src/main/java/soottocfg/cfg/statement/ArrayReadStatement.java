@@ -53,20 +53,18 @@ public class ArrayReadStatement extends Statement {
 	public Expression getLeftValue() {
 		return this.left;
 	}	
-	
-	/* (non-Javadoc)
-	 * @see soottocfg.cfg.statement.Statement#getUsedVariables()
-	 */
+
 	@Override
-	public Set<Variable> getUsedVariables() {
-		Set<Variable> used = new HashSet<Variable>();
-		used.addAll(base.getUsedVariables());
+	public Set<IdentifierExpression> getIdentifierExpressions() {
+		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
+		used.addAll(base.getIdentifierExpressions());
 		for (Expression e : indices) {
-			used.addAll(e.getUsedVariables());
+			used.addAll(e.getIdentifierExpressions());
 		}
-		used.add(left.getVariable());
+		used.add(left);
 		return used;
 	}
+
 
 	/* (non-Javadoc)
 	 * @see soottocfg.cfg.statement.Statement#getLVariables()

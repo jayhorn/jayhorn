@@ -11,6 +11,7 @@ import java.util.Set;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
 
 /**
  * @author schaef
@@ -56,17 +57,15 @@ public class ArrayStoreStatement extends Statement {
 		return this.value;
 	}
 
-	/* (non-Javadoc)
-	 * @see soottocfg.cfg.statement.Statement#getUsedVariables()
-	 */
+	
 	@Override
-	public Set<Variable> getUsedVariables() {
-		Set<Variable> used = new HashSet<Variable>();
-		used.addAll(base.getUsedVariables());
+	public Set<IdentifierExpression> getIdentifierExpressions() {
+		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
+		used.addAll(base.getIdentifierExpressions());
 		for (Expression e : indices) {
-			used.addAll(e.getUsedVariables());
+			used.addAll(e.getIdentifierExpressions());
 		}
-		used.addAll(value.getUsedVariables());
+		used.addAll(value.getIdentifierExpressions());
 		return used;
 	}
 

@@ -9,6 +9,7 @@ import java.util.Set;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.type.BoolType;
 
 /**
@@ -45,9 +46,9 @@ public class AssumeStatement extends Statement {
 	}
 	
 	@Override
-	public Set<Variable> getUsedVariables() {
-		Set<Variable> used = new HashSet<Variable>();
-		used.addAll(expression.getUsedVariables());
+	public Set<IdentifierExpression> getIdentifierExpressions() {
+		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
+		used.addAll(expression.getIdentifierExpressions());
 		return used;
 	}
 	

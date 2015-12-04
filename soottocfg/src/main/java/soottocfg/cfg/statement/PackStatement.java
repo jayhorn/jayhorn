@@ -40,14 +40,12 @@ public class PackStatement extends Statement {
 		assert(c.getAssociatedFields().length==right.size());
 	}
 
-	/* (non-Javadoc)
-	 * @see soottocfg.cfg.statement.Statement#getUsedVariables()
-	 */
+	
 	@Override
-	public Set<Variable> getUsedVariables() {
-		Set<Variable> ret = new HashSet<Variable>();
-		ret.add(object.getVariable());
-		return ret;
+	public Set<IdentifierExpression> getIdentifierExpressions() {
+		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
+		used.add(object);
+		return used;
 	}
 
 	/* (non-Javadoc)

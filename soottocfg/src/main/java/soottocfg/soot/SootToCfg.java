@@ -35,8 +35,23 @@ public class SootToCfg {
 
 	private boolean debug = true;
 	
-	public boolean resolveVirtualCalls = true;
-	public boolean createAssertionsForUncaughtExceptions = false;
+	private final boolean resolveVirtualCalls;
+	private final boolean createAssertionsForUncaughtExceptions;
+	
+	public SootToCfg() {
+		//Default
+		resolveVirtualCalls = true;
+		createAssertionsForUncaughtExceptions = false;
+	}
+	
+	public SootToCfg(boolean resolveVCalls, boolean excAsAssert) {
+		resolveVirtualCalls = resolveVCalls;
+		createAssertionsForUncaughtExceptions = excAsAssert;
+	}
+	
+	public void run(String input, String classPath) {
+		run(input, classPath, CallgraphAlgorithm.None);
+	}
 	
 	/**
 	 * Run Soot and translate classes into Boogie/Horn
@@ -100,7 +115,7 @@ public class SootToCfg {
 
 	private void processSootMethod(SootMethod sm) {
 		if (sm.isConcrete()) {
-		System.out.println("Processing method: " + sm);
+//		System.out.println("Processing method: " + sm);
 			//TODO
 //			if (!sm.getSignature().equals("<org.apache.tools.ant.taskdefs.condition.Socket: boolean eval()>")) {
 //				return;
@@ -131,7 +146,7 @@ public class SootToCfg {
 //			System.out.println("adding method: " + m.getMethodName());
 			getProgram().addEntryPoint(m);
 		}
-		System.out.println(m.toString());
+//		System.out.println(m.toString());
 	}
 
 	private void preProcessBody(Body body) {

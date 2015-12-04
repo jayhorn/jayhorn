@@ -4,11 +4,13 @@
 package soottocfg.cfg.statement;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 import soottocfg.cfg.Node;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
+import soottocfg.cfg.expression.IdentifierExpression;
 
 /**
  * @author schaef
@@ -31,8 +33,16 @@ public abstract class Statement implements Node, Serializable {
 		this.sourceLocation = loc;
 
 	}
-
-	public abstract Set<Variable> getUsedVariables();
+	
+	public abstract Set<IdentifierExpression> getIdentifierExpressions();
+	
+	public Set<Variable> getUsedVariables() {
+			Set<Variable> res = new HashSet<Variable>();
+			for (IdentifierExpression id : this.getIdentifierExpressions()) {
+				res.add(id.getVariable());
+			}
+			return res;
+	}
 	
 	public abstract Set<Variable> getLVariables();
 	

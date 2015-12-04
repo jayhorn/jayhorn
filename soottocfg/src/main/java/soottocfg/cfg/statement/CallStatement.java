@@ -10,6 +10,7 @@ import java.util.Set;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.method.Method;
 
 /**
@@ -71,13 +72,13 @@ public class CallStatement extends Statement {
 	}
 
 	@Override
-	public Set<Variable> getUsedVariables() {
-		Set<Variable> used = new HashSet<Variable>();
+	public Set<IdentifierExpression> getIdentifierExpressions() {
+		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
 		for (Expression e : arguments) {
-			used.addAll(e.getUsedVariables());
+			used.addAll(e.getIdentifierExpressions());
 		}
 		for (Expression e : receiver) {
-			used.addAll(e.getUsedVariables());
+			used.addAll(e.getIdentifierExpressions());
 		}
 		return used;
 	}
