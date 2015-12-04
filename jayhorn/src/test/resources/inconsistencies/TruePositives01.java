@@ -29,7 +29,7 @@ public class TruePositives01 {
 
 	public int infeasible0(int[] arr) {
 		int i = arr.length;
-		arr[3]=3;
+//		arr[3]=3;
 		return arr[i]; // INFEASIBLE
 	}
 
