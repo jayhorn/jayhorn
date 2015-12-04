@@ -14,6 +14,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.google.common.base.Preconditions;
+
 import jayhorn.Options;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverFactory;
@@ -43,6 +45,7 @@ public class InconsistencyChecker {
 			executor = Executors.newSingleThreadExecutor();
 			for (Method method : program.getMethods()) {
 				Prover prover = factory.spawn();
+				Preconditions.checkArgument(prover!=null, "Failed to initialize prover.");
 				prover.setHornLogic(false);
 
 				Set<CfgBlock> inconsistencies = new HashSet<CfgBlock>();

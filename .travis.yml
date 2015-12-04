@@ -9,6 +9,7 @@ before_install:
    - "export LD_LIBRARY_PATH=jayhorn/jayhorn/native_lib:$LD_LIBRARY_PATH"
 
 script:
+   - export LD_LIBRARY_PATH=jayhorn/jayhorn/native_lib:$LD_LIBRARY_PATH
    - gradle check
 
 after_success:
