@@ -47,6 +47,9 @@ public abstract class Statement implements Node, Serializable {
 	public abstract Set<Variable> getLVariables();
 	
 	public int getJavaSourceLine() {
+		if (sourceLocation==null) {
+			return -1;
+		}
 		return this.sourceLocation.getLineNumber();
 	}
 }

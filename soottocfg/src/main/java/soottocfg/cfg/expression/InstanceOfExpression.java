@@ -6,8 +6,11 @@ package soottocfg.cfg.expression;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
+
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.type.IntType;
+import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 
 /**
@@ -36,6 +39,7 @@ public class InstanceOfExpression extends Expression {
 	 * 
 	 */
 	public InstanceOfExpression(Expression expr, Variable typeVar) {
+		Preconditions.checkArgument(expr.getType() instanceof ReferenceType, "Types don't match: "+ expr.getType() + " and ReferenceType");
 		this.expression = expr;
 		this.typeVariable = typeVar;
 	}

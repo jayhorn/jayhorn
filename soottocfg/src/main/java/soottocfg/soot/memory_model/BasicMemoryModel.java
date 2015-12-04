@@ -30,6 +30,7 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.statement.AssumeStatement;
+import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.ClassConstant;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.MapType;
@@ -95,7 +96,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Expression mkNewArrayExpr(NewArrayExpr arg0) {
 		// TODO Auto-generated method stub
 		return new IdentifierExpression(
-				SootTranslationHelpers.v().getProgram().loopupGlobalVariable("TODO", IntType.instance()));
+				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", lookupType(arg0.getType())));
 	}
 
 	/*
@@ -109,7 +110,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Expression mkNewMultiArrayExpr(NewMultiArrayExpr arg0) {
 		// TODO Auto-generated method stub
 		return new IdentifierExpression(
-				SootTranslationHelpers.v().getProgram().loopupGlobalVariable("TODO", IntType.instance()));
+				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", lookupType(arg0.getType())));
 	}
 
 	/*
@@ -123,7 +124,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Expression mkArrayRefExpr(ArrayRef arg0) {
 		// TODO Auto-generated method stub
 		return new IdentifierExpression(
-				SootTranslationHelpers.v().getProgram().loopupGlobalVariable("TODO", IntType.instance()));
+				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));
 	}
 
 	/*
@@ -135,7 +136,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Expression mkArrayLengthExpr(Value arg0) {
 		// TODO Auto-generated method stub
 		return new IdentifierExpression(
-				SootTranslationHelpers.v().getProgram().loopupGlobalVariable("TODO", IntType.instance()));
+				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));
 	}
 
 	/*
@@ -147,7 +148,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Expression mkStringLengthExpr(Value arg0) {
 		// TODO Auto-generated method stub
 		return new IdentifierExpression(
-				SootTranslationHelpers.v().getProgram().loopupGlobalVariable("TODO", IntType.instance()));
+				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));
 	}
 
 	protected Variable lookupField(SootField field) {
@@ -218,9 +219,8 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Type lookupType(soot.Type t) {
 		if (!types.containsKey(t)) {
 			Type type = null;
-			if (t instanceof soot.BooleanType) {
-				System.err.println("Warning: type " + t + " is unknown, assuming int");
-				type = IntType.instance();
+			if (t instanceof soot.BooleanType) {				
+				type = BoolType.instance();
 			} else if (t instanceof soot.ByteType) {
 				System.err.println("Warning: type " + t + " is unknown, assuming int");
 				type = IntType.instance();

@@ -3,6 +3,10 @@
  */
 package jayhorn.old_inconsistency_check;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -13,8 +17,8 @@ import java.util.concurrent.TimeoutException;
 import jayhorn.Options;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverFactory;
-import jayhorn.solver.princess.PrincessProverFactory;
 import soottocfg.cfg.Program;
+import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 
 /**
@@ -23,23 +27,27 @@ import soottocfg.cfg.method.Method;
  */
 public class InconsistencyChecker {
 
-	private final ProverFactory factory = new PrincessProverFactory();
+	private final ProverFactory factory;
 
 	/**
 	 * 
 	 */
-	public InconsistencyChecker() {
-		// TODO Auto-generated constructor stub
+	public InconsistencyChecker(ProverFactory f) {
+		factory = f;
 	}
 
-	public boolean checkProgram(Program program) {
-		ExecutorService executor = null;
+	public Map<String, Set<CfgBlock>> checkProgram(Program program) {
+		Map<String, Set<CfgBlock>> result = new HashMap<String, Set<CfgBlock>>();
+		ExecutorService executor = null;		
 		try {
 			executor = Executors.newSingleThreadExecutor();
 			for (Method method : program.getMethods()) {
 				Prover prover = factory.spawn();
 				prover.setHornLogic(false);
 
+				Set<CfgBlock> inconsistencies = new HashSet<CfgBlock>();
+				result.put(method.getMethodName(), inconsistencies);
+				
 				InconsistencyThread thread = new InconsistencyThread(program, method, prover);
 				final Future<?> future = executor.submit(thread);
 				try {
@@ -48,6 +56,7 @@ public class InconsistencyChecker {
 					} else {
 						future.get(Options.v().getTimeout(), TimeUnit.SECONDS);
 					}
+					inconsistencies.addAll(thread.getInconsistentBlocks());
 				} catch (TimeoutException e) {
 
 				} catch (InterruptedException e) {
@@ -76,7 +85,7 @@ public class InconsistencyChecker {
 			}
 			
 		}
-		return true;
+		return result;
 	}
 
 }

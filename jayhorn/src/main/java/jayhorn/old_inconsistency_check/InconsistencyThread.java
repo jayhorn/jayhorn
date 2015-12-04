@@ -55,6 +55,12 @@ public class InconsistencyThread implements Runnable {
 	private final Map<Variable, Map<Integer, ProverExpr>> ssaVariableMap = new HashMap<Variable, Map<Integer, ProverExpr>>();
 	private final Map<CfgBlock, ProverExpr> blockVars = new LinkedHashMap<CfgBlock, ProverExpr>();
 
+	private final Set<CfgBlock> inconsistentBlocks = new HashSet<CfgBlock>(); 
+	
+	public Set<CfgBlock> getInconsistentBlocks() {
+		return this.inconsistentBlocks;
+	}
+	
 	/**
 	 * 
 	 */
@@ -70,6 +76,8 @@ public class InconsistencyThread implements Runnable {
 	 */
 	@Override
 	public void run() {
+		inconsistentBlocks.clear();
+		
 		if (method.vertexSet().isEmpty()) {
 			System.out.println("Nothing to do for " + method.getMethodName());
 			return;
@@ -87,37 +95,48 @@ public class InconsistencyThread implements Runnable {
 		System.out.println(method);
 		createVerificationCondition();
 
+		Set<ProverExpr> enablingClause = new HashSet<ProverExpr>(); 
 		Map<ProverExpr, CfgBlock> blocks2cover = new HashMap<ProverExpr, CfgBlock>();
 		for (Entry<CfgBlock, ProverExpr> entry : blockVars.entrySet()) {
 			blocks2cover.put(entry.getValue(), entry.getKey());
+			enablingClause.add(entry.getValue());
 		}
 		Set<CfgBlock> covered = new HashSet<CfgBlock>();
 
 		ProverResult result = prover.checkSat(true);
-
-		Set<CfgBlock> blocksOnPath = new HashSet<CfgBlock>(); 
+//		prover.push();
+		 
 		while (result == ProverResult.Sat) {
+//			prover.pop();
 			Set<ProverExpr> conj = new HashSet<ProverExpr>();
 			System.err.print("Path containing ");
 			for (Entry<ProverExpr, CfgBlock> entry : blocks2cover.entrySet()) {
 				if (prover.evaluate(entry.getKey()).getBooleanLiteralValue()) {
 					conj.add(entry.getKey());
-					blocksOnPath.add(entry.getValue());
+					covered.add(entry.getValue());	
+					enablingClause.remove(entry.getKey());
 					System.err.print(entry.getValue().getLabel() + " ");
 				} else {
 					conj.add(prover.mkNot(entry.getKey()));
 				}
 			}
 			System.err.println(".");
-			covered.addAll(blocksOnPath);
+//			if (enablingClause.isEmpty()) break;
 
+//			prover.push();
+//			ProverExpr enabling = prover.mkOr(enablingClause.toArray(new ProverExpr[enablingClause.size()]));
+//			prover.addAssertion(enabling);
 			ProverExpr blocking = prover.mkNot(prover.mkAnd(conj.toArray(new ProverExpr[conj.size()])));
 			prover.addAssertion(blocking);
 			result = prover.checkSat(true);
 		}
+//		prover.pop();
 
 		Set<CfgBlock> notCovered = new HashSet<CfgBlock>(blockVars.keySet());
 		notCovered.removeAll(covered);
+		
+		inconsistentBlocks.addAll(notCovered);
+		
 		System.err.println("*** REPORT ***");
 		if (!notCovered.isEmpty()) {
 			StringBuilder sb = new StringBuilder();
@@ -174,6 +193,18 @@ public class InconsistencyThread implements Runnable {
 		
 		for (CfgBlock b : method.vertexSet()) {
 			List<ProverExpr> conj = new LinkedList<ProverExpr>();
+			
+			// ensure that only complete paths can be in a model
+			List<ProverExpr> comeFrom = new LinkedList<ProverExpr>();
+			for (CfgBlock pre : method.getPredsOf(b)) {
+				comeFrom.add(blockVars.get(pre));
+			}
+			if (!comeFrom.isEmpty()) {
+				conj.add(prover.mkOr(comeFrom.toArray(new ProverExpr[comeFrom.size()])));
+			}
+			//---------
+			
+			//transition relation of the statements
 			for (Statement s : b.getStatements()) {
 				if (statementToTransitionRelation(s) == null)
 					continue; // TOOD: hack, remove later

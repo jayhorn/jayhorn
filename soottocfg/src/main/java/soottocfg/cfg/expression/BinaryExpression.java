@@ -6,6 +6,8 @@ package soottocfg.cfg.expression;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
+
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.Type;
@@ -45,6 +47,20 @@ public class BinaryExpression extends Expression {
 	private final BinaryOperator op;
 
 	public BinaryExpression(BinaryOperator op, Expression left, Expression right) {
+		if (left.getType().getClass()!=right.getType().getClass()) {
+			//TODO: this should be somewhere in the translation.
+			if (left.getType() == BoolType.instance() && right instanceof IntegerLiteral) {
+				if (((IntegerLiteral)right).getValue() == 0L) {
+					right = BooleanLiteral.falseLiteral();
+				} else if (((IntegerLiteral)right).getValue() == 1L) {
+					right = BooleanLiteral.trueLiteral();
+				} else {
+					throw new RuntimeException();
+				}
+			}
+		}
+		Preconditions.checkArgument(left.getType().getClass()==right.getType().getClass(), "Types don't match: "+ left.getType() + " and " + right.getType());
+		//TODO: more type checking depending on operator
 		this.left = left;
 		this.right = right;
 		this.op = op;

@@ -38,15 +38,18 @@ public class SootToCfg {
 	private final boolean resolveVirtualCalls;
 	private final boolean createAssertionsForUncaughtExceptions;
 	
+	// Create a new program
+	private final Program program = new Program();
+	
+	
 	public SootToCfg() {
-		//Default
-		resolveVirtualCalls = true;
-		createAssertionsForUncaughtExceptions = false;
+		this(true, false);
 	}
 	
 	public SootToCfg(boolean resolveVCalls, boolean excAsAssert) {
 		resolveVirtualCalls = resolveVCalls;
 		createAssertionsForUncaughtExceptions = excAsAssert;
+		SootTranslationHelpers.v().setProgram(program);
 	}
 	
 	public void run(String input, String classPath) {
@@ -69,10 +72,6 @@ public class SootToCfg {
 		// init the helper classes for pre-processing
 		AssertionReconstruction.v().initialize();
 
-		// Create a new program
-		Program program = new Program();
-		SootTranslationHelpers.v().setProgram(program);
-
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
 			processSootClass(sc);
@@ -85,10 +84,14 @@ public class SootToCfg {
 				program.addEntryPoint(program.loopupMethod(entryPoint.getSignature()));
 			}
 		}
+		
+		//reset all the soot stuff.
+		SootTranslationHelpers.v().reset();
+//		soot.G.reset();
 	}
 
 	public Program getProgram() {
-		return SootTranslationHelpers.v().getProgram();
+		return program;
 	}
 
 	/**

@@ -412,8 +412,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 	public void caseCaughtExceptionRef(CaughtExceptionRef arg0) {
 		// This should have been eliminated by the exception translation.		
 		System.err.println("CaughtExceptionRef should have been eliminated earlier! This is a bug!");
-		expressionStack.add(new IdentifierExpression(SootTranslationHelpers.v().getProgram().loopupGlobalVariable(
-				"$caughtref_" + SootTranslationHelpers.v().getUniqueNumber(), memoryModel.lookupType(arg0.getType()))));
+		expressionStack.add(new IdentifierExpression(SootTranslationHelpers.v().getProgram().createFreshGlobal("$caughtref_", memoryModel.lookupType(arg0.getType()))));
 	}
 
 	@Override

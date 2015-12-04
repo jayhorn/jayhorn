@@ -581,7 +581,8 @@ public class Z3Prover implements Prover {
 				}
 			}
 		} else {
-			throw new RuntimeException("Start query with check sat first.");
+//			throw new RuntimeException("Start query with check sat first.");
+			result = ProverResult.Unknown;
 		}
 		return result;
 	}

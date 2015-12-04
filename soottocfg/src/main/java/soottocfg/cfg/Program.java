@@ -4,9 +4,11 @@
 package soottocfg.cfg;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
+
+import com.google.common.base.Preconditions;
 
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.type.Type;
@@ -17,14 +19,23 @@ import soottocfg.cfg.type.Type;
  */
 public class Program {
 
-	private final Map<String, Variable> globalVariables = new HashMap<String, Variable>();
-	private final Map<String, Method> methods = new HashMap<String, Method>();
+	private final Map<String, Variable> globalVariables = new LinkedHashMap<String, Variable>();
+	private final Map<String, Method> methods = new LinkedHashMap<String, Method>();
 	
 	private final Collection<Method> entryPoints = new HashSet<Method>();
 
 	public Variable[] getGlobalVariables() {
 		return this.globalVariables.values().toArray(new Variable[this.globalVariables.size()]);
 	}
+	
+	public Variable createFreshGlobal(String prefix, Type t) {
+		final String vname = prefix+this.globalVariables.size();
+		Preconditions.checkArgument(!globalVariables.containsKey(vname));
+		Variable v = new Variable(vname, t);
+		this.globalVariables.put(vname, v);
+		return v;
+	}
+
 	
 	public Variable loopupGlobalVariable(String varName, Type t) {
 		if (!this.globalVariables.containsKey(varName)) {

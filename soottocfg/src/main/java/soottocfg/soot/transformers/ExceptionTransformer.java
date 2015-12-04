@@ -553,7 +553,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 			Unit helperStmt = assignStmtFor(len, Jimple.v().newLengthExpr(e.getBase()), createdFrom);
 			helperStatements.add(helperStmt);
 
-			Local left = getFreshLocal(body, IntType.v());
+			Local left = getFreshLocal(body, BooleanType.v());
 			helperStmt = assignStmtFor(left, Jimple.v().newLtExpr(e.getIndex(), len), createdFrom);
 			helperStatements.add(helperStmt);
 			// !(index < array.length)
@@ -565,7 +565,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 
 			// index >= 0
 			helperStatements = new LinkedList<Unit>();
-			Local right = getFreshLocal(body, IntType.v());
+			Local right = getFreshLocal(body, BooleanType.v());
 			helperStmt = assignStmtFor(right, Jimple.v().newGeExpr(e.getIndex(), IntConstant.v(0)), createdFrom);
 			helperStatements.add(helperStmt);
 			// !(index>=0)

@@ -8,6 +8,7 @@ import org.kohsuke.args4j.CmdLineParser;
 
 import jayhorn.checker.Checker;
 import jayhorn.old_inconsistency_check.InconsistencyChecker;
+import jayhorn.solver.princess.PrincessProverFactory;
 import soottocfg.soot.SootToCfg;
 
 public class Main {
@@ -28,9 +29,8 @@ public class Main {
 			} else if ("inconsistency".equals(Options.v().getChecker())) {
 				SootToCfg soot2cfg = new SootToCfg(false, true);
 				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath(), Options.v().getCallGraphAlgorithm());			
-				InconsistencyChecker checker = new InconsistencyChecker();
-				boolean result = checker.checkProgram(soot2cfg.getProgram());
-				System.out.println("checker says "+ result);
+				InconsistencyChecker checker = new InconsistencyChecker(new PrincessProverFactory());
+				checker.checkProgram(soot2cfg.getProgram());				
 			} else {
 				Log.error(String.format("Checker %s is unknown", Options.v().getChecker()) );
 			}

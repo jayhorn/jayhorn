@@ -6,6 +6,8 @@ package soottocfg.cfg.statement;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
+
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
@@ -37,6 +39,10 @@ public class AssignStatement extends Statement {
 		super(loc);
 		this.left = lhs;
 		this.right = rhs;
+		if (left.getType().getClass()!=right.getType().getClass()) {
+			System.err.println("");
+		}
+		Preconditions.checkArgument(left.getType().getClass()==right.getType().getClass(), "Types don't match: "+ left.getType() + " and " + right.getType() + " for " + left + " and " + right);
 	}
 
 	@Override
