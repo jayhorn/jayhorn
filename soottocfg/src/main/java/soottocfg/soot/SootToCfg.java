@@ -118,7 +118,7 @@ public class SootToCfg {
 
 	private void processSootMethod(SootMethod sm) {
 		if (sm.isConcrete()) {
-//		System.out.println("Processing method: " + sm);
+		System.out.println("Processing method: " + sm);
 			//TODO
 //			if (!sm.getSignature().equals("<org.apache.tools.ant.taskdefs.condition.Socket: boolean eval()>")) {
 //				return;

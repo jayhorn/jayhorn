@@ -61,6 +61,11 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		this.nullConstant = this.program.loopupGlobalVariable("$null", nullType);
 	}
 
+	@Override
+	public boolean isNullReference(Expression e) {
+		return (e instanceof IdentifierExpression && ((IdentifierExpression)e).getVariable()==nullConstant); 
+	}
+
 
 	/*
 	 * (non-Javadoc)

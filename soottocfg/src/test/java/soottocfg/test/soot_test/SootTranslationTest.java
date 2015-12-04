@@ -34,8 +34,7 @@ public class SootTranslationTest {
 				}
 			}
 
-			classFileDir = Util.compileJavaFiles(sourceFiles.toArray(new File[sourceFiles.size()]));
-
+			classFileDir = Util.compileJavaFiles(sourceFiles.toArray(new File[sourceFiles.size()]));			
 			soottocfg.Main.main(new String[] { classFileDir.getAbsolutePath() });
 		} catch (IOException e) {
 			e.printStackTrace();

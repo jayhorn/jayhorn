@@ -11,6 +11,7 @@ import com.google.common.base.Preconditions;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.Type;
+import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
  * @author schaef
@@ -47,7 +48,7 @@ public class BinaryExpression extends Expression {
 	private final BinaryOperator op;
 
 	public BinaryExpression(BinaryOperator op, Expression left, Expression right) {
-		if (left.getType().getClass()!=right.getType().getClass()) {
+		if (left.getType().getClass()!=right.getType().getClass() && !SootTranslationHelpers.v().getMemoryModel().isNullReference(right)) {
 			//TODO: this should be somewhere in the translation.
 			if (left.getType() == BoolType.instance() && right instanceof IntegerLiteral) {
 				if (((IntegerLiteral)right).getValue() == 0L) {
@@ -59,7 +60,7 @@ public class BinaryExpression extends Expression {
 				}
 			}
 		}
-		Preconditions.checkArgument(left.getType().getClass()==right.getType().getClass(), "Types don't match: "+ left.getType() + " and " + right.getType());
+		Preconditions.checkArgument(left.getType().getClass()==right.getType().getClass() || SootTranslationHelpers.v().getMemoryModel().isNullReference(right), "Types don't match: "+ left.getType() + " and " + right.getType());
 		//TODO: more type checking depending on operator
 		this.left = left;
 		this.right = right;
@@ -130,8 +131,11 @@ public class BinaryExpression extends Expression {
 			assert(left.getType()==BoolType.instance() && right.getType() == BoolType.instance() );
 			return BoolType.instance();
 		}
+				
 		default: {
-			throw new RuntimeException("Not implemented for " + op);
+//			throw new RuntimeException("Not implemented for " + op);
+			System.err.println("Not tested for "+op);
+			return left.getType();
 		}
 		}
 	}

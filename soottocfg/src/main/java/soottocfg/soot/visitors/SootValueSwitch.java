@@ -247,9 +247,11 @@ public class SootValueSwitch implements JimpleValueSwitch {
 	@Override
 	public void caseCastExpr(CastExpr arg0) {
 		// TODO Auto-generated method stub
-		arg0.getOp().apply(this);
-		Expression inner = popExpression();
-		expressionStack.add(inner);
+//		arg0.getOp().apply(this);
+//		Expression inner = popExpression();
+//		expressionStack.add(inner);				
+		Variable fresh = SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO_CAST", this.memoryModel.lookupType(arg0.getCastType()));		
+		expressionStack.add(new IdentifierExpression(fresh));
 	}
 
 	@Override

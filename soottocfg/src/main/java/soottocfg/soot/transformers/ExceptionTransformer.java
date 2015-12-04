@@ -290,16 +290,15 @@ public class ExceptionTransformer extends AbstractTransformer {
 						break;
 					}
 				}
+				Local l = getFreshLocal(body, BooleanType.v());
 				if (trap == null) {
-					Unit throwStmt = generateThrowStatement(u, exception);
-					Local l = getFreshLocal(body, IntType.v());
+					Unit throwStmt = generateThrowStatement(u, exception);					
 					toInsert.add(
 							assignStmtFor(l, Jimple.v().newInstanceOfExpr(exceptionVariable, exception.getType()), u));
 					toInsert.add(ifStmtFor(jimpleNeZero(l), throwStmt, u));
 				} else {
 					usedTraps.add(trap);
-					Unit newTarget = createNewExceptionAndGoToTrap(u, exception, trap);
-					Local l = getFreshLocal(body, IntType.v());
+					Unit newTarget = createNewExceptionAndGoToTrap(u, exception, trap);					
 					toInsert.add(
 							assignStmtFor(l, Jimple.v().newInstanceOfExpr(exceptionVariable, exception.getType()), u));
 					toInsert.add(ifStmtFor(jimpleNeZero(l), newTarget, u));
@@ -371,7 +370,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 					}
 					usedTraps.add(trap);
 					Unit newTarget = createNewExceptionAndGoToTrap(u, exception, trap);
-					Local l = getFreshLocal(body, IntType.v());
+					Local l = getFreshLocal(body, BooleanType.v());
 					toInsert.add(
 							assignStmtFor(l, Jimple.v().newInstanceOfExpr(exceptionVariable, exception.getType()), u));
 					toInsert.add(ifStmtFor(jimpleNeZero(l), newTarget, u));
@@ -585,7 +584,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 			 * helper local l and a statement l = e instanceof t first.
 			 */
 			List<Unit> helperStatements = new LinkedList<Unit>();
-			Local helperLocal = getFreshLocal(body, IntType.v());
+			Local helperLocal = getFreshLocal(body, BooleanType.v());
 			Unit helperStmt = assignStmtFor(helperLocal, Jimple.v().newInstanceOfExpr(e.getOp(), e.getCastType()),
 					createdFrom);
 			helperStatements.add(helperStmt);

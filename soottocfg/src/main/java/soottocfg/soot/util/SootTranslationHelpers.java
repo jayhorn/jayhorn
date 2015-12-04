@@ -63,7 +63,7 @@ public enum SootTranslationHelpers {
 	public Program getProgram() {
 		return this.program;
 	}
-	
+		
 	public SourceLocation getSourceLocation(Unit u) {
 		int lineNumber = u.getJavaSourceStartLineNumber();
 

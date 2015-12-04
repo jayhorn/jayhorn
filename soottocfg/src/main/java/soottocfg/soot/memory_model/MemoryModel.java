@@ -67,5 +67,9 @@ public abstract class MemoryModel {
 	public abstract Type lookupType(soot.Type t);
 	
 	public abstract ClassConstant lookupClassConstant(SootClass c);
+	
+	public boolean isNullReference(Expression e) {
+		return false;
+	}
 		
 }
