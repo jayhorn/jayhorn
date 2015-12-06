@@ -17,11 +17,13 @@ import java.util.UUID;
 
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
+import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverType;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
+import soottocfg.cfg.expression.ArrayLengthExpression;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
@@ -93,7 +95,7 @@ public class InconsistencyThread implements Runnable {
 		SingleStaticAssignment ssa = new SingleStaticAssignment(method);
 		ssa.computeSSA();
 		
-//		System.out.println(method);
+		System.out.println(method);
 		
 		createVerificationCondition();
 
@@ -183,8 +185,15 @@ public class InconsistencyThread implements Runnable {
 		}
 	}
 
+	ProverFun arrayLength;
+	private void createHelperFunctions() {
+		//TODO: change the type of this
+		arrayLength = prover.mkUnintFunction("$arrayLength", new ProverType[]{prover.getIntType()}, prover.getIntType());
+	}
+	
 	private void createVerificationCondition() {		
 		System.err.println("Creating transition relation");
+		createHelperFunctions();
 		
 		// first create a boolean variable for each block.
 		for (CfgBlock b : method.vertexSet()) {
@@ -268,7 +277,9 @@ public class InconsistencyThread implements Runnable {
 	}
 
 	private ProverExpr expressionToProverExpr(Expression e) {
-		if (e instanceof BinaryExpression) {
+		if (e instanceof ArrayLengthExpression) {			
+			return arrayLength.mkExpr(new ProverExpr[]{expressionToProverExpr(((ArrayLengthExpression)e).getExpression())});
+		} else if (e instanceof BinaryExpression) {
 			BinaryExpression be = (BinaryExpression) e;
 			ProverExpr left = expressionToProverExpr(be.getLeft());
 			ProverExpr right = expressionToProverExpr(be.getRight());

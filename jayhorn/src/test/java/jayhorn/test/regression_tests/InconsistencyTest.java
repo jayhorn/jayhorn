@@ -98,7 +98,7 @@ public class InconsistencyTest {
 				if ("Block1".equals(b.getLabel())) check++;				
 			}
 			//TODO: should be ==4 but the translation of array length is not yet working.
-			Assert.assertTrue("Should be 4 but is " + check, check==2);
+			Assert.assertTrue("Should be 4 but is " + check, check==4);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Assert.fail();

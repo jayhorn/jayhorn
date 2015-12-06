@@ -46,9 +46,6 @@ import com.google.common.base.Verify;
  * 
  * TODO
  * 
- * Applications:
- * 
- * TODO
  * 
  */
 public class EffectualSet<A, B extends DefaultEdge> {

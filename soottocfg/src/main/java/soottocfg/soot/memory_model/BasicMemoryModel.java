@@ -23,6 +23,7 @@ import soot.jimple.NewMultiArrayExpr;
 import soot.jimple.StringConstant;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.Variable;
+import soottocfg.cfg.expression.ArrayLengthExpression;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
@@ -99,9 +100,22 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkNewArrayExpr(NewArrayExpr arg0) {
-		// TODO Auto-generated method stub
-		return new IdentifierExpression(
-				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", lookupType(arg0.getType())));
+		arg0.getSize().apply(valueSwitch);
+		Expression sizeExpression = valueSwitch.popExpression();
+		
+		Type newType = this.lookupType(arg0.getType());
+		MethodInfo mi = this.statementSwitch.getMethodInto();
+		Variable newLocal = mi.createFreshLocal("$newArr", newType);
+		
+		this.statementSwitch.push(new AssumeStatement(
+				SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
+				new BinaryExpression(BinaryOperator.Ne, new IdentifierExpression(newLocal), this.mkNullConstant())));
+
+		this.statementSwitch.push(new AssumeStatement(
+				SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
+				new BinaryExpression(BinaryOperator.Eq, new ArrayLengthExpression(new IdentifierExpression(newLocal)), sizeExpression)));
+		
+		return new IdentifierExpression(newLocal);
 	}
 
 	/*
@@ -127,18 +141,6 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkArrayRefExpr(ArrayRef arg0) {
-		// TODO Auto-generated method stub
-		return new IdentifierExpression(
-				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see jayhorn.soot.memory_model.MemoryModel#mkArrayLengthExpr(soot.Value)
-	 */
-	@Override
-	public Expression mkArrayLengthExpr(Value arg0) {
 		// TODO Auto-generated method stub
 		return new IdentifierExpression(
 				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));

@@ -52,8 +52,6 @@ public abstract class MemoryModel {
 
 	public abstract Expression mkArrayRefExpr(ArrayRef arg0);
 
-	public abstract Expression mkArrayLengthExpr(Value arg0);
-	
 	public abstract Expression mkStringLengthExpr(Value arg0);
 	
 	public abstract Expression mkNullConstant();
