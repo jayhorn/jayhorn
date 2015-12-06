@@ -10,6 +10,7 @@ import org.junit.Test;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.method.CfgBlock;
+import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.optimization.CfgUpdater;
 import soottocfg.cfg.optimization.ConstantProp;
@@ -17,6 +18,7 @@ import soottocfg.cfg.optimization.DeadCodeElimination;
 import soottocfg.cfg.optimization.ExpressionInliner;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.util.Dominators;
 import soottocfg.util.PrettyPrinter;
 
 public class OptimizationTest {
@@ -28,7 +30,8 @@ public class OptimizationTest {
 
 		OptimizationExample testGen = new OptimizationExample();
 		Method m = testGen.getMethod1();
-		Map<CfgBlock,Set<CfgBlock>> dom = m.computeDominators();
+		Dominators<CfgBlock, CfgEdge> dominators = new Dominators<CfgBlock, CfgEdge>(m);
+		Map<CfgBlock,Set<CfgBlock>> dom = dominators.computeDominators(m.getSource());
 		String actual = PrettyPrinter.ppCfgBlockMapSet(dom);
 		String expected = 
 				"{Block0=[Block0],\n" + 
@@ -42,20 +45,21 @@ public class OptimizationTest {
 		System.out.println("Testing dominators 2");
 
 		OptimizationExample testGen = new OptimizationExample();
-		Method m = testGen.getMethod2();
-		Map<CfgBlock,Set<CfgBlock>> dom = m.computeDominators();
+		Method m = testGen.getMethod2();		
+		Dominators<CfgBlock, CfgEdge> dominators = new Dominators<CfgBlock, CfgEdge>(m);
+		Map<CfgBlock,Set<CfgBlock>> dom = dominators.computeDominators(m.getSource());
 		String actual = PrettyPrinter.ppCfgBlockMapSet(dom);
 		String expected = 
-				"{Block1=[Block1],\n" +
-				" Block10=[Block1, Block10, Block3, Block4, Block7, Block8],\n" + 
-				" Block2=[Block1, Block2],\n" + 
-				" Block3=[Block1, Block3],\n" + 
-				" Block4=[Block1, Block3, Block4],\n" + 
-				" Block5=[Block1, Block3, Block4, Block5],\n" + 
-				" Block6=[Block1, Block3, Block4, Block6],\n" + 
-				" Block7=[Block1, Block3, Block4, Block7],\n" + 
-				" Block8=[Block1, Block3, Block4, Block7, Block8],\n" + 
-				" Block9=[Block1, Block3, Block4, Block7, Block8, Block9]}";
+				"{Block0=[Block0],\n" +				
+				" Block1=[Block0, Block1],\n" + 
+				" Block2=[Block0, Block2],\n" + 
+				" Block3=[Block0, Block2, Block3],\n" + 
+				" Block4=[Block0, Block2, Block3, Block4],\n" + 
+				" Block5=[Block0, Block2, Block3, Block5],\n" + 
+				" Block6=[Block0, Block2, Block3, Block6],\n" + 
+				" Block7=[Block0, Block2, Block3, Block6, Block7],\n" + 
+				" Block8=[Block0, Block2, Block3, Block6, Block7, Block8],\n" +
+				" Block9=[Block0, Block2, Block3, Block6, Block7, Block9]}";
 		Assert.assertEquals(expected, actual);
 	}
 

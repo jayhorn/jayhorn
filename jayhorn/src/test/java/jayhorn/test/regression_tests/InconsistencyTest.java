@@ -89,18 +89,16 @@ public class InconsistencyTest {
 			Map<String, Set<CfgBlock>> result = checker.checkProgram(soot2cfg.getProgram());
 			
 			int check = 0;
-//			for (CfgBlock b : result.get("<inconsistencies.TruePositives01: int infeasible1(java.lang.Object)>")) {
-//				if ("Block6".equals(b.getLabel())) check++;
-//				if ("Block8".equals(b.getLabel())) check++;
-//			}
-			check +=result.get("<inconsistencies.TruePositives01: int infeasible1(java.lang.Object)>").size();
-			check += result.get("<inconsistencies.TruePositives01: int infeasible0(int[])>").size();
-//			for (CfgBlock b :  result.get("<inconsistencies.TruePositives01: int infeasible0(int[])>")) {
-//				if ("Block2".equals(b.getLabel())) check++;
-//				if ("Block3".equals(b.getLabel())) check++;				
-//			}
+			for (CfgBlock b : result.get("<inconsistencies.TruePositives01: int infeasible1(java.lang.Object)>")) {
+				if ("Block4".equals(b.getLabel())) check++;
+				if ("Block2".equals(b.getLabel())) check++;
+			}
+			for (CfgBlock b :  result.get("<inconsistencies.TruePositives01: int infeasible0(int[])>")) {
+				if ("Block0".equals(b.getLabel())) check++;
+				if ("Block1".equals(b.getLabel())) check++;				
+			}
 			//TODO: should be ==4 but the translation of array length is not yet working.
-			Assert.assertTrue("Should be 4 but is " + check, check>0);
+			Assert.assertTrue("Should be 4 but is " + check, check==2);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Assert.fail();

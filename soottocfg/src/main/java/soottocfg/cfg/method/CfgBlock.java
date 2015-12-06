@@ -18,7 +18,6 @@ import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Node;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.util.SetOperations;
 
 /**
@@ -38,7 +37,7 @@ public class CfgBlock implements Node, Serializable {
 	protected final Method method;
 
 	public CfgBlock(Method m) {
-		this.label = "Block" + (SootTranslationHelpers.v().getUniqueNumber());
+		this.label = "Block" + m.vertexSet().size();
 		this.statements = new LinkedList<Statement>();
 		this.method = m;
 		this.method.addVertex(this);

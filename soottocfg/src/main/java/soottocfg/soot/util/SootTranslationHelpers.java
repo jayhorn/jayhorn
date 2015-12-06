@@ -40,7 +40,6 @@ public enum SootTranslationHelpers {
 
 	private MemoryModel memoryModel;
 	private Program program;
-	private long uniqueNumber = 0L;
 
 	public void reset() {
 		typeVariables.clear();
@@ -49,13 +48,8 @@ public enum SootTranslationHelpers {
 		currentSourceFileName = null;
 		memoryModel = null;
 		program = null;
-		uniqueNumber = 0L;
 	}
 	
-	public long getUniqueNumber() {
-		return this.uniqueNumber++;
-	}
-
 	public void setProgram(Program p) {
 		this.program = p;
 	}

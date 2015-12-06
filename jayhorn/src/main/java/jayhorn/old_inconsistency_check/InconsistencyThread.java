@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -91,8 +92,9 @@ public class InconsistencyThread implements Runnable {
 
 		SingleStaticAssignment ssa = new SingleStaticAssignment(method);
 		ssa.computeSSA();
-
-		System.out.println(method);
+		
+//		System.out.println(method);
+		
 		createVerificationCondition();
 
 		Set<ProverExpr> enablingClause = new HashSet<ProverExpr>(); 
@@ -158,7 +160,7 @@ public class InconsistencyThread implements Runnable {
 	 * new edges to but this vertex between source and target
 	 */
 	private void turnLabeledEdgesIntoAssumes() {
-		Set<CfgEdge> edges = new HashSet<CfgEdge>(method.edgeSet());
+		Set<CfgEdge> edges = new LinkedHashSet<CfgEdge>(method.edgeSet());
 		for (CfgEdge edge : edges) {
 			if (edge.getLabel().isPresent()) {
 				CfgBlock src = method.getEdgeSource(edge);
@@ -226,14 +228,14 @@ public class InconsistencyThread implements Runnable {
 				tr = prover.mkAnd(conj.toArray(new ProverExpr[conj.size()]));
 			}
 			ProverExpr blockTransitionFormula = prover.mkImplies(blockVars.get(b), tr);
-			if (method.inDegreeOf(b) == 0) {
-				System.err.print("(source)");
-			}
-			if (method.outDegreeOf(b) == 0) {
-				System.err.print("(sink)");
-			}
-
-			System.err.println(b.getLabel() + ": " + blockTransitionFormula.toString());
+//			if (method.inDegreeOf(b) == 0) {
+//				System.err.print("(source)");
+//			}
+//			if (method.outDegreeOf(b) == 0) {
+//				System.err.print("(sink)");
+//			}
+//
+//			System.err.println(b.getLabel() + ": " + blockTransitionFormula.toString());
 			prover.addAssertion(blockTransitionFormula);
 		}
 		System.err.println("done");

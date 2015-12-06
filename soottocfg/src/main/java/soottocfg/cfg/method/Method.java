@@ -3,6 +3,10 @@
  */
 package soottocfg.cfg.method;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -13,6 +17,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
+import org.jgrapht.ext.DOTExporter;
+import org.jgrapht.ext.StringNameProvider;
 import org.jgrapht.graph.AbstractBaseGraph;
 import org.jgrapht.graph.ClassBasedEdgeFactory;
 
@@ -112,7 +118,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		edge.setLabel(label);
 	}
 	
-	public boolean isEntryPoint() {
+	public boolean isProgramEntryPoint() {
 		return this.isProgramEntry;
 	}
 
@@ -192,6 +198,16 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	public Collection<Variable> getLocals() {
 		return locals;
 	}
+	
+	public void toDot(File dotFile) {		
+		try (FileOutputStream fileStream = new FileOutputStream(dotFile);
+				OutputStreamWriter writer = new OutputStreamWriter(fileStream, "UTF-8");) {
+			DOTExporter<CfgBlock, CfgEdge> dot = new DOTExporter<CfgBlock, CfgEdge>(new StringNameProvider<CfgBlock>(), null, null);
+			dot.export(writer, this);
+		} catch (IOException e) {			
+			e.printStackTrace();
+		}
+	}
 
 	@Override
 	public String toString() {
@@ -264,53 +280,6 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 			rval.addAll(b.getLVariables());
 		}
 		return rval;
-	}
-
-	//Implemented using the algorithm in Aho 2nd ed, p 658.
-	public Map<CfgBlock,Set<CfgBlock>> computeDominators() {
-		Set<CfgBlock> cfg = this.vertexSet();
-		Map<CfgBlock,Set<CfgBlock>> dominators = new HashMap<CfgBlock,Set<CfgBlock>>(cfg.size());
-		
-		//Initialize the set
-		for(CfgBlock b : cfg){
-			if(b == getSource()){
-				//The Source node only dominates itself
-				Set<CfgBlock> tmp = new HashSet<CfgBlock>();
-				tmp.add(b);
-				dominators.put(b,tmp);
-			} else {
-				//All other nodes are initilized to be the full cfg.  They will shrink later
-				Set<CfgBlock> tmp = new HashSet<CfgBlock>(cfg);
-				dominators.put(b,tmp);
-			}
-		}
-		
-		boolean changed;
-		do {
-			changed = false;
-			for(CfgBlock b : cfg){
-				//Source node is always only dominated by itself.
-				if(b != getSource()){
-					//non source nodes should always have predecessors, so this should be safe
-					assert(this.inDegreeOf(b) != 0);
-					//This is a bit ugly way to handle the initialization of the intersection problem
-					//but it should work
-					Set<CfgBlock> newDom = new HashSet<CfgBlock>(cfg);
-					for(CfgEdge edge : this.incomingEdgesOf(b)){
-						CfgBlock inBlock = getEdgeSource(edge);
-						newDom.retainAll(dominators.get(inBlock));
-					}
-					//every node dominates itself
-					newDom.add(b);
-					if(!newDom.equals(dominators.get(b))){
-						dominators.put(b,newDom);
-						changed = true;
-					}
-				}			
-			}
-		} while (changed);
-		
-		return dominators;
 	}
 	
 	//Really simple for now: Just get all blocks that define each variable.  Don't worry too much about 
