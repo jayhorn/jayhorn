@@ -40,8 +40,11 @@ public class InconsistencyChecker {
 
 	public Map<String, Set<CfgBlock>> checkProgram(Program program) {
 		Map<String, Set<CfgBlock>> result = new HashMap<String, Set<CfgBlock>>();
+		//statistics counters 
+		int normal=0, timeouts=0, interrupt=0, execException=0, outOfMemory=0, other = 0;
+		int withInconsistencies = 0;
 		ExecutorService executor = null;		
-		try {
+		try {			
 			executor = Executors.newSingleThreadExecutor();
 			for (Method method : program.getMethods()) {
 				Prover prover = factory.spawn();
@@ -60,19 +63,24 @@ public class InconsistencyChecker {
 						future.get(Options.v().getTimeout(), TimeUnit.SECONDS);
 					}
 					inconsistencies.addAll(thread.getInconsistentBlocks());
+					normal++;
+					if (!inconsistencies.isEmpty()) {
+						withInconsistencies++;
+					}
 				} catch (TimeoutException e) {
-
+					timeouts++;
+					inconsistencies.clear();
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
+					interrupt++;
 					e.printStackTrace();
 				} catch (ExecutionException e) {
-					// TODO Auto-generated catch block
+					execException++;
 					e.printStackTrace();
 				} catch (OutOfMemoryError e) {
-					// TODO Auto-generated catch block
+					outOfMemory++;
 					e.printStackTrace();
 				} catch (Throwable e) {
-					// TODO Auto-generated catch block
+					other++;
 					e.printStackTrace();
 				} finally {
 					prover.stop();
@@ -88,6 +96,18 @@ public class InconsistencyChecker {
 			}
 			
 		}
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("Statistics:");
+		sb.append(String.format("%n  Analyzed procedure: %d", program.getMethods().length));
+		sb.append(String.format("%n  Analysis terminated normally for: %d", normal));
+		sb.append(String.format("%n\t With inconsistencies: %d", withInconsistencies));
+		sb.append(String.format("%n  Analysis terminated with timeout after %d sec: %d", Options.v().getTimeout(), timeouts));
+		sb.append(String.format("%n  Analysis terminated with intterupt exception: %d", interrupt));
+		sb.append(String.format("%n  Analysis terminated with execException exception: %d", execException));
+		sb.append(String.format("%n  Analysis terminated with outOfMemory exception: %d", outOfMemory));
+		sb.append(String.format("%n  Analysis terminated with other exception: %d", other));
+		System.out.println(sb.toString());
 		return result;
 	}
 

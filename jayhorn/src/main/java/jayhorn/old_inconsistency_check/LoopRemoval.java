@@ -8,6 +8,8 @@ import java.util.Set;
 
 import org.jgrapht.alg.CycleDetector;
 
+import com.google.common.base.Verify;
+
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
@@ -86,4 +88,10 @@ public class LoopRemoval {
 			remover.removeDangelingPaths();
 		}
 	}
+	
+	public void verifyLoopFree() {
+		CycleDetector<CfgBlock, CfgEdge> cycles = new CycleDetector<CfgBlock, CfgEdge>(method);
+		Verify.verify(cycles.findCycles().isEmpty());
+	}
+	
 }

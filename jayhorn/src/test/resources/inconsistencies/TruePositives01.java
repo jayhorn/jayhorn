@@ -11,7 +11,7 @@ public class TruePositives01 {
 	// from org.openecard.bouncycastle.crypto.params.NTRUSigningPrivateKeyParameters	
 	
 
-	boolean foo(TruePositives01 other) {
+	boolean fieldTest(TruePositives01 other) {
 		if (bases == null) {
 			if (other.bases != null) {
 				return false;
@@ -19,9 +19,7 @@ public class TruePositives01 {
 		}
 		if (bases.hashCode() != other.bases.hashCode()) {
 			return false;
-		}
-		
-		
+		}		
 		return true;
 	}
 	

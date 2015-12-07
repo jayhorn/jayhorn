@@ -103,6 +103,11 @@ public class InconsistencyTest {
 				if ("Block3".equals(b.getLabel())) check++;				
 			}			
 
+//			for (CfgBlock b :  result.get("<inconsistencies.TruePositives01: boolean fieldTest(inconsistencies.TruePositives01)>")) {
+//				if ("Block5".equals(b.getLabel())) check++;
+//				if ("Block3".equals(b.getLabel())) check++;				
+//			}	
+			
 			Assert.assertTrue("Should be 6 but is " + check, check==6);
 		} catch (IOException e) {
 			e.printStackTrace();
