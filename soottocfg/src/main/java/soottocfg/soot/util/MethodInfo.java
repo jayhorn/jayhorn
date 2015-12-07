@@ -140,13 +140,12 @@ public class MethodInfo {
 	}
 
 	private Variable createLocalVariable(Local arg0) {
-		// TODO
 		return new Variable(arg0.getName(), SootTranslationHelpers.v().getMemoryModel().lookupType(arg0
-				.getType()));
+				.getType()), false, false);
 	}
 	
-	public Variable createFreshLocal(String prefix, Type t) {
-		Variable v = new Variable(prefix+this.freshLocals.size(), t);
+	public Variable createFreshLocal(String prefix, Type t, boolean constant, boolean unique) {
+		Variable v = new Variable(prefix+this.freshLocals.size(), t, constant, unique);
 		this.freshLocals.add(v);
 		return v;
 	}

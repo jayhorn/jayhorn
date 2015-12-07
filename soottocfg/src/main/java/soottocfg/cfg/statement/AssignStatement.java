@@ -53,6 +53,9 @@ public class AssignStatement extends Statement {
 				}
 			}
 		}
+		if (lhs instanceof IdentifierExpression) {
+			Preconditions.checkArgument(!((IdentifierExpression)lhs).getVariable().isConstant() && !((IdentifierExpression)lhs).getVariable().isUnique());
+		}
 		
 		this.left = lhs;
 		this.right = rhs;

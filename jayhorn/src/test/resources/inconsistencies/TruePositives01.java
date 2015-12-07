@@ -7,25 +7,29 @@ package inconsistencies;
 //@SuppressWarnings("unused")
 public class TruePositives01 {
 	
-//	public TruePositives01 bases;
-//	// from org.openecard.bouncycastle.crypto.params.NTRUSigningPrivateKeyParameters	
-//	
-//	boolean foo(TruePositives01 other) {
-//		if (bases == null) {
-//			if (other.bases != null) {
-//				return false;
-//			}
-//		}
-//		if (bases.hashCode() != other.bases.hashCode()) {
-//			return false;
-//		}
-//		
-//		if ("hallo" == "wurstsalat") return false;
-//		
-//		// ...
-//		return true;
-//	}
-//	
+	public TruePositives01 bases;
+	// from org.openecard.bouncycastle.crypto.params.NTRUSigningPrivateKeyParameters	
+	
+
+	boolean foo(TruePositives01 other) {
+		if (bases == null) {
+			if (other.bases != null) {
+				return false;
+			}
+		}
+		if (bases.hashCode() != other.bases.hashCode()) {
+			return false;
+		}
+		
+		
+		return true;
+	}
+	
+	public boolean stringCompare() {
+		String s = "hallo";
+		if (s == "wurstsalat") return false;
+		return true;
+	}
 
 	public int infeasible0(int[] arr) {
 		int i = arr.length;

@@ -97,8 +97,13 @@ public class InconsistencyTest {
 				if ("Block0".equals(b.getLabel())) check++;
 				if ("Block1".equals(b.getLabel())) check++;				
 			}
-			//TODO: should be ==4 but the translation of array length is not yet working.
-			Assert.assertTrue("Should be 4 but is " + check, check==4);
+
+			for (CfgBlock b :  result.get("<inconsistencies.TruePositives01: boolean stringCompare()>")) {
+				if ("Block5".equals(b.getLabel())) check++;
+				if ("Block3".equals(b.getLabel())) check++;				
+			}			
+
+			Assert.assertTrue("Should be 6 but is " + check, check==6);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Assert.fail();

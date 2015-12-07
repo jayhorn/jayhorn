@@ -77,7 +77,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Expression mkNewExpr(NewExpr arg0) {
 		Type newType = this.lookupType(arg0.getBaseType());
 		MethodInfo mi = this.statementSwitch.getMethodInto();
-		Variable newLocal = mi.createFreshLocal("$new", newType);
+		Variable newLocal = mi.createFreshLocal("$new", newType, true, true);
 		// add: assume newLocal!=null
 		this.statementSwitch.push(new AssumeStatement(
 				SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
@@ -105,7 +105,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		
 		Type newType = this.lookupType(arg0.getType());
 		MethodInfo mi = this.statementSwitch.getMethodInto();
-		Variable newLocal = mi.createFreshLocal("$newArr", newType);
+		Variable newLocal = mi.createFreshLocal("$newArr", newType, true, true);
 		
 		this.statementSwitch.push(new AssumeStatement(
 				SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
@@ -187,7 +187,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Expression mkStringConstant(StringConstant arg0) {
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram()
-					.loopupGlobalVariable("$string" + constantDictionary.size(), lookupType(arg0.getType())));
+					.loopupGlobalVariable("$string" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
 		}
 		return new IdentifierExpression(constantDictionary.get(arg0));
 	}
@@ -202,7 +202,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Expression mkDoubleConstant(DoubleConstant arg0) {
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram()
-					.loopupGlobalVariable("$double" + constantDictionary.size(), lookupType(arg0.getType())));
+					.loopupGlobalVariable("$double" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
 		}
 		return new IdentifierExpression(constantDictionary.get(arg0));
 	}
@@ -217,7 +217,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Expression mkFloatConstant(FloatConstant arg0) {
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram()
-					.loopupGlobalVariable("$float" + constantDictionary.size(), lookupType(arg0.getType())));
+					.loopupGlobalVariable("$float" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
 		}
 		return new IdentifierExpression(constantDictionary.get(arg0));
 	}

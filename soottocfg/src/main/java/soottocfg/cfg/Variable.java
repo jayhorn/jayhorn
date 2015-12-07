@@ -5,6 +5,8 @@ package soottocfg.cfg;
 
 import java.io.Serializable;
 
+import com.google.common.base.Preconditions;
+
 import soottocfg.cfg.type.Type;
 
 /**
@@ -20,14 +22,18 @@ public class Variable implements Serializable{
 	
 	private final String variableName;
 	private final Type type;
-	/**
-	 * 
-	 */
+	private final boolean constant, unique;
+
 	public Variable(String name, Type t) {
-		// TODO Auto-generated constructor stub
-		assert (t!=null);
+		this(name, t, false, false);
+	}
+	
+	public Variable(String name, Type t, boolean constant, boolean unique) {
+		Preconditions.checkNotNull(t);
 		this.variableName = name;
 		this.type = t;
+		this.constant = constant;
+		this.unique = unique;
 	}
 	
 	public String getName() {
@@ -38,6 +44,14 @@ public class Variable implements Serializable{
 		return this.type;
 	}
 
+	public boolean isConstant() {
+		return constant;
+	}
+	
+	public boolean isUnique() {
+		return unique;
+	}
+	
     public String toString() {
         return this.variableName + "/" + this.type;
     }

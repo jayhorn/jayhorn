@@ -36,10 +36,13 @@ public class Program {
 		return v;
 	}
 
-	
 	public Variable loopupGlobalVariable(String varName, Type t) {
+		return loopupGlobalVariable(varName, t, false, false);
+	}
+	
+	public Variable loopupGlobalVariable(String varName, Type t, boolean constant, boolean unique) {
 		if (!this.globalVariables.containsKey(varName)) {
-			this.globalVariables.put(varName, new Variable(varName, t));
+			this.globalVariables.put(varName, new Variable(varName, t, constant, unique));
 		}
 		return this.globalVariables.get(varName);
 	}

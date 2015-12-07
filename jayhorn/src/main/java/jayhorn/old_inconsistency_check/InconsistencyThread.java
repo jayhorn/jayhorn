@@ -191,6 +191,8 @@ public class InconsistencyThread implements Runnable {
 		arrayLength = prover.mkUnintFunction("$arrayLength", new ProverType[]{prover.getIntType()}, prover.getIntType());
 	}
 	
+	
+	
 	private void createVerificationCondition() {		
 		System.err.println("Creating transition relation");
 		createHelperFunctions();
@@ -247,6 +249,14 @@ public class InconsistencyThread implements Runnable {
 //			System.err.println(b.getLabel() + ": " + blockTransitionFormula.toString());
 			prover.addAssertion(blockTransitionFormula);
 		}
+		
+		//now add assertions to ensure that all unique variables are different.
+		int superHackIntCounter =0;
+		for (ProverExpr var : usedUniqueVariables) {
+			//TODO: this is a hack
+			prover.addAssertion(prover.mkEq(var, prover.mkLiteral(superHackIntCounter++)));
+		}
+		
 		System.err.println("done");
 	}
 
@@ -275,6 +285,8 @@ public class InconsistencyThread implements Runnable {
 		}
 		return null; // TODO: these are hacks. Later, this must not return null.
 	}
+	
+	private Set<ProverExpr> usedUniqueVariables = new HashSet<ProverExpr>(); 
 
 	private ProverExpr expressionToProverExpr(Expression e) {
 		if (e instanceof ArrayLengthExpression) {			
@@ -329,6 +341,11 @@ public class InconsistencyThread implements Runnable {
 						lookupProverType(ie.getType()));
 				ssaVariableMap.get(ie.getVariable()).put(ie.getIncarnation(), ssaVar);
 			}
+			if (ie.getVariable().isUnique()) {
+				// If this is a unique variable, remember it and add axioms later that ensure that 
+				// all unique variables are different.
+				usedUniqueVariables.add(ssaVariableMap.get(ie.getVariable()).get(ie.getIncarnation()));
+			}			
 			return ssaVariableMap.get(ie.getVariable()).get(ie.getIncarnation());
 		} else if (e instanceof InstanceOfExpression) {
 			// TODO:
