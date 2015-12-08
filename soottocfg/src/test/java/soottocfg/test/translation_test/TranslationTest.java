@@ -14,9 +14,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import soottocfg.soot.SootToCfg;
 import soottocfg.cfg.Program;
-import soottocfg.soot.SootRunner.CallgraphAlgorithm;
+import soottocfg.soot.SootToCfg;
 import soottocfg.test.Util;
 
 /**
@@ -60,13 +59,9 @@ public class TranslationTest {
 	}
 
 	@Test
-	public void test_cha() {
-		testWithCallgraphAlgorithm(CallgraphAlgorithm.None);		
-	}
-
-	protected void testWithCallgraphAlgorithm(CallgraphAlgorithm algorithm) {
+	public void test() {
 		soot.G.reset();
-		System.out.println("Running test " + this.sourceFile.getName() + " with algorithm " + algorithm);
+		System.out.println("Running test " + this.sourceFile.getName() );
 		SootToCfg soot2cfg = new SootToCfg();
 		File classDir = null;
 		try {
@@ -78,7 +73,7 @@ public class TranslationTest {
 		if (classDir == null) {
 			Assert.fail();
 		}
-		soot2cfg.run(classDir.getAbsolutePath(), null, algorithm);
+		soot2cfg.run(classDir.getAbsolutePath(), null);
 		Program p = soot2cfg.getProgram();
 		System.err.println(p.getEntryPoints().length);
 	}

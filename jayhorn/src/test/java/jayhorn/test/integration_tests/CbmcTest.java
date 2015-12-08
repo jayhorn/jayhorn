@@ -13,7 +13,6 @@ import org.junit.Test;
 
 import jayhorn.checker.Checker;
 import soottocfg.soot.SootToCfg;
-import soottocfg.soot.SootRunner.CallgraphAlgorithm;
 
 public class CbmcTest {
 
@@ -49,7 +48,7 @@ public class CbmcTest {
 		System.out.println("\texpected result: "+ expectedResult);
 
 		SootToCfg soot2cfg = new SootToCfg();
-		soot2cfg.run(dir.getAbsolutePath(), dir.getAbsolutePath(), CallgraphAlgorithm.None);		
+		soot2cfg.run(dir.getAbsolutePath(), dir.getAbsolutePath());		
 		Checker checker = new Checker();
 		boolean result = checker.checkProgram(soot2cfg.getProgram());
 		

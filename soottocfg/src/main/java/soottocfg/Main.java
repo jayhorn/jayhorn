@@ -4,7 +4,6 @@
 package soottocfg;
 
 import soottocfg.soot.SootToCfg;
-import soottocfg.soot.SootRunner.CallgraphAlgorithm;
 
 public class Main {
 
@@ -17,7 +16,7 @@ public class Main {
 				classPath = args[1];
 			}
 			SootToCfg soot2cfg = new SootToCfg();
-			soot2cfg.run(javaInput, classPath, CallgraphAlgorithm.None);			
+			soot2cfg.run(javaInput, classPath);			
 		} else {
 			System.err.println("usage: [class_dir/jar_file] [(optional)classpath]");
 		}

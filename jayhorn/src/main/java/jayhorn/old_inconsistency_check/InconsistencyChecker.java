@@ -47,6 +47,12 @@ public class InconsistencyChecker {
 		try {			
 			executor = Executors.newSingleThreadExecutor();
 			for (Method method : program.getMethods()) {
+				if (method.vertexSet().isEmpty()) {
+					//ignore empty methods
+					normal++;
+					continue;
+				}
+				
 				Prover prover = factory.spawn();
 				Preconditions.checkArgument(prover!=null, "Failed to initialize prover.");
 				prover.setHornLogic(false);
@@ -60,16 +66,18 @@ public class InconsistencyChecker {
 					if (Options.v().getTimeout() <= 0) {
 						future.get();
 					} else {
-						future.get(Options.v().getTimeout(), TimeUnit.SECONDS);
+						future.get(Options.v().getTimeout(), TimeUnit.SECONDS);						
 					}
-					inconsistencies.addAll(thread.getInconsistentBlocks());
 					normal++;
-					if (!inconsistencies.isEmpty()) {
-						withInconsistencies++;
-					}
+					inconsistencies.addAll(thread.getInconsistentBlocks());
 				} catch (TimeoutException e) {
+					if (!future.cancel(true)) {
+						System.err.println("failed to cancle after timeout");
+					}
 					timeouts++;
 					inconsistencies.clear();
+					System.err.println("Timeout for " + method.getMethodName());
+					e.printStackTrace();
 				} catch (InterruptedException e) {
 					interrupt++;
 					e.printStackTrace();

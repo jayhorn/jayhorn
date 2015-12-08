@@ -21,8 +21,6 @@ package jayhorn;
 
 import org.kohsuke.args4j.Option;
 
-import soottocfg.soot.SootRunner.CallgraphAlgorithm;
-
 /**
  * Options
  * 
@@ -61,31 +59,6 @@ public class Options {
 	public String getJavaInput() {
 		return this.javaInput;
 	}
-
-	@Option(name = "-cg", usage = "Set the callgraph algorithm: CHA,RTA,VTA,SPARK, or None (default).", required = false)
-	private String callGraphAlgorithm = "None";
-	public CallgraphAlgorithm getCallGraphAlgorithm() {
-		if (callGraphAlgorithm==null || callGraphAlgorithm.toLowerCase().equals("none")) {
-			return CallgraphAlgorithm.None;
-		} else if (callGraphAlgorithm.toLowerCase().equals("cha")) {
-			return CallgraphAlgorithm.CHA;
-		} else if (callGraphAlgorithm.toLowerCase().equals("rta")) {
-			return CallgraphAlgorithm.RTA;
-		} else if (callGraphAlgorithm.toLowerCase().equals("vta")) {
-			return CallgraphAlgorithm.VTA;
-		} else if (callGraphAlgorithm.toLowerCase().equals("spark")) {
-			return CallgraphAlgorithm.SPARK;			
-		} else {
-			Log.error("Unknown callgraph algorithm "+callGraphAlgorithm+". Using none instead");
-		}
-		return CallgraphAlgorithm.None;
-	}
-	
-	public void setCallGraphAlgorithm(String s) {
-		this.callGraphAlgorithm = s;
-	}
-	
-	
 
 	/**
 	 * Scope

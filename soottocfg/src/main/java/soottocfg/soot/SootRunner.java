@@ -33,7 +33,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import soot.PackManager;
 import soot.Scene;
 import soot.SootClass;
 
@@ -45,25 +44,25 @@ import soot.SootClass;
  */
 public class SootRunner {
 
-	protected final soot.options.Options sootOpt;
+	private final soot.options.Options sootOpt;	
 
 	public SootRunner() {
 		sootOpt = soot.options.Options.v();
 	}
 
-	public void run(String input, String classPath, CallgraphAlgorithm cga) {
+	public void run(String input, String classPath) {
 		if (null == input || input.isEmpty()) {
 			return;
 		}
 		if (input.endsWith(".jar")) {
 			// run with JAR file
-			runWithJar(input, classPath, cga);
+			runWithJar(input, classPath);
 		} else if (input.endsWith(".apk")) {
-			runWithApk(input, classPath, cga);
+			runWithApk(input, classPath);
 		} else {
 			File file = new File(input);
 			if (file.isDirectory()) {
-				runWithPath(input, classPath, cga);
+				runWithPath(input, classPath);
 			} else {
 				throw new RuntimeException("Don't know what to do with: " + input);
 			}
@@ -83,7 +82,7 @@ public class SootRunner {
 	 *            null.
 	 * 
 	 */
-	private void runWithJar(String jarFile, String classPath, CallgraphAlgorithm cga) {
+	private void runWithJar(String jarFile, String classPath) {
 		try {
 			// extract dependent JARs
 			List<File> jarFiles = new ArrayList<File>();
@@ -100,14 +99,14 @@ public class SootRunner {
 			sootOpt.set_soot_classpath(cp);
 
 			// finally, run soot
-			runSootAndAnalysis(enumClasses(new File(jarFile)), cga);
+			runSootAndAnalysis(enumClasses(new File(jarFile)));
 
 		} catch (Exception e) {
 			throw e;
 		}
 	}
 	
-	private void runWithApk(String apkFile, String androidPlatformPath, CallgraphAlgorithm cga) {
+	private void runWithApk(String apkFile, String androidPlatformPath) {
 		try {
 			sootOpt.set_src_prec(soot.options.Options.src_prec_apk);
 			//https://github.com/Sable/android-platforms
@@ -120,7 +119,7 @@ public class SootRunner {
 			sootOpt.set_process_dir(procdir);
 			
 			// finally, run soot
-			runSootAndAnalysis(enumClasses(new File(apkFile)), cga);
+			runSootAndAnalysis(enumClasses(new File(apkFile)));
 
 		} catch (Exception e) {
 			throw e;
@@ -139,8 +138,7 @@ public class SootRunner {
 	 *            Which {@link CallgraphAlgorithm} should be used? May not be
 	 *            null.
 	 */
-	private void runWithPath(String path, String classPath, CallgraphAlgorithm cga) {
-		assert cga != null;
+	private void runWithPath(String path, String classPath) {
 		try {
 			// dependent JAR files
 			List<File> jarFiles = new ArrayList<File>();
@@ -160,42 +158,14 @@ public class SootRunner {
 			sootOpt.set_process_dir(processDirs);
 			
 			// finally, run soot
-			runSootAndAnalysis(new LinkedList<String>(), cga);
+			runSootAndAnalysis(new LinkedList<String>());
 
 		} catch (Exception e) {
 			throw e;
 		}
 	}
 
-	/**
-	 * Enumeration containing the callgraph algorithms supported for the use
-	 * with the data flow tracker
-	 * 
-	 * @see https
-	 *      ://github.com/secure-software-engineering/soot-infoflow/blob/develop
-	 *      /src/soot/jimple/infoflow/Infoflow.java
-	 */
-	public enum CallgraphAlgorithm {
-		None, CHA, VTA, RTA, SPARK
-	}
 
-	/**
-	 * Enumeration containing the aliasing algorithms supported by FlowDroid
-	 * 
-	 * @see https
-	 *      ://github.com/secure-software-engineering/soot-infoflow/blob/develop
-	 *      /src/soot/jimple/infoflow/Infoflow.java
-	 */
-	public enum AliasingAlgorithm {
-		/**
-		 * A fully flow-sensitive algorithm based on Andromeda
-		 */
-		FlowSensitive, /**
-						 * A flow-insensitive algorithm based on Soot's
-						 * point-to-sets
-						 */
-		PtsBased
-	}
 
 	/**
 	 * Run Soot and creates an inter-procedural callgraph that could be loaded
@@ -205,11 +175,12 @@ public class SootRunner {
 	 *            additional classes that need to be loaded (e.g., when
 	 *            analyzing jars)
 	 */
-	protected void runSootAndAnalysis(List<String> classes, CallgraphAlgorithm cga) {
-		assert cga != null;
+	protected void runSootAndAnalysis(List<String> classes) {
 		sootOpt.set_keep_line_number(true);
 		sootOpt.set_prepend_classpath(true); // -pp
+		
 		sootOpt.set_output_format(soot.options.Options.output_format_none);
+			
 		sootOpt.set_allow_phantom_refs(true);
 
 		for (String s : classes) {
@@ -225,35 +196,6 @@ public class SootRunner {
 		Scene.v().addBasicClass("java.security.PrivilegedActionException", SootClass.SIGNATURES);
 		Scene.v().addBasicClass("java.lang.ref.Finalizer", SootClass.SIGNATURES);
 		
-		
-		if (cga != CallgraphAlgorithm.None) {
-			sootOpt.set_whole_program(true);
-			// Configure the callgraph algorithm
-			switch (cga) {
-			case CHA:
-				sootOpt.setPhaseOption("cg.cha", "on");
-				break;
-			case RTA:
-				sootOpt.setPhaseOption("cg.spark", "on");
-				sootOpt.setPhaseOption("cg.spark", "rta:true");
-				sootOpt.setPhaseOption("cg.spark", "string-constants:true");
-
-				break;
-			case VTA:
-				sootOpt.setPhaseOption("cg.spark", "on");
-				sootOpt.setPhaseOption("cg.spark", "vta:true");
-				sootOpt.setPhaseOption("cg.spark", "string-constants:true");
-				break;
-			case SPARK:
-				sootOpt.setPhaseOption("cg.spark", "on");
-				sootOpt.setPhaseOption("cg.spark", "string-constants:true");
-				sootOpt.setPhaseOption("cg.spark", "on-fly-cg:false");
-				break;
-			default:
-				throw new RuntimeException("Invalid callgraph algorithm");
-			}
-		}
-
 		try {
 			// redirect soot output into a stream.
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -262,14 +204,6 @@ public class SootRunner {
 
 			Scene.v().loadBasicClasses();
 			Scene.v().loadNecessaryClasses();
-
-			// We explicitly select the packs we want to run for performance
-			// reasons. Do not re-run the callgraph algorithm if the host
-			// application already provides us with a CG.
-			if (cga != CallgraphAlgorithm.None && !Scene.v().hasCallGraph()) {
-				PackManager.v().getPack("wjpp").apply();
-				PackManager.v().getPack("cg").apply();
-			}
 
 			/*
 			 * TODO: apply some preprocessing stuff like:

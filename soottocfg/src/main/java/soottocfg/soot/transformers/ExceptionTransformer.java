@@ -67,7 +67,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 			arrayIndexOutOfBoundsExceptionClass, classCastExceptionClass, errorExceptionClass, throwableClass;
 
 	private final boolean treatUncaughtExceptionsAsAssertions;
-	
+
 	private Body body;
 	protected Local exceptionVariable;
 
@@ -93,7 +93,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 	public ExceptionTransformer(NullnessAnalysis nna) {
 		this(nna, true);
 	}
-	
+
 	public ExceptionTransformer(NullnessAnalysis nna, boolean uncaughtAsAssertion) {
 		treatUncaughtExceptionsAsAssertions = uncaughtAsAssertion;
 		nullnessAnalysis = nna;
@@ -292,13 +292,13 @@ public class ExceptionTransformer extends AbstractTransformer {
 				}
 				Local l = getFreshLocal(body, BooleanType.v());
 				if (trap == null) {
-					Unit throwStmt = generateThrowStatement(u, exception);					
+					Unit throwStmt = generateThrowStatement(u, exception);
 					toInsert.add(
 							assignStmtFor(l, Jimple.v().newInstanceOfExpr(exceptionVariable, exception.getType()), u));
 					toInsert.add(ifStmtFor(jimpleNeZero(l), throwStmt, u));
 				} else {
 					usedTraps.add(trap);
-					Unit newTarget = createNewExceptionAndGoToTrap(u, exception, trap);					
+					Unit newTarget = createNewExceptionAndGoToTrap(u, exception, trap);
 					toInsert.add(
 							assignStmtFor(l, Jimple.v().newInstanceOfExpr(exceptionVariable, exception.getType()), u));
 					toInsert.add(ifStmtFor(jimpleNeZero(l), newTarget, u));
@@ -444,8 +444,8 @@ public class ExceptionTransformer extends AbstractTransformer {
 	 *            The class in the throws clause
 	 */
 	protected void handleUncaughtRuntimeException(Unit u, Value v, SootClass exception) {
-		// runtime exceptions that also occur in the throws clause get re-thrown		
-		if (!treatUncaughtExceptionsAsAssertions) {			
+		// runtime exceptions that also occur in the throws clause get re-thrown
+		if (!treatUncaughtExceptionsAsAssertions) {
 			List<Pair<Value, List<Unit>>> guards = constructGuardExpression(v, exception, true, u);
 			Unit throwStmt = generateThrowStatement(u, exception);
 			for (Pair<Value, List<Unit>> pair : guards) {
@@ -461,14 +461,14 @@ public class ExceptionTransformer extends AbstractTransformer {
 				assertionLocal = Jimple.v().newLocal("$assert_condition", BooleanType.v());
 				body.getLocals().add(assertionLocal);
 			}
-			
+
 			for (Pair<Value, List<Unit>> pair : guards) {
 				List<Unit> toInsert = new LinkedList<Unit>();
 				toInsert.addAll(pair.getSecond());
-				toInsert.add(Jimple.v().newAssignStmt(assertionLocal, pair.getFirst()));				
+				toInsert.add(Jimple.v().newAssignStmt(assertionLocal, pair.getFirst()));
 				toInsert.add(AssertionReconstruction.v().makeAssertion(assertionLocal));
 				body.getUnits().insertBefore(toInsert, u);
-			}			
+			}
 		}
 
 	}

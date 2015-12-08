@@ -81,8 +81,7 @@ public class InconsistencyThread implements Runnable {
 	 */
 	@Override
 	public void run() {
-		inconsistentBlocks.clear();
-
+		inconsistentBlocks.clear();		
 		if (method.vertexSet().isEmpty()) {
 			System.out.println("Nothing to do for " + method.getMethodName());
 			return;
@@ -98,9 +97,9 @@ public class InconsistencyThread implements Runnable {
 		SingleStaticAssignment ssa = new SingleStaticAssignment(method);
 		ssa.computeSSA();
 
-		if (debugMode) {
+//		if (debugMode) {
 			System.out.println(method);
-		}
+//		}
 
 		createVerificationCondition();
 
@@ -144,17 +143,17 @@ public class InconsistencyThread implements Runnable {
 			result = prover.checkSat(true);
 		}
 		// prover.pop();
-
+		
 		Set<CfgBlock> notCovered = new HashSet<CfgBlock>(blockVars.keySet());
 		notCovered.removeAll(covered);
 
 		inconsistentBlocks.addAll(notCovered);
 
-		if (!notCovered.isEmpty()) {
+		if (!inconsistentBlocks.isEmpty()) {
 			System.err.println("*** REPORT ***");
 			StringBuilder sb = new StringBuilder();
 			sb.append("Not covered ");
-			for (CfgBlock b : notCovered) {
+			for (CfgBlock b : inconsistentBlocks) {
 				sb.append(b.getLabel());
 				sb.append(", ");
 			}
@@ -162,6 +161,7 @@ public class InconsistencyThread implements Runnable {
 			System.err.println("**************");
 		}
 
+		return;
 	}
 
 	/**
