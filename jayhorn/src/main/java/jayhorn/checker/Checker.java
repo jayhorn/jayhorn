@@ -43,6 +43,8 @@ import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
+import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.type.MapType;
 import soottocfg.cfg.type.Type;
 
 /**
@@ -89,8 +91,9 @@ public class Checker {
     private void checkEntryPoint(Prover p, Program program, Method method) {
         Log.info("\tVerification from entry " + method.getMethodName());
         p.push();
+        LiveVars<CfgBlock> liveVariables = method.computeBlockLiveVariables();
 
-        makeBlockPredicates(p, method);
+        makeBlockPredicates(p, liveVariables);
 
         List<CfgBlock> todo = new LinkedList<CfgBlock>();
         todo.add(method.getSource());
@@ -116,8 +119,7 @@ public class Checker {
         while (!todo.isEmpty()) {
             CfgBlock current = todo.remove(0);
             done.add(current);
-            final HornPredicate exitPred = blockToHorn(p, current, clauses);
-
+            final HornPredicate exitPred = blockToHorn(p, current, clauses, liveVariables);
             
             // take care of successors
             if (!method.outgoingEdgesOf(current).isEmpty()) {
@@ -172,10 +174,8 @@ public class Checker {
 	 * @param p
 	 * @param method
 	 */
-    private void makeBlockPredicates(Prover p, Method method) {
-        LiveVars<CfgBlock> liveVariables = method.computeBlockLiveVariables();
-        //Todo is this live in or live out
-        for (Entry<CfgBlock, Set<Variable>> entry : liveVariables.liveOut.entrySet()) {
+    private void makeBlockPredicates(Prover p, LiveVars<CfgBlock> liveVariables) {
+        for (Entry<CfgBlock, Set<Variable>> entry : liveVariables.liveIn.entrySet()) {
             // First sort the list of variables by name to make access and
             // reading easier.
             List<Variable> sortedVars = setToSortedList(entry.getValue());
@@ -209,12 +209,40 @@ public class Checker {
 		if (t == BoolType.instance()) {
 			return p.getBooleanType();
 		}
+                if (t instanceof ReferenceType) {
+                    return p.getIntType();
+                }
+                if (t instanceof MapType) {
+                    System.err.println("Warning: translating " + t + " as prover type int");
+                    return p.getIntType();
+                }
                 throw new IllegalArgumentException("don't know what to do with " + t);
 	}
 
     private HornPredicate blockToHorn(Prover p, CfgBlock block,
-                                      List<ProverHornClause> clauseBuffer) {
+                                      List<ProverHornClause> clauseBuffer,
+                                      LiveVars<CfgBlock> liveVariables) {
+        System.out.println("to horn: " + block);
+        
         final HornPredicate initPred = blockPredicates.get(block);
+        final Set<Variable> liveOutVars = liveVariables.liveOut.get(block);
+
+        final Set<Variable>[] interVars = new Set[block.getStatements().size()];
+        interVars[interVars.length - 1] = liveOutVars;
+
+        for (int i = interVars.length - 1; i > 0; --i) {
+            final Statement s = block.getStatements().get(i);
+        System.out.println(s);
+        System.out.println(s.getUsedVariables());
+        System.out.println(s.getLVariables());
+            interVars[i - 1] = new HashSet<Variable> ();
+            interVars[i - 1].addAll(interVars[i]);
+            interVars[i - 1].removeAll(s.getLVariables());
+            interVars[i - 1].addAll(s.getUsedVariables());
+        }
+
+        System.out.println(java.util.Arrays.toString(interVars));
+        
         final String initName = initPred.name;
         HornPredicate prePred = initPred;
         int counter = 0;
