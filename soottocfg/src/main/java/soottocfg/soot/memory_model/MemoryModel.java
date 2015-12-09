@@ -3,10 +3,10 @@
  */
 package soottocfg.soot.memory_model;
 
-import soot.SootClass;
 import soot.Unit;
 import soot.Value;
 import soot.jimple.ArrayRef;
+import soot.jimple.ClassConstant;
 import soot.jimple.DoubleConstant;
 import soot.jimple.FieldRef;
 import soot.jimple.FloatConstant;
@@ -15,7 +15,6 @@ import soot.jimple.NewExpr;
 import soot.jimple.NewMultiArrayExpr;
 import soot.jimple.StringConstant;
 import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.type.ClassConstant;
 import soottocfg.cfg.type.Type;
 import soottocfg.soot.visitors.SootStmtSwitch;
 import soottocfg.soot.visitors.SootValueSwitch;
@@ -42,7 +41,7 @@ public abstract class MemoryModel {
 	
 	public abstract void mkHeapWriteStatement(Unit u, FieldRef field, Value rhs);
 	
-	public abstract void mkHeapReadStatement(Unit u, FieldRef field, Value lhs);
+	public abstract void mkHeapReadStatement(Unit u, FieldRef field, Value lhs);	
 	
 	public abstract Expression mkNewExpr(NewExpr arg0);
 
@@ -61,10 +60,10 @@ public abstract class MemoryModel {
 	public abstract Expression mkDoubleConstant(DoubleConstant arg0);
 
 	public abstract Expression mkFloatConstant(FloatConstant arg0);
+	
+	public abstract Expression lookupClassConstant(ClassConstant cc);
 
 	public abstract Type lookupType(soot.Type t);
-	
-	public abstract ClassConstant lookupClassConstant(SootClass c);
 	
 	public boolean isNullReference(Expression e) {
 		return false;

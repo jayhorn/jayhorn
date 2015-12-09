@@ -60,7 +60,7 @@ public class BinaryExpression extends Expression {
 				}
 			}
 		}
-		Preconditions.checkArgument(left.getType().getClass()==right.getType().getClass() || SootTranslationHelpers.v().getMemoryModel().isNullReference(right), "Types don't match: "+ left.getType() + " and " + right.getType());
+		Preconditions.checkArgument(left.getType().getClass()==right.getType().getClass() || SootTranslationHelpers.v().getMemoryModel().isNullReference(right) || SootTranslationHelpers.v().getMemoryModel().isNullReference(left), "Types don't match: "+ left.getType() + " and " + right.getType());
 		//TODO: more type checking depending on operator
 		this.left = left;
 		this.right = right;

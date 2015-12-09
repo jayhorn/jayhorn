@@ -14,6 +14,7 @@ import soot.SootClass;
 import soot.SootField;
 import soot.Value;
 import soot.jimple.ArrayRef;
+import soot.jimple.ClassConstant;
 import soot.jimple.Constant;
 import soot.jimple.DoubleConstant;
 import soot.jimple.FloatConstant;
@@ -32,7 +33,7 @@ import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.type.BoolType;
-import soottocfg.cfg.type.ClassConstant;
+import soottocfg.cfg.type.ClassSignature;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.MapType;
 import soottocfg.cfg.type.ReferenceType;
@@ -52,7 +53,8 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	protected final Map<SootField, Variable> fieldGlobals = new HashMap<SootField, Variable>();
 
 	protected final Map<Constant, Variable> constantDictionary = new HashMap<Constant, Variable>();
-
+	
+	
 	protected final Type nullType;
 
 	public BasicMemoryModel() {
@@ -145,7 +147,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		return new IdentifierExpression(
 				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));
 	}
-
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -221,6 +223,16 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		}
 		return new IdentifierExpression(constantDictionary.get(arg0));
 	}
+	
+	@Override
+	public Expression lookupClassConstant(ClassConstant arg0) {
+		if (!constantDictionary.containsKey(arg0)) {
+			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram()
+					.loopupGlobalVariable("$classconst" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
+		}
+		return new IdentifierExpression(constantDictionary.get(arg0));
+	}
+
 
 	@Override
 	public Type lookupType(soot.Type t) {
@@ -261,7 +273,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 				return this.nullConstant.getType();
 			} else if (t instanceof soot.RefType) {
 				soot.RefType rt = (soot.RefType) t;
-				ClassConstant cc = lookupClassConstant(rt.getSootClass());
+				ClassSignature cc = lookupClassSignature(rt.getSootClass());
 				type = new ReferenceType(cc);
 			} else {
 				throw new RuntimeException("Don't know what to do with type " + t);
@@ -271,32 +283,31 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		return types.get(t);
 	}
 
-	private Map<SootClass, ClassConstant> classConstants = new HashMap<SootClass, ClassConstant>();
-
-	@Override
-	public ClassConstant lookupClassConstant(SootClass c) {
-		if (!classConstants.containsKey(c)) {
-			Collection<ClassConstant> parents = new HashSet<ClassConstant>();
+	private Map<SootClass, ClassSignature> classSignatures = new HashMap<SootClass, ClassSignature>();
+	
+	public ClassSignature lookupClassSignature(SootClass c) {
+		if (!classSignatures.containsKey(c)) {
+			Collection<ClassSignature> parents = new HashSet<ClassSignature>();
 			if (c.resolvingLevel() >= SootClass.HIERARCHY) {
 				if (c.hasSuperclass()) {
-					parents.add(lookupClassConstant(c.getSuperclass()));
+					parents.add(lookupClassSignature(c.getSuperclass()));
 				}
 			} else {
 				// TODO
 			}
-			classConstants.put(c, new ClassConstant(c.getJavaStyleName(), parents));
+			classSignatures.put(c, new ClassSignature(c.getJavaStyleName(), parents));
 			// add the fields after that to avoid endless loop.
 			if (c.resolvingLevel() >= SootClass.SIGNATURES) {
 				List<Variable> fields = new LinkedList<Variable>();
 				for (SootField f : c.getFields()) {
 					fields.add(lookupField(f));
 				}
-				classConstants.get(c).setAssociatedFields(fields);
+				classSignatures.get(c).setAssociatedFields(fields);
 			} else {
 				//TODO
 			}
 		}
-		return classConstants.get(c);
+		return classSignatures.get(c);
 	}
 
 }

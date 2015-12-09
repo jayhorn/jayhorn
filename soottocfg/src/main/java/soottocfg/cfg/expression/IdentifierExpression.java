@@ -6,6 +6,8 @@ package soottocfg.cfg.expression;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
+
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.type.Type;
 
@@ -26,10 +28,11 @@ public class IdentifierExpression extends Expression {
 	 * 
 	 */
 	public IdentifierExpression(Variable v) {
-		this.variable = v;
+		this(v,0);
 	}
 
 	public IdentifierExpression(Variable v, int incarnation) {
+		Preconditions.checkNotNull(v);
 		this.variable = v;
 		this.ssaIncarnation = incarnation;
 	}

@@ -13,12 +13,12 @@ public class ReferenceType extends Type {
 	 * 
 	 */
 	private static final long serialVersionUID = 4056715121602313972L;
-	private final ClassConstant classConstant;
+	private final ClassSignature classConstant;
 	
 	/**
 	 * 
 	 */
-	public ReferenceType(ClassConstant cc) {
+	public ReferenceType(ClassSignature cc) {
 		classConstant = cc;
 	}
 	

@@ -10,7 +10,6 @@ import soot.RefType;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.Unit;
-import soot.jimple.ClassConstant;
 import soot.tagkit.AbstractHost;
 import soot.tagkit.SourceFileTag;
 import soot.tagkit.Tag;
@@ -83,11 +82,7 @@ public enum SootTranslationHelpers {
 		return this.memoryModel;
 	}
 
-	public Variable lookupClassConstant(ClassConstant cc) {
-		return null;
-		//TODO
-		// throw new RuntimeException("Not implemented");
-	}
+
 
 	public Variable lookupTypeVariable(soot.Type t) {
 		if (!typeVariables.containsKey(t)) {

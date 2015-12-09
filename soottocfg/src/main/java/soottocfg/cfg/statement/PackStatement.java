@@ -12,7 +12,7 @@ import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.type.ClassConstant;
+import soottocfg.cfg.type.ClassSignature;
 
 /**
  * @author schaef
@@ -24,7 +24,7 @@ public class PackStatement extends Statement {
 	 * 
 	 */
 	private static final long serialVersionUID = 5776310555422969945L;
-	private final ClassConstant classConstant;
+	private final ClassSignature classConstant;
 	private final IdentifierExpression object;
 	private final List<Expression> right;
 	
@@ -32,7 +32,7 @@ public class PackStatement extends Statement {
 	/**
 	 * @param loc
 	 */
-	public PackStatement(SourceLocation loc, ClassConstant c, IdentifierExpression obj, List<Expression> rhs) {
+	public PackStatement(SourceLocation loc, ClassSignature c, IdentifierExpression obj, List<Expression> rhs) {
 		super(loc);		
 		classConstant = c;
 		object = obj;

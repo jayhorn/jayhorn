@@ -188,8 +188,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseClassConstant(ClassConstant arg0) {
-		Expression e = new IdentifierExpression(SootTranslationHelpers.v().lookupClassConstant(arg0));
-		this.expressionStack.add(e);
+		this.expressionStack.add(this.memoryModel.lookupClassConstant(arg0));
 	}
 
 	@Override

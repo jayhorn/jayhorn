@@ -18,7 +18,7 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.PackStatement;
 import soottocfg.cfg.statement.UnPackStatement;
-import soottocfg.cfg.type.ClassConstant;
+import soottocfg.cfg.type.ClassSignature;
 import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
@@ -43,7 +43,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			Expression value = valueSwitch.popExpression();
 
 			// ------------- unpack ---------------
-			ClassConstant c = lookupClassConstant(field.getField().getDeclaringClass());
+			ClassSignature c = lookupClassSignature(field.getField().getDeclaringClass());
 			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			Variable[] vars = c.getAssociatedFields();
 			for (int i = 0; i < vars.length; i++) {
@@ -70,6 +70,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 		}
 	}
 
+	
 	@Override
 	public void mkHeapReadStatement(Unit u, FieldRef field, Value lhs) {
 		SourceLocation loc = SootTranslationHelpers.v().getSourceLocation(u);
@@ -83,7 +84,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			IdentifierExpression base = (IdentifierExpression) valueSwitch.popExpression();
 
 			// ------------- unpack ---------------
-			ClassConstant c = lookupClassConstant(field.getField().getDeclaringClass());
+			ClassSignature c = lookupClassSignature(field.getField().getDeclaringClass());
 			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			Variable[] vars = c.getAssociatedFields();
 			for (int i = 0; i < vars.length; i++) {

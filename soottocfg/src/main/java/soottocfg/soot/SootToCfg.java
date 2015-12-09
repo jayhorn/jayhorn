@@ -16,12 +16,12 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 
-import soot.AbstractJasminClass;
 import soot.Body;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.SourceLocator;
+import soot.jimple.JasminClass;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
 import soot.options.Options;
 import soot.toolkits.graph.CompleteUnitGraph;
@@ -31,7 +31,6 @@ import soottocfg.cfg.method.Method;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.SwitchStatementRemover;
-import soottocfg.soot.transformers.VirtualCallResolver;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.soot.visitors.SootStmtSwitch;
@@ -141,6 +140,8 @@ public class SootToCfg {
 	 * @param sClass
 	 */
 	private void writeOutModifiedClass(SootClass sClass) {
+		sClass.validate();
+		
 		String currentName = SourceLocator.v().getFileNameFor(sClass, Options.output_format_class);
 		
 		StringBuilder sb = new StringBuilder();
@@ -159,7 +160,7 @@ public class SootToCfg {
 		// write the class to a file
 		try (OutputStream streamOut = new JasminOutputStream(new FileOutputStream(fileName));
 				PrintWriter writerOut = new PrintWriter(new OutputStreamWriter(streamOut, "UTF-8"));) {
-			AbstractJasminClass jasminClass = new soot.baf.JasminClass(sClass);
+			JasminClass jasminClass = new JasminClass(sClass);
 			jasminClass.print(writerOut);
 			writerOut.flush();
 		} catch (FileNotFoundException e) {
@@ -168,7 +169,7 @@ public class SootToCfg {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		} 
 	}
 
 	private void processSootMethod(SootMethod sm) {
@@ -210,7 +211,7 @@ public class SootToCfg {
 
 	private void preProcessBody(Body body) {
 		// pre-process the body
-
+		
 		// first reconstruct the assertions.
 		AssertionReconstruction.v().removeAssertionRelatedNonsense(body);
 		AssertionReconstruction.v().reconstructJavaAssertions(body);
@@ -224,8 +225,8 @@ public class SootToCfg {
 		so.transform(body);
 
 		if (resolveVirtualCalls) {
-			VirtualCallResolver vc = new VirtualCallResolver();
-			vc.transform(body);
+//			VirtualCallResolver vc = new VirtualCallResolver();
+//			vc.transform(body);
 		}
 
 	}

@@ -62,7 +62,7 @@ public class AssignStatement extends Statement {
 //		if (left.getType().getClass()!=right.getType().getClass()) {
 //			System.err.println("");
 //		}
-		Preconditions.checkArgument(left.getType().getClass()==right.getType().getClass() || SootTranslationHelpers.v().getMemoryModel().isNullReference(right), "Types don't match: "+ left.getType() + " and " + right.getType() + " for " + left + " and " + right);
+//		Preconditions.checkArgument(left.getType().getClass()==right.getType().getClass() || SootTranslationHelpers.v().getMemoryModel().isNullReference(right), "Types don't match: "+ left.getType() + " and " + right.getType() + " for " + left + " and " + right);
 	}
 
 	@Override

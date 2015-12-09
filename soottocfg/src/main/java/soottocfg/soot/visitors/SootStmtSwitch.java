@@ -511,6 +511,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			Expression left = valueSwitch.popExpression();
 			rhs.apply(valueSwitch);
 			Expression right = valueSwitch.popExpression();
+
 			currentBlock
 					.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(def), left, right));
 		}

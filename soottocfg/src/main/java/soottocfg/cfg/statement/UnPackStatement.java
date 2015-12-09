@@ -11,7 +11,7 @@ import java.util.Set;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.type.ClassConstant;
+import soottocfg.cfg.type.ClassSignature;
 
 /**
  * @author schaef
@@ -23,7 +23,7 @@ public class UnPackStatement extends Statement {
 	 * 
 	 */
 	private static final long serialVersionUID = 9221818898828469398L;
-	private final ClassConstant classConstant;
+	private final ClassSignature classConstant;
 	private final IdentifierExpression object;
 	private final List<IdentifierExpression> left;
 	
@@ -31,7 +31,7 @@ public class UnPackStatement extends Statement {
 	/**
 	 * @param loc
 	 */
-	public UnPackStatement(SourceLocation loc, ClassConstant c, IdentifierExpression obj, List<IdentifierExpression> lhs) {
+	public UnPackStatement(SourceLocation loc, ClassSignature c, IdentifierExpression obj, List<IdentifierExpression> lhs) {
 		super(loc);		
 		classConstant = c;
 		object = obj;

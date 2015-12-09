@@ -104,7 +104,9 @@ public class MethodInfo {
 		locals.addAll(this.freshLocals);
 		m.initialize(this.thisVariable, this.returnVariable, this.exceptionalReturnVariable, this.parameterList, locals, source, sootMethod.isEntryMethod());
 		CfgBlock uniqueSink = m.findOrCreateUniqueSink();
-		assert (sink == uniqueSink);
+		if (sink != uniqueSink) {
+			System.err.println("Something strange with the CFG. More than one sink found for "+m.getMethodName());
+		}		
 		sink = uniqueSink;
 	}
 

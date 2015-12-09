@@ -140,7 +140,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 		usedTraps.addAll(handleRuntimeException());
 		usedTraps.addAll(handleMethodCalls());
 		usedTraps.addAll(handleThrowStatements());
-
+		
 		// now remove the @caughtexceptionrefs
 		Map<Unit, Unit> replacementMap = new HashMap<Unit, Unit>();
 		for (Trap t : usedTraps) {
@@ -178,26 +178,22 @@ public class ExceptionTransformer extends AbstractTransformer {
 		// finally, remove those traps:
 		body.getTraps().removeAll(usedTraps);
 
-		if (body.getTraps().isEmpty()) {
-			// System.err.println("OK");
-		} else {
-			// StringBuilder sb = new StringBuilder();
-			// sb.append(body.getMethod().getSignature());
-			// sb.append("\n\t");
-			// for (Trap t : body.getTraps()) {
-			// sb.append(t.getException().getName());
-			// sb.append(", ");
-			// }
-			// System.err.println(sb.toString());
-			// in theory, all the remaining traps should be unreachable
-			// so we can just throw them away.
-			// if the body.validate() fires an exception, its most likely
-			// a bug in our code.
-			// System.err.println(body);
-			// body.getTraps().removeAll(body.getTraps());
-
-			// System.err.println("\t" + body.getMethod().getSignature());
+		if (!body.getTraps().isEmpty()) {
+			System.err.format("TODO: %d traps could not be removed for %s%n", body.getTraps().size(), body.getMethod().getSignature());			
+			//TODO!!!!!
+			body.getTraps().clear();
+			Set<Unit> caughtExceptionUnits = new HashSet<Unit>();
+			Set<Local> deadLocals = new HashSet<Local>();
+			for (Unit u : body.getUnits()) {
+				if (u instanceof DefinitionStmt && ((DefinitionStmt)u).getRightOp() instanceof CaughtExceptionRef) {
+					caughtExceptionUnits.add(u);
+					deadLocals.add((Local)((DefinitionStmt)u).getLeftOp());
+				}
+			}
+			body.getUnits().removeAll(caughtExceptionUnits);
+			body.getLocals().removeAll(deadLocals);			
 		}
+			
 		body.validate();
 	}
 
@@ -549,29 +545,28 @@ public class ExceptionTransformer extends AbstractTransformer {
 			 */
 			List<Unit> helperStatements = new LinkedList<Unit>();
 			Local len = getFreshLocal(body, IntType.v());
+			
 			Unit helperStmt = assignStmtFor(len, Jimple.v().newLengthExpr(e.getBase()), createdFrom);
 			helperStatements.add(helperStmt);
 
-			Local left = getFreshLocal(body, BooleanType.v());
-			helperStmt = assignStmtFor(left, Jimple.v().newLtExpr(e.getIndex(), len), createdFrom);
-			helperStatements.add(helperStmt);
 			// !(index < array.length)
+			Local left = getFreshLocal(body, IntType.v());	
+			helperStmt = assignStmtFor(left, e.getIndex(), createdFrom);
+			helperStatements.add(helperStmt);
+
 			if (negated) {
-				result.add(new Pair<Value, List<Unit>>(jimpleEqZero(left), helperStatements));
+				result.add(new Pair<Value, List<Unit>>(Jimple.v().newGeExpr(left, len), helperStatements));
 			} else {
-				result.add(new Pair<Value, List<Unit>>(jimpleNeZero(left), helperStatements));
+				result.add(new Pair<Value, List<Unit>>(Jimple.v().newLtExpr(left, len), helperStatements));
 			}
 
 			// index >= 0
 			helperStatements = new LinkedList<Unit>();
-			Local right = getFreshLocal(body, BooleanType.v());
-			helperStmt = assignStmtFor(right, Jimple.v().newGeExpr(e.getIndex(), IntConstant.v(0)), createdFrom);
-			helperStatements.add(helperStmt);
 			// !(index>=0)
 			if (negated) {
-				result.add(new Pair<Value, List<Unit>>(jimpleEqZero(right), helperStatements));
+				result.add(new Pair<Value, List<Unit>>(Jimple.v().newGtExpr(IntConstant.v(0), left), helperStatements));
 			} else {
-				result.add(new Pair<Value, List<Unit>>(jimpleNeZero(right), helperStatements));
+				result.add(new Pair<Value, List<Unit>>(Jimple.v().newLeExpr(IntConstant.v(0), left), helperStatements));
 			}
 
 			return result;

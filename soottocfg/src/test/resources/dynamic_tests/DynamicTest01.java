@@ -2,48 +2,62 @@ package dynamic_tests;
 
 public class DynamicTest01 {
 
-    
-	public int noExceptions(int i) {
+	//TODO: org.apache.tools.ant.taskdefs.condition.Socket: boolean eval()
+
+	public String simpleTest01() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(simpleTestMethod01(0));
+		sb.append(simpleTestMethod02(0));
+		sb.append(simpleTestMethod01(2));
+		sb.append(simpleTestMethod02(2));		
+		return sb.toString();
+	}
+		
+	private int simpleTestMethod01(int i) {
 		if (i == 0) {
 			return 1;
 		} else if (i == 2) {
 			return 2;
 		}
-//		assert 2 == 1;
 		return 3;
 	}
 
-//	String s1;
-//	
-//	public void virtualCalls(int i) {
-//		Object o;
-//		if (i>0) {
-//			o = s1;
-//		} else {
-//			o = new TranslationTest01();
-//		}
-//		o.toString(); // may not be null.
-//	}
-//	@Override
-//	public String toString() {return "";}
+	String s1="Foo";
 	
-//	
-//	int x,y;
-//	
-//	public void foo() {}
-//	
-//	public int withException() {
-//		int b;
-//		try {
-//			int a[] = new int[2];
-//			b=a[3];
-//			foo();
-//		} catch (ArrayIndexOutOfBoundsException e) {
-//			b = 20;
-//		}
-//		b=30;
-//		return b;
-//	}
+	private String simpleTestMethod02(int i) {
+		Object o;
+		if (i>0) {
+			o = s1;
+		} else {
+			o = new DynamicTest01();
+		}
+		return o.toString(); // may not be null.
+	}
+	@Override
+	public String toString() {return "Bar";}
+
+	
+	public int exceptionTest() {
+		int result = withExceptionMethod(0);
+		result += withExceptionMethod(5);
+		return result;
+	}
+
+	private void foo() {}
+	
+	private int withExceptionMethod(int i) {
+		int b=0;
+		try {
+			int a[] = new int[2];
+			b=a[i];
+			foo();			
+		} catch (ArrayIndexOutOfBoundsException e) {
+			b = 20;				
+		} finally {
+			b+=2;			
+		}
+		return b;
+	}
 	
 //	public void excpetions02() {
 //		File myFile = new File(new File("doesntexist"), "test.txt"); 

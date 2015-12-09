@@ -41,7 +41,7 @@ public class SimpleBurstallBornatModel extends BasicMemoryModel {
 		this.heapVariable = this.program.loopupGlobalVariable("$heap", heapType);
 
 	}
-
+	
 	@Override
 	public void mkHeapWriteStatement(Unit u, FieldRef field, Value rhs) {
 		SourceLocation loc = SootTranslationHelpers.v().getSourceLocation(u);
