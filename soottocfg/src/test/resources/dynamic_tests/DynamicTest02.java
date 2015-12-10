@@ -10,12 +10,20 @@ import java.io.IOException;
  *
  */
 public class DynamicTest02 {
-
-	private String server = null;
-    private int port = 0;
 	
     private void log(String s, int i) {}
     
+    public boolean callEval01() {
+    	return eval("www.google.com", 80);
+    }
+
+    public boolean callEval02() {
+    	return eval(null, 10);
+    }
+
+    public boolean callEval03() {
+    	return eval("foo", 65537);
+    }
     /**
      * Taken from org.apache.tools.ant.taskdefs.condition.Socket
      * because it caused an exception in:
@@ -34,7 +42,7 @@ public class DynamicTest02 {
         throw r21;
         $r18 := @caughtexception;		
      */
-    public boolean eval() throws RuntimeException {
+     protected boolean eval(String server, int port) throws RuntimeException {
         if (server == null) {
             throw new RuntimeException("No server specified in socket "
                                      + "condition");

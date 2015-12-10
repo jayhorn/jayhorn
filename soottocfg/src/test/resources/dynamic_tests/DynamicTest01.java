@@ -10,6 +10,8 @@ public class DynamicTest01 {
 		sb.append(simpleTestMethod02(0));
 		sb.append(simpleTestMethod01(2));
 		sb.append(simpleTestMethod02(2));		
+		sb.append(simpleTestMethod01(3));
+		sb.append(simpleTestMethod02(3));		
 		return sb.toString();
 	}
 		
@@ -36,28 +38,6 @@ public class DynamicTest01 {
 	@Override
 	public String toString() {return "Bar";}
 
-	
-	public int exceptionTest() {
-		int result = withExceptionMethod(0);
-		result += withExceptionMethod(5);
-		return result;
-	}
-
-	private void foo() {}
-	
-	private int withExceptionMethod(int i) {
-		int b=0;
-		try {
-			int a[] = new int[2];
-			b=a[i];
-			foo();			
-		} catch (ArrayIndexOutOfBoundsException e) {
-			b = 20;				
-		} finally {
-			b+=2;			
-		}
-		return b;
-	}
 	
 //	public void excpetions02() {
 //		File myFile = new File(new File("doesntexist"), "test.txt"); 

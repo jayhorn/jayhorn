@@ -45,10 +45,9 @@ import soottocfg.util.Pair;
 public class VirtualCallResolver extends AbstractTransformer {
 
 	private final Hierarchy hierarchy;
-	
 
 	private LocalTypeFinder ltf;
-	
+
 	/**
 	 * 
 	 */
@@ -64,9 +63,9 @@ public class VirtualCallResolver extends AbstractTransformer {
 	 */
 	@Override
 	protected void internalTransform(Body body, String arg1, Map<String, String> arg2) {
-		
+
 		ltf = new LocalTypeFinder(new CompleteUnitGraph(body));
-		
+
 		Map<Unit, Pair<InstanceInvokeExpr, List<SootMethod>>> callsToResolve = new HashMap<Unit, Pair<InstanceInvokeExpr, List<SootMethod>>>();
 
 		for (Unit u : body.getUnits()) {
@@ -87,35 +86,37 @@ public class VirtualCallResolver extends AbstractTransformer {
 			}
 		}
 
-		for (Entry<Unit, Pair<InstanceInvokeExpr, List<SootMethod>>> entry : callsToResolve.entrySet()) {			
+		for (Entry<Unit, Pair<InstanceInvokeExpr, List<SootMethod>>> entry : callsToResolve.entrySet()) {
 			Unit originalCall = entry.getKey();
 			InstanceInvokeExpr ivk = entry.getValue().getFirst();
 			List<SootMethod> callees = entry.getValue().getSecond();
-			
-//			System.err.println(originalCall + " may have base");
-//			if (ivk.getBase() instanceof Local) {
-//				for (Type t : ltf.getLocalTypesBefore(originalCall, (Local)ivk.getBase())) {
-//					System.err.println("\t"+t);
-//				}
-//			} else {
-//				System.err.println("\t"+ivk.getBase() + " "+ivk.getBase().getType());
-//			}
-			
+
+			int counter = 0;
 			for (SootMethod callee : callees) {
+				counter++;
 				List<Unit> vcall = createVirtualCall(body, callee, originalCall, ivk);
-				body.getUnits().addAll(vcall);
-				
-				Local l = getFreshLocal(body, BooleanType.v());
-				List<Unit> stmts = new LinkedList<Unit>();
-				stmts.add(assignStmtFor(l,
-						Jimple.v().newInstanceOfExpr(ivk.getBase(), callee.getDeclaringClass().getType()),
-						originalCall));
-				stmts.add(ifStmtFor(jimpleNeZero(l), vcall.get(0), originalCall));
-				body.getUnits().insertBefore(stmts, originalCall);
+				if (counter < callees.size()) {
+					body.getUnits().addAll(vcall);
+					Local l = getFreshLocal(body, BooleanType.v());
+					List<Unit> stmts = new LinkedList<Unit>();
+					stmts.add(assignStmtFor(l,
+							Jimple.v().newInstanceOfExpr(ivk.getBase(), callee.getDeclaringClass().getType()),
+							originalCall));
+					stmts.add(ifStmtFor(jimpleNeZero(l), vcall.get(0), originalCall));
+					body.getUnits().insertBefore(stmts, originalCall);
+				} else {
+					// To keep the bytecode verifier happy, 
+					// we don't guard the call for the last case
+					// to avoid uninitialized variables.
+					body.getUnits().insertBefore(vcall, originalCall);
+				}
 			}
+			// if the originalCall is an assignment,
+			// TODO: removing stuff break the bytecode verifier
+			// if its not run form within eclipse ... dig into that.
 			body.getUnits().remove(originalCall);
 		}
-		body.validate();
+		body.validate();		
 	}
 
 	private List<Unit> createVirtualCall(Body body, SootMethod callee, Unit originalCall, InstanceInvokeExpr ivk) {
@@ -131,14 +132,15 @@ public class VirtualCallResolver extends AbstractTransformer {
 		} else if (originalCall instanceof AssignStmt) {
 			AssignStmt s = (AssignStmt) originalCall;
 			// make the call statement
-			units.add(assignStmtFor(s.getLeftOp(), Jimple.v().newVirtualInvokeExpr(l, callee.makeRef(), ivk.getArgs()),
-					s));
+			Unit newAssign = assignStmtFor(s.getLeftOp(),
+					Jimple.v().newVirtualInvokeExpr(l, callee.makeRef(), ivk.getArgs()), s);
+			units.add(newAssign);
 		} else if (originalCall instanceof IdentityStmt) {
 			throw new RuntimeException();
 		}
-		// jump back to the statement after the original call.		
+		// jump back to the statement after the original call.
 		Unit succ = body.getUnits().getSuccOf(originalCall);
-		if (succ !=null) {
+		if (succ != null) {
 			units.add(gotoStmtFor(succ, originalCall));
 		}
 		return units;
@@ -155,86 +157,70 @@ public class VirtualCallResolver extends AbstractTransformer {
 		List<SootMethod> res = new LinkedList<SootMethod>();
 
 		SootMethod callee = call.getMethod();
-//		SootClass sc = callee.getDeclaringClass();
-//		if (call.getBase().getType() instanceof RefType) {
-//			//then we can use a tighter type.
-//			RefType rt = (RefType)call.getBase().getType();
-//			sc = rt.getSootClass();			
-//		} else if (call.getBase().getType() instanceof ArrayType) {
-//			//TODO: this should be array.clone
-//			res.add(callee);
-//			return res;
-//		} else {
-//			System.err.println(call.getBase().getType().getClass());
-//		}
-		
+		// SootClass sc = callee.getDeclaringClass();
+		// if (call.getBase().getType() instanceof RefType) {
+		// //then we can use a tighter type.
+		// RefType rt = (RefType)call.getBase().getType();
+		// sc = rt.getSootClass();
+		// } else if (call.getBase().getType() instanceof ArrayType) {
+		// //TODO: this should be array.clone
+		// res.add(callee);
+		// return res;
+		// } else {
+		// System.err.println(call.getBase().getType().getClass());
+		// }
+
 		if (call instanceof SpecialInvokeExpr) {
-			//TODO: is this correct?
-			SpecialInvokeExpr sivk = (SpecialInvokeExpr)call;
+			// TODO: is this correct?
+			SpecialInvokeExpr sivk = (SpecialInvokeExpr) call;
 			if (sivk.getMethod().isConstructor()) {
 				res.add(callee);
-				return res;				
+				return res;
 			}
 		}
 
-		//in jimple, the base must be a local.
+		// in jimple, the base must be a local.
 		assert (call.getBase() instanceof Local);
 		Collection<SootClass> possibleClasses = new HashSet<SootClass>();
-		for (Type t : ltf.getLocalTypesBefore(u, (Local)call.getBase())) {
+		for (Type t : ltf.getLocalTypesBefore(u, (Local) call.getBase())) {
 			if (t instanceof RefType) {
-				possibleClasses.add(((RefType)t).getSootClass()); 
+				possibleClasses.add(((RefType) t).getSootClass());
 			}
 		}
 
-					
 		for (SootClass sub : possibleClasses) {
 			if (sub.resolvingLevel() < SootClass.SIGNATURES) {
 				// Log.error("Not checking subtypes of " + sub.getName());
 				// Then we probably really don't care.
-			} else {				
+			} else {
 				if (sub.declaresMethod(callee.getName(), callee.getParameterTypes(), callee.getReturnType())) {
-//					if (callee.hasActiveBody()) {
-						// TODO: does it make sense to only add methods
-						// that have an active body?
-						res.add(sub.getMethod(callee.getName(), callee.getParameterTypes(), callee.getReturnType()));
-//					}
+					// if (callee.hasActiveBody()) {
+					// TODO: does it make sense to only add methods
+					// that have an active body?
+					res.add(sub.getMethod(callee.getName(), callee.getParameterTypes(), callee.getReturnType()));
+					// }
 				}
 			}
 		}
 
 		if (res.isEmpty()) {
-			//TODO check when this happens... usually when we have no body for any version 
-			//of this method.
+			// TODO check when this happens... usually when we have no body for
+			// any version
+			// of this method.
 			res.add(callee);
 		}
-		if (res.size()==1) {
+		if (res.size() == 1) {
 			return res;
 		}
-		
-		//magic constant to keep the class file small.
-		if (res.size()>30) {
+
+		// magic constant to keep the class file small.
+		if (res.size() > 30) {
 			System.err.println("Ignoring " + res.size() + " cases for " + u);
 			res.clear();
 			res.add(callee);
 			return res;
 		}
-		
-//		System.err.println(res.size());
-//		if (res.size()>100) {
-//			
-//			StringBuilder sb = new StringBuilder();
-//			sb.append(body);
-//			sb.append("Calls: ");
-//			for (SootMethod m : res) {
-//				sb.append(", "+m.getSignature());				
-//			}
-//			sb.append("\nStmt "+u);
-//			sb.append("\nBaseType " +call.getBase().getType());
-//			sb.append("\nBase " +call.getBase());
-//			sb.append("\nProc ");
-//			sb.append(body.getMethod().getSignature());
-//			System.err.println(sb.toString());
-//		}
+
 		// we have to sort the methods by type.
 		Collections.sort(res, new Comparator<SootMethod>() {
 			@Override

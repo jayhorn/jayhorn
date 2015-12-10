@@ -31,6 +31,7 @@ import soottocfg.cfg.method.Method;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.SwitchStatementRemover;
+import soottocfg.soot.transformers.VirtualCallResolver;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.soot.visitors.SootStmtSwitch;
@@ -225,8 +226,8 @@ public class SootToCfg {
 		so.transform(body);
 
 		if (resolveVirtualCalls) {
-//			VirtualCallResolver vc = new VirtualCallResolver();
-//			vc.transform(body);
+			VirtualCallResolver vc = new VirtualCallResolver();
+			vc.transform(body);
 		}
 
 	}
