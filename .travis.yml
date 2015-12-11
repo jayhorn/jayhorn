@@ -10,7 +10,7 @@ before_install:
    - export LD_LIBRARY_PATH=$(pwd)/jayhorn/native_lib
 
 script:   
-   - gradle check
+   - gradle check -i
 
 after_success:
    - gradle jacocoRootReport coveralls
