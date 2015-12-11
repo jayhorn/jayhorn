@@ -17,9 +17,9 @@ public class DynamicTest02 {
     	return eval("www.google.com", 80);
     }
 
-    public boolean callEval02() {
-    	return eval(null, 10);
-    }
+    // public boolean callEval02() {
+    // 	return eval(null, 10);
+    // }
 
     public boolean callEval03() {
     	return eval("foo", 65537);

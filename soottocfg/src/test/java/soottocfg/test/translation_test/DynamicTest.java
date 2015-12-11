@@ -104,12 +104,14 @@ public class DynamicTest {
 		// load the assertion class
 		try (URLClassLoader classLoader = new URLClassLoader(new URL[] { transformedClassDir.toURI().toURL() });) {
 			classLoader.loadClass(SootTranslationHelpers.v().getAssertionClass().getName());
+			Class<?> cNew = classLoader.loadClass(cOrig.getName());
+			Assert.assertTrue(compareClassFiles(cOrig, cNew));
 		} catch (Throwable e) {
 			throw e;
 		}
 
-		Class<?> cNew = loadClass(transformedClassDir);
-		Assert.assertTrue(compareClassFiles(cOrig, cNew));
+//		Class<?> cNew = loadClass(transformedClassDir);
+		
 	}
 
 	private boolean compareClassFiles(Class<?> c1, Class<?> c2) {
@@ -190,7 +192,8 @@ public class DynamicTest {
 		} else {
 			if (!out1.equals(out2)) {
 				StringBuilder sb = new StringBuilder();
-				sb.append("Output different: ");
+				sb.append("For " + m1.getName());
+				sb.append("\nOutput different: ");
 				sb.append(out1);
 				sb.append(" is different from ");
 				sb.append(out2);

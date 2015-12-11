@@ -67,7 +67,6 @@ public final class Util {
 	 * @throws IOException
 	 */
 	public static File compileJavaFile(File sourceFile) throws IOException {
-		printJavaCVersion();
 		final File tempDir = Files.createTempDir();
 		final String javac_command = String.format("javac -g %s -d %s", sourceFile.getAbsolutePath(),
 				tempDir.getAbsolutePath());
