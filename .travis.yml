@@ -1,6 +1,10 @@
 
 language: java
 
+env:
+  global:
+    - TMPDIR=/tmp
+
 jdk:
   - oraclejdk8
   - oraclejdk7

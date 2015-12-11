@@ -91,7 +91,7 @@ public class DynamicTest {
 		Assert.assertTrue(classDir.isDirectory());
 		// Now we have the classDir of the original program
 
-		File transformedClassDir = Util.getTempDir();
+		File transformedClassDir = Files.createTempDir();
 		SootToCfg soot2cfg = new SootToCfg();
 		soot2cfg.run(classDir.getAbsolutePath(), null);
 

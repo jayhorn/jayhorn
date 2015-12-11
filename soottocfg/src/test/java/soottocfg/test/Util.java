@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 
+import com.google.common.io.Files;
+
 public final class Util {
 
 	@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "DM_DEFAULT_ENCODING")
@@ -66,7 +68,7 @@ public final class Util {
 	 */
 	public static File compileJavaFile(File sourceFile) throws IOException {
 		printJavaCVersion();
-		final File tempDir = getTempDir();
+		final File tempDir = Files.createTempDir();
 		final String javac_command = String.format("javac -g %s -d %s", sourceFile.getAbsolutePath(),
 				tempDir.getAbsolutePath());
 
@@ -112,7 +114,7 @@ public final class Util {
 	 * @throws IOException
 	 */
 	public static File compileJavaFiles(File[] sourceFiles) throws IOException {
-		final File tempDir = getTempDir();
+		final File tempDir = Files.createTempDir();
 		StringBuilder sb = new StringBuilder();
 		for (File f : sourceFiles) {
 			sb.append(f.getAbsolutePath());
@@ -134,17 +136,6 @@ public final class Util {
 			return null;
 		}
 
-		return tempDir;
-	}
-
-	public static File getTempDir() throws IOException {
-		final File tempDir = File.createTempFile("bixie_test_temp", Long.toString(System.nanoTime()));
-		if (!(tempDir.delete())) {
-			throw new IOException("Could not delete temp file: " + tempDir.getAbsolutePath());
-		}
-		if (!(tempDir.mkdir())) {
-			throw new IOException("Could not create temp directory: " + tempDir.getAbsolutePath());
-		}
 		return tempDir;
 	}
 
