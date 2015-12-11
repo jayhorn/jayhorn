@@ -35,16 +35,16 @@ public class OptimizationExample {
 		final Collection<Variable> localVars = new HashSet<Variable>();
 		final Variable bVar = new Variable("b", BoolType.instance());
 		localVars.add(bVar);
-		final Expression b = new IdentifierExpression(bVar);
-		final Expression notB = new UnaryExpression(UnaryOperator.LNot, b);
+		final Expression b = new IdentifierExpression(null, bVar);
+		final Expression notB = new UnaryExpression(null, UnaryOperator.LNot, b);
 
 		final Variable rval = new Variable("rval", BoolType.instance());
-		final Expression rvalIdent = new IdentifierExpression(rval);
+		final Expression rvalIdent = new IdentifierExpression(null, rval);
 
-		final Expression one = new UnaryExpression(UnaryOperator.Neg, IntegerLiteral.minusOne());
-		final Expression rhs = new BinaryExpression(BinaryOperator.Plus, one, IntegerLiteral.zero());
-		final Expression lhs = new BinaryExpression(BinaryOperator.Mul, new IntegerLiteral(12), IntegerLiteral.zero());
-		final Expression e = new BinaryExpression(BinaryOperator.Gt, lhs, rhs);
+		final Expression one = new UnaryExpression(null, UnaryOperator.Neg, IntegerLiteral.minusOne());
+		final Expression rhs = new BinaryExpression(null, BinaryOperator.Plus, one, IntegerLiteral.zero());
+		final Expression lhs = new BinaryExpression(null, BinaryOperator.Mul, new IntegerLiteral(null, 12), IntegerLiteral.zero());
+		final Expression e = new BinaryExpression(null, BinaryOperator.Gt, lhs, rhs);
 		Statement s1 = new AssignStatement(fakeSl, b, e);
 
 		final CfgBlock b1 = new CfgBlock(m);

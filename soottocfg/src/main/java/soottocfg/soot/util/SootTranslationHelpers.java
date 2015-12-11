@@ -96,6 +96,15 @@ public enum SootTranslationHelpers {
 		}
 		return new SourceLocation(this.currentSourceFileName, lineNumber);
 	}
+	
+	public SourceLocation getSourceLocation(SootMethod sm) {
+		int lineNumber = sm.getJavaSourceStartLineNumber();
+
+		if (lineNumber < 0) {
+			lineNumber = SootTranslationHelpers.v().getJavaSourceLine(SootTranslationHelpers.v().getCurrentMethod());
+		}
+		return new SourceLocation(this.currentSourceFileName, lineNumber);
+	}
 
 	protected boolean debug = true;
 

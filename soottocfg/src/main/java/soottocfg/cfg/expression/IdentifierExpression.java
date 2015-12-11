@@ -8,6 +8,7 @@ import java.util.Set;
 
 import com.google.common.base.Preconditions;
 
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.type.Type;
 
@@ -27,11 +28,12 @@ public class IdentifierExpression extends Expression {
 	/**
 	 * 
 	 */
-	public IdentifierExpression(Variable v) {
-		this(v, 0);
+	public IdentifierExpression(SourceLocation loc, Variable v) {
+		this(loc, v, 0);
 	}
 
-	public IdentifierExpression(Variable v, int incarnation) {
+	public IdentifierExpression(SourceLocation loc, Variable v, int incarnation) {
+		super(loc);
 		Preconditions.checkNotNull(v);
 		this.variable = v;
 		this.ssaIncarnation = incarnation;

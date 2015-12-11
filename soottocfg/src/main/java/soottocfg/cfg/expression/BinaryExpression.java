@@ -8,6 +8,7 @@ import java.util.Set;
 
 import com.google.common.base.Preconditions;
 
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.Type;
@@ -47,7 +48,8 @@ public class BinaryExpression extends Expression {
 	private final Expression left, right;
 	private final BinaryOperator op;
 
-	public BinaryExpression(BinaryOperator op, Expression left, Expression right) {
+	public BinaryExpression(SourceLocation loc, BinaryOperator op, Expression left, Expression right) {
+		super(loc);
 		if (left.getType().getClass() != right.getType().getClass()
 				&& !SootTranslationHelpers.v().getMemoryModel().isNullReference(right)) {
 			// TODO: this should be somewhere in the translation.

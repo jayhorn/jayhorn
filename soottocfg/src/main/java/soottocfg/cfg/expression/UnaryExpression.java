@@ -6,6 +6,7 @@ package soottocfg.cfg.expression;
 import java.util.HashSet;
 import java.util.Set;
 
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.Type;
@@ -42,7 +43,8 @@ public class UnaryExpression extends Expression {
 	private final Expression expression;
 	private final UnaryOperator op;
 
-	public UnaryExpression(UnaryOperator op, Expression inner) {
+	public UnaryExpression(SourceLocation loc, UnaryOperator op, Expression inner) {
+		super(loc);
 		this.expression = inner;
 		this.op = op;
 	}

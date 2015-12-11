@@ -120,7 +120,7 @@ public class CfgScanner extends CfgVisitor {
 	protected Expression processExpression(InstanceOfExpression e) {
 		Expression exp = processExpression(e.getExpression());
 		Variable t = e.getTypeVariable();
-		return new InstanceOfExpression(exp, t);
+		return new InstanceOfExpression(e.getSourceLocation(), exp, t);
 	}
 
 	@Override

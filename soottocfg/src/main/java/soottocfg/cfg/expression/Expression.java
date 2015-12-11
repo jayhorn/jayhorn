@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import soottocfg.cfg.Node;
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.type.BoolType;
@@ -35,6 +36,17 @@ public abstract class Expression implements Node, Serializable {
 		return res;
 	}
 
+	private final SourceLocation sourceLocation;
+
+	public Expression(SourceLocation loc) {
+		this.sourceLocation = loc;
+	}
+	
+	public SourceLocation getSourceLocation() {
+		return this.sourceLocation;
+	}
+
+	
 	// TODO: remove?
 	public abstract Set<Variable> getLVariables();
 
@@ -48,7 +60,7 @@ public abstract class Expression implements Node, Serializable {
 	 */
 	public Expression castToBoolIfNecessary() {
 		if (this.getType() == IntType.instance()) {
-			return new IteExpression(new BinaryExpression(BinaryOperator.Eq, this, IntegerLiteral.zero()),
+			return new IteExpression(this.sourceLocation, new BinaryExpression(this.sourceLocation, BinaryOperator.Eq, this, IntegerLiteral.zero()),
 					BooleanLiteral.falseLiteral(), BooleanLiteral.trueLiteral());
 		} else if (this.getType() == BoolType.instance()) {
 			return this;

@@ -175,7 +175,7 @@ public class InconsistencyThread implements Runnable {
 			if (edge.getLabel().isPresent()) {
 				CfgBlock src = method.getEdgeSource(edge);
 				CfgBlock tgt = method.getEdgeTarget(edge);
-				SourceLocation loc = null;
+				SourceLocation loc = edge.getLabel().get().getSourceLocation();
 				if (!tgt.getStatements().isEmpty()) {
 					loc = tgt.getStatements().iterator().next().getSourceLocation();
 				} else if (!src.getStatements().isEmpty()) {

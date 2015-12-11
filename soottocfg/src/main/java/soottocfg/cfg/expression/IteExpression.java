@@ -6,6 +6,7 @@ package soottocfg.cfg.expression;
 import java.util.HashSet;
 import java.util.Set;
 
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.type.Type;
 
@@ -33,7 +34,8 @@ public class IteExpression extends Expression {
 		return elseExpr;
 	}
 
-	public IteExpression(Expression condition, Expression thenExpr, Expression elseExpr) {
+	public IteExpression(SourceLocation loc, Expression condition, Expression thenExpr, Expression elseExpr) {
+		super(loc);
 		this.condition = condition;
 		this.thenExpr = thenExpr;
 		this.elseExpr = elseExpr;

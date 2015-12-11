@@ -16,6 +16,7 @@ import soot.SootMethod;
 import soot.Unit;
 import soot.VoidType;
 import soot.jimple.ParameterRef;
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
@@ -46,8 +47,11 @@ public class MethodInfo {
 
 	private final Set<Variable> freshLocals = new LinkedHashSet<Variable>();
 
+	private SourceLocation methodLoc = null;
+	
 	public MethodInfo(SootMethod sm, String sourceFileName) {
-		this.sootMethod = sm;
+		sootMethod = sm;
+		methodLoc = SootTranslationHelpers.v().getSourceLocation(sm);
 		sink = new CfgBlock(getMethod());
 		this.sourceFileName = sourceFileName;
 
@@ -114,8 +118,8 @@ public class MethodInfo {
 		return this.sourceFileName;
 	}
 
-	public Expression getReturnVariable() {
-		return new IdentifierExpression(this.returnVariable);
+	public Expression getReturnVariable() {		
+		return new IdentifierExpression(methodLoc, this.returnVariable);
 	}
 
 	// public Expression getExceptionVariable() {
@@ -123,11 +127,11 @@ public class MethodInfo {
 	// }
 
 	public Expression getThisVariable() {
-		return new IdentifierExpression(this.thisVariable);
+		return new IdentifierExpression(methodLoc, this.thisVariable);
 	}
 
 	public Expression lookupParameterRef(ParameterRef arg0) {
-		return new IdentifierExpression(parameterList.get(arg0.getIndex()));
+		return new IdentifierExpression(methodLoc, parameterList.get(arg0.getIndex()));
 	}
 
 	public Variable lookupLocalVariable(Local arg0) {
@@ -138,7 +142,7 @@ public class MethodInfo {
 	}
 
 	public Expression lookupLocal(Local arg0) {
-		return new IdentifierExpression(lookupLocalVariable(arg0));
+		return new IdentifierExpression(methodLoc, lookupLocalVariable(arg0));
 	}
 
 	private Variable createLocalVariable(Local arg0) {

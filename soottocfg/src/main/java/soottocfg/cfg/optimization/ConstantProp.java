@@ -29,7 +29,7 @@ public class ConstantProp extends CfgUpdater {
 		if (exp.getType().equals(t.getType())) {
 			return BooleanLiteral.trueLiteral();
 		} else {
-			return new InstanceOfExpression(exp, t);
+			return new InstanceOfExpression(e.getSourceLocation(), exp, t);
 		}
 	}
 
@@ -41,7 +41,7 @@ public class ConstantProp extends CfgUpdater {
 		if (i instanceof BooleanLiteral) {
 			return ((BooleanLiteral) i).getValue() ? t : e;
 		}
-		return new IteExpression(i, t, e);
+		return new IteExpression(ite.getSourceLocation(), i, t, e);
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class ConstantProp extends CfgUpdater {
 			long val = ((IntegerLiteral) exp).getValue();
 			switch (e.getOp()) {
 			case Neg:
-				return new IntegerLiteral(-1 * val);
+				return new IntegerLiteral(e.getSourceLocation(), -1 * val);
 			default:
 				throw new RuntimeException("unexpected unary operator " + e);
 			}
@@ -62,12 +62,12 @@ public class ConstantProp extends CfgUpdater {
 			Boolean val = ((BooleanLiteral) exp).getValue();
 			switch (e.getOp()) {
 			case LNot:
-				return new BooleanLiteral(!val);
+				return new BooleanLiteral(exp.getSourceLocation(), !val);
 			default:
 				throw new RuntimeException("unexpected unary operator " + e);
 			}
 		}
-		return new UnaryExpression(e.getOp(), exp);
+		return new UnaryExpression(e.getSourceLocation(), e.getOp(), exp);
 	}
 
 	@Override
@@ -83,68 +83,68 @@ public class ConstantProp extends CfgUpdater {
 			switch (e.getOp()) {
 			case Plus: {
 				changed = true;
-				return new IntegerLiteral(leftVal + rightVal);
+				return new IntegerLiteral(e.getSourceLocation(), leftVal + rightVal);
 			}
 			case Mul: {
 				changed = true;
-				return new IntegerLiteral(leftVal * rightVal);
+				return new IntegerLiteral(e.getSourceLocation(), leftVal * rightVal);
 			}
 			case Minus: {
 				changed = true;
-				return new IntegerLiteral(leftVal - rightVal);
+				return new IntegerLiteral(e.getSourceLocation(), leftVal - rightVal);
 			}
 			case Div: {
 				changed = true;
-				return new IntegerLiteral(leftVal / rightVal);
+				return new IntegerLiteral(e.getSourceLocation(), leftVal / rightVal);
 			}
 			case Mod: {
 				changed = true;
-				return new IntegerLiteral(leftVal % rightVal);
+				return new IntegerLiteral(e.getSourceLocation(), leftVal % rightVal);
 			}
 			case Xor: {
 				changed = true;
-				return new IntegerLiteral(leftVal ^ rightVal);
+				return new IntegerLiteral(e.getSourceLocation(), leftVal ^ rightVal);
 			}
 			case BOr: {
 				changed = true;
-				return new IntegerLiteral(leftVal | rightVal);
+				return new IntegerLiteral(e.getSourceLocation(), leftVal | rightVal);
 			}
 			case BAnd: {
 				changed = true;
-				return new IntegerLiteral(leftVal & rightVal);
+				return new IntegerLiteral(e.getSourceLocation(), leftVal & rightVal);
 			}
 			case Shl: {
 				changed = true;
-				return new IntegerLiteral(leftVal << rightVal);
+				return new IntegerLiteral(e.getSourceLocation(), leftVal << rightVal);
 			}
 			case Shr: {
 				changed = true;
-				return new IntegerLiteral(leftVal >> rightVal);
+				return new IntegerLiteral(e.getSourceLocation(), leftVal >> rightVal);
 			}
 
 			case Eq: {
 				changed = true;
-				return new BooleanLiteral(leftVal == rightVal);
+				return new BooleanLiteral(e.getSourceLocation(), leftVal == rightVal);
 			}
 			case Ne: {
 				changed = true;
-				return new BooleanLiteral(leftVal != rightVal);
+				return new BooleanLiteral(e.getSourceLocation(), leftVal != rightVal);
 			}
 			case Gt: {
 				changed = true;
-				return new BooleanLiteral(leftVal > rightVal);
+				return new BooleanLiteral(e.getSourceLocation(), leftVal > rightVal);
 			}
 			case Ge: {
 				changed = true;
-				return new BooleanLiteral(leftVal >= rightVal);
+				return new BooleanLiteral(e.getSourceLocation(), leftVal >= rightVal);
 			}
 			case Lt: {
 				changed = true;
-				return new BooleanLiteral(leftVal < rightVal);
+				return new BooleanLiteral(e.getSourceLocation(), leftVal < rightVal);
 			}
 			case Le: {
 				changed = true;
-				return new BooleanLiteral(leftVal <= rightVal);
+				return new BooleanLiteral(e.getSourceLocation(), leftVal <= rightVal);
 			}
 
 			case And:
@@ -183,23 +183,23 @@ public class ConstantProp extends CfgUpdater {
 
 			case And: {
 				changed = true;
-				return new BooleanLiteral(leftVal && rightVal);
+				return new BooleanLiteral(e.getSourceLocation(), leftVal && rightVal);
 			}
 			case Or: {
 				changed = true;
-				return new BooleanLiteral(leftVal || rightVal);
+				return new BooleanLiteral(e.getSourceLocation(), leftVal || rightVal);
 			}
 			case Implies: {
 				changed = true;
-				return new BooleanLiteral(!leftVal || rightVal);
+				return new BooleanLiteral(e.getSourceLocation(), !leftVal || rightVal);
 			}
 			case Eq: {
 				changed = true;
-				return new BooleanLiteral(leftVal == rightVal);
+				return new BooleanLiteral(e.getSourceLocation(), leftVal == rightVal);
 			}
 			case Ne: {
 				changed = true;
-				return new BooleanLiteral(!leftVal != rightVal);
+				return new BooleanLiteral(e.getSourceLocation(), !leftVal != rightVal);
 			}
 			}
 
@@ -240,7 +240,7 @@ public class ConstantProp extends CfgUpdater {
 			}
 			case Implies: {
 				changed = true;
-				return rightVal ? BooleanLiteral.trueLiteral() : new UnaryExpression(UnaryOperator.LNot, left);
+				return rightVal ? BooleanLiteral.trueLiteral() : new UnaryExpression(e.getSourceLocation(), UnaryOperator.LNot, left);
 			}
 			default: {
 				/* Do nothing */ }
@@ -296,7 +296,7 @@ public class ConstantProp extends CfgUpdater {
 			}
 		}
 
-		return new BinaryExpression(e.getOp(), left, right);
+		return new BinaryExpression(e.getSourceLocation(), e.getOp(), left, right);
 	}
 
 }

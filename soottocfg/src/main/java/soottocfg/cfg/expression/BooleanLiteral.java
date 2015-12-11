@@ -6,6 +6,7 @@ package soottocfg.cfg.expression;
 import java.util.HashSet;
 import java.util.Set;
 
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.Type;
@@ -24,14 +25,15 @@ public class BooleanLiteral extends Expression {
 	private final boolean value;
 
 	public static BooleanLiteral trueLiteral() {
-		return new BooleanLiteral(true);
+		return new BooleanLiteral(null, true);
 	}
 
 	public static BooleanLiteral falseLiteral() {
-		return new BooleanLiteral(false);
+		return new BooleanLiteral(null, false);
 	}
 
-	public BooleanLiteral(boolean value) {
+	public BooleanLiteral(SourceLocation loc, boolean value) {
+		super(loc);
 		this.value = value;
 	}
 

@@ -81,15 +81,15 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		// add: assume newLocal!=null
 		this.statementSwitch.push(new AssumeStatement(
 				SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
-				new BinaryExpression(BinaryOperator.Ne, new IdentifierExpression(newLocal), this.mkNullConstant())));
+				new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne, new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal), this.mkNullConstant())));
 		// add: assume newLocal instanceof newType
-		Expression instof = new InstanceOfExpression(new IdentifierExpression(newLocal),
+		Expression instof = new InstanceOfExpression(this.statementSwitch.getCurrentLoc(), new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
 				SootTranslationHelpers.v().lookupTypeVariable(arg0.getBaseType()));
 		this.statementSwitch.push(
 				new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
-						new BinaryExpression(BinaryOperator.Ne, instof, IntegerLiteral.zero())));
+						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne, instof, IntegerLiteral.zero())));
 
-		return new IdentifierExpression(newLocal);
+		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
 	}
 
 	/*
@@ -109,14 +109,14 @@ public abstract class BasicMemoryModel extends MemoryModel {
 
 		this.statementSwitch.push(new AssumeStatement(
 				SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
-				new BinaryExpression(BinaryOperator.Ne, new IdentifierExpression(newLocal), this.mkNullConstant())));
+				new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne, new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal), this.mkNullConstant())));
 
 		this.statementSwitch.push(
 				new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
-						new BinaryExpression(BinaryOperator.Eq,
-								new ArrayLengthExpression(new IdentifierExpression(newLocal)), sizeExpression)));
+						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Eq,
+								new ArrayLengthExpression(this.statementSwitch.getCurrentLoc(), new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal)), sizeExpression)));
 
-		return new IdentifierExpression(newLocal);
+		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
 	}
 
 	/*
@@ -129,7 +129,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkNewMultiArrayExpr(NewMultiArrayExpr arg0) {
 		// TODO Auto-generated method stub
-		return new IdentifierExpression(
+		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), 
 				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", lookupType(arg0.getType())));
 	}
 
@@ -143,7 +143,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkArrayRefExpr(ArrayRef arg0) {
 		// TODO Auto-generated method stub
-		return new IdentifierExpression(
+		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), 
 				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));
 	}
 
@@ -155,7 +155,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkStringLengthExpr(Value arg0) {
 		// TODO Auto-generated method stub
-		return new IdentifierExpression(
+		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), 
 				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));
 	}
 
@@ -175,7 +175,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkNullConstant() {
-		return new IdentifierExpression(nullConstant);
+		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), nullConstant);
 	}
 
 	/*
@@ -190,7 +190,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().loopupGlobalVariable(
 					"$string" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
 		}
-		return new IdentifierExpression(constantDictionary.get(arg0));
+		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
 	}
 
 	/*
@@ -205,7 +205,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().loopupGlobalVariable(
 					"$double" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
 		}
-		return new IdentifierExpression(constantDictionary.get(arg0));
+		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
 	}
 
 	/*
@@ -220,7 +220,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().loopupGlobalVariable(
 					"$float" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
 		}
-		return new IdentifierExpression(constantDictionary.get(arg0));
+		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
 	}
 
 	@Override
@@ -229,7 +229,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().loopupGlobalVariable(
 					"$classconst" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
 		}
-		return new IdentifierExpression(constantDictionary.get(arg0));
+		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
 	}
 
 	@Override

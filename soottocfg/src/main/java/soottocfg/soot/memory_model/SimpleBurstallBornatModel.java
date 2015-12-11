@@ -54,11 +54,11 @@ public class SimpleBurstallBornatModel extends BasicMemoryModel {
 			Expression value = valueSwitch.popExpression();
 			Expression target;
 			Expression[] indices;
-			indices = new Expression[] { base, new IdentifierExpression(fieldVar) };
-			target = new IdentifierExpression(this.heapVariable);
+			indices = new Expression[] { base, new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar) };
+			target = new IdentifierExpression(this.statementSwitch.getCurrentLoc(), this.heapVariable);
 			this.statementSwitch.push(new ArrayStoreStatement(loc, target, indices, value));
 		} else if (field instanceof StaticFieldRef) {
-			Expression left = new IdentifierExpression(fieldVar);
+			Expression left = new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar);
 			rhs.apply(valueSwitch);
 			Expression right = valueSwitch.popExpression();
 			this.statementSwitch.push(new AssignStatement(loc, left, right));
@@ -80,13 +80,13 @@ public class SimpleBurstallBornatModel extends BasicMemoryModel {
 			Expression base = valueSwitch.popExpression();
 			Expression target;
 			Expression[] indices;
-			indices = new Expression[] { base, new IdentifierExpression(fieldVar) };
-			target = new IdentifierExpression(this.heapVariable);
+			indices = new Expression[] { base, new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar) };
+			target = new IdentifierExpression(this.statementSwitch.getCurrentLoc(), this.heapVariable);
 			this.statementSwitch.push(new ArrayReadStatement(loc, target, indices, left));
 		} else if (field instanceof StaticFieldRef) {
 			lhs.apply(valueSwitch);
 			Expression left = valueSwitch.popExpression();
-			Expression right = new IdentifierExpression(fieldVar);
+			Expression right = new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar);
 			this.statementSwitch.push(new AssignStatement(loc, left, right));
 		} else {
 			throw new RuntimeException("not implemented");

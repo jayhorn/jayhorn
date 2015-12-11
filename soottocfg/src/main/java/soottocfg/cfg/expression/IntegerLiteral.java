@@ -6,6 +6,7 @@ package soottocfg.cfg.expression;
 import java.util.HashSet;
 import java.util.Set;
 
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.Type;
@@ -23,9 +24,9 @@ public class IntegerLiteral extends Expression {
 
 	private final Long value;
 
-	private static final IntegerLiteral one = new IntegerLiteral(1);
-	private static final IntegerLiteral zero = new IntegerLiteral(0);
-	private static final IntegerLiteral minusOne = new IntegerLiteral(-1);
+	private static final IntegerLiteral one = new IntegerLiteral(null, 1);
+	private static final IntegerLiteral zero = new IntegerLiteral(null, 0);
+	private static final IntegerLiteral minusOne = new IntegerLiteral(null, -1);
 
 	public static IntegerLiteral one() {
 		return one;
@@ -39,11 +40,13 @@ public class IntegerLiteral extends Expression {
 		return minusOne;
 	}
 
-	public IntegerLiteral(int value) {
+	public IntegerLiteral(SourceLocation loc, int value) {
+		super(loc);
 		this.value = Long.valueOf(value);
 	}
 
-	public IntegerLiteral(long value) {
+	public IntegerLiteral(SourceLocation loc, long value) {
+		super(loc);
 		this.value = value;
 	}
 

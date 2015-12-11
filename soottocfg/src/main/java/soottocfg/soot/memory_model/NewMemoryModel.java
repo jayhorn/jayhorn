@@ -46,21 +46,21 @@ public class NewMemoryModel extends BasicMemoryModel {
 			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			Variable[] vars = c.getAssociatedFields();
 			for (int i = 0; i < vars.length; i++) {
-				unpackedVars.add(new IdentifierExpression(vars[i]));
+				unpackedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
 			}
 			this.statementSwitch.push(new UnPackStatement(loc, c, base, unpackedVars));
 			// ------------------------------------
-			this.statementSwitch.push(new AssignStatement(loc, new IdentifierExpression(fieldVar), value));
+			this.statementSwitch.push(new AssignStatement(loc, new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar), value));
 			// ------------- pack -----------------
 			List<Expression> packedVars = new LinkedList<Expression>();
 			for (int i = 0; i < vars.length; i++) {
-				packedVars.add(new IdentifierExpression(vars[i]));
+				packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
 			}
 			this.statementSwitch.push(new PackStatement(loc, c, base, packedVars));
 			// ------------------------------------
 
 		} else if (field instanceof StaticFieldRef) {
-			Expression left = new IdentifierExpression(fieldVar);
+			Expression left = new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar);
 			rhs.apply(valueSwitch);
 			Expression right = valueSwitch.popExpression();
 			this.statementSwitch.push(new AssignStatement(loc, left, right));
@@ -86,22 +86,22 @@ public class NewMemoryModel extends BasicMemoryModel {
 			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			Variable[] vars = c.getAssociatedFields();
 			for (int i = 0; i < vars.length; i++) {
-				unpackedVars.add(new IdentifierExpression(vars[i]));
+				unpackedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
 			}
 			this.statementSwitch.push(new UnPackStatement(loc, c, base, unpackedVars));
 			// ------------------------------------
-			this.statementSwitch.push(new AssignStatement(loc, left, new IdentifierExpression(fieldVar)));
+			this.statementSwitch.push(new AssignStatement(loc, left, new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar)));
 			// ------------- pack -----------------
 			List<Expression> packedVars = new LinkedList<Expression>();
 			for (int i = 0; i < vars.length; i++) {
-				packedVars.add(new IdentifierExpression(vars[i]));
+				packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
 			}
 			this.statementSwitch.push(new PackStatement(loc, c, base, packedVars));
 			// ------------------------------------
 		} else if (field instanceof StaticFieldRef) {
 			lhs.apply(valueSwitch);
 			Expression left = valueSwitch.popExpression();
-			Expression right = new IdentifierExpression(fieldVar);
+			Expression right = new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar);
 			this.statementSwitch.push(new AssignStatement(loc, left, right));
 		} else {
 			throw new RuntimeException("not implemented");

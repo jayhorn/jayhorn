@@ -55,6 +55,7 @@ import soot.jimple.TableSwitchStmt;
 import soot.jimple.ThrowStmt;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.cfg.Program;
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.BooleanLiteral;
@@ -90,6 +91,8 @@ public class SootStmtSwitch implements StmtSwitch {
 	private Stmt currentStmt;
 	private final Program program;
 
+	protected SourceLocation loc; 
+	
 	public SootStmtSwitch(Body body, MethodInfo mi) {
 		this.methodInfo = mi;
 		this.sootBody = body;
@@ -143,6 +146,10 @@ public class SootStmtSwitch implements StmtSwitch {
 	public Stmt getCurrentStmt() {
 		return this.currentStmt;
 	}
+	
+	public SourceLocation getCurrentLoc() {
+		return this.loc;
+	}
 
 	/**
 	 * Checks if the current statement is synchronized or inside a monitor
@@ -165,10 +172,11 @@ public class SootStmtSwitch implements StmtSwitch {
 	private void connectBlocks(CfgBlock from, CfgBlock to, Expression label) {
 		this.methodInfo.getMethod().addEdge(from, to).setLabel(label);
 		;
-	}
-
+	}	
+	
 	private void precheck(Stmt st) {
 		this.currentStmt = st;
+		loc = SootTranslationHelpers.v().getSourceLocation(currentStmt);
 
 		if (currentBlock != null) {
 			// first check if we already created a block
@@ -274,10 +282,10 @@ public class SootStmtSwitch implements StmtSwitch {
 		connectBlocks(currentBlock, thenBlock, cond);
 		if (next != null) {
 			CfgBlock elseBlock = methodInfo.lookupCfgBlock(next);
-			connectBlocks(currentBlock, elseBlock, new UnaryExpression(UnaryOperator.LNot, cond));
+			connectBlocks(currentBlock, elseBlock, new UnaryExpression(loc, UnaryOperator.LNot, cond));
 			this.currentBlock = elseBlock;
 		} else {
-			connectBlocks(currentBlock, methodInfo.getSink(), new UnaryExpression(UnaryOperator.LNot, cond));
+			connectBlocks(currentBlock, methodInfo.getSink(), new UnaryExpression(loc, UnaryOperator.LNot, cond));
 			this.currentBlock = null;
 		}
 	}
@@ -463,7 +471,7 @@ public class SootStmtSwitch implements StmtSwitch {
 				call.getArg(idx + 1).apply(valueSwitch);
 				Expression right = valueSwitch.popExpression();
 				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u),
-						new BinaryExpression(BinaryOperator.Eq, left, right)));
+						new BinaryExpression(loc, BinaryOperator.Eq, left, right)));
 				return true;
 			}
 

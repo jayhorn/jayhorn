@@ -6,6 +6,7 @@ package soottocfg.cfg.expression;
 import java.util.HashSet;
 import java.util.Set;
 
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.Type;
@@ -20,7 +21,8 @@ public class ArrayLengthExpression extends Expression {
 
 	private final Expression expression;
 
-	public ArrayLengthExpression(Expression inner) {
+	public ArrayLengthExpression(SourceLocation loc, Expression inner) {
+		super(loc);
 		this.expression = inner;
 	}
 

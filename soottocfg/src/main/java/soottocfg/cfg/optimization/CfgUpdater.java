@@ -135,7 +135,7 @@ public class CfgUpdater extends CfgVisitor {
 	protected Expression processExpression(BinaryExpression e) {
 		Expression left = processExpression(e.getLeft());
 		Expression right = processExpression(e.getRight());
-		return new BinaryExpression(e.getOp(), left, right);
+		return new BinaryExpression(e.getSourceLocation(), e.getOp(), left, right);
 	}
 
 	@Override
@@ -152,7 +152,7 @@ public class CfgUpdater extends CfgVisitor {
 	protected Expression processExpression(InstanceOfExpression e) {
 		Expression exp = processExpression(e.getExpression());
 		Variable t = e.getTypeVariable();
-		return new InstanceOfExpression(exp, t);
+		return new InstanceOfExpression(e.getSourceLocation(), exp, t);
 	}
 
 	@Override
@@ -165,12 +165,12 @@ public class CfgUpdater extends CfgVisitor {
 		Expression i = processExpression(ite.getCondition());
 		Expression t = processExpression(ite.getThenExpr());
 		Expression e = processExpression(ite.getElseExpr());
-		return new IteExpression(i, t, e);
+		return new IteExpression(ite.getSourceLocation(), i, t, e);
 	}
 
 	@Override
 	protected Expression processExpression(UnaryExpression e) {
 		Expression exp = processExpression(e.getExpression());
-		return new UnaryExpression(e.getOp(), exp);
+		return new UnaryExpression(e.getSourceLocation(), e.getOp(), exp);
 	}
 }

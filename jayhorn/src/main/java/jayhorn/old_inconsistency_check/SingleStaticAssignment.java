@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.jgrapht.traverse.TopologicalOrderIterator;
 
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.method.CfgBlock;
@@ -114,10 +115,11 @@ public class SingleStaticAssignment {
 	
 	private void updateMap(CfgBlock b, Map<Variable, Integer> mapUpdate) {
 		for (Entry<Variable, Integer> entry : mapUpdate.entrySet()) {
+			SourceLocation loc = b.getStatements().get(b.getStatements().size()-1).getSourceLocation();
 			//create an assignment v_newIdx = v_oldIdx 
-			IdentifierExpression l = new IdentifierExpression(entry.getKey(), entry.getValue());			
-			IdentifierExpression r = new IdentifierExpression(entry.getKey(), blockIncarnationMap.get(b).get(entry.getKey()));			
-			b.addStatement(new AssignStatement(b.getStatements().get(b.getStatements().size()-1).getSourceLocation(), l, r)); 
+			IdentifierExpression l = new IdentifierExpression(loc, entry.getKey(), entry.getValue());			
+			IdentifierExpression r = new IdentifierExpression(loc, entry.getKey(), blockIncarnationMap.get(b).get(entry.getKey()));			
+			b.addStatement(new AssignStatement(loc , l, r)); 
 		}
 		//then update the incarnation map for b
 		blockIncarnationMap.get(b).putAll(mapUpdate);

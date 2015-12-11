@@ -13,17 +13,29 @@ public class DynamicTest02 {
 	
     private void log(String s, int i) {}
     
-    public boolean callEval01() {
-    	return eval("www.google.com", 80);
+    public String callEval01() {
+    	return callEvalWithArgs("www.google.com", 80);
     }
 
-    // public boolean callEval02() {
-    // 	return eval(null, 10);
-    // }
-
-    public boolean callEval03() {
-    	return eval("foo", 65537);
+    public String callEval02() {
+     	return callEvalWithArgs(null, 10);
     }
+
+    public String callEval03() {
+    	return callEvalWithArgs("foo", 65537);
+    }
+
+    private String callEvalWithArgs(String server, int port) {
+      String s = "";
+      try {
+        s += eval(server, port);
+      } catch (Throwable e) {
+        s += e;
+      }
+      return s;
+    }
+
+
     /**
      * Taken from org.apache.tools.ant.taskdefs.condition.Socket
      * because it caused an exception in:

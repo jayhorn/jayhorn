@@ -6,6 +6,7 @@ package soottocfg.cfg.expression;
 import java.util.HashSet;
 import java.util.Set;
 
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.Type;
@@ -35,7 +36,8 @@ public class InstanceOfExpression extends Expression {
 	/**
 	 * 
 	 */
-	public InstanceOfExpression(Expression expr, Variable typeVar) {
+	public InstanceOfExpression(SourceLocation loc, Expression expr, Variable typeVar) {
+		super(loc);
 		this.expression = expr;
 		this.typeVariable = typeVar;
 	}
