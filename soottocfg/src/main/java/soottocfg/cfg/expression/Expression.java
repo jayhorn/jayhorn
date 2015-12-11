@@ -26,7 +26,7 @@ public abstract class Expression implements Node, Serializable {
 	private static final long serialVersionUID = 6933938841592139875L;
 
 	public abstract Set<IdentifierExpression> getIdentifierExpressions();
-	
+
 	public Set<Variable> getUsedVariables() {
 		Set<Variable> res = new HashSet<Variable>();
 		for (IdentifierExpression id : this.getIdentifierExpressions()) {
@@ -34,25 +34,27 @@ public abstract class Expression implements Node, Serializable {
 		}
 		return res;
 	}
-	
-	//TODO: remove?
+
+	// TODO: remove?
 	public abstract Set<Variable> getLVariables();
-	
+
 	public abstract Type getType();
-	
+
 	/**
 	 * TODO: this one should be replaced by something that is easier to remove
 	 * when restoring boolean types.
+	 * 
 	 * @return
 	 */
 	public Expression castToBoolIfNecessary() {
-		if (this.getType()==IntType.instance()) {
-			return new IteExpression(new BinaryExpression(BinaryOperator.Eq, this, IntegerLiteral.zero()), BooleanLiteral.falseLiteral(), BooleanLiteral.trueLiteral());
-		} else if (this.getType()==BoolType.instance()) {
+		if (this.getType() == IntType.instance()) {
+			return new IteExpression(new BinaryExpression(BinaryOperator.Eq, this, IntegerLiteral.zero()),
+					BooleanLiteral.falseLiteral(), BooleanLiteral.trueLiteral());
+		} else if (this.getType() == BoolType.instance()) {
 			return this;
 		} else {
-			throw new RuntimeException("Cannot cast "+ this + " of type"+this.getType()+" to Boolean.");
+			throw new RuntimeException("Cannot cast " + this + " of type" + this.getType() + " to Boolean.");
 		}
 	}
-		
+
 }

@@ -16,7 +16,7 @@ public class Main {
 				classPath = args[1];
 			}
 			SootToCfg soot2cfg = new SootToCfg();
-			soot2cfg.run(javaInput, classPath);			
+			soot2cfg.run(javaInput, classPath);
 		} else {
 			System.err.println("usage: [class_dir/jar_file] [(optional)classpath]");
 		}

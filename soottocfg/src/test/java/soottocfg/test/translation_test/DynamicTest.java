@@ -4,7 +4,12 @@
 package soottocfg.test.translation_test;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -20,7 +25,14 @@ import org.junit.runners.Parameterized;
 
 import com.google.common.io.Files;
 
+import soot.Scene;
+import soot.SootClass;
+import soot.SourceLocator;
+import soot.jimple.JasminClass;
+import soot.options.Options;
+import soot.util.JasminOutputStream;
 import soottocfg.soot.SootToCfg;
+import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.test.Util;
 
 /**
@@ -81,12 +93,21 @@ public class DynamicTest {
 
 		File transformedClassDir = Util.getTempDir();
 		SootToCfg soot2cfg = new SootToCfg();
-		soot2cfg.setOuputDirForTransformedClassFiles(transformedClassDir);
 		soot2cfg.run(classDir.getAbsolutePath(), null);
 
-//		System.err.println(transformedClassDir.getAbsolutePath());
-		
+		// write out the transformed classes
+		for (SootClass sc : Scene.v().getApplicationClasses()) {
+			writeClassToFile(sc, transformedClassDir);
+		}
+
 		Class<?> cOrig = loadClass(classDir);
+		// load the assertion class
+		try (URLClassLoader classLoader = new URLClassLoader(new URL[] { transformedClassDir.toURI().toURL() });) {
+			classLoader.loadClass(SootTranslationHelpers.v().getAssertionClass().getName());
+		} catch (Throwable e) {
+			throw e;
+		}
+
 		Class<?> cNew = loadClass(transformedClassDir);
 		Assert.assertTrue(compareClassFiles(cOrig, cNew));
 	}
@@ -118,10 +139,11 @@ public class DynamicTest {
 			} catch (NoSuchMethodException | SecurityException e) {
 				e.printStackTrace();
 				return false;
-			} catch (VerifyError e) {
-				System.err.println("WARNING: For whatever reason this test only runs from within eclipse");
-				e.printStackTrace();
-				return true;
+				// } catch (VerifyError e) {
+				// System.err.println("WARNING: For whatever reason this test
+				// only runs from within eclipse");
+				// e.printStackTrace();
+				// return true;
 			}
 		}
 		return true;
@@ -155,7 +177,7 @@ public class DynamicTest {
 		}
 
 		if (out1 == null) {
-			if (out2 ==null) {
+			if (out2 == null) {
 				System.out.println("Output: both null");
 				return true;
 			}
@@ -193,7 +215,12 @@ public class DynamicTest {
 				dir = dir.listFiles()[0];
 				sb.append(Files.getNameWithoutExtension(dir.getAbsolutePath()));
 				if (dir.isFile() && "class".equals(Files.getFileExtension(dir.getAbsolutePath()))) {
-					break;
+					if (Files.getNameWithoutExtension(dir.getAbsolutePath())
+							.equals(SootTranslationHelpers.v().getAssertionClass().getName())) {
+						// don't load the assertion class
+					} else {
+						break;
+					}
 				} else {
 					sb.append(".");
 				}
@@ -205,6 +232,41 @@ public class DynamicTest {
 			return classLoader.loadClass(className);
 		} catch (Throwable e) {
 			throw e;
+		}
+	}
+
+	private void writeClassToFile(SootClass sClass, File dir) {
+		sClass.validate();
+
+		String currentName = SourceLocator.v().getFileNameFor(sClass, Options.output_format_class);
+
+		StringBuilder sb = new StringBuilder();
+		sb.append(dir.getAbsolutePath());
+		sb.append(File.separator);
+		if (!sClass.getPackageName().isEmpty()) {
+			sb.append(sClass.getPackageName().replace(".", File.separator));
+			sb.append(File.separator);
+		}
+		sb.append(Files.getNameWithoutExtension(currentName));
+		sb.append(".class");
+		File modifiedClassFile = new File(sb.toString());
+		if (!modifiedClassFile.getParentFile().mkdirs()) {
+			// no folders needed
+		}
+		String fileName = modifiedClassFile.getAbsolutePath();
+
+		// write the class to a file
+		try (OutputStream streamOut = new JasminOutputStream(new FileOutputStream(fileName));
+				PrintWriter writerOut = new PrintWriter(new OutputStreamWriter(streamOut, "UTF-8"));) {
+			JasminClass jasminClass = new JasminClass(sClass);
+			jasminClass.print(writerOut);
+			writerOut.flush();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 

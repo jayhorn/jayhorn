@@ -14,70 +14,70 @@ import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.Statement;
 
 public class ExpressionInliner extends CfgUpdater {
-	public ExpressionInliner(){}
+	public ExpressionInliner() {
+	}
 
 	private Variable toReplace;
 	private Expression replaceWith;
 
-	protected Variable getLhsVariable(AssignStatement s){
+	protected Variable getLhsVariable(AssignStatement s) {
 		Expression lhs = s.getLeft();
-		//DSN - I Assume that it can only be a variable.
-		assert(lhs instanceof IdentifierExpression);
+		// DSN - I Assume that it can only be a variable.
+		assert (lhs instanceof IdentifierExpression);
 		return ((IdentifierExpression) lhs).getVariable();
 	}
-	
-	//Given an assignment statement, replace the readers with the rhs of the statement
-	//TODO make this boolean
-	public void inlineExpression(AssignStatement s, Method m)
-	{
+
+	// Given an assignment statement, replace the readers with the rhs of the
+	// statement
+	// TODO make this boolean
+	public void inlineExpression(AssignStatement s, Method m) {
 		toReplace = getLhsVariable(s);
 		replaceWith = s.getRight();
 
 		Set<Statement> definingStmts = m.computeDefiningStatements().get(toReplace);
-		if(definingStmts.size() != 1){
-			throw new RuntimeException("Cannot inline: Variable is defined in more than one place: " + toReplace + "\n" + definingStmts);
+		if (definingStmts.size() != 1) {
+			throw new RuntimeException(
+					"Cannot inline: Variable is defined in more than one place: " + toReplace + "\n" + definingStmts);
 		}
-		//We know that this is the only defn for the variable, so its clearly safe to override.
-		for(CfgBlock b : m.computeUsingBlocks().get(toReplace)){
+		// We know that this is the only defn for the variable, so its clearly
+		// safe to override.
+		for (CfgBlock b : m.computeUsingBlocks().get(toReplace)) {
 			processCfgBlock(b);
 		}
 	}
 
 	@Override
-	public boolean updateMethod(Method m){
+	public boolean updateMethod(Method m) {
 		return inlineAllCandidates(m);
 	}
-	
-	public boolean inlineAllCandidates(Method m)
-	{
+
+	public boolean inlineAllCandidates(Method m) {
 		changed = false;
-		for(AssignStatement s : candidatesForInlining(m)){
-			inlineExpression(s,m) ;
+		for (AssignStatement s : candidatesForInlining(m)) {
+			inlineExpression(s, m);
 		}
 		return changed;
 	}
-	
-	public boolean inlineIfUsesLessThan(Method m, int maxUses)
-	{
+
+	public boolean inlineIfUsesLessThan(Method m, int maxUses) {
 		changed = false;
-		Map<Variable,Set<Statement>> usingStmts = m.computeUsingStatements();
-		for(AssignStatement s : candidatesForInlining(m)){
+		Map<Variable, Set<Statement>> usingStmts = m.computeUsingStatements();
+		for (AssignStatement s : candidatesForInlining(m)) {
 			Variable v = getLhsVariable(s);
-			if(usingStmts.get(v).size() < maxUses){
-				inlineExpression(s,m);
+			if (usingStmts.get(v).size() < maxUses) {
+				inlineExpression(s, m);
 			}
 		}
 		return changed;
 	}
-	
-	public Set<AssignStatement> candidatesForInlining(Method m)
-	{
+
+	public Set<AssignStatement> candidatesForInlining(Method m) {
 		Set<AssignStatement> rval = new HashSet<AssignStatement>();
-		for(Entry<Variable,Set<Statement>> entry: m.computeDefiningStatements().entrySet()){
-			if(entry.getValue().size() == 1){
+		for (Entry<Variable, Set<Statement>> entry : m.computeDefiningStatements().entrySet()) {
+			if (entry.getValue().size() == 1) {
 				Statement s = entry.getValue().iterator().next();
-				if (s instanceof AssignStatement){
-					rval.add((AssignStatement)s);	
+				if (s instanceof AssignStatement) {
+					rval.add((AssignStatement) s);
 				}
 			}
 		}
@@ -85,27 +85,25 @@ public class ExpressionInliner extends CfgUpdater {
 	}
 
 	@Override
-	protected Statement processStatement(AssignStatement s)
-	{
-		//We don't process the lhs of the assign statement, because otherwise we'd get 
+	protected Statement processStatement(AssignStatement s) {
+		// We don't process the lhs of the assign statement, because otherwise
+		// we'd get
 		// b:= e
-		//turns into
+		// turns into
 		// e := e
 		Expression lhs = s.getLeft();
 		Expression rhs = processExpression(s.getRight());
-		return new AssignStatement(s.getSourceLocation(),lhs,rhs);
+		return new AssignStatement(s.getSourceLocation(), lhs, rhs);
 	}
 
-	
-	@Override 
+	@Override
 	protected Expression processExpression(IdentifierExpression e) {
-		if(e.getVariable().equals(toReplace)){
+		if (e.getVariable().equals(toReplace)) {
 			changed = true;
 			return replaceWith;
 		} else {
 			return e;
 		}
 	}
-
 
 }

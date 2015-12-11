@@ -13,13 +13,13 @@ import soottocfg.cfg.type.Type;
  * @author schaef
  *
  */
-public class Variable implements Serializable{
+public class Variable implements Serializable {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -2599846473306218710L;
-	
+
 	private final String variableName;
 	private final Type type;
 	private final boolean constant, unique;
@@ -27,7 +27,7 @@ public class Variable implements Serializable{
 	public Variable(String name, Type t) {
 		this(name, t, false, false);
 	}
-	
+
 	public Variable(String name, Type t, boolean constant, boolean unique) {
 		Preconditions.checkNotNull(t);
 		this.variableName = name;
@@ -35,7 +35,7 @@ public class Variable implements Serializable{
 		this.constant = constant;
 		this.unique = unique;
 	}
-	
+
 	public String getName() {
 		return this.variableName;
 	}
@@ -47,12 +47,12 @@ public class Variable implements Serializable{
 	public boolean isConstant() {
 		return constant;
 	}
-	
+
 	public boolean isUnique() {
 		return unique;
 	}
-	
-    public String toString() {
-        return this.variableName + "/" + this.type;
-    }
+
+	public String toString() {
+		return this.variableName + "/" + this.type;
+	}
 }

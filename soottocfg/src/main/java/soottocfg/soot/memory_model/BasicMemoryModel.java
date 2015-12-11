@@ -53,8 +53,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	protected final Map<SootField, Variable> fieldGlobals = new HashMap<SootField, Variable>();
 
 	protected final Map<Constant, Variable> constantDictionary = new HashMap<Constant, Variable>();
-	
-	
+
 	protected final Type nullType;
 
 	public BasicMemoryModel() {
@@ -66,9 +65,8 @@ public abstract class BasicMemoryModel extends MemoryModel {
 
 	@Override
 	public boolean isNullReference(Expression e) {
-		return (e instanceof IdentifierExpression && ((IdentifierExpression)e).getVariable()==nullConstant); 
+		return (e instanceof IdentifierExpression && ((IdentifierExpression) e).getVariable() == nullConstant);
 	}
-
 
 	/*
 	 * (non-Javadoc)
@@ -104,19 +102,20 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Expression mkNewArrayExpr(NewArrayExpr arg0) {
 		arg0.getSize().apply(valueSwitch);
 		Expression sizeExpression = valueSwitch.popExpression();
-		
+
 		Type newType = this.lookupType(arg0.getType());
 		MethodInfo mi = this.statementSwitch.getMethodInto();
 		Variable newLocal = mi.createFreshLocal("$newArr", newType, true, true);
-		
+
 		this.statementSwitch.push(new AssumeStatement(
 				SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
 				new BinaryExpression(BinaryOperator.Ne, new IdentifierExpression(newLocal), this.mkNullConstant())));
 
-		this.statementSwitch.push(new AssumeStatement(
-				SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
-				new BinaryExpression(BinaryOperator.Eq, new ArrayLengthExpression(new IdentifierExpression(newLocal)), sizeExpression)));
-		
+		this.statementSwitch.push(
+				new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
+						new BinaryExpression(BinaryOperator.Eq,
+								new ArrayLengthExpression(new IdentifierExpression(newLocal)), sizeExpression)));
+
 		return new IdentifierExpression(newLocal);
 	}
 
@@ -147,7 +146,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		return new IdentifierExpression(
 				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -188,8 +187,8 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkStringConstant(StringConstant arg0) {
 		if (!constantDictionary.containsKey(arg0)) {
-			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram()
-					.loopupGlobalVariable("$string" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
+			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().loopupGlobalVariable(
+					"$string" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
 		}
 		return new IdentifierExpression(constantDictionary.get(arg0));
 	}
@@ -203,8 +202,8 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkDoubleConstant(DoubleConstant arg0) {
 		if (!constantDictionary.containsKey(arg0)) {
-			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram()
-					.loopupGlobalVariable("$double" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
+			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().loopupGlobalVariable(
+					"$double" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
 		}
 		return new IdentifierExpression(constantDictionary.get(arg0));
 	}
@@ -218,27 +217,26 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkFloatConstant(FloatConstant arg0) {
 		if (!constantDictionary.containsKey(arg0)) {
-			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram()
-					.loopupGlobalVariable("$float" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
-		}
-		return new IdentifierExpression(constantDictionary.get(arg0));
-	}
-	
-	@Override
-	public Expression lookupClassConstant(ClassConstant arg0) {
-		if (!constantDictionary.containsKey(arg0)) {
-			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram()
-					.loopupGlobalVariable("$classconst" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
+			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().loopupGlobalVariable(
+					"$float" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
 		}
 		return new IdentifierExpression(constantDictionary.get(arg0));
 	}
 
+	@Override
+	public Expression lookupClassConstant(ClassConstant arg0) {
+		if (!constantDictionary.containsKey(arg0)) {
+			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().loopupGlobalVariable(
+					"$classconst" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
+		}
+		return new IdentifierExpression(constantDictionary.get(arg0));
+	}
 
 	@Override
 	public Type lookupType(soot.Type t) {
 		if (!types.containsKey(t)) {
 			Type type = null;
-			if (t instanceof soot.BooleanType) {				
+			if (t instanceof soot.BooleanType) {
 				type = BoolType.instance();
 			} else if (t instanceof soot.ByteType) {
 				System.err.println("Warning: type " + t + " is unknown, assuming int");
@@ -284,7 +282,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	}
 
 	private Map<SootClass, ClassSignature> classSignatures = new HashMap<SootClass, ClassSignature>();
-	
+
 	public ClassSignature lookupClassSignature(SootClass c) {
 		if (!classSignatures.containsKey(c)) {
 			Collection<ClassSignature> parents = new HashSet<ClassSignature>();
@@ -304,7 +302,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 				}
 				classSignatures.get(c).setAssociatedFields(fields);
 			} else {
-				//TODO
+				// TODO
 			}
 		}
 		return classSignatures.get(c);

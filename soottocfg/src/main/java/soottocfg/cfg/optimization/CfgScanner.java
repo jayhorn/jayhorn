@@ -24,90 +24,80 @@ import soottocfg.cfg.statement.Statement;
 //The scanner visits all nodes, but does not modify them.
 //Whereas the updater visits and rebuilds all nodes
 public class CfgScanner extends CfgVisitor {
-	public CfgScanner () {}
+	public CfgScanner() {
+	}
 
 	@Override
 	protected void processCfgBlock(CfgBlock block) {
-		//Update the node
+		// Update the node
 		setCurrentCfgBlock(block);
 		processStatementList(block.getStatements());
 		setCurrentCfgBlock(null);
 	}
 
-
 	@Override
-	protected List<Statement> processStatementList(List<Statement> sl){
-		for(Statement s : sl){
+	protected List<Statement> processStatementList(List<Statement> sl) {
+		for (Statement s : sl) {
 			processStatement(s);
 		}
 		return sl;
 	}
 
-
 	@Override
-	protected Statement processStatement(AssertStatement s)
-	{
+	protected Statement processStatement(AssertStatement s) {
 		processExpression(s.getExpression());
 		return s;
 	}
 
 	@Override
-	protected Statement processStatement(AssignStatement s)
-	{
+	protected Statement processStatement(AssignStatement s) {
 		processExpression(s.getLeft());
 		processExpression(s.getRight());
 		return s;
 	}
 
-
 	@Override
-	protected Statement processStatement(AssumeStatement s)
-	{
+	protected Statement processStatement(AssumeStatement s) {
 		processExpression(s.getExpression());
 		return s;
 	}
 
-	protected Statement processStatement(CallStatement s)
-	{
+	protected Statement processStatement(CallStatement s) {
 		processExpressionList(s.getArguments());
 		processExpressionList(s.getReceiver());
 		return s;
 	}
 
-
 	@Override
-	protected Statement processStatement(ArrayReadStatement s)
-	{
+	protected Statement processStatement(ArrayReadStatement s) {
 		processExpression(s.getBase());
 		Expression[] ids = s.getIndices();
 		for (int i = 0; i < ids.length; i++) {
 			processExpression(ids[i]);
-		}		
+		}
 		processExpression(s.getLeftValue());
 		return s;
 	}
 
 	@Override
-	protected Statement processStatement(ArrayStoreStatement s)
-	{
+	protected Statement processStatement(ArrayStoreStatement s) {
 		processExpression(s.getBase());
 		Expression[] ids = s.getIndices();
 		for (int i = 0; i < ids.length; i++) {
 			processExpression(ids[i]);
-		}		
+		}
 		processExpression(s.getValue());
 		return s;
-	}	
+	}
 
-	///Expressions
+	/// Expressions
 	@Override
 	protected List<Expression> processExpressionList(List<Expression> el) {
-		for(Expression e : el){
+		for (Expression e : el) {
 			processExpression(e);
 		}
 		return el;
 	}
-
 
 	@Override
 	protected Expression processExpression(BinaryExpression e) {
@@ -130,7 +120,7 @@ public class CfgScanner extends CfgVisitor {
 	protected Expression processExpression(InstanceOfExpression e) {
 		Expression exp = processExpression(e.getExpression());
 		Variable t = e.getTypeVariable();
-		return new InstanceOfExpression(exp,t);
+		return new InstanceOfExpression(exp, t);
 	}
 
 	@Override

@@ -26,7 +26,6 @@ public class ArrayStoreStatement extends Statement {
 	private final Expression base, value;
 	private final List<Expression> indices;
 
-	
 	/**
 	 * 
 	 * @param loc
@@ -34,8 +33,7 @@ public class ArrayStoreStatement extends Statement {
 	 * @param indices
 	 * @param value
 	 */
-	public ArrayStoreStatement(SourceLocation loc, Expression base, Expression[] indices,
-			Expression value) {
+	public ArrayStoreStatement(SourceLocation loc, Expression base, Expression[] indices, Expression value) {
 		super(loc);
 		this.base = base;
 		this.indices = new LinkedList<Expression>();
@@ -44,20 +42,19 @@ public class ArrayStoreStatement extends Statement {
 		}
 		this.value = value;
 	}
-	
+
 	public Expression getBase() {
 		return this.base;
 	}
-	
+
 	public Expression[] getIndices() {
 		return this.indices.toArray(new Expression[this.indices.size()]);
 	}
-	
+
 	public Expression getValue() {
 		return this.value;
 	}
 
-	
 	@Override
 	public Set<IdentifierExpression> getIdentifierExpressions() {
 		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
@@ -69,7 +66,9 @@ public class ArrayStoreStatement extends Statement {
 		return used;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see soottocfg.cfg.statement.Statement#getLVariables()
 	 */
 	@Override
@@ -95,6 +94,6 @@ public class ArrayStoreStatement extends Statement {
 		sb.append(this.value);
 		sb.append(")");
 		return sb.toString();
-	}	
-	
+	}
+
 }

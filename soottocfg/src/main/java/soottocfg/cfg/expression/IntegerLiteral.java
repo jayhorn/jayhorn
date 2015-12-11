@@ -27,8 +27,7 @@ public class IntegerLiteral extends Expression {
 	private static final IntegerLiteral zero = new IntegerLiteral(0);
 	private static final IntegerLiteral minusOne = new IntegerLiteral(-1);
 
-	
-	public static IntegerLiteral one() { 
+	public static IntegerLiteral one() {
 		return one;
 	}
 
@@ -39,53 +38,53 @@ public class IntegerLiteral extends Expression {
 	public static IntegerLiteral minusOne() {
 		return minusOne;
 	}
-	
+
 	public IntegerLiteral(int value) {
 		this.value = Long.valueOf(value);
 	}
-	
+
 	public IntegerLiteral(long value) {
 		this.value = value;
 	}
-	
+
 	@Override
-	public String toString(){
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(value);
-		return sb.toString();		
-	}	
-	
+		return sb.toString();
+	}
+
 	@Override
 	public Set<IdentifierExpression> getIdentifierExpressions() {
 		return new HashSet<IdentifierExpression>();
 	}
-	
+
 	@Override
 	public Set<Variable> getLVariables() {
-		//because this can't happen on the left.
+		// because this can't happen on the left.
 		Set<Variable> used = new HashSet<Variable>();
 		return used;
 	}
 
-    public Long getValue() {
-        return value;
-    }
+	public Long getValue() {
+		return value;
+	}
 
 	@Override
 	public Type getType() {
 		return IntType.instance();
 	}
-	
+
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof IntegerLiteral) {
-			return ((IntegerLiteral)other).getValue().equals(this.value);
+			return ((IntegerLiteral) other).getValue().equals(this.value);
 		}
 		return false;
 	}
-	
+
 	@Override
-	public int hashCode() { 
+	public int hashCode() {
 		return value.hashCode();
-	}	
+	}
 }

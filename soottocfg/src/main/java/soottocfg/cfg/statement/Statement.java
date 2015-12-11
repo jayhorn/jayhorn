@@ -33,21 +33,21 @@ public abstract class Statement implements Node, Serializable {
 		this.sourceLocation = loc;
 
 	}
-	
+
 	public abstract Set<IdentifierExpression> getIdentifierExpressions();
-	
+
 	public Set<Variable> getUsedVariables() {
-			Set<Variable> res = new HashSet<Variable>();
-			for (IdentifierExpression id : this.getIdentifierExpressions()) {
-				res.add(id.getVariable());
-			}
-			return res;
+		Set<Variable> res = new HashSet<Variable>();
+		for (IdentifierExpression id : this.getIdentifierExpressions()) {
+			res.add(id.getVariable());
+		}
+		return res;
 	}
-	
+
 	public abstract Set<Variable> getLVariables();
-	
+
 	public int getJavaSourceLine() {
-		if (sourceLocation==null) {
+		if (sourceLocation == null) {
 			return -1;
 		}
 		return this.sourceLocation.getLineNumber();

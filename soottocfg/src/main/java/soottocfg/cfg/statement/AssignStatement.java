@@ -27,6 +27,7 @@ public class AssignStatement extends Statement {
 	 * 
 	 */
 	private static final long serialVersionUID = 6725099779878843508L;
+
 	public Expression getLeft() {
 		return left;
 	}
@@ -35,18 +36,20 @@ public class AssignStatement extends Statement {
 		return right;
 	}
 
-	private final Expression left, right; 
+	private final Expression left, right;
+
 	/**
 	 * @param createdFrom
 	 */
 	public AssignStatement(SourceLocation loc, Expression lhs, Expression rhs) {
 		super(loc);
-		if (lhs.getType().getClass()!=rhs.getType().getClass() && !SootTranslationHelpers.v().getMemoryModel().isNullReference(rhs)) {
-			//TODO: this should be somewhere in the translation.
+		if (lhs.getType().getClass() != rhs.getType().getClass()
+				&& !SootTranslationHelpers.v().getMemoryModel().isNullReference(rhs)) {
+			// TODO: this should be somewhere in the translation.
 			if (lhs.getType() == BoolType.instance() && rhs instanceof IntegerLiteral) {
-				if (((IntegerLiteral)rhs).getValue() == 0L) {
+				if (((IntegerLiteral) rhs).getValue() == 0L) {
 					rhs = BooleanLiteral.falseLiteral();
-				} else if (((IntegerLiteral)rhs).getValue() == 1L) {
+				} else if (((IntegerLiteral) rhs).getValue() == 1L) {
 					rhs = BooleanLiteral.trueLiteral();
 				} else {
 					throw new RuntimeException();
@@ -54,23 +57,28 @@ public class AssignStatement extends Statement {
 			}
 		}
 		if (lhs instanceof IdentifierExpression) {
-			Preconditions.checkArgument(!((IdentifierExpression)lhs).getVariable().isConstant() && !((IdentifierExpression)lhs).getVariable().isUnique());
+			Preconditions.checkArgument(!((IdentifierExpression) lhs).getVariable().isConstant()
+					&& !((IdentifierExpression) lhs).getVariable().isUnique());
 		}
-		
+
 		this.left = lhs;
 		this.right = rhs;
-//		if (left.getType().getClass()!=right.getType().getClass()) {
-//			System.err.println("");
-//		}
-//		Preconditions.checkArgument(left.getType().getClass()==right.getType().getClass() || SootTranslationHelpers.v().getMemoryModel().isNullReference(right), "Types don't match: "+ left.getType() + " and " + right.getType() + " for " + left + " and " + right);
+		// if (left.getType().getClass()!=right.getType().getClass()) {
+		// System.err.println("");
+		// }
+		// Preconditions.checkArgument(left.getType().getClass()==right.getType().getClass()
+		// ||
+		// SootTranslationHelpers.v().getMemoryModel().isNullReference(right),
+		// "Types don't match: "+ left.getType() + " and " + right.getType() + "
+		// for " + left + " and " + right);
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-			sb.append(this.left);
-			sb.append(" := ");
-			sb.append(this.right);
+		sb.append(this.left);
+		sb.append(" := ");
+		sb.append(this.right);
 		return sb.toString();
 	}
 
@@ -85,7 +93,7 @@ public class AssignStatement extends Statement {
 	@Override
 	public Set<Variable> getLVariables() {
 		Set<Variable> used = new HashSet<Variable>();
-		used.addAll(left.getLVariables());				
+		used.addAll(left.getLVariables());
 		return used;
 	}
 

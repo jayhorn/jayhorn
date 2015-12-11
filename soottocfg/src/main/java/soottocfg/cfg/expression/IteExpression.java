@@ -20,7 +20,7 @@ public class IteExpression extends Expression {
 	 */
 	private static final long serialVersionUID = -7138261822713810587L;
 	private final Expression condition, thenExpr, elseExpr;
-	
+
 	public Expression getCondition() {
 		return condition;
 	}
@@ -38,9 +38,9 @@ public class IteExpression extends Expression {
 		this.thenExpr = thenExpr;
 		this.elseExpr = elseExpr;
 	}
-	
+
 	@Override
-	public String toString(){
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("(");
 		sb.append(this.condition);
@@ -49,8 +49,8 @@ public class IteExpression extends Expression {
 		sb.append(":");
 		sb.append(this.elseExpr);
 		sb.append(")");
-		return sb.toString();		
-	}	
+		return sb.toString();
+	}
 
 	@Override
 	public Set<IdentifierExpression> getIdentifierExpressions() {
@@ -63,15 +63,15 @@ public class IteExpression extends Expression {
 
 	@Override
 	public Set<Variable> getLVariables() {
-		//because this can't happen on the left.
+		// because this can't happen on the left.
 		Set<Variable> used = new HashSet<Variable>();
 		return used;
 	}
-		
+
 	@Override
 	public Type getType() {
 		assert (thenExpr.getType().equals(elseExpr.getType()));
 		return thenExpr.getType();
 	}
-	
+
 }

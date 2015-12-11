@@ -3,7 +3,6 @@
  */
 package soottocfg.soot.transformers;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -13,18 +12,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import soot.ArrayType;
 import soot.Body;
 import soot.BooleanType;
 import soot.Local;
-import soot.Modifier;
-import soot.Scene;
-import soot.SootClass;
-import soot.SootMethod;
-import soot.Type;
 import soot.Unit;
 import soot.Value;
-import soot.VoidType;
 import soot.jimple.AssignStmt;
 import soot.jimple.ClassConstant;
 import soot.jimple.GotoStmt;
@@ -36,6 +28,7 @@ import soot.jimple.NewExpr;
 import soot.jimple.StaticFieldRef;
 import soot.jimple.Stmt;
 import soot.jimple.ThrowStmt;
+import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
  * @author schaef
@@ -51,36 +44,8 @@ public enum AssertionReconstruction {
 	/*
 	 * Code to handle Java Assertions.
 	 */
-	private static final String assertionClassName = "JayHornAssertions";
-	private static final String assertionProcedureName = "super_crazy_assertion";
-
 	private static final String javaAssertionType = "java.lang.AssertionError";
 	private static final String javaAssertionFlag = "$assertionsDisabled";
-
-	// TODO: why do we have to make this transient? Shouldn't be serialized in
-	// the first place.
-	private transient SootMethod internalAssertMethod = null;
-
-	/**
-	 * Initialize the helper classes and methods that we use when pre-processing
-	 * soot. This has to be done in SootToCfg before we iterate over the classes
-	 * to avoid concurrent modification error from the Scene.
-	 */
-	public void initialize() {
-		if (internalAssertMethod == null) {
-			SootClass sClass = new SootClass(assertionClassName, Modifier.PUBLIC);
-			internalAssertMethod = new SootMethod(assertionProcedureName,
-					Arrays.asList(new Type[] { ArrayType.v(BooleanType.v(), 1) }), VoidType.v(),
-					Modifier.PUBLIC | Modifier.STATIC);
-			sClass.addMethod(internalAssertMethod);
-
-			Scene.v().addClass(sClass);
-		}
-	}
-
-	public SootMethod getAssertMethod() {
-		return internalAssertMethod;
-	}
 
 	/**
 	 * removes useless statements that are generated when java assertions are
@@ -261,7 +226,7 @@ public enum AssertionReconstruction {
 		for (Entry<Unit, Value> entry : assertionsToInsert.entrySet()) {
 			List<Unit> unitsToInsert = new LinkedList<Unit>();
 			unitsToInsert.add(Jimple.v().newAssignStmt(assertionLocal, entry.getValue()));
-			unitsToInsert.add(makeAssertion(assertionLocal));
+			unitsToInsert.add(SootTranslationHelpers.v().makeAssertion(assertionLocal));
 
 			body.getUnits().insertBefore(unitsToInsert, entry.getKey());
 			unitsToRemove.add(entry.getKey());
@@ -269,12 +234,6 @@ public enum AssertionReconstruction {
 
 		body.getUnits().removeAll(unitsToRemove);
 		body.validate();
-	}
-	
-	public Unit makeAssertion(Value cond) {
-		List<Value> args = new LinkedList<Value>();
-		args.add(cond);
-		return Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(internalAssertMethod.makeRef(), args));
 	}
 
 	/**

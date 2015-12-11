@@ -17,25 +17,24 @@ import soottocfg.cfg.type.Type;
 public class ArrayLengthExpression extends Expression {
 
 	private static final long serialVersionUID = 8363741748130907850L;
-	
+
 	private final Expression expression;
-	
+
 	public ArrayLengthExpression(Expression inner) {
 		this.expression = inner;
 	}
-	
+
 	public Expression getExpression() {
 		return expression;
 	}
 
-
 	@Override
-	public String toString(){
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("lengthof(");		
+		sb.append("lengthof(");
 		sb.append(this.expression);
 		sb.append(")");
-		return sb.toString();		
+		return sb.toString();
 	}
 
 	@Override
@@ -45,11 +44,11 @@ public class ArrayLengthExpression extends Expression {
 
 	@Override
 	public Set<Variable> getLVariables() {
-		//because this can't happen on the left.
+		// because this can't happen on the left.
 		Set<Variable> used = new HashSet<Variable>();
 		return used;
 	}
-	
+
 	@Override
 	public Type getType() {
 		return IntType.instance();

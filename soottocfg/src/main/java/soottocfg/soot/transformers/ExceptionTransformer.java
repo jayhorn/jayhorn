@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.google.common.base.Verify;
+
 import soot.Body;
 import soot.BooleanType;
 import soot.Hierarchy;
@@ -28,11 +30,13 @@ import soot.SootMethod;
 import soot.Trap;
 import soot.Unit;
 import soot.Value;
+import soot.dava.toolkits.base.misc.ConditionFlipper;
 import soot.jimple.AnyNewExpr;
 import soot.jimple.ArrayRef;
 import soot.jimple.BinopExpr;
 import soot.jimple.CastExpr;
 import soot.jimple.CaughtExceptionRef;
+import soot.jimple.ConditionExpr;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.ExitMonitorStmt;
 import soot.jimple.IdentityRef;
@@ -54,6 +58,7 @@ import soot.jimple.UnopExpr;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
 import soot.tagkit.Host;
 import soottocfg.soot.util.DuplicatedCatchDetection;
+import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.util.Pair;
 
 /**
@@ -69,15 +74,8 @@ public class ExceptionTransformer extends AbstractTransformer {
 	private final boolean treatUncaughtExceptionsAsAssertions;
 
 	private Body body;
-	protected Local exceptionVariable;
 
 	private Hierarchy hierarchy;
-
-	private static final String exceptionLocalName = "$exception";
-
-	public static final String getExceptionLocalName() {
-		return ExceptionTransformer.exceptionLocalName;
-	}
 
 	private final Map<Unit, List<Pair<Value, SootClass>>> runtimeExceptions = new HashMap<Unit, List<Pair<Value, SootClass>>>();
 
@@ -106,10 +104,6 @@ public class ExceptionTransformer extends AbstractTransformer {
 		errorExceptionClass = Scene.v().getSootClass("java.lang.Error");
 	}
 
-	public Local getExceptionVariable() {
-		return this.exceptionVariable;
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -120,8 +114,6 @@ public class ExceptionTransformer extends AbstractTransformer {
 	protected void internalTransform(Body b, String arg1, Map<String, String> arg2) {
 		hierarchy = Scene.v().getActiveHierarchy();
 		body = b;
-		exceptionVariable = Jimple.v().newLocal(ExceptionTransformer.exceptionLocalName, RefType.v(exceptionClass));
-		body.getLocals().add(exceptionVariable);
 
 		// TODO just a test. remove at some point.
 		DuplicatedCatchDetection xyz = new DuplicatedCatchDetection();
@@ -140,7 +132,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 		usedTraps.addAll(handleRuntimeException());
 		usedTraps.addAll(handleMethodCalls());
 		usedTraps.addAll(handleThrowStatements());
-		
+
 		// now remove the @caughtexceptionrefs
 		Map<Unit, Unit> replacementMap = new HashMap<Unit, Unit>();
 		for (Trap t : usedTraps) {
@@ -153,8 +145,16 @@ public class ExceptionTransformer extends AbstractTransformer {
 				DefinitionStmt ds = (DefinitionStmt) t.getHandlerUnit();
 				if (ds.getRightOp() instanceof CaughtExceptionRef) {
 					if (!replacementMap.containsKey(ds)) {
-						Unit newAssign = assignStmtFor(ds.getLeftOp(), caughtExceptionLocal.get(t.getHandlerUnit()),
-								ds);
+						Value left = ds.getLeftOp();
+						Value right = caughtExceptionLocal.get(t.getHandlerUnit());
+						if (!hierarchy.isClassSubclassOfIncluding(((RefType) right.getType()).getSootClass(),
+								((RefType) left.getType()).getSootClass())) {
+							// if the left has a narrower type then we need to
+							// add a cast.
+							right = Jimple.v().newCastExpr(right, left.getType());
+						}
+
+						Unit newAssign = assignStmtFor(left, right, ds);
 						replacementMap.put(ds, newAssign);
 					}
 				} else {
@@ -171,7 +171,8 @@ public class ExceptionTransformer extends AbstractTransformer {
 			toInsert.add(entry.getValue());
 			// after the exception is caught, set the
 			// $exception variable back to Null.
-			toInsert.add(assignStmtFor(exceptionVariable, NullConstant.v(), entry.getKey()));
+			toInsert.add(assignStmtFor(SootTranslationHelpers.v().getExceptionGlobalRef(), NullConstant.v(),
+					entry.getKey()));
 			body.getUnits().insertAfter(toInsert, entry.getKey());
 			body.getUnits().remove(entry.getKey());
 		}
@@ -179,21 +180,22 @@ public class ExceptionTransformer extends AbstractTransformer {
 		body.getTraps().removeAll(usedTraps);
 
 		if (!body.getTraps().isEmpty()) {
-			System.err.format("TODO: %d traps could not be removed for %s%n", body.getTraps().size(), body.getMethod().getSignature());			
-			//TODO!!!!!
+			System.err.format("TODO: %d traps could not be removed for %s%n", body.getTraps().size(),
+					body.getMethod().getSignature());
+			// TODO!!!!!
 			body.getTraps().clear();
 			Set<Unit> caughtExceptionUnits = new HashSet<Unit>();
-			Set<Local> deadLocals = new HashSet<Local>();
+
 			for (Unit u : body.getUnits()) {
-				if (u instanceof DefinitionStmt && ((DefinitionStmt)u).getRightOp() instanceof CaughtExceptionRef) {
+				if (u instanceof DefinitionStmt && ((DefinitionStmt) u).getRightOp() instanceof CaughtExceptionRef) {
 					caughtExceptionUnits.add(u);
-					deadLocals.add((Local)((DefinitionStmt)u).getLeftOp());
+					// deadLocals.add((Local) ((DefinitionStmt) u).getLeftOp());
 				}
 			}
 			body.getUnits().removeAll(caughtExceptionUnits);
-			body.getLocals().removeAll(deadLocals);			
+			// body.getLocals().removeAll(deadLocals);
 		}
-			
+		// System.err.println(body);
 		body.validate();
 	}
 
@@ -275,6 +277,9 @@ public class ExceptionTransformer extends AbstractTransformer {
 			});
 			// create the exception handling statements
 			List<Unit> toInsert = new LinkedList<Unit>();
+			Local exceptionVarLocal = getFreshLocal(body, throwableClass.getType());
+			toInsert.add(assignStmtFor(exceptionVarLocal, SootTranslationHelpers.v().getExceptionGlobalRef(), u));
+
 			for (SootClass exception : possibleExceptions) {
 				Trap trap = null;
 				for (Trap t : surroundingTraps) {
@@ -286,19 +291,30 @@ public class ExceptionTransformer extends AbstractTransformer {
 						break;
 					}
 				}
+
+				Value instOf = Jimple.v().newInstanceOfExpr(exceptionVarLocal, RefType.v(exception));
+				// TODO hack
+				// toInsert.add(Jimple.v().newAssignStmt(exceptionVariable,
+				// NullConstant.v()));
 				Local l = getFreshLocal(body, BooleanType.v());
+				toInsert.add(assignStmtFor(l, instOf, u));
+				Unit target;
+
 				if (trap == null) {
-					Unit throwStmt = generateThrowStatement(u, exception);
-					toInsert.add(
-							assignStmtFor(l, Jimple.v().newInstanceOfExpr(exceptionVariable, exception.getType()), u));
-					toInsert.add(ifStmtFor(jimpleNeZero(l), throwStmt, u));
+					List<Unit> units = updateExceptionVariableAndReturn(body, exceptionVarLocal, u);
+					body.getUnits().addAll(units);
+					target = units.get(0);
 				} else {
 					usedTraps.add(trap);
-					Unit newTarget = createNewExceptionAndGoToTrap(u, exception, trap);
-					toInsert.add(
-							assignStmtFor(l, Jimple.v().newInstanceOfExpr(exceptionVariable, exception.getType()), u));
-					toInsert.add(ifStmtFor(jimpleNeZero(l), newTarget, u));
+					if (!caughtExceptionLocal.containsKey(trap.getHandlerUnit())) {
+						// only create one local per trap so that we can
+						// replace the CaughtExceptionRef later.
+						caughtExceptionLocal.put(trap.getHandlerUnit(), getFreshLocal(body, throwableClass.getType()));
+					}
+					toInsert.add(assignStmtFor(caughtExceptionLocal.get(trap.getHandlerUnit()), exceptionVarLocal, u));
+					target = trap.getHandlerUnit();
 				}
+				toInsert.add(ifStmtFor(jimpleNeZero(l), target, u));
 			}
 			// now insert everything after the call
 			body.getUnits().insertAfter(toInsert, u);
@@ -349,6 +365,9 @@ public class ExceptionTransformer extends AbstractTransformer {
 			List<Unit> toInsert = new LinkedList<Unit>();
 			boolean caughtThrowable = false;
 
+			Local exceptionVarLocal = getFreshLocal(body, throwableClass.getType());
+			toInsert.add(assignStmtFor(exceptionVarLocal, SootTranslationHelpers.v().getExceptionGlobalRef(), u));
+
 			for (SootClass exception : possibleExceptions) {
 				Trap trap = null;
 				for (Trap t : surroundingTraps) {
@@ -367,8 +386,8 @@ public class ExceptionTransformer extends AbstractTransformer {
 					usedTraps.add(trap);
 					Unit newTarget = createNewExceptionAndGoToTrap(u, exception, trap);
 					Local l = getFreshLocal(body, BooleanType.v());
-					toInsert.add(
-							assignStmtFor(l, Jimple.v().newInstanceOfExpr(exceptionVariable, exception.getType()), u));
+					Value instOf = Jimple.v().newInstanceOfExpr(exceptionVarLocal, RefType.v(exception));
+					toInsert.add(assignStmtFor(l, instOf, u));
 					toInsert.add(ifStmtFor(jimpleNeZero(l), newTarget, u));
 				}
 				// if we caught Throwable, we can remove the
@@ -376,6 +395,12 @@ public class ExceptionTransformer extends AbstractTransformer {
 				if (caughtThrowable) {
 					removeThrowStatements.add(u);
 				}
+			}
+			if (!removeThrowStatements.contains(u)) {
+				// If the throw was not caught, replace it by a return.
+				removeThrowStatements.add(u);
+				// TODO: more testing here please.
+				toInsert.addAll(updateExceptionVariableAndReturn(body, ((ThrowStmt) u).getOp(), u));
 			}
 			if (!toInsert.isEmpty()) {
 				body.getUnits().insertBefore(toInsert, u);
@@ -417,7 +442,8 @@ public class ExceptionTransformer extends AbstractTransformer {
 		if (!caughtExceptionLocal.containsKey(t.getHandlerUnit())) {
 			// only create one local per trap so that we can
 			// replace the CaughtExceptionRef later.
-			caughtExceptionLocal.put(t.getHandlerUnit(), getFreshLocal(body, exceptionVariable.getType()));
+			caughtExceptionLocal.put(t.getHandlerUnit(),
+					getFreshLocal(body, SootTranslationHelpers.v().getExceptionGlobal().getType()));
 		}
 		Local execptionLocal = caughtExceptionLocal.get(t.getHandlerUnit());
 		List<Unit> excCreation = createNewException(body, execptionLocal, exception, u);
@@ -443,7 +469,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 		// runtime exceptions that also occur in the throws clause get re-thrown
 		if (!treatUncaughtExceptionsAsAssertions) {
 			List<Pair<Value, List<Unit>>> guards = constructGuardExpression(v, exception, true, u);
-			Unit throwStmt = generateThrowStatement(u, exception);
+			Unit throwStmt = generateExceptionalReturn(u, exception);
 			for (Pair<Value, List<Unit>> pair : guards) {
 				List<Unit> toInsert = new LinkedList<Unit>();
 				toInsert.addAll(pair.getSecond());
@@ -462,19 +488,22 @@ public class ExceptionTransformer extends AbstractTransformer {
 				List<Unit> toInsert = new LinkedList<Unit>();
 				toInsert.addAll(pair.getSecond());
 				toInsert.add(Jimple.v().newAssignStmt(assertionLocal, pair.getFirst()));
-				toInsert.add(AssertionReconstruction.v().makeAssertion(assertionLocal));
+				toInsert.add(SootTranslationHelpers.v().makeAssertion(assertionLocal));
 				body.getUnits().insertBefore(toInsert, u);
 			}
 		}
 
 	}
 
-	private Unit generateThrowStatement(Unit u, SootClass exception) {
+	private Unit generateExceptionalReturn(Unit u, SootClass exception) {
 		if (!generatedThrowStatements.containsKey(exception)) {
-			List<Unit> exc = throwNewException(body, exception, u);
-			Unit newException = exc.get(0);
-			body.getUnits().addAll(exc);
-			generatedThrowStatements.put(exception, newException);
+			List<Unit> units = new LinkedList<Unit>();
+			Local exceptionLocal = getFreshLocal(body, exception.getType());
+			units.addAll(createNewException(body, exceptionLocal, exception, u));
+			units.addAll(updateExceptionVariableAndReturn(body, exceptionLocal, u));
+			Unit target = units.get(0);
+			body.getUnits().addAll(units);
+			generatedThrowStatements.put(exception, target);
 		}
 		return generatedThrowStatements.get(exception);
 	}
@@ -489,20 +518,24 @@ public class ExceptionTransformer extends AbstractTransformer {
 		Unit newException = assignStmtFor(l, Jimple.v().newNewExpr(RefType.v(exc)), createdFrom);
 		result.add(newException);
 		// constructor call
+		boolean foundConstructor = false;
 		for (SootMethod sm : exc.getMethods()) {
 			if (sm.isConstructor() && sm.getParameterCount() == 0) {
 				// This is the constructor we are looking for.
+				foundConstructor = true;
 				result.add(invokeStmtFor(Jimple.v().newSpecialInvokeExpr(l, sm.makeRef()), createdFrom));
 				break;
 			}
 		}
+		Verify.verify(foundConstructor, "Don't try to call a constructor on an abstract class or interface!");
 		return result;
 	}
 
-	protected List<Unit> throwNewException(Body b, SootClass exc, Host createdFrom) {
-		Local l = getFreshLocal(b, exc.getType());
-		List<Unit> result = createNewException(b, l, exc, createdFrom);
-		result.add(throwStmtFor(l, createdFrom));
+	protected List<Unit> updateExceptionVariableAndReturn(Body b, Value v, Host createdFrom) {
+		List<Unit> result = new LinkedList<Unit>();
+		result.add(assignStmtFor(SootTranslationHelpers.v().getExceptionGlobalRef(), v, createdFrom));
+		result.add(getDefaultReturnStatement(b.getMethod().getReturnType(), createdFrom));
+		// result.add(throwStmtFor(l, createdFrom));
 		return result;
 	}
 
@@ -538,36 +571,32 @@ public class ExceptionTransformer extends AbstractTransformer {
 			return result;
 		} else if (exception == arrayIndexOutOfBoundsExceptionClass) {
 			ArrayRef e = (ArrayRef) val;
-			// index < array.length
-			/*
-			 * Since array.length cannot be part of a BinOp, we have to create a
-			 * helper local l and a statement l = array.length first.
-			 */
+
 			List<Unit> helperStatements = new LinkedList<Unit>();
-			Local len = getFreshLocal(body, IntType.v());
-			
-			Unit helperStmt = assignStmtFor(len, Jimple.v().newLengthExpr(e.getBase()), createdFrom);
+			Value arrayLen = Jimple.v().newLengthExpr(e.getBase());
+			Local len = getFreshLocal(body, arrayLen.getType());
+
+			Unit helperStmt = assignStmtFor(len, arrayLen, createdFrom);
 			helperStatements.add(helperStmt);
 
-			// !(index < array.length)
-			Local left = getFreshLocal(body, IntType.v());	
+			// (index < array.length)
+			Local left = getFreshLocal(body, IntType.v());
 			helperStmt = assignStmtFor(left, e.getIndex(), createdFrom);
 			helperStatements.add(helperStmt);
 
+			ConditionExpr guard = Jimple.v().newLtExpr(left, len);
 			if (negated) {
-				result.add(new Pair<Value, List<Unit>>(Jimple.v().newGeExpr(left, len), helperStatements));
-			} else {
-				result.add(new Pair<Value, List<Unit>>(Jimple.v().newLtExpr(left, len), helperStatements));
+				guard = ConditionFlipper.flip(guard);
 			}
+			result.add(new Pair<Value, List<Unit>>(guard, helperStatements));
 
 			// index >= 0
 			helperStatements = new LinkedList<Unit>();
-			// !(index>=0)
+			guard = Jimple.v().newLeExpr(IntConstant.v(0), left);
 			if (negated) {
-				result.add(new Pair<Value, List<Unit>>(Jimple.v().newGtExpr(IntConstant.v(0), left), helperStatements));
-			} else {
-				result.add(new Pair<Value, List<Unit>>(Jimple.v().newLeExpr(IntConstant.v(0), left), helperStatements));
+				guard = ConditionFlipper.flip(guard);
 			}
+			result.add(new Pair<Value, List<Unit>>(guard, helperStatements));
 
 			return result;
 
@@ -777,5 +806,4 @@ public class ExceptionTransformer extends AbstractTransformer {
 		}
 		return result;
 	}
-
 }

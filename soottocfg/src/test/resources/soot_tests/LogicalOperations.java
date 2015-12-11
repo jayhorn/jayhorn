@@ -4,45 +4,45 @@ public class LogicalOperations {
 	private int i1;
 	private boolean b1;
 	private long l1;
-	
+
 	private int i2;
 	private boolean b2;
 	private long l2;
-	
-	public void doAnd(){
+
+	public void doAnd() {
 		i1 = i2 & i1;
 		l1 = l2 & l1;
 		b1 = b2 & b1;
 	}
-	
-	public void doOr(){
+
+	public void doOr() {
 		i1 = i2 | i1;
 		l1 = l2 | l1;
 		b1 = b2 | b1;
 	}
-	
-	public void doXOr(){
+
+	public void doXOr() {
 		i1 = i2 ^ i1;
 		l1 = l2 ^ l1;
 		b1 = b2 ^ b1;
 	}
-	
-	public void doInv(){
+
+	public void doInv() {
 		i1 = ~i2;
 		l1 = ~i2;
 	}
-	
-	public void doShl(){
+
+	public void doShl() {
 		i1 = i1 << i2;
 		l1 = l1 << l2;
 	}
-	
-	public void doShr(){
+
+	public void doShr() {
 		i1 = i1 >> i2;
 		l1 = l1 >> l2;
 	}
-	
-	public void doUShr(){
+
+	public void doUShr() {
 		i1 = i1 >>> i2;
 		l1 = l1 >>> l2;
 	}

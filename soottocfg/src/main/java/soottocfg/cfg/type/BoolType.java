@@ -14,11 +14,11 @@ public class BoolType extends Type {
 	 */
 	private static final long serialVersionUID = -8808194746696075445L;
 	private static final BoolType instance = new BoolType();
-	
+
 	public static BoolType instance() {
 		return instance;
 	}
-	
+
 	/**
 	 * 
 	 */
@@ -26,7 +26,7 @@ public class BoolType extends Type {
 		// TODO Auto-generated constructor stub
 	}
 
-    public String toString() {
-        return "boolean";
-    }
+	public String toString() {
+		return "boolean";
+	}
 }

@@ -14,11 +14,11 @@ public class IntType extends Type {
 	 */
 	private static final long serialVersionUID = -5047960968046256817L;
 	private static final IntType instance = new IntType();
-	
+
 	public static IntType instance() {
 		return instance;
 	}
-	
+
 	/**
 	 * 
 	 */
@@ -26,7 +26,7 @@ public class IntType extends Type {
 		// TODO Auto-generated constructor stub
 	}
 
-    public String toString() {
-        return "int";
-    }
+	public String toString() {
+		return "int";
+	}
 }

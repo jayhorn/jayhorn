@@ -9,7 +9,8 @@ public class DynamicTest03 {
 		return result;
 	}
 
-	private void foo() {}
+	private void foo() {
+	}
 	
 	private int withExceptionMethod(int i) {
 		int b=0;
@@ -23,6 +24,15 @@ public class DynamicTest03 {
 			b+=2;			
 		}
 		return b;
+	}
+
+	int fuckoff(Object o) {
+		if (o instanceof String) return 1;
+
+		boolean x = (o instanceof Long);
+		if (x) return 2;
+
+		return 3;
 	}
 	
 }

@@ -13,11 +13,9 @@ import java.util.Set;
 import soottocfg.cfg.Variable;
 
 /**
- * @author schaef
- * TODO ... this surely should be a subtype of something.
+ * @author schaef TODO ... this surely should be a subtype of something.
  */
 public class ClassSignature implements Serializable {
-	
 
 	/**
 	 * 
@@ -31,14 +29,13 @@ public class ClassSignature implements Serializable {
 		className = name;
 		parentConstants = new HashSet<ClassSignature>();
 		parentConstants.addAll(parentConstants);
-		associatedFields = new LinkedList<Variable>();	
+		associatedFields = new LinkedList<Variable>();
 	}
 
-	
 	public String getName() {
 		return className;
 	}
-	
+
 	public Collection<ClassSignature> getParents() {
 		return parentConstants;
 	}
@@ -47,9 +44,9 @@ public class ClassSignature implements Serializable {
 		associatedFields = new LinkedList<Variable>();
 		associatedFields.addAll(fields);
 	}
-	
+
 	public Variable[] getAssociatedFields() {
 		return associatedFields.toArray(new Variable[associatedFields.size()]);
 	}
-	
+
 }

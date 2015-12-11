@@ -27,7 +27,6 @@ public class ArrayReadStatement extends Statement {
 	private final List<Expression> indices;
 	private final IdentifierExpression left;
 
-	
 	/**
 	 * @param loc
 	 */
@@ -41,18 +40,17 @@ public class ArrayReadStatement extends Statement {
 		this.left = lhs;
 	}
 
-	
 	public Expression getBase() {
 		return this.base;
 	}
-	
+
 	public Expression[] getIndices() {
 		return this.indices.toArray(new Expression[this.indices.size()]);
 	}
-	
+
 	public Expression getLeftValue() {
 		return this.left;
-	}	
+	}
 
 	@Override
 	public Set<IdentifierExpression> getIdentifierExpressions() {
@@ -65,13 +63,14 @@ public class ArrayReadStatement extends Statement {
 		return used;
 	}
 
-
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see soottocfg.cfg.statement.Statement#getLVariables()
 	 */
 	@Override
 	public Set<Variable> getLVariables() {
-		//because this can't happen on the left.
+		// because this can't happen on the left.
 		Set<Variable> used = new HashSet<Variable>();
 		used.add(left.getVariable());
 		return used;
@@ -94,5 +93,5 @@ public class ArrayReadStatement extends Statement {
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 }

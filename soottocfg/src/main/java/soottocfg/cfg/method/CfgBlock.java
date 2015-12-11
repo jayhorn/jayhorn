@@ -153,7 +153,7 @@ public class CfgBlock implements Node, Serializable {
 
 		// The live in of the 0th statement should be the same as the live in of
 		// the whole block
-		assert(currentLiveOut.equals(vars.liveIn.get(this)));
+		assert (currentLiveOut.equals(vars.liveIn.get(this)));
 		return new LiveVars<Statement>(in, out);
 	}
 

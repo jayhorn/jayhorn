@@ -65,6 +65,7 @@ public final class Util {
 	 * @throws IOException
 	 */
 	public static File compileJavaFile(File sourceFile) throws IOException {
+		printJavaCVersion();
 		final File tempDir = getTempDir();
 		final String javac_command = String.format("javac -g %s -d %s", sourceFile.getAbsolutePath(),
 				tempDir.getAbsolutePath());
@@ -82,6 +83,23 @@ public final class Util {
 		}
 
 		return tempDir;
+	}
+
+	protected static void printJavaCVersion() {
+		final String javac_command = "javac -version";
+
+		ProcessBuilder pb = new ProcessBuilder(javac_command.split(" "));
+		pb.redirectOutput(Redirect.INHERIT);
+		pb.redirectError(Redirect.INHERIT);
+		try {
+			Process p = pb.start();
+			p.waitFor();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	/**

@@ -20,7 +20,7 @@ public class BooleanLiteral extends Expression {
 	 * 
 	 */
 	private static final long serialVersionUID = -8808519364513150612L;
-	
+
 	private final boolean value;
 
 	public static BooleanLiteral trueLiteral() {
@@ -45,12 +45,12 @@ public class BooleanLiteral extends Expression {
 		sb.append(value);
 		return sb.toString();
 	}
-	
+
 	@Override
 	public Set<IdentifierExpression> getIdentifierExpressions() {
 		return new HashSet<IdentifierExpression>();
 	}
-	
+
 	@Override
 	public Set<Variable> getLVariables() {
 		Set<Variable> used = new HashSet<Variable>();
@@ -65,14 +65,14 @@ public class BooleanLiteral extends Expression {
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof BooleanLiteral) {
-			return ((BooleanLiteral)other).getValue()==this.value;
+			return ((BooleanLiteral) other).getValue() == this.value;
 		}
 		return false;
 	}
-	
+
 	@Override
 	public int hashCode() {
-		//same hash code as Boolean.hashCode 
+		// same hash code as Boolean.hashCode
 		return value ? 1231 : 1237;
 	}
 }

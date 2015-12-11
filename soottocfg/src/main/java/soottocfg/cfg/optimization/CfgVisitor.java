@@ -110,7 +110,6 @@ public abstract class CfgVisitor {
 
 	protected abstract List<Expression> processExpressionList(List<Expression> el);
 
-
 	protected abstract Expression processExpression(BinaryExpression e);
 
 	protected abstract Expression processExpression(BooleanLiteral e);

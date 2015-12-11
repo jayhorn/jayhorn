@@ -33,7 +33,7 @@ public class SimpleBurstallBornatModel extends BasicMemoryModel {
 
 	public SimpleBurstallBornatModel() {
 		super();
-		//Heap is a map from <Type, Type> to Type
+		// Heap is a map from <Type, Type> to Type
 		List<Type> ids = new LinkedList<Type>();
 		ids.add(Type.instance());
 		ids.add(Type.instance());
@@ -41,7 +41,7 @@ public class SimpleBurstallBornatModel extends BasicMemoryModel {
 		this.heapVariable = this.program.loopupGlobalVariable("$heap", heapType);
 
 	}
-	
+
 	@Override
 	public void mkHeapWriteStatement(Unit u, FieldRef field, Value rhs) {
 		SourceLocation loc = SootTranslationHelpers.v().getSourceLocation(u);
@@ -57,38 +57,37 @@ public class SimpleBurstallBornatModel extends BasicMemoryModel {
 			indices = new Expression[] { base, new IdentifierExpression(fieldVar) };
 			target = new IdentifierExpression(this.heapVariable);
 			this.statementSwitch.push(new ArrayStoreStatement(loc, target, indices, value));
-		} else if (field instanceof StaticFieldRef) {			
+		} else if (field instanceof StaticFieldRef) {
 			Expression left = new IdentifierExpression(fieldVar);
 			rhs.apply(valueSwitch);
 			Expression right = valueSwitch.popExpression();
-			this.statementSwitch.push(new AssignStatement(loc, left, right));			
+			this.statementSwitch.push(new AssignStatement(loc, left, right));
 		} else {
 			throw new RuntimeException("not implemented");
 		}
 	}
 
-	
 	@Override
 	public void mkHeapReadStatement(Unit u, FieldRef field, Value lhs) {
 		SourceLocation loc = SootTranslationHelpers.v().getSourceLocation(u);
 		Variable fieldVar = lookupField(field.getField());
 		if (field instanceof InstanceFieldRef) {
 			lhs.apply(valueSwitch);
-			IdentifierExpression left = (IdentifierExpression)valueSwitch.popExpression();
+			IdentifierExpression left = (IdentifierExpression) valueSwitch.popExpression();
 
 			InstanceFieldRef ifr = (InstanceFieldRef) field;
 			ifr.getBase().apply(valueSwitch);
-			Expression base = valueSwitch.popExpression();			
+			Expression base = valueSwitch.popExpression();
 			Expression target;
-			Expression[] indices;			
+			Expression[] indices;
 			indices = new Expression[] { base, new IdentifierExpression(fieldVar) };
 			target = new IdentifierExpression(this.heapVariable);
 			this.statementSwitch.push(new ArrayReadStatement(loc, target, indices, left));
-		} else if (field instanceof StaticFieldRef) {			
+		} else if (field instanceof StaticFieldRef) {
 			lhs.apply(valueSwitch);
 			Expression left = valueSwitch.popExpression();
 			Expression right = new IdentifierExpression(fieldVar);
-			this.statementSwitch.push(new AssignStatement(loc, left, right));			
+			this.statementSwitch.push(new AssignStatement(loc, left, right));
 		} else {
 			throw new RuntimeException("not implemented");
 		}

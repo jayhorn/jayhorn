@@ -8,10 +8,10 @@ package soottocfg.cfg;
  *
  */
 public class SourceLocation {
-	
+
 	private final String sourceFileName;
 	private final int lineNumber;
-	
+
 	public SourceLocation(String sourceFileName, int lineNumber) {
 		this.sourceFileName = sourceFileName;
 		this.lineNumber = lineNumber;

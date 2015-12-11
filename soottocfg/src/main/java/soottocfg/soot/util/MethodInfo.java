@@ -22,7 +22,6 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.type.Type;
-import soottocfg.soot.transformers.ExceptionTransformer;
 
 /**
  * @author schaef
@@ -43,10 +42,10 @@ public class MethodInfo {
 	private Map<Local, Variable> localsMap = new HashMap<Local, Variable>();
 	private List<Variable> parameterList = new LinkedList<Variable>();
 
-	private Variable returnVariable, exceptionalReturnVariable, thisVariable;
+	private Variable returnVariable, thisVariable;
 
-	private final Set<Variable> freshLocals = new LinkedHashSet<Variable>(); 
-	
+	private final Set<Variable> freshLocals = new LinkedHashSet<Variable>();
+
 	public MethodInfo(SootMethod sm, String sourceFileName) {
 		this.sootMethod = sm;
 		sink = new CfgBlock(getMethod());
@@ -62,13 +61,14 @@ public class MethodInfo {
 		}
 
 		// create a return variable for exceptional returns.
-		for (Local l : sm.getActiveBody().getLocals()) {
-			if (l.getName().equals(ExceptionTransformer.getExceptionLocalName())) {
-				this.exceptionalReturnVariable = lookupLocalVariable(l);
-				break;
-			}
-		}
-		assert (exceptionalReturnVariable!=null);
+		// for (Local l : sm.getActiveBody().getLocals()) {
+		// if (l.getName().equals(ExceptionTransformer.getExceptionLocalName()))
+		// {
+		// this.exceptionalReturnVariable = lookupLocalVariable(l);
+		// break;
+		// }
+		// }
+		// assert (exceptionalReturnVariable!=null);
 
 		// If the method is not static, create a this-variable which is
 		// passed as the first parameter to the method.
@@ -79,34 +79,34 @@ public class MethodInfo {
 
 		for (int i = 0; i < sm.getParameterCount(); i++) {
 			String param_name = parameterPrefix + i;
-			parameterList.add(new Variable(param_name, SootTranslationHelpers.v().getMemoryModel()
-					.lookupType(sm.getParameterType(i))));
+			parameterList.add(new Variable(param_name,
+					SootTranslationHelpers.v().getMemoryModel().lookupType(sm.getParameterType(i))));
 
 			// assumeParameterType(id, sm.getParameterType(i));
 
 		}
 	}
-	
+
 	public Method getMethod() {
 		return SootTranslationHelpers.v().getProgram().loopupMethod(this.sootMethod.getSignature());
 	}
-	
+
 	/**
-	 * Called after the method has been translated.
-	 * Looks up the corresponding Method object in Program
-	 * and fills in all the information. Should only be called
-	 * once per method.  
+	 * Called after the method has been translated. Looks up the corresponding
+	 * Method object in Program and fills in all the information. Should only be
+	 * called once per method.
 	 */
-	public void finalizeAndAddToProgram() {		
+	public void finalizeAndAddToProgram() {
 		Method m = SootTranslationHelpers.v().getProgram().loopupMethod(this.sootMethod.getSignature());
 		Collection<Variable> locals = new LinkedHashSet<Variable>();
 		locals.addAll(this.localsMap.values());
 		locals.addAll(this.freshLocals);
-		m.initialize(this.thisVariable, this.returnVariable, this.exceptionalReturnVariable, this.parameterList, locals, source, sootMethod.isEntryMethod());
+		m.initialize(this.thisVariable, this.returnVariable, this.parameterList, locals, source,
+				sootMethod.isEntryMethod());
 		CfgBlock uniqueSink = m.findOrCreateUniqueSink();
 		if (sink != uniqueSink) {
-			System.err.println("Something strange with the CFG. More than one sink found for "+m.getMethodName());
-		}		
+			System.err.println("Something strange with the CFG. More than one sink found for " + m.getMethodName());
+		}
 		sink = uniqueSink;
 	}
 
@@ -118,9 +118,9 @@ public class MethodInfo {
 		return new IdentifierExpression(this.returnVariable);
 	}
 
-	public Expression getExceptionVariable() {
-		return new IdentifierExpression(this.exceptionalReturnVariable);
-	}
+	// public Expression getExceptionVariable() {
+	// return new IdentifierExpression(this.exceptionalReturnVariable);
+	// }
 
 	public Expression getThisVariable() {
 		return new IdentifierExpression(this.thisVariable);
@@ -134,20 +134,20 @@ public class MethodInfo {
 		if (!localsMap.containsKey(arg0)) {
 			localsMap.put(arg0, createLocalVariable(arg0));
 		}
-		return localsMap.get(arg0);		
+		return localsMap.get(arg0);
 	}
-	
+
 	public Expression lookupLocal(Local arg0) {
 		return new IdentifierExpression(lookupLocalVariable(arg0));
 	}
 
 	private Variable createLocalVariable(Local arg0) {
-		return new Variable(arg0.getName(), SootTranslationHelpers.v().getMemoryModel().lookupType(arg0
-				.getType()), false, false);
+		return new Variable(arg0.getName(), SootTranslationHelpers.v().getMemoryModel().lookupType(arg0.getType()),
+				false, false);
 	}
-	
+
 	public Variable createFreshLocal(String prefix, Type t, boolean constant, boolean unique) {
-		Variable v = new Variable(prefix+this.freshLocals.size(), t, constant, unique);
+		Variable v = new Variable(prefix + this.freshLocals.size(), t, constant, unique);
 		this.freshLocals.add(v);
 		return v;
 	}
@@ -174,5 +174,5 @@ public class MethodInfo {
 	public CfgBlock getSink() {
 		return sink;
 	}
-	
+
 }

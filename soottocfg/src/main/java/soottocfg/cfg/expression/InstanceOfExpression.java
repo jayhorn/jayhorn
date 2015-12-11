@@ -21,6 +21,7 @@ public class InstanceOfExpression extends Expression {
 	 */
 	private static final long serialVersionUID = -3697139804431041726L;
 	private final Expression expression;
+
 	public Expression getExpression() {
 		return expression;
 	}
@@ -30,12 +31,11 @@ public class InstanceOfExpression extends Expression {
 	}
 
 	private final Variable typeVariable;
-	
-	
+
 	/**
 	 * 
 	 */
-	public InstanceOfExpression(Expression expr, Variable typeVar) {		
+	public InstanceOfExpression(Expression expr, Variable typeVar) {
 		this.expression = expr;
 		this.typeVariable = typeVar;
 	}
@@ -50,15 +50,15 @@ public class InstanceOfExpression extends Expression {
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 	@Override
 	public Set<IdentifierExpression> getIdentifierExpressions() {
 		return expression.getIdentifierExpressions();
 	}
-	
+
 	@Override
 	public Set<Variable> getLVariables() {
-		//because this can't happen on the left.
+		// because this can't happen on the left.
 		Set<Variable> used = new HashSet<Variable>();
 		return used;
 	}

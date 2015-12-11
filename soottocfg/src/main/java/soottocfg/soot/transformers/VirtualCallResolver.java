@@ -105,7 +105,7 @@ public class VirtualCallResolver extends AbstractTransformer {
 					stmts.add(ifStmtFor(jimpleNeZero(l), vcall.get(0), originalCall));
 					body.getUnits().insertBefore(stmts, originalCall);
 				} else {
-					// To keep the bytecode verifier happy, 
+					// To keep the bytecode verifier happy,
 					// we don't guard the call for the last case
 					// to avoid uninitialized variables.
 					body.getUnits().insertBefore(vcall, originalCall);
@@ -116,7 +116,7 @@ public class VirtualCallResolver extends AbstractTransformer {
 			// if its not run form within eclipse ... dig into that.
 			body.getUnits().remove(originalCall);
 		}
-		body.validate();		
+		body.validate();
 	}
 
 	private List<Unit> createVirtualCall(Body body, SootMethod callee, Unit originalCall, InstanceInvokeExpr ivk) {

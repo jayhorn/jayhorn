@@ -247,10 +247,11 @@ public class SootValueSwitch implements JimpleValueSwitch {
 	@Override
 	public void caseCastExpr(CastExpr arg0) {
 		// TODO Auto-generated method stub
-//		arg0.getOp().apply(this);
-//		Expression inner = popExpression();
-//		expressionStack.add(inner);				
-		Variable fresh = SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO_CAST", this.memoryModel.lookupType(arg0.getCastType()));		
+		// arg0.getOp().apply(this);
+		// Expression inner = popExpression();
+		// expressionStack.add(inner);
+		Variable fresh = SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO_CAST",
+				this.memoryModel.lookupType(arg0.getCastType()));
 		expressionStack.add(new IdentifierExpression(fresh));
 	}
 
@@ -316,7 +317,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 	@Override
 	public void caseLengthExpr(LengthExpr arg0) {
 		arg0.getOp().apply(this);
-		Expression inner = this.popExpression();		
+		Expression inner = this.popExpression();
 		this.expressionStack.add(new ArrayLengthExpression(inner));
 	}
 
@@ -414,9 +415,10 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseCaughtExceptionRef(CaughtExceptionRef arg0) {
-		// This should have been eliminated by the exception translation.		
+		// This should have been eliminated by the exception translation.
 		System.err.println("CaughtExceptionRef should have been eliminated earlier! This is a bug!");
-		expressionStack.add(new IdentifierExpression(SootTranslationHelpers.v().getProgram().createFreshGlobal("$caughtref_", memoryModel.lookupType(arg0.getType()))));
+		expressionStack.add(new IdentifierExpression(SootTranslationHelpers.v().getProgram()
+				.createFreshGlobal("$caughtref_", memoryModel.lookupType(arg0.getType()))));
 	}
 
 	@Override

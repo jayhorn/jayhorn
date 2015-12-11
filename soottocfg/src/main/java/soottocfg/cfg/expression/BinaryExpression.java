@@ -48,20 +48,25 @@ public class BinaryExpression extends Expression {
 	private final BinaryOperator op;
 
 	public BinaryExpression(BinaryOperator op, Expression left, Expression right) {
-		if (left.getType().getClass()!=right.getType().getClass() && !SootTranslationHelpers.v().getMemoryModel().isNullReference(right)) {
-			//TODO: this should be somewhere in the translation.
+		if (left.getType().getClass() != right.getType().getClass()
+				&& !SootTranslationHelpers.v().getMemoryModel().isNullReference(right)) {
+			// TODO: this should be somewhere in the translation.
 			if (left.getType() == BoolType.instance() && right instanceof IntegerLiteral) {
-				if (((IntegerLiteral)right).getValue() == 0L) {
+				if (((IntegerLiteral) right).getValue() == 0L) {
 					right = BooleanLiteral.falseLiteral();
-				} else if (((IntegerLiteral)right).getValue() == 1L) {
+				} else if (((IntegerLiteral) right).getValue() == 1L) {
 					right = BooleanLiteral.trueLiteral();
 				} else {
 					throw new RuntimeException();
 				}
 			}
 		}
-		Preconditions.checkArgument(left.getType().getClass()==right.getType().getClass() || SootTranslationHelpers.v().getMemoryModel().isNullReference(right) || SootTranslationHelpers.v().getMemoryModel().isNullReference(left), "Types don't match: "+ left.getType() + " and " + right.getType());
-		//TODO: more type checking depending on operator
+		Preconditions.checkArgument(
+				left.getType().getClass() == right.getType().getClass()
+						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(right)
+						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(left),
+				"Types don't match: " + left.getType() + " and " + right.getType());
+		// TODO: more type checking depending on operator
 		this.left = left;
 		this.right = right;
 		this.op = op;
@@ -88,8 +93,8 @@ public class BinaryExpression extends Expression {
 		sb.append(this.right);
 		sb.append(")");
 		return sb.toString();
-	}	
-	
+	}
+
 	@Override
 	public Set<IdentifierExpression> getIdentifierExpressions() {
 		Set<IdentifierExpression> ret = new HashSet<IdentifierExpression>();
@@ -100,11 +105,11 @@ public class BinaryExpression extends Expression {
 
 	@Override
 	public Set<Variable> getLVariables() {
-		//because this can't happen on the left.
+		// because this can't happen on the left.
 		Set<Variable> used = new HashSet<Variable>();
 		return used;
 	}
-	
+
 	@Override
 	public Type getType() {
 		switch (op) {
@@ -113,8 +118,8 @@ public class BinaryExpression extends Expression {
 		case Mul:
 		case Div:
 		case Mod: {
-			assert(left.getType().equals(right.getType()));
-			return left.getType();			
+			assert (left.getType().equals(right.getType()));
+			return left.getType();
 		}
 		case Eq:
 		case Ne:
@@ -122,19 +127,19 @@ public class BinaryExpression extends Expression {
 		case Ge:
 		case Lt:
 		case Le: {
-//			assert(left.getType().equals(right.getType()));
-			return BoolType.instance();			
+			// assert(left.getType().equals(right.getType()));
+			return BoolType.instance();
 		}
 		case And:
 		case Or:
 		case Implies: {
-			assert(left.getType()==BoolType.instance() && right.getType() == BoolType.instance() );
+			assert (left.getType() == BoolType.instance() && right.getType() == BoolType.instance());
 			return BoolType.instance();
 		}
-				
+
 		default: {
-//			throw new RuntimeException("Not implemented for " + op);
-			System.err.println("Not tested for "+op);
+			// throw new RuntimeException("Not implemented for " + op);
+			System.err.println("Not tested for " + op);
 			return left.getType();
 		}
 		}

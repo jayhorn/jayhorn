@@ -12,6 +12,6 @@ import java.util.Set;
 public interface Node {
 
 	public Set<Variable> getUsedVariables();
-	
+
 	public Set<Variable> getLVariables();
 }

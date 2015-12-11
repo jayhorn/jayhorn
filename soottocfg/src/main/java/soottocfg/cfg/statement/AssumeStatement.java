@@ -23,35 +23,35 @@ public class AssumeStatement extends Statement {
 	 */
 	private static final long serialVersionUID = -4719730863944690585L;
 	private final Expression expression;
-	
+
 	/**
 	 * @param createdFrom
 	 */
 	public AssumeStatement(SourceLocation loc, Expression expr) {
 		super(loc);
-		assert(expr.getType() == BoolType.instance());
-		this.expression = expr; 
+		assert (expr.getType() == BoolType.instance());
+		this.expression = expr;
 	}
 
 	public Expression getExpression() {
 		return this.expression;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-			sb.append("assume ");
-			sb.append(this.expression);
+		sb.append("assume ");
+		sb.append(this.expression);
 		return sb.toString();
 	}
-	
+
 	@Override
 	public Set<IdentifierExpression> getIdentifierExpressions() {
 		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
 		used.addAll(expression.getIdentifierExpressions());
 		return used;
 	}
-	
+
 	@Override
 	public Set<Variable> getLVariables() {
 		Set<Variable> used = new HashSet<Variable>();

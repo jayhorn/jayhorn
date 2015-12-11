@@ -60,7 +60,7 @@ public class DuplicatedCatchDetection {
 	public Map<Unit, Set<Unit>> identifiedDuplicatedUnitsFromFinallyBlocks(Body body) {
 		Hierarchy hierarchy = Scene.v().getActiveHierarchy();
 		SootClass throwableClass = Scene.v().getSootClass("java.lang.Throwable");
-		
+
 		Map<Trap, List<Unit>> catchBlocks = new HashMap<Trap, List<Unit>>();
 		// first collect all monitor traps.
 		Set<Unit> usedHandlers = new HashSet<Unit>();
@@ -95,18 +95,18 @@ public class DuplicatedCatchDetection {
 					List<Unit> finallyCopy = new LinkedList<Unit>(entry.getValue());
 					Map<Unit, Unit> dupl = findDuplicates(graph, u, finallyCopy);
 					if (dupl.size() > 0) {
-//						StringBuilder sb = new StringBuilder();						
+						// StringBuilder sb = new StringBuilder();
 						for (Entry<Unit, Unit> en : dupl.entrySet()) {
 							if (!duplicatedUnits.containsKey(en.getKey())) {
 								duplicatedUnits.put(en.getKey(), new HashSet<Unit>());
 							}
 							duplicatedUnits.get(en.getKey()).add(en.getValue());
-//							sb.append(en.getKey() +
-//							 "\t"+en.getValue());
-//							sb.append("\n");
+							// sb.append(en.getKey() +
+							// "\t"+en.getValue());
+							// sb.append("\n");
 						}
-//						sb.append("***\n");
-//						System.err.println(sb.toString());
+						// sb.append("***\n");
+						// System.err.println(sb.toString());
 					}
 				}
 			}
@@ -124,7 +124,7 @@ public class DuplicatedCatchDetection {
 	 */
 	private Map<Unit, Unit> findDuplicates(UnitGraph g, Unit u, List<Unit> finallyBlock) {
 		Map<Unit, Unit> duplicates = new LinkedHashMap<Unit, Unit>();
-		
+
 		if (!finallyBlock.isEmpty() && isDuplicateButNotSame(u, finallyBlock.get(0))) {
 			duplicates.put(finallyBlock.get(0), u);
 			finallyBlock.remove(0);
@@ -134,19 +134,23 @@ public class DuplicatedCatchDetection {
 					break;
 				}
 				if (isDuplicateButNotSame(s, finallyBlock.get(0))) {
-					
-					/*TODO:
-					 * For try-with-resources (i.e., try (bla = new blub) { ... }) 
-					 * there are duplicated CaughtExceptionRefs with non-identical
-					 * line numbers. I believe this is ok, but further testing 
-					 * may be needed.  
+
+					/*
+					 * TODO: For try-with-resources (i.e., try (bla = new blub)
+					 * { ... }) there are duplicated CaughtExceptionRefs with
+					 * non-identical line numbers. I believe this is ok, but
+					 * further testing may be needed.
 					 */
-//					if (s.getJavaSourceStartLineNumber()!=finallyBlock.get(0).getJavaSourceStartLineNumber()) {
-//						int la = s.getJavaSourceStartLineNumber();
-//						int lb = finallyBlock.get(0).getJavaSourceStartLineNumber();
-//						System.err.println("line a "+ la + ", line b " +lb);
-//						System.err.println("a "+ s + ", b " +finallyBlock.get(0));
-//					}
+					// if
+					// (s.getJavaSourceStartLineNumber()!=finallyBlock.get(0).getJavaSourceStartLineNumber())
+					// {
+					// int la = s.getJavaSourceStartLineNumber();
+					// int lb =
+					// finallyBlock.get(0).getJavaSourceStartLineNumber();
+					// System.err.println("line a "+ la + ", line b " +lb);
+					// System.err.println("a "+ s + ", b "
+					// +finallyBlock.get(0));
+					// }
 
 					duplicates.putAll(findDuplicates(g, s, finallyBlock));
 				}
@@ -167,11 +171,14 @@ public class DuplicatedCatchDetection {
 			// make sure that we do not mark a unit as its own duplicate.
 			return false;
 		}
-		//NOTE: DO NOT USE getJavaSourceStartLineNumber because it is non-deterministic 
-//		if (a.getJavaSourceStartLineNumber()!=b.getJavaSourceStartLineNumber()) {
-//		return false;
-//		}
-		
+		// NOTE: DO NOT USE getJavaSourceStartLineNumber because it is
+		// non-deterministic
+		// if
+		// (a.getJavaSourceStartLineNumber()!=b.getJavaSourceStartLineNumber())
+		// {
+		// return false;
+		// }
+
 		if (a instanceof DefinitionStmt && b instanceof DefinitionStmt) {
 			return shallowCompareDefinitionStatements((DefinitionStmt) a, (DefinitionStmt) b);
 		} else if (a instanceof InvokeStmt && b instanceof InvokeStmt) {
@@ -179,7 +186,7 @@ public class DuplicatedCatchDetection {
 		} else if (a instanceof IfStmt && b instanceof IfStmt) {
 			IfStmt ia = (IfStmt) a;
 			IfStmt ib = (IfStmt) b;
-			//TODO: also consider the case that one condition might include
+			// TODO: also consider the case that one condition might include
 			// a double negation.
 			return shallowCompareValue(ia.getCondition(), ib.getCondition());
 		} else if (a instanceof IfStmt && b instanceof IfStmt) {
@@ -228,38 +235,41 @@ public class DuplicatedCatchDetection {
 				return true;
 			}
 		} else if (a instanceof UnopExpr && b instanceof UnopExpr) {
-			return shallowCompareUnopExpr((UnopExpr)a, (UnopExpr)b);
+			return shallowCompareUnopExpr((UnopExpr) a, (UnopExpr) b);
 		} else if (a instanceof BinopExpr && b instanceof BinopExpr) {
-			return shallowCompareBinopExpr((BinopExpr)a, (BinopExpr)b);			
+			return shallowCompareBinopExpr((BinopExpr) a, (BinopExpr) b);
 		} else {
 			return a.toString().equals(b.toString());
 		}
 	}
 
-	private boolean shallowCompareUnopExpr(UnopExpr a, UnopExpr b) {		
-		//TODO add stuff to handle double negation.
-		return a.getClass()==b.getClass() && shallowCompareValue(a.getOp(), b.getOp());
+	private boolean shallowCompareUnopExpr(UnopExpr a, UnopExpr b) {
+		// TODO add stuff to handle double negation.
+		return a.getClass() == b.getClass() && shallowCompareValue(a.getOp(), b.getOp());
 	}
-	
+
 	private boolean shallowCompareBinopExpr(BinopExpr a, BinopExpr b) {
 		if (!a.getSymbol().equals(b.getSymbol())) {
 			return false;
 		}
 		return shallowCompareValue(a.getOp1(), b.getOp1()) && shallowCompareValue(a.getOp2(), b.getOp2());
 	}
-	
+
 	/**
-	 * Gets the handler unit of a trap and collects all units that
-	 * are only reachable via (or dominated by) this handler unit.
-	 *  
-	 * @param body Body of the procedure.
-	 * @param catchEntry the first statement in a catch-block (i.e., the handler unit in a Trap).
+	 * Gets the handler unit of a trap and collects all units that are only
+	 * reachable via (or dominated by) this handler unit.
+	 * 
+	 * @param body
+	 *            Body of the procedure.
+	 * @param catchEntry
+	 *            the first statement in a catch-block (i.e., the handler unit
+	 *            in a Trap).
 	 * @return List of Units that constitute a catch-block.
 	 */
 	private List<Unit> collectCatchBlock(Body body, Unit catchEntry) {
-		//TODO: check if there is a function to compute this on the UnitGraph
-		// in soot.		
-		UnitGraph graph = new CompleteUnitGraph(body);		
+		// TODO: check if there is a function to compute this on the UnitGraph
+		// in soot.
+		UnitGraph graph = new CompleteUnitGraph(body);
 		// collect all blocks reachable from catchEntry
 		Queue<Unit> todo = new LinkedList<Unit>();
 		List<Unit> done = new LinkedList<Unit>();

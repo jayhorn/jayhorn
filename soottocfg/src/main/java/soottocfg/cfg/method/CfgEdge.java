@@ -41,5 +41,4 @@ public class CfgEdge extends DefaultEdge {
 		return label;
 	}
 
-
 }

@@ -27,20 +27,18 @@ public class PackStatement extends Statement {
 	private final ClassSignature classConstant;
 	private final IdentifierExpression object;
 	private final List<Expression> right;
-	
-	
+
 	/**
 	 * @param loc
 	 */
 	public PackStatement(SourceLocation loc, ClassSignature c, IdentifierExpression obj, List<Expression> rhs) {
-		super(loc);		
+		super(loc);
 		classConstant = c;
 		object = obj;
 		right = new LinkedList<Expression>(rhs);
-		assert(c.getAssociatedFields().length==right.size());
+		assert (c.getAssociatedFields().length == right.size());
 	}
 
-	
 	@Override
 	public Set<IdentifierExpression> getIdentifierExpressions() {
 		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
@@ -48,15 +46,17 @@ public class PackStatement extends Statement {
 		return used;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see soottocfg.cfg.statement.Statement#getLVariables()
 	 */
 	@Override
 	public Set<Variable> getLVariables() {
 		Set<Variable> ret = new HashSet<Variable>();
 		ret.add(object.getVariable());
-		//TODO
-		return ret;		
+		// TODO
+		return ret;
 	}
 
 	@Override
@@ -71,11 +71,11 @@ public class PackStatement extends Statement {
 		for (Expression v : right) {
 			sb.append(comma);
 			sb.append(v);
-			comma = ", ";			
+			comma = ", ";
 		}
 		sb.append("]");
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 }

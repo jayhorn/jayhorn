@@ -67,7 +67,6 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 
@@ -164,11 +163,10 @@ public class SootStmtSwitch implements StmtSwitch {
 	}
 
 	private void connectBlocks(CfgBlock from, CfgBlock to, Expression label) {
-		this.methodInfo.getMethod().addEdge(from, to).setLabel(label);;
+		this.methodInfo.getMethod().addEdge(from, to).setLabel(label);
+		;
 	}
 
-	
-	
 	private void precheck(Stmt st) {
 		this.currentStmt = st;
 
@@ -276,7 +274,7 @@ public class SootStmtSwitch implements StmtSwitch {
 		connectBlocks(currentBlock, thenBlock, cond);
 		if (next != null) {
 			CfgBlock elseBlock = methodInfo.lookupCfgBlock(next);
-			connectBlocks(currentBlock, elseBlock, new UnaryExpression(UnaryOperator.LNot, cond));			
+			connectBlocks(currentBlock, elseBlock, new UnaryExpression(UnaryOperator.LNot, cond));
 			this.currentBlock = elseBlock;
 		} else {
 			connectBlocks(currentBlock, methodInfo.getSink(), new UnaryExpression(UnaryOperator.LNot, cond));
@@ -331,12 +329,14 @@ public class SootStmtSwitch implements StmtSwitch {
 	@Override
 	public void caseThrowStmt(ThrowStmt arg0) {
 		precheck(arg0);
-		arg0.getOp().apply(valueSwitch);
-		Expression exception = valueSwitch.popExpression();
-		currentBlock.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(arg0),
-				methodInfo.getExceptionVariable(), exception));
-		connectBlocks(currentBlock, methodInfo.getSink());
-		currentBlock = null;
+		throw new RuntimeException("Apply the ExceptionRemover first.");
+		// arg0.getOp().apply(valueSwitch);
+		// Expression exception = valueSwitch.popExpression();
+		// currentBlock.addStatement(new
+		// AssignStatement(SootTranslationHelpers.v().getSourceLocation(arg0),
+		// methodInfo.getExceptionVariable(), exception));
+		// connectBlocks(currentBlock, methodInfo.getSink());
+		// currentBlock = null;
 	}
 
 	@Override
@@ -387,7 +387,9 @@ public class SootStmtSwitch implements StmtSwitch {
 			optionalLhs.apply(valueSwitch);
 			receiver.add(valueSwitch.popExpression());
 		}
-		receiver.add(this.methodInfo.getExceptionVariable());
+
+		// TODO: we don't do that anymore.
+		// receiver.add(this.methodInfo.getExceptionVariable());
 
 		Method method = program.loopupMethod(call.getMethod().getSignature());
 		CallStatement stmt = new CallStatement(SootTranslationHelpers.v().getSourceLocation(u), method, args, receiver);
@@ -405,16 +407,16 @@ public class SootStmtSwitch implements StmtSwitch {
 	 *         and false, otherwise.
 	 */
 	private boolean isHandledAsSpecialCase(Unit u, Value optionalLhs, InvokeExpr call) {
-		if (call.getMethod() == AssertionReconstruction.v().getAssertMethod()) {
-			assert(optionalLhs == null);
-			assert(call.getArgCount() == 1);
+		if (call.getMethod() == SootTranslationHelpers.v().getAssertMethod()) {
+			assert (optionalLhs == null);
+			assert (call.getArgCount() == 1);
 			call.getArg(0).apply(valueSwitch);
 			currentBlock.addStatement(
 					new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u), valueSwitch.popExpression()));
 			return true;
 		}
 		if (call.getMethod().getSignature().contains("<java.lang.String: int length()>")) {
-			assert(call instanceof InstanceInvokeExpr);
+			assert (call instanceof InstanceInvokeExpr);
 			Expression rhs = SootTranslationHelpers.v().getMemoryModel()
 					.mkStringLengthExpr(((InstanceInvokeExpr) call).getBase());
 			if (optionalLhs != null) {
@@ -441,7 +443,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			if (call.getMethod().getName().equals("assertTrue")) {
 				Preconditions.checkArgument(optionalLhs == null);
 				int idx = 0;
-				if (call.getArgCount()>1) {
+				if (call.getArgCount() > 1) {
 					idx = 1;
 				}
 				call.getArg(idx).apply(valueSwitch);
@@ -451,16 +453,17 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 			if (call.getMethod().getName().equals("assertEquals")) {
 				int idx = 0;
-				if (call.getArgCount()>2) {
+				if (call.getArgCount() > 2) {
 					idx = 1;
 				}
 
 				Preconditions.checkArgument(optionalLhs == null);
 				call.getArg(idx).apply(valueSwitch);
 				Expression left = valueSwitch.popExpression();
-				call.getArg(idx+1).apply(valueSwitch);
+				call.getArg(idx + 1).apply(valueSwitch);
 				Expression right = valueSwitch.popExpression();
-				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u), new BinaryExpression(BinaryOperator.Eq, left, right)));
+				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u),
+						new BinaryExpression(BinaryOperator.Eq, left, right)));
 				return true;
 			}
 
@@ -494,7 +497,7 @@ public class SootStmtSwitch implements StmtSwitch {
 
 		if (def.containsFieldRef()) {
 			// panic programming
-			assert(!(lhs instanceof FieldRef && rhs instanceof FieldRef));
+			assert (!(lhs instanceof FieldRef && rhs instanceof FieldRef));
 
 			if (lhs instanceof FieldRef) {
 				SootTranslationHelpers.v().getMemoryModel().mkHeapWriteStatement(def, def.getFieldRef(), rhs);

@@ -27,7 +27,6 @@ import soottocfg.soot.util.SootTranslationHelpers;
  */
 public class NewMemoryModel extends BasicMemoryModel {
 
-
 	public NewMemoryModel() {
 	}
 
@@ -70,7 +69,6 @@ public class NewMemoryModel extends BasicMemoryModel {
 		}
 	}
 
-	
 	@Override
 	public void mkHeapReadStatement(Unit u, FieldRef field, Value lhs) {
 		SourceLocation loc = SootTranslationHelpers.v().getSourceLocation(u);

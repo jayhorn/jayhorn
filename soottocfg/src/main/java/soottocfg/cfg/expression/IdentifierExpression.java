@@ -23,12 +23,12 @@ public class IdentifierExpression extends Expression {
 	private static final long serialVersionUID = 4897450861767209309L;
 	private final Variable variable;
 	private Integer ssaIncarnation = -1;
-	
+
 	/**
 	 * 
 	 */
 	public IdentifierExpression(Variable v) {
-		this(v,0);
+		this(v, 0);
 	}
 
 	public IdentifierExpression(Variable v, int incarnation) {
@@ -37,26 +37,25 @@ public class IdentifierExpression extends Expression {
 		this.ssaIncarnation = incarnation;
 	}
 
-	
 	public Integer getIncarnation() {
 		return ssaIncarnation;
 	}
-	
+
 	public void setIncarnation(Integer inc) {
 		ssaIncarnation = inc;
 	}
 
 	@Override
-	public String toString(){
+	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		if (this.variable==null) {
+		if (this.variable == null) {
 			sb.append("==NOT IMPLEMENTED==");
 		} else {
 			sb.append(this.variable.getName());
 		}
-		return sb.toString();		
-	}	
-	
+		return sb.toString();
+	}
+
 	@Override
 	public Set<IdentifierExpression> getIdentifierExpressions() {
 		Set<IdentifierExpression> ret = new HashSet<IdentifierExpression>();
@@ -64,16 +63,15 @@ public class IdentifierExpression extends Expression {
 		return ret;
 	}
 
-		
 	@Override
 	public Set<Variable> getLVariables() {
 		return getUsedVariables();
 	}
 
-    public Variable getVariable() {
-        return variable;
-    }
-	
+	public Variable getVariable() {
+		return variable;
+	}
+
 	@Override
 	public Type getType() {
 		return variable.getType();

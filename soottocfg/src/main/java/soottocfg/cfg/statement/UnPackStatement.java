@@ -26,17 +26,17 @@ public class UnPackStatement extends Statement {
 	private final ClassSignature classConstant;
 	private final IdentifierExpression object;
 	private final List<IdentifierExpression> left;
-	
-	
+
 	/**
 	 * @param loc
 	 */
-	public UnPackStatement(SourceLocation loc, ClassSignature c, IdentifierExpression obj, List<IdentifierExpression> lhs) {
-		super(loc);		
+	public UnPackStatement(SourceLocation loc, ClassSignature c, IdentifierExpression obj,
+			List<IdentifierExpression> lhs) {
+		super(loc);
 		classConstant = c;
 		object = obj;
 		left = new LinkedList<IdentifierExpression>(lhs);
-		assert(c.getAssociatedFields().length==left.size());
+		assert (c.getAssociatedFields().length == left.size());
 	}
 
 	@Override
@@ -46,8 +46,9 @@ public class UnPackStatement extends Statement {
 		return used;
 	}
 
-
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see soottocfg.cfg.statement.Statement#getLVariables()
 	 */
 	@Override
@@ -56,7 +57,7 @@ public class UnPackStatement extends Statement {
 		for (IdentifierExpression v : left) {
 			ret.add(v.getVariable());
 		}
-		return ret;		
+		return ret;
 	}
 
 	@Override
@@ -66,7 +67,7 @@ public class UnPackStatement extends Statement {
 		for (IdentifierExpression v : left) {
 			sb.append(comma);
 			sb.append(v);
-			comma = ", ";			
+			comma = ", ";
 		}
 		sb.append(" := unpack(");
 		sb.append(classConstant.getName());
@@ -75,5 +76,5 @@ public class UnPackStatement extends Statement {
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 }

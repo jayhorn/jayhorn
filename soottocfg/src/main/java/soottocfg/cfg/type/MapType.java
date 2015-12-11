@@ -17,8 +17,8 @@ public class MapType extends Type {
 	 */
 	private static final long serialVersionUID = 3060597489570467332L;
 	private final List<Type> indices;
-	private final Type valueType; 
-	
+	private final Type valueType;
+
 	/**
 	 * 
 	 */
@@ -30,25 +30,25 @@ public class MapType extends Type {
 	public Type[] getIndices() {
 		return indices.toArray(new Type[indices.size()]);
 	}
-	
+
 	public Type getValueType() {
 		return valueType;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		int result = indices.hashCode();
 		result = 37 * result + valueType.hashCode();
 		return result;
 	}
-	
-	@Override 
+
+	@Override
 	public boolean equals(Object other) {
 		if (other instanceof MapType) {
-			MapType mt = (MapType)other;
+			MapType mt = (MapType) other;
 			Type[] ids = mt.getIndices();
-			if (ids.length==indices.size()) {
-				for (int i=0; i<ids.length; i++) {
+			if (ids.length == indices.size()) {
+				for (int i = 0; i < ids.length; i++) {
 					if (!ids[i].equals(indices.get(i))) {
 						return false;
 					}
@@ -61,7 +61,7 @@ public class MapType extends Type {
 		}
 		return false;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

@@ -25,9 +25,9 @@ public class Dominators<A, B extends DefaultEdge> {
 	private final DirectedGraph<A, B> graph;
 	// private final A source, sink;
 
-
 	/**
 	 * For this to work correctly, g must not be modified.
+	 * 
 	 * @param g
 	 */
 	public Dominators(DirectedGraph<A, B> g) {
@@ -37,7 +37,9 @@ public class Dominators<A, B extends DefaultEdge> {
 	/**
 	 * For each vertex n compute the set of vertices that dominate n.
 	 * Implemented using the algorithm in Aho 2nd ed, p 658.
-	 * @param source The unique source of the graph.
+	 * 
+	 * @param source
+	 *            The unique source of the graph.
 	 * @return Map from vertices the their set of dominator vertices
 	 */
 	public Map<A, Set<A>> computeDominators(A source) {
@@ -47,19 +49,25 @@ public class Dominators<A, B extends DefaultEdge> {
 	/**
 	 * For each vertex n compute the set of vertices that post-dominate n.
 	 * Implemented using the algorithm in Aho 2nd ed, p 658.
-	 * @param source The unique sink of the graph.
+	 * 
+	 * @param source
+	 *            The unique sink of the graph.
 	 * @return Map from vertices the their set of post-dominator vertices
 	 */
 	public Map<A, Set<A>> computePostDominators(A source) {
 		return computeDominators(source, false);
 	}
 
-	
 	/**
 	 * Computes the dominators or post-dominators for all vertices in a graph
 	 * starting from the given source.
-	 * @param source The source vertex to start from (should be either source or sink)
-	 * @param forward true, for computing dominators; false, for computing post-dominators
+	 * 
+	 * @param source
+	 *            The source vertex to start from (should be either source or
+	 *            sink)
+	 * @param forward
+	 *            true, for computing dominators; false, for computing
+	 *            post-dominators
 	 * @return
 	 */
 	protected Map<A, Set<A>> computeDominators(A source, boolean forward) {
@@ -93,7 +101,7 @@ public class Dominators<A, B extends DefaultEdge> {
 					// of the intersection problem
 					// but it should work
 					if (forward) {
-						Verify.verify(graph.inDegreeOf(b) != 0, "Unexpected indegree of 0");						
+						Verify.verify(graph.inDegreeOf(b) != 0, "Unexpected indegree of 0");
 						for (A inBlock : Graphs.predecessorListOf(graph, b)) {
 							newDom.retainAll(dominators.get(inBlock));
 						}
@@ -101,7 +109,7 @@ public class Dominators<A, B extends DefaultEdge> {
 						Verify.verify(graph.outDegreeOf(b) != 0, "Unexpected outdegree of 0");
 						for (A inBlock : Graphs.successorListOf(graph, b)) {
 							newDom.retainAll(dominators.get(inBlock));
-						}						
+						}
 					}
 
 					// every node dominates itself

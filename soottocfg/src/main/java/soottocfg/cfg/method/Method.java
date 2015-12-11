@@ -30,8 +30,7 @@ import soottocfg.cfg.statement.Statement;
 import soottocfg.util.SetOperations;
 
 /**
- * @author schaef
- *extends DefaultDirectedGraph<Statement, DefaultEdge>
+ * @author schaef extends DefaultDirectedGraph<Statement, DefaultEdge>
  */
 public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node, DirectedGraph<CfgBlock, CfgEdge> {
 
@@ -39,20 +38,19 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	 * 
 	 */
 	private static final long serialVersionUID = 3367382274895641548L;
-	
-	
+
 	private final String methodName;
-	private Variable thisVariable, returnVariable, exceptionalReturnVariable;
+	private Variable thisVariable, returnVariable;
 	private List<Variable> parameterList;
 	private Collection<Variable> locals;
 	private Collection<Variable> modifiedGlobals;
 	private CfgBlock source, sink;
-	private boolean isProgramEntry = false;	
-	
+	private boolean isProgramEntry = false;
+
 	public Method(String uniqueName) {
 		super(new ClassBasedEdgeFactory<CfgBlock, CfgEdge>(CfgEdge.class), true, true);
 		methodName = uniqueName;
-				
+
 	}
 
 	public String getMethodName() {
@@ -61,6 +59,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 
 	/**
 	 * Returns the set of predecessor vertices of b
+	 * 
 	 * @param b
 	 * @return
 	 */
@@ -74,6 +73,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 
 	/**
 	 * Returns the set of successor vertices of b
+	 * 
 	 * @param b
 	 * @return
 	 */
@@ -85,39 +85,38 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		return result;
 	}
 
-	
-	public void initialize(Variable thisVariable, Variable returnVariable, Variable exceptionalReturnVariable,
-			List<Variable> parameterList, Collection<Variable> locals, CfgBlock source, boolean isEntryPoint) {
+	public void initialize(Variable thisVariable, Variable returnVariable, List<Variable> parameterList,
+			Collection<Variable> locals, CfgBlock source, boolean isEntryPoint) {
 		this.thisVariable = thisVariable;
 		this.returnVariable = returnVariable;
-		this.exceptionalReturnVariable = exceptionalReturnVariable;
 		this.parameterList = parameterList;
 		this.locals = locals;
 		this.source = source;
 		this.isProgramEntry = isEntryPoint;
 
 		// compute the modifies clause.
-		//TODO: this has to be done transitive at some point!
+		// TODO: this has to be done transitive at some point!
 		this.modifiedGlobals = new HashSet<Variable>();
 		this.modifiedGlobals.addAll(this.getLVariables());
 		this.modifiedGlobals.removeAll(locals);
 		this.modifiedGlobals.removeAll(parameterList);
-		this.modifiedGlobals.remove(exceptionalReturnVariable);
 		this.modifiedGlobals.remove(returnVariable);
-		this.modifiedGlobals.remove(thisVariable);		
-			
+		this.modifiedGlobals.remove(thisVariable);
+
 	}
 
 	/**
-	 * Adds a guard expression as label to an edge.
-	 * The label must not be null
-	 * @param edge Existing edge in this Method.
-	 * @param label Non-null guard expression.
+	 * Adds a guard expression as label to an edge. The label must not be null
+	 * 
+	 * @param edge
+	 *            Existing edge in this Method.
+	 * @param label
+	 *            Non-null guard expression.
 	 */
 	public void setEdgeLabel(CfgEdge edge, Expression label) {
 		edge.setLabel(label);
 	}
-	
+
 	public boolean isProgramEntryPoint() {
 		return this.isProgramEntry;
 	}
@@ -131,24 +130,24 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	}
 
 	/**
-	 * Checks if the graph has a unique sink vertex and returns it.
-	 * If more than one such vertex exists, it collects all sink vertices 
-	 * and connects them to a new unique sink. 
+	 * Checks if the graph has a unique sink vertex and returns it. If more than
+	 * one such vertex exists, it collects all sink vertices and connects them
+	 * to a new unique sink.
 	 * 
 	 * @return The unique sink vertex of the graph.
 	 */
 	public CfgBlock findOrCreateUniqueSink() {
-		if (sink==null) {
+		if (sink == null) {
 			Set<CfgBlock> currentSinks = new HashSet<CfgBlock>();
 			for (CfgBlock b : this.vertexSet()) {
-				if (this.outDegreeOf(b)==0) {
+				if (this.outDegreeOf(b) == 0) {
 					currentSinks.add(b);
 				}
 			}
 			if (currentSinks.isEmpty()) {
 				System.err.println("No exit for " + this.methodName);
 				sink = null;
-			} else if (currentSinks.size()==1) {
+			} else if (currentSinks.size() == 1) {
 				sink = currentSinks.iterator().next();
 			} else {
 				CfgBlock newSink = new CfgBlock(this);
@@ -160,11 +159,11 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		}
 		return sink;
 	}
-	
-	public Set<CfgBlock> getExitBlocks(){
+
+	public Set<CfgBlock> getExitBlocks() {
 		Set<CfgBlock> ret = new HashSet<CfgBlock>();
 		for (CfgBlock b : this.vertexSet()) {
-			if (this.outDegreeOf(b)==0) {
+			if (this.outDegreeOf(b) == 0) {
 				ret.add(b);
 			}
 		}
@@ -185,9 +184,6 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		if (returnVariable != null) {
 			rtr.add(returnVariable);
 		}
-		if (exceptionalReturnVariable != null) {
-			rtr.add(exceptionalReturnVariable);
-		}
 		return rtr;
 	}
 
@@ -198,13 +194,14 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	public Collection<Variable> getLocals() {
 		return locals;
 	}
-	
-	public void toDot(File dotFile) {		
+
+	public void toDot(File dotFile) {
 		try (FileOutputStream fileStream = new FileOutputStream(dotFile);
 				OutputStreamWriter writer = new OutputStreamWriter(fileStream, "UTF-8");) {
-			DOTExporter<CfgBlock, CfgEdge> dot = new DOTExporter<CfgBlock, CfgEdge>(new StringNameProvider<CfgBlock>(), null, null);
+			DOTExporter<CfgBlock, CfgEdge> dot = new DOTExporter<CfgBlock, CfgEdge>(new StringNameProvider<CfgBlock>(),
+					null, null);
 			dot.export(writer, this);
-		} catch (IOException e) {			
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -242,8 +239,6 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 			sb.append("\n");
 		}
 		comma = "";
-		sb.append("\tthrows: ");
-		sb.append(this.exceptionalReturnVariable.getName());
 		sb.append("\n");
 		if (!this.locals.isEmpty()) {
 			sb.append("\tlocals:\n");
@@ -254,7 +249,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 			}
 		}
 
-		for(CfgBlock b : this.vertexSet()){
+		for (CfgBlock b : this.vertexSet()) {
 			if (this.source == b) {
 				sb.append("Root ->");
 			}
@@ -267,7 +262,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	@Override
 	public Set<Variable> getUsedVariables() {
 		Set<Variable> used = new HashSet<Variable>();
-		for (CfgBlock b : this.vertexSet()){
+		for (CfgBlock b : this.vertexSet()) {
 			used.addAll(b.getUsedVariables());
 		}
 		return used;
@@ -276,21 +271,22 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	@Override
 	public Set<Variable> getLVariables() {
 		Set<Variable> rval = new HashSet<Variable>();
-		for (CfgBlock b : this.vertexSet()){
+		for (CfgBlock b : this.vertexSet()) {
 			rval.addAll(b.getLVariables());
 		}
 		return rval;
 	}
-	
-	//Really simple for now: Just get all blocks that define each variable.  Don't worry too much about 
-	//dominators, etc
-	//TODO worry about dominators etc
-	public Map<Variable,Set<CfgBlock>> computeDefiningBlocks() {
-		Map<Variable,Set<CfgBlock>> rval = new HashMap<Variable,Set<CfgBlock>>();
-		for(CfgBlock b : this.vertexSet()){
-			for(Variable v : b.getLVariables()){
+
+	// Really simple for now: Just get all blocks that define each variable.
+	// Don't worry too much about
+	// dominators, etc
+	// TODO worry about dominators etc
+	public Map<Variable, Set<CfgBlock>> computeDefiningBlocks() {
+		Map<Variable, Set<CfgBlock>> rval = new HashMap<Variable, Set<CfgBlock>>();
+		for (CfgBlock b : this.vertexSet()) {
+			for (Variable v : b.getLVariables()) {
 				Set<CfgBlock> definingBlocks = rval.get(v);
-				if(definingBlocks == null){
+				if (definingBlocks == null) {
 					definingBlocks = new HashSet<CfgBlock>();
 					rval.put(v, definingBlocks);
 				}
@@ -300,51 +296,52 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		return rval;
 	}
 
-	public Map<Variable,Set<Statement>> computeDefiningStatements() {
-		Map<Variable,Set<Statement>> rval = new HashMap<Variable,Set<Statement>>();
+	public Map<Variable, Set<Statement>> computeDefiningStatements() {
+		Map<Variable, Set<Statement>> rval = new HashMap<Variable, Set<Statement>>();
 
-		for (Map.Entry<Variable, Set<CfgBlock>> entry : computeDefiningBlocks().entrySet()){
+		for (Map.Entry<Variable, Set<CfgBlock>> entry : computeDefiningBlocks().entrySet()) {
 			Variable v = entry.getKey();
 			Set<Statement> set = new HashSet<Statement>();
-			for(CfgBlock b : entry.getValue()){
-				for(Statement s : b.getStatements()){
-					if(s.getLVariables().contains(v)){
+			for (CfgBlock b : entry.getValue()) {
+				for (Statement s : b.getStatements()) {
+					if (s.getLVariables().contains(v)) {
 						set.add(s);
 					}
 				}
 			}
-			rval.put(v,set);
+			rval.put(v, set);
 		}
 		return rval;
 	}
 
-	public Map<Variable,Set<Statement>> computeUsingStatements() {
-		Map<Variable,Set<Statement>> rval = new HashMap<Variable,Set<Statement>>();
+	public Map<Variable, Set<Statement>> computeUsingStatements() {
+		Map<Variable, Set<Statement>> rval = new HashMap<Variable, Set<Statement>>();
 
-		for (Map.Entry<Variable, Set<CfgBlock>> entry : computeUsingBlocks().entrySet()){
+		for (Map.Entry<Variable, Set<CfgBlock>> entry : computeUsingBlocks().entrySet()) {
 			Variable v = entry.getKey();
 			Set<Statement> set = new HashSet<Statement>();
-			for(CfgBlock b : entry.getValue()){
-				for(Statement s : b.getStatements()){
-					if(s.getUsedVariables().contains(v)){
+			for (CfgBlock b : entry.getValue()) {
+				for (Statement s : b.getStatements()) {
+					if (s.getUsedVariables().contains(v)) {
 						set.add(s);
 					}
 				}
 			}
-			rval.put(v,set);
+			rval.put(v, set);
 		}
 		return rval;
 	}
 
-	//Really simple for now: Just get all blocks that define each variable.  Don't worry too much about 
-	//dominators, etc
-	//TODO worry about dominators etc
-	public Map<Variable,Set<CfgBlock>> computeUsingBlocks() {
-		Map<Variable,Set<CfgBlock>> rval = new HashMap<Variable,Set<CfgBlock>>();
-		for(CfgBlock b : this.vertexSet()){
-			for(Variable v : b.getUsedVariables()){
+	// Really simple for now: Just get all blocks that define each variable.
+	// Don't worry too much about
+	// dominators, etc
+	// TODO worry about dominators etc
+	public Map<Variable, Set<CfgBlock>> computeUsingBlocks() {
+		Map<Variable, Set<CfgBlock>> rval = new HashMap<Variable, Set<CfgBlock>>();
+		for (CfgBlock b : this.vertexSet()) {
+			for (Variable v : b.getUsedVariables()) {
 				Set<CfgBlock> usingBlocks = rval.get(v);
-				if(usingBlocks == null){
+				if (usingBlocks == null) {
 					usingBlocks = new HashSet<CfgBlock>();
 					rval.put(v, usingBlocks);
 				}
@@ -354,49 +351,50 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		return rval;
 	}
 
-	
 	/**
-	 * Return the set of live variable at the entry of each block. A variable is live between its
-	 * first and last use. 
-	 * Following the algorithm on p610 of the dragon book, 2nd ed.
+	 * Return the set of live variable at the entry of each block. A variable is
+	 * live between its first and last use. Following the algorithm on p610 of
+	 * the dragon book, 2nd ed.
+	 * 
 	 * @return
 	 */
 	public LiveVars<CfgBlock> computeBlockLiveVariables() {
 		Set<CfgBlock> cfg = this.vertexSet();
 
-		//Reserve the necessary size in the hashmap
-		Map<CfgBlock,Set<Variable>> in = new HashMap<CfgBlock,Set<Variable>>(cfg.size());
-		Map<CfgBlock,Set<Variable>> out =  new HashMap<CfgBlock,Set<Variable>>(cfg.size());
+		// Reserve the necessary size in the hashmap
+		Map<CfgBlock, Set<Variable>> in = new HashMap<CfgBlock, Set<Variable>>(cfg.size());
+		Map<CfgBlock, Set<Variable>> out = new HashMap<CfgBlock, Set<Variable>>(cfg.size());
 
-		//cache these to save time
-		Map<CfgBlock,Set<Variable>> use = new HashMap<CfgBlock,Set<Variable>>(cfg.size());
-		Map<CfgBlock,Set<Variable>> def = new HashMap<CfgBlock,Set<Variable>>(cfg.size());
+		// cache these to save time
+		Map<CfgBlock, Set<Variable>> use = new HashMap<CfgBlock, Set<Variable>>(cfg.size());
+		Map<CfgBlock, Set<Variable>> def = new HashMap<CfgBlock, Set<Variable>>(cfg.size());
 
-		//Start by initializing in to empty.  The book does this separately for exit and non exit blocks, but that's not necessary
-		//TODO can exit blocks have variables?  E.g. can they return values?  In which case we should actually recurse over all blocks!
-		for (CfgBlock b: cfg){
+		// Start by initializing in to empty. The book does this separately for
+		// exit and non exit blocks, but that's not necessary
+		// TODO can exit blocks have variables? E.g. can they return values? In
+		// which case we should actually recurse over all blocks!
+		for (CfgBlock b : cfg) {
 			in.put(b, new HashSet<Variable>());
 			use.put(b, b.getUsedVariables());
-			def.put(b,  b.getLVariables());
+			def.put(b, b.getLVariables());
 		}
 
-		boolean	changed = false;
+		boolean changed = false;
 
 		do {
 			changed = false;
-			for(CfgBlock b : cfg){
-				out.put(b,b.computeLiveOut(in));
-				Set<Variable> newIn = SetOperations.union(use.get(b),SetOperations.minus(out.get(b),def.get(b)));
+			for (CfgBlock b : cfg) {
+				out.put(b, b.computeLiveOut(in));
+				Set<Variable> newIn = SetOperations.union(use.get(b), SetOperations.minus(out.get(b), def.get(b)));
 
-				if (! newIn.equals(in.get(b))){
-					changed=true;
-					in.put(b,newIn);
+				if (!newIn.equals(in.get(b))) {
+					changed = true;
+					in.put(b, newIn);
 				}
 			}
 		} while (changed);
 
-		return new LiveVars<CfgBlock>(in,out);
+		return new LiveVars<CfgBlock>(in, out);
 	}
 
-	
 }

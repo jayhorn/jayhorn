@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,8 +34,18 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+import soot.ArrayType;
+import soot.BooleanType;
+import soot.Local;
+import soot.Modifier;
 import soot.Scene;
 import soot.SootClass;
+import soot.SootField;
+import soot.SootMethod;
+import soot.Type;
+import soot.VoidType;
+import soot.jimple.Jimple;
+import soot.jimple.JimpleBody;
 
 /**
  * The Soot Runner
@@ -44,7 +55,7 @@ import soot.SootClass;
  */
 public class SootRunner {
 
-	private final soot.options.Options sootOpt;	
+	private final soot.options.Options sootOpt;
 
 	public SootRunner() {
 		sootOpt = soot.options.Options.v();
@@ -69,7 +80,6 @@ public class SootRunner {
 		}
 	}
 
-	
 	/**
 	 * Runs Soot by using a JAR file
 	 * 
@@ -105,19 +115,20 @@ public class SootRunner {
 			throw e;
 		}
 	}
-	
+
 	private void runWithApk(String apkFile, String androidPlatformPath) {
 		try {
 			sootOpt.set_src_prec(soot.options.Options.src_prec_apk);
-			//https://github.com/Sable/android-platforms
-			if (androidPlatformPath==null) {
-				throw new RuntimeException("You need to pass the android-platforms folder from https://github.com/Sable/android-platforms");
+			// https://github.com/Sable/android-platforms
+			if (androidPlatformPath == null) {
+				throw new RuntimeException(
+						"You need to pass the android-platforms folder from https://github.com/Sable/android-platforms");
 			}
 			sootOpt.set_android_jars(androidPlatformPath);
 			List<String> procdir = new LinkedList<String>();
 			procdir.add(apkFile);
 			sootOpt.set_process_dir(procdir);
-			
+
 			// finally, run soot
 			runSootAndAnalysis(enumClasses(new File(apkFile)));
 
@@ -125,7 +136,6 @@ public class SootRunner {
 			throw e;
 		}
 	}
-	
 
 	/**
 	 * Runs Soot by using a path (e.g., from Joogie)
@@ -156,7 +166,7 @@ public class SootRunner {
 			List<String> processDirs = new LinkedList<String>();
 			processDirs.add(path);
 			sootOpt.set_process_dir(processDirs);
-			
+
 			// finally, run soot
 			runSootAndAnalysis(new LinkedList<String>());
 
@@ -164,8 +174,6 @@ public class SootRunner {
 			throw e;
 		}
 	}
-
-
 
 	/**
 	 * Run Soot and creates an inter-procedural callgraph that could be loaded
@@ -178,24 +186,26 @@ public class SootRunner {
 	protected void runSootAndAnalysis(List<String> classes) {
 		sootOpt.set_keep_line_number(true);
 		sootOpt.set_prepend_classpath(true); // -pp
-		
+
 		sootOpt.set_output_format(soot.options.Options.output_format_none);
-			
+
 		sootOpt.set_allow_phantom_refs(true);
 
 		for (String s : classes) {
 			Scene.v().addBasicClass(s, SootClass.BODIES);
 		}
-		
-		//TODO: hack for the implicit entry points.
+
+		// TODO: hack for the implicit entry points.
 		Scene.v().addBasicClass("java.lang.System", SootClass.SIGNATURES);
 		Scene.v().addBasicClass("java.lang.Thread", SootClass.SIGNATURES);
 		Scene.v().addBasicClass("java.lang.ThreadGroup", SootClass.SIGNATURES);
-		
+
 		Scene.v().addBasicClass("java.lang.ClassLoader", SootClass.SIGNATURES);
 		Scene.v().addBasicClass("java.security.PrivilegedActionException", SootClass.SIGNATURES);
 		Scene.v().addBasicClass("java.lang.ref.Finalizer", SootClass.SIGNATURES);
-		
+
+		createAssertionClass();
+
 		try {
 			// redirect soot output into a stream.
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -218,12 +228,47 @@ public class SootRunner {
 					sc.setApplicationClass();
 				}
 			}
-			
+
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e.toString());
 		} catch (RuntimeException e) {
 			throw e;
 		}
+	}
+
+	public static final String assertionClassName = "JayHornAssertions";
+	public static final String assertionProcedureName = "super_crazy_assertion";
+	public static final String exceptionLocalName = "lastExceptionThrown";
+
+	/**
+	 * TODO
+	 */
+	private void createAssertionClass() {
+		SootClass sClass = new SootClass(assertionClassName, Modifier.PUBLIC);
+		sClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
+
+		// add a static field to keep track of thrown exceptions.
+		SootClass exceptionClass = Scene.v().getSootClass("java.lang.Throwable");
+		SootField exceptionGlobal = new SootField(exceptionLocalName, exceptionClass.getType(),
+				Modifier.PUBLIC | Modifier.STATIC);
+		sClass.addField(exceptionGlobal);
+
+		// add a method to model assertions.
+		SootMethod internalAssertMethod = new SootMethod(assertionProcedureName,
+				Arrays.asList(new Type[] { ArrayType.v(BooleanType.v(), 1) }), VoidType.v(),
+				Modifier.PUBLIC | Modifier.STATIC);
+		sClass.addMethod(internalAssertMethod);
+
+		JimpleBody body = Jimple.v().newBody(internalAssertMethod);
+		internalAssertMethod.setActiveBody(body);
+		Local local = Jimple.v().newLocal("$arg0", BooleanType.v());
+		body.getLocals().add(local);
+		body.getUnits().add(Jimple.v().newIdentityStmt(local, Jimple.v().newParameterRef(BooleanType.v(), 0)));
+		// TODO: throw an assertion here.
+		body.getUnits().add(Jimple.v().newReturnVoidStmt());
+
+		Scene.v().addClass(sClass);
+		sClass.setApplicationClass();
 	}
 
 	/**
@@ -313,7 +358,7 @@ public class SootRunner {
 					String className = entryName.substring(0, entryName.length() - ".class".length());
 					className = className.replace('/', '.');
 
-					// add class					
+					// add class
 					classes.add(className);
 				}
 			}

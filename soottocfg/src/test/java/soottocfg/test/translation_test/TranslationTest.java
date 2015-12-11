@@ -61,7 +61,7 @@ public class TranslationTest {
 	@Test
 	public void test() {
 		soot.G.reset();
-		System.out.println("Running test " + this.sourceFile.getName() );
+		System.out.println("Running test " + this.sourceFile.getName());
 		SootToCfg soot2cfg = new SootToCfg();
 		File classDir = null;
 		try {
