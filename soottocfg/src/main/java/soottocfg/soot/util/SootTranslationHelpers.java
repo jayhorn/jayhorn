@@ -40,12 +40,12 @@ public enum SootTranslationHelpers {
 
 	private final Map<soot.Type, Variable> typeVariables = new HashMap<soot.Type, Variable>();
 
-	private SootMethod currentMethod;
-	private SootClass currentClass;
-	private String currentSourceFileName;
+	private transient SootMethod currentMethod;
+	private transient SootClass currentClass;
+	private transient String currentSourceFileName;
 
-	private MemoryModel memoryModel;
-	private Program program;
+	private transient MemoryModel memoryModel;
+	private transient Program program;
 
 	public void reset() {
 		typeVariables.clear();
