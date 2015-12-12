@@ -3,21 +3,28 @@
  */
 package soottocfg.soot;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import soot.Body;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
+import soot.Unit;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.cfg.Program;
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.method.Method;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.SwitchStatementRemover;
 import soottocfg.soot.transformers.VirtualCallResolver;
+import soottocfg.soot.util.DuplicatedCatchDetection;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.soot.visitors.SootStmtSwitch;
@@ -37,6 +44,8 @@ public class SootToCfg {
 	private final boolean resolveVirtualCalls;
 	private final boolean createAssertionsForUncaughtExceptions;
 
+	private final Set<SourceLocation> locations = new HashSet<SourceLocation>();
+	
 	// Create a new program
 	private final Program program = new Program();
 
@@ -91,6 +100,10 @@ public class SootToCfg {
 		return program;
 	}
 
+	public Set<SourceLocation> getDuplicatedSourceLocations() {
+		return locations;
+	}
+	
 	/**
 	 * Analyze a single SootClass and transform all its Methods
 	 * 
@@ -150,10 +163,20 @@ public class SootToCfg {
 		}
 		// System.out.println(m.toString());
 	}
-
+	
 	private void preProcessBody(Body body) {
 		// pre-process the body
 
+		// detect duplicated finally blocks
+		DuplicatedCatchDetection duplicatedUnits = new DuplicatedCatchDetection();
+		Map<Unit, Set<Unit>> duplicatedFinallyUnits = duplicatedUnits.identifiedDuplicatedUnitsFromFinallyBlocks(body);		
+		for (Entry<Unit, Set<Unit>> entry : duplicatedFinallyUnits.entrySet()) {			
+			locations.add(SootTranslationHelpers.v().getSourceLocation(entry.getKey()));
+			for (Unit u : entry.getValue()) {
+				locations.add(SootTranslationHelpers.v().getSourceLocation(u));
+			}
+		}
+		
 		// first reconstruct the assertions.
 		AssertionReconstruction.v().removeAssertionRelatedNonsense(body);
 		AssertionReconstruction.v().reconstructJavaAssertions(body);

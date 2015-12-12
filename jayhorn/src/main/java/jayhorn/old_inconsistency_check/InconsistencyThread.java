@@ -98,7 +98,7 @@ public class InconsistencyThread implements Runnable {
 		ssa.computeSSA();
 
 //		if (debugMode) {
-			System.out.println(method);
+//			System.out.println(method);
 //		}
 
 		createVerificationCondition();
@@ -181,8 +181,8 @@ public class InconsistencyThread implements Runnable {
 				} else if (!src.getStatements().isEmpty()) {
 					loc = src.getStatements().get(src.getStatements().size() - 1).getSourceLocation();
 				} else {
-					System.err.println(
-							"ERROR: these labeled edges without location tags will cause problems later. @Martin, fix that!");
+//					System.err.println(
+//							"ERROR: these labeled edges without location tags will cause problems later. @Martin, fix that!");
 				}
 				Statement assume = new AssumeStatement(loc, edge.getLabel().get());
 				method.removeEdge(edge);

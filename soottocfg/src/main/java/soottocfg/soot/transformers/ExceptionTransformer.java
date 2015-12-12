@@ -57,7 +57,6 @@ import soot.jimple.ThrowStmt;
 import soot.jimple.UnopExpr;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
 import soot.tagkit.Host;
-import soottocfg.soot.util.DuplicatedCatchDetection;
 import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.util.Pair;
 
@@ -114,10 +113,6 @@ public class ExceptionTransformer extends AbstractTransformer {
 	protected void internalTransform(Body b, String arg1, Map<String, String> arg2) {
 		hierarchy = Scene.v().getActiveHierarchy();
 		body = b;
-
-		// TODO just a test. remove at some point.
-		DuplicatedCatchDetection xyz = new DuplicatedCatchDetection();
-		xyz.identifiedDuplicatedUnitsFromFinallyBlocks(body);
 
 		// first remove all the monitor related exceptions
 		removeMonitorTraps(body);
@@ -384,7 +379,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 						caughtThrowable = true;
 					}
 					usedTraps.add(trap);
-					Unit newTarget = createNewExceptionAndGoToTrap(u, exception, trap);
+					Unit newTarget = updateExceptionVariableAndGoToTrap(u, ((ThrowStmt) u).getOp(), trap);
 					Local l = getFreshLocal(body, BooleanType.v());
 					Value instOf = Jimple.v().newInstanceOfExpr(exceptionVarLocal, RefType.v(exception));
 					toInsert.add(assignStmtFor(l, instOf, u));
@@ -436,6 +431,21 @@ public class ExceptionTransformer extends AbstractTransformer {
 		}
 	}
 
+	private Unit updateExceptionVariableAndGoToTrap(Unit u, Value v, Trap t) {
+		if (!caughtExceptionLocal.containsKey(t.getHandlerUnit())) {
+			// only create one local per trap so that we can
+			// replace the CaughtExceptionRef later.
+			caughtExceptionLocal.put(t.getHandlerUnit(),
+					getFreshLocal(body, SootTranslationHelpers.v().getExceptionGlobal().getType()));
+		}
+		Local execptionLocal = caughtExceptionLocal.get(t.getHandlerUnit());
+		List<Unit> units = new LinkedList<Unit>();
+		units.add(assignStmtFor(execptionLocal, v, u));
+		units.add(gotoStmtFor(t.getHandlerUnit(), u));
+		body.getUnits().addAll(units);
+		return units.get(0);
+	}
+	
 	private Unit createNewExceptionAndGoToTrap(Unit u, SootClass exception, Trap t) {
 		// add a block that creates an exception object
 		// and assigns it to $exception.

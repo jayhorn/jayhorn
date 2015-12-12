@@ -86,6 +86,8 @@ public class InconsistencyTest {
 			SootToCfg soot2cfg = new SootToCfg(false, true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			InconsistencyChecker checker = new InconsistencyChecker(factory);
+			checker.setDuplicatedSourceLocations(soot2cfg.getDuplicatedSourceLocations());
+			
 			Map<String, Set<CfgBlock>> result = checker.checkProgram(soot2cfg.getProgram());
 			
 			int check = 0;
