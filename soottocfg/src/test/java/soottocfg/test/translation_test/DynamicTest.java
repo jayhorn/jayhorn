@@ -214,7 +214,7 @@ public class DynamicTest {
 		StringBuilder sb = new StringBuilder();
 		File dir = classDir;
 		while (dir.isDirectory()) {
-			if (dir.listFiles() != null) {
+			if (dir.listFiles() != null && dir.listFiles().length>0) {
 				dir = dir.listFiles()[0];
 				sb.append(Files.getNameWithoutExtension(dir.getAbsolutePath()));
 				if (dir.isFile() && "class".equals(Files.getFileExtension(dir.getAbsolutePath()))) {

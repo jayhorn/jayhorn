@@ -34,7 +34,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import soot.ArrayType;
 import soot.BooleanType;
 import soot.Local;
 import soot.Modifier;
@@ -255,7 +254,7 @@ public class SootRunner {
 
 		// add a method to model assertions.
 		SootMethod internalAssertMethod = new SootMethod(assertionProcedureName,
-				Arrays.asList(new Type[] { ArrayType.v(BooleanType.v(), 1) }), VoidType.v(),
+				Arrays.asList(new Type[] { BooleanType.v() }), VoidType.v(),
 				Modifier.PUBLIC | Modifier.STATIC);
 		sClass.addMethod(internalAssertMethod);
 

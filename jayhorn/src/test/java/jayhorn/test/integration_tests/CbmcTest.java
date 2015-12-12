@@ -27,7 +27,7 @@ public class CbmcTest {
 		if (directoryListing != null) {
 			for (File child : directoryListing) {
 				//found a directory containing a test.
-				if (child.isDirectory()) {
+				if (child.isDirectory() && child.listFiles()!=null) {
 					//check if the directory contains a test.desc that
 					//states the desired outcome.
 					for (File f : child.listFiles()) {

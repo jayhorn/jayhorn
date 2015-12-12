@@ -131,7 +131,7 @@ public final class Util {
 	}
 
 	public static void delete(File f) throws IOException {
-		if (f.isDirectory()) {
+		if (f.isDirectory() && f.listFiles()!=null) {
 			for (File c : f.listFiles())
 				delete(c);
 		}
