@@ -16,9 +16,11 @@ import soot.SootClass;
 import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
+import soot.jimple.toolkits.scalar.UnreachableCodeEliminator;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
+import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.Method;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
@@ -39,13 +41,17 @@ import soottocfg.soot.visitors.SootStmtSwitch;
  */
 public class SootToCfg {
 
+	public enum MemModel {
+		BurstallBornat, PackUnpack
+	}
+
 	private boolean debug = true;
 
 	private final boolean resolveVirtualCalls;
 	private final boolean createAssertionsForUncaughtExceptions;
 
 	private final Set<SourceLocation> locations = new HashSet<SourceLocation>();
-	
+
 	// Create a new program
 	private final Program program = new Program();
 
@@ -54,8 +60,18 @@ public class SootToCfg {
 	}
 
 	public SootToCfg(boolean resolveVCalls, boolean excAsAssert) {
+		this(resolveVCalls, excAsAssert, MemModel.PackUnpack);
+	}
+
+	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel) {
+		// first reset everything:
+		soot.G.reset();
+		SootTranslationHelpers.v().reset();
+		SootTranslationHelpers.v().setMemoryModelKind(memModel);
+
 		resolveVirtualCalls = resolveVCalls;
 		createAssertionsForUncaughtExceptions = excAsAssert;
+
 		SootTranslationHelpers.v().setProgram(program);
 	}
 
@@ -74,6 +90,15 @@ public class SootToCfg {
 		SootRunner runner = new SootRunner();
 		runner.run(input, classPath);
 
+		SootTranslationHelpers.v().getExceptionGlobalRef();
+
+		//TODO, hacky way to get the exceptionGlobal into the program.
+		Variable exceptionGlobal = this.program.loopupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(),
+				SootTranslationHelpers.v().getMemoryModel()
+						.lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
+		program.setExceptionGlobal(exceptionGlobal);
+		
+		
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
 			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
@@ -103,7 +128,7 @@ public class SootToCfg {
 	public Set<SourceLocation> getDuplicatedSourceLocations() {
 		return locations;
 	}
-	
+
 	/**
 	 * Analyze a single SootClass and transform all its Methods
 	 * 
@@ -145,9 +170,9 @@ public class SootToCfg {
 
 	private void processMethodBody(Body body) {
 
-		// System.err.println(body.toString());
+		System.err.println(body.toString());
 		preProcessBody(body);
-		// System.err.println(body.toString());
+		System.out.println(body.toString());
 
 		// generate the CFG structures on the processed body.
 		MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
@@ -163,20 +188,22 @@ public class SootToCfg {
 		}
 		// System.out.println(m.toString());
 	}
-	
+
 	private void preProcessBody(Body body) {
 		// pre-process the body
 
+		UnreachableCodeEliminator.v().transform(body);
+
 		// detect duplicated finally blocks
 		DuplicatedCatchDetection duplicatedUnits = new DuplicatedCatchDetection();
-		Map<Unit, Set<Unit>> duplicatedFinallyUnits = duplicatedUnits.identifiedDuplicatedUnitsFromFinallyBlocks(body);		
-		for (Entry<Unit, Set<Unit>> entry : duplicatedFinallyUnits.entrySet()) {			
+		Map<Unit, Set<Unit>> duplicatedFinallyUnits = duplicatedUnits.identifiedDuplicatedUnitsFromFinallyBlocks(body);
+		for (Entry<Unit, Set<Unit>> entry : duplicatedFinallyUnits.entrySet()) {
 			locations.add(SootTranslationHelpers.v().getSourceLocation(entry.getKey()));
 			for (Unit u : entry.getValue()) {
 				locations.add(SootTranslationHelpers.v().getSourceLocation(u));
 			}
 		}
-		
+
 		// first reconstruct the assertions.
 		AssertionReconstruction.v().removeAssertionRelatedNonsense(body);
 		AssertionReconstruction.v().reconstructJavaAssertions(body);

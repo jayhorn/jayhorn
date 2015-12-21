@@ -36,6 +36,7 @@ import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.optimization.DeadCodeElimination;
 import soottocfg.cfg.statement.ArrayReadStatement;
 import soottocfg.cfg.statement.ArrayStoreStatement;
 import soottocfg.cfg.statement.AssertStatement;
@@ -44,6 +45,7 @@ import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.type.MapType;
 import soottocfg.cfg.type.Type;
 
 /**
@@ -56,6 +58,7 @@ public class InconsistencyThread implements Runnable {
 
 	private final Method method;
 	private final Prover prover;
+	private final Program program;
 
 	private final Map<Variable, Map<Integer, ProverExpr>> ssaVariableMap = new HashMap<Variable, Map<Integer, ProverExpr>>();
 	private final Map<CfgBlock, ProverExpr> blockVars = new LinkedHashMap<CfgBlock, ProverExpr>();
@@ -72,6 +75,7 @@ public class InconsistencyThread implements Runnable {
 	public InconsistencyThread(Program prog, Method m, Prover p) {
 		method = m;
 		prover = p;
+		program = prog;
 	}
 
 	/*
@@ -88,15 +92,22 @@ public class InconsistencyThread implements Runnable {
 		} else {
 			System.out.println("Analyzing " + method.getMethodName());
 		}
+		
 		LoopRemoval lr = new LoopRemoval(method);
 		lr.removeLoops();
 		turnLabeledEdgesIntoAssumes();
 
 		lr.verifyLoopFree();// TODO: run only in debug mode.
 
-		SingleStaticAssignment ssa = new SingleStaticAssignment(method);
+		SingleStaticAssignment ssa = new SingleStaticAssignment(program, method);
 		ssa.computeSSA();
 
+//		System.err.println(method);
+		//now clean up dead code to avoid trivial reports
+//		DeadCodeElimination dce = new DeadCodeElimination();
+		//TODO freezes!
+//		dce.updateMethod(method);
+		
 //		if (debugMode) {
 //			System.out.println(method);
 //		}
@@ -270,23 +281,29 @@ public class InconsistencyThread implements Runnable {
 		System.err.println("done");
 	}
 
+	private int dummyvarcounter = 0;
+	
 	private ProverExpr statementToTransitionRelation(Statement s) {
 		if (s instanceof AssertStatement) {
 			return expressionToProverExpr(((AssertStatement) s).getExpression());
 		} else if (s instanceof AssignStatement) {
 			ProverExpr l = expressionToProverExpr(((AssignStatement) s).getLeft());
 			ProverExpr r = expressionToProverExpr(((AssignStatement) s).getRight());
-			if (l == null || r == null) {
-				return null; // TODO: these are hacks. Later, this must not
-								// return null.
-			}
+
 			return prover.mkEq(l, r);
 		} else if (s instanceof AssumeStatement) {
 			return expressionToProverExpr(((AssumeStatement) s).getExpression());
 		} else if (s instanceof CallStatement) {
-			// TODO: should be eliminated earlier
+			CallStatement cs = (CallStatement)s;
+			//TODO replace receiver by Optional			
+			for (Expression e : cs.getReceiver()) {
+				return prover.mkEq(expressionToProverExpr(e), prover.mkVariable("dummy"+(dummyvarcounter++), lookupProverType(e.getType())));		
+			}
+			return null;
 		} else if (s instanceof ArrayReadStatement) {
-			// TODO
+			ArrayReadStatement ar = (ArrayReadStatement)s;
+			MapType mt = (MapType)ar.getBase().getType();			
+			return prover.mkEq(expressionToProverExpr(ar.getLeftValue()), prover.mkVariable("dummy"+(dummyvarcounter++), lookupProverType(mt.getValueType())));
 		} else if (s instanceof ArrayStoreStatement) {
 			// TODO
 		} else {
@@ -306,10 +323,6 @@ public class InconsistencyThread implements Runnable {
 			BinaryExpression be = (BinaryExpression) e;
 			ProverExpr left = expressionToProverExpr(be.getLeft());
 			ProverExpr right = expressionToProverExpr(be.getRight());
-			if (left == null || right == null) {
-				return null; // TODO: these are hacks. Later, this must not
-								// return null.
-			}
 			switch (be.getOp()) {
 			case Plus:
 				return prover.mkPlus(left, right);
@@ -360,7 +373,6 @@ public class InconsistencyThread implements Runnable {
 			}
 			return ssaVariableMap.get(ie.getVariable()).get(ie.getIncarnation());
 		} else if (e instanceof InstanceOfExpression) {
-			// TODO:
 			return prover.mkVariable("$randomBool" + UUID.randomUUID().toString(), prover.getBooleanType());
 		} else if (e instanceof IntegerLiteral) {
 			return prover.mkLiteral(BigInteger.valueOf(((IntegerLiteral) e).getValue()));
@@ -371,10 +383,6 @@ public class InconsistencyThread implements Runnable {
 		} else if (e instanceof UnaryExpression) {
 			UnaryExpression ue = (UnaryExpression) e;
 			ProverExpr expr = expressionToProverExpr(ue.getExpression());
-			if (expr == null) {
-				return null; // TODO: these are hacks. Later, this must not
-								// return null.
-			}
 
 			if (ue.getOp() == UnaryOperator.LNot) {
 				return prover.mkNot(expr);

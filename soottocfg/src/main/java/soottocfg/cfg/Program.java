@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Verify;
 
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.type.Type;
@@ -24,6 +25,8 @@ public class Program {
 
 	private final Collection<Method> entryPoints = new HashSet<Method>();
 
+	private Variable exceptionGlobal;
+	
 	public Variable[] getGlobalVariables() {
 		return this.globalVariables.values().toArray(new Variable[this.globalVariables.size()]);
 	}
@@ -67,4 +70,13 @@ public class Program {
 		return methods.values().toArray(new Method[methods.size()]);
 	}
 
+	public Variable getExceptionGlobal() {
+		Verify.verify(exceptionGlobal!=null, "Exception global never set");
+		return exceptionGlobal;
+	}
+	
+	public void setExceptionGlobal(Variable exGlobal) {
+		Verify.verify(exceptionGlobal==null, "Do not set this variable twice");
+		exceptionGlobal = exGlobal;
+	}
 }

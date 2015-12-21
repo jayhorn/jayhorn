@@ -10,6 +10,7 @@ import jayhorn.checker.Checker;
 import jayhorn.old_inconsistency_check.InconsistencyChecker;
 import jayhorn.solver.princess.PrincessProverFactory;
 import soottocfg.soot.SootToCfg;
+import soottocfg.soot.SootToCfg.MemModel;
 
 public class Main {
 
@@ -27,7 +28,7 @@ public class Main {
 				boolean result = checker.checkProgram(soot2cfg.getProgram());
 				System.out.println("checker says "+ result);		
 			} else if ("inconsistency".equals(Options.v().getChecker())) {
-				SootToCfg soot2cfg = new SootToCfg(false, true);
+				SootToCfg soot2cfg = new SootToCfg(false, true, MemModel.BurstallBornat);
 				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());			
 				InconsistencyChecker checker = new InconsistencyChecker(new PrincessProverFactory());
 				checker.checkProgram(soot2cfg.getProgram());				

@@ -23,6 +23,7 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.soot.SootRunner;
+import soottocfg.soot.SootToCfg.MemModel;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.memory_model.SimpleBurstallBornatModel;
@@ -32,8 +33,8 @@ import soottocfg.soot.memory_model.SimpleBurstallBornatModel;
  *
  */
 public enum SootTranslationHelpers {
-	INSTANCE;
-
+	INSTANCE;	
+	
 	public static SootTranslationHelpers v() {
 		return INSTANCE;
 	}
@@ -45,6 +46,8 @@ public enum SootTranslationHelpers {
 	private transient String currentSourceFileName;
 
 	private transient MemoryModel memoryModel;
+	private MemModel memoryModelKind = MemModel.PackUnpack;
+	
 	private transient Program program;
 
 	public void reset() {
@@ -75,7 +78,7 @@ public enum SootTranslationHelpers {
 
 	public SootField getExceptionGlobal() {
 		SootClass assertionClass = Scene.v().getSootClass(SootRunner.assertionClassName);
-		return assertionClass.getFieldByName(SootRunner.exceptionLocalName);
+		return assertionClass.getFieldByName(SootRunner.exceptionGlobalName);
 	}
 
 	public Value getExceptionGlobalRef() {
@@ -103,18 +106,23 @@ public enum SootTranslationHelpers {
 		if (lineNumber < 0) {
 			lineNumber = SootTranslationHelpers.v().getJavaSourceLine(SootTranslationHelpers.v().getCurrentMethod());
 		}
+		
 		return new SourceLocation(this.currentSourceFileName, lineNumber);
 	}
 
-	protected boolean debug = true;
-
+	public void setMemoryModelKind(MemModel kind) {
+		memoryModelKind = kind;
+	}
+	
 	public MemoryModel getMemoryModel() {
 		if (this.memoryModel == null) {
 			// TODO:
-			if (debug) {
+			if (memoryModelKind==MemModel.PackUnpack) {
 				this.memoryModel = new NewMemoryModel();
-			} else {
+			} else if (memoryModelKind==MemModel.BurstallBornat) {
 				this.memoryModel = new SimpleBurstallBornatModel();
+			} else {
+				throw new RuntimeException("Unknown memory model");
 			}
 		}
 		return this.memoryModel;
@@ -146,23 +154,43 @@ public enum SootTranslationHelpers {
 	}
 
 	public void setCurrentClass(SootClass currentClass) {
+		String fn = findFileName(currentClass.getTags());
+		if (fn !=null) {
+			this.currentSourceFileName = fn;
+		}
+
 		this.currentClass = currentClass;
-		for (Tag tag : this.currentClass.getTags()) {
+	}
+	
+	private String findFileName(List<Tag> tags) {
+		String fileName = null;
+		for (Tag tag : tags) {
 			if (tag instanceof SourceFileTag) {
 				SourceFileTag t = (SourceFileTag) tag;
-				currentSourceFileName = t.getAbsolutePath();
+				if (t.getAbsolutePath()!=null) {
+					fileName = t.getAbsolutePath();
+				} else {
+					if (t.getSourceFile()!=null) {
+						fileName = t.getSourceFile();
+					}
+				}
 			} else {
 				// System.err.println("Unprocessed tag " + tag.getClass() + " -
 				// " + tag);
 			}
 		}
+		return fileName;
 	}
 
-	public SootMethod getCurrentMethod() {
+	public SootMethod getCurrentMethod() {		
 		return currentMethod;
 	}
 
 	public void setCurrentMethod(SootMethod currentMethod) {
+		String fn = findFileName(currentMethod.getTags());
+		if (fn !=null) {
+			this.currentSourceFileName = fn;
+		}
 		this.currentMethod = currentMethod;
 	}
 

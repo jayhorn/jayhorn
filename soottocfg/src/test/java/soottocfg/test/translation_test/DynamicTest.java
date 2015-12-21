@@ -46,7 +46,7 @@ public class DynamicTest {
 	private static final String testRoot = userDir + "src/test/resources/";
 
 	private File sourceFile;
-
+	
 	@Parameterized.Parameters(name = "{index}: check ({1})")
 	public static Collection<Object[]> data() {
 		List<Object[]> filenames = new LinkedList<Object[]>();

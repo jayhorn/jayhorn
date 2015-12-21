@@ -63,8 +63,7 @@ public class InconsistencyChecker {
 				Preconditions.checkArgument(prover!=null, "Failed to initialize prover.");
 				prover.setHornLogic(false);
 
-				Set<CfgBlock> inconsistencies = new HashSet<CfgBlock>();
-				result.put(method.getMethodName(), inconsistencies);
+				Set<CfgBlock> inconsistencies = new HashSet<CfgBlock>();			
 				
 				InconsistencyThread thread = new InconsistencyThread(program, method, prover);
 				final Future<?> future = executor.submit(thread);
@@ -76,6 +75,9 @@ public class InconsistencyChecker {
 					}
 					normal++;
 					inconsistencies.addAll(thread.getInconsistentBlocks());
+					if (!inconsistencies.isEmpty()) {
+						result.put(method.getMethodName(), inconsistencies);
+					}
 				} catch (TimeoutException e) {
 					if (!future.cancel(true)) {
 						System.err.println("failed to cancle after timeout");
@@ -157,6 +159,7 @@ public class InconsistencyChecker {
 						}
 						if (bla.containsKey(entry.getKey()) && bla.get(entry.getKey()).contains(loc.getLineNumber())) {
 							//ditch that warning because it contians a duplicated block
+							System.err.println("Suppressed lines");
 							lines.clear();
 							break;
 						}

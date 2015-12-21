@@ -11,13 +11,16 @@ import java.util.Set;
 
 import org.jgrapht.traverse.TopologicalOrderIterator;
 
+import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
+import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
+import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
 
 /**
@@ -27,10 +30,12 @@ import soottocfg.cfg.statement.Statement;
 public class SingleStaticAssignment {
 
 	private final Method method;
+	private final Program program;
 	/**
 	 * 
 	 */
-	public SingleStaticAssignment(Method m) {
+	public SingleStaticAssignment(Program prog, Method m) {
+		program = prog;
 		method = m;
 	}
 
@@ -79,6 +84,24 @@ public class SingleStaticAssignment {
 					System.err.println("TODO: " + as.getLeft().getClass());
 				}
 			} //TODO do the same for heap assignments
+			
+			//hack for procedure calls.
+			if (s instanceof CallStatement) {
+				CallStatement ce = (CallStatement)s;				
+				for (Expression left : ce.getReceiver()) {
+					if (left instanceof IdentifierExpression) {
+						IdentifierExpression ie = (IdentifierExpression)left;
+						incarnationMap.put(ie.getVariable(), incarnationMap.get(ie.getVariable())+1);
+						ie.setIncarnation(incarnationMap.get(ie.getVariable()));	
+					}
+				}
+				//havoc the exception global for each method call.
+				if (!incarnationMap.containsKey(program.getExceptionGlobal())) {
+					incarnationMap.put(program.getExceptionGlobal(), 0);
+				} else {
+					incarnationMap.put(program.getExceptionGlobal(), incarnationMap.get(program.getExceptionGlobal())+1);
+				}
+			}
 
 		}
 				

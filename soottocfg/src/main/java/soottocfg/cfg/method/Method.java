@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,6 +22,8 @@ import org.jgrapht.ext.DOTExporter;
 import org.jgrapht.ext.StringNameProvider;
 import org.jgrapht.graph.AbstractBaseGraph;
 import org.jgrapht.graph.ClassBasedEdgeFactory;
+
+import com.google.common.base.Preconditions;
 
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Node;
@@ -41,7 +44,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 
 	private final String methodName;
 	private Variable thisVariable, returnVariable;
-	private List<Variable> parameterList;
+	private List<Variable> parameterList = new LinkedList<Variable>();
 	private Collection<Variable> locals;
 	private Collection<Variable> modifiedGlobals;
 	private CfgBlock source, sink;
@@ -87,6 +90,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 
 	public void initialize(Variable thisVariable, Variable returnVariable, List<Variable> parameterList,
 			Collection<Variable> locals, CfgBlock source, boolean isEntryPoint) {
+		Preconditions.checkNotNull(parameterList, "Parameter list must not be null");
 		this.thisVariable = thisVariable;
 		this.returnVariable = returnVariable;
 		this.parameterList = parameterList;

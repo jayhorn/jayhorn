@@ -10,6 +10,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Verify;
+
 import soot.SootClass;
 import soot.SootField;
 import soot.Value;
@@ -159,6 +161,11 @@ public abstract class BasicMemoryModel extends MemoryModel {
 				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));
 	}
 
+	protected Variable lookupStaticField(SootField field) {
+		Verify.verify(false);
+		return this.program.loopupGlobalVariable(field.getName(), lookupType(field.getType()));
+	}
+	
 	protected Variable lookupField(SootField field) {
 		if (!this.fieldGlobals.containsKey(field)) {
 			final String fieldName = field.getDeclaringClass().getName() + "." + field.getName();

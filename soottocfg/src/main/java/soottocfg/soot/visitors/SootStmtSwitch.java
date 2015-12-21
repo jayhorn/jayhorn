@@ -24,6 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Verify;
 
 import soot.Body;
 import soot.PatchingChain;
@@ -415,9 +416,9 @@ public class SootStmtSwitch implements StmtSwitch {
 	 *         and false, otherwise.
 	 */
 	private boolean isHandledAsSpecialCase(Unit u, Value optionalLhs, InvokeExpr call) {
-		if (call.getMethod() == SootTranslationHelpers.v().getAssertMethod()) {
-			assert (optionalLhs == null);
-			assert (call.getArgCount() == 1);
+		if (call.getMethod().getSignature().equals(SootTranslationHelpers.v().getAssertMethod().getSignature())) {
+			Verify.verify(optionalLhs == null);
+			Verify.verify(call.getArgCount() == 1);
 			call.getArg(0).apply(valueSwitch);
 			currentBlock.addStatement(
 					new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u), valueSwitch.popExpression()));

@@ -237,7 +237,7 @@ public class SootRunner {
 
 	public static final String assertionClassName = "JayHornAssertions";
 	public static final String assertionProcedureName = "super_crazy_assertion";
-	public static final String exceptionLocalName = "lastExceptionThrown";
+	public static final String exceptionGlobalName = "lastExceptionThrown";
 
 	/**
 	 * TODO
@@ -248,7 +248,7 @@ public class SootRunner {
 
 		// add a static field to keep track of thrown exceptions.
 		SootClass exceptionClass = Scene.v().getSootClass("java.lang.Throwable");
-		SootField exceptionGlobal = new SootField(exceptionLocalName, exceptionClass.getType(),
+		SootField exceptionGlobal = new SootField(exceptionGlobalName, exceptionClass.getType(),
 				Modifier.PUBLIC | Modifier.STATIC);
 		sClass.addField(exceptionGlobal);
 

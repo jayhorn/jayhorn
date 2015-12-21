@@ -115,6 +115,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 		body = b;
 
 		// first remove all the monitor related exceptions
+		removeUnreachableTraps(body);
 		removeMonitorTraps(body);
 
 		PatchingChain<Unit> units = body.getUnits();
@@ -725,6 +726,15 @@ public class ExceptionTransformer extends AbstractTransformer {
 		}
 	}
 
+	private boolean isAssertionMethod(SootMethod sm) {
+		if (sm.getSignature().equals(SootTranslationHelpers.v().getAssertMethod().getSignature())) {
+//			throw new RuntimeException("WORKS");
+			return true;
+		}
+		//TODO: do that for others as well like guava Verify, or Junit Assert
+		return false;
+	}
+	
 	private void collectPossibleExceptions(Unit u, Value v) {
 		if (v instanceof BinopExpr) {
 			BinopExpr e = (BinopExpr) v;
@@ -734,8 +744,13 @@ public class ExceptionTransformer extends AbstractTransformer {
 		} else if (v instanceof UnopExpr) {
 			UnopExpr e = (UnopExpr) v;
 			collectPossibleExceptions(u, e.getOp());
-		} else if (v instanceof InvokeExpr) {
+		} else if (v instanceof InvokeExpr) {			
 			InvokeExpr ivk = (InvokeExpr) v;
+			if (isAssertionMethod(ivk.getMethod())) {
+				//do not tinker with assertion methods because
+				//they will be turned into assertions anyway.
+				return;
+			}
 			if (ivk instanceof InstanceInvokeExpr) {
 				// if its an instance invoke, check
 				// if the base is null.
@@ -816,4 +831,26 @@ public class ExceptionTransformer extends AbstractTransformer {
 		}
 		return result;
 	}
+	
+	
+	protected void removeUnreachableTraps(Body b) {
+		List<Trap> duplicates = new LinkedList<Trap>();
+		for (Trap t : b.getTraps()) {
+			Trap current = t;
+			while (b.getTraps().getPredOf(current)!=null) {
+				current = b.getTraps().getPredOf(current);
+				if (equalTraps(current, t)) {
+//					System.err.println("DUPLICATE "+t);
+					duplicates.add(t);
+					break;
+				}
+			}
+		}
+		b.getTraps().removeAll(duplicates);
+	}
+	
+	protected boolean equalTraps(Trap a, Trap b) {
+		return a.getBeginUnit()==b.getBeginUnit() && a.getEndUnit()==b.getEndUnit() && a.getException()==b.getException();
+	}
+	
 }
