@@ -98,12 +98,10 @@ public class Checker {
         public final List<ProverHornClause> clauses =
             new LinkedList<ProverHornClause>();
 
-        public MethodEncoder(Prover p,
-                             Method method,
-                             MethodContract methodContract) {
+        public MethodEncoder(Prover p, Method method) {
             this.p = p;
             this.method = method;
-            this.methodContract = methodContract;
+            this.methodContract = methodContracts.get(method);
         }
         
         public void encode() {
@@ -116,24 +114,11 @@ public class Checker {
             todo.add(method.getSource());
             Set<CfgBlock> done = new HashSet<CfgBlock>();
 
-            {
-                // add an entry clause
-                final HornPredicate entryPred = blockPredicates.get(method.getSource());
-                final List<ProverExpr> entryVars = new ArrayList<ProverExpr>();
-                final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
-                createVarMap(entryPred, entryVars, varMap);
-            
-                final ProverExpr entryAtom =
-                    entryPred.predicate.mkExpr(entryVars.toArray(new ProverExpr[0]));
-            
-                clauses.add(p.mkHornClause(entryAtom,
-                                           new ProverExpr[0],
-                                           p.mkLiteral(true)));
-            }
-
             // translate reachable blocks
             while (!todo.isEmpty()) {
                 CfgBlock current = todo.remove(0);
+		Log.info("\tEncoding block " + current);
+
                 done.add(current);
                 final HornPredicate exitPred = blockToHorn(current, liveVariables);
             
@@ -221,8 +206,6 @@ public class Checker {
 
         private HornPredicate blockToHorn(CfgBlock block,
                                           LiveVars<CfgBlock> liveVariables) {
-            //        System.out.println("to horn: " + block);
-
             final HornPredicate initPred = blockPredicates.get(block);
             
             if (block.getStatements().isEmpty())
@@ -279,6 +262,7 @@ public class Checker {
                 prePred.predicate.mkExpr(preVars.toArray(new ProverExpr[0]));
 
             if (s instanceof AssertStatement) {
+
                 final AssertStatement as = (AssertStatement)s;
                 final ProverExpr cond = exprToProverExpr(as.getExpression(), varMap);
 
@@ -292,9 +276,13 @@ public class Checker {
                 clauses.add(p.mkHornClause(postAtom,
                                            new ProverExpr[] { preAtom },
                                            p.mkLiteral(true)));
+
             } else if (s instanceof AssumeStatement) {
+
                 throw new RuntimeException("Statement type " + s + " not implemented!");
+
             } else if (s instanceof AssignStatement) {
+
                 final AssignStatement as = (AssignStatement)s;
                 final Expression lhs = as.getLeft();
                 final int lhsIndex;
@@ -318,8 +306,25 @@ public class Checker {
                 clauses.add(p.mkHornClause(postAtom,
                                            new ProverExpr[] { preAtom },
                                            p.mkLiteral(true)));
+
             } else if (s instanceof CallStatement) {
-                throw new RuntimeException("Statement type " + s + " not implemented!");
+
+                final CallStatement cs = (CallStatement)s;
+		final Method calledMethod = cs.getCallTarget();
+		final MethodContract contract = methodContracts.get(calledMethod);
+
+		if (contract == null)
+		    throw new RuntimeException("Invoked method " +
+					       calledMethod.getMethodName() +
+					       " is unknown");
+		System.out.println(calledMethod.getInParams());
+		System.out.println(cs.getReceiver());
+		System.out.println(cs.getArguments());
+		assert(calledMethod.getInParams().size() ==
+		       cs.getReceiver().size() + cs.getArguments().size());
+
+		// ...
+
             } else {
                 throw new RuntimeException("Statement type " + s + " not implemented!");
             }
@@ -414,6 +419,8 @@ public class Checker {
                     freshHornPredicate(p, method.getMethodName() + "_pre", inParams);
                 final ProverFun postPred =
                     freshHornPredicate(p, method.getMethodName() + "_post", postParams);
+		Log.info("pre: " + inParams);
+		Log.info("post: " + postParams);
                 final HornPredicate pre =
                     new HornPredicate (method.getMethodName() + "_pre", inParams, prePred);
                 final HornPredicate post =
@@ -422,6 +429,16 @@ public class Checker {
                 methodContracts.put(method, new MethodContract(method, pre, post));
             }
         
+            Log.info("Encoding methods as Horn clauses");
+
+	    List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
+
+            for (Method method : program.getMethods()) {
+		final MethodEncoder encoder = new MethodEncoder(p, method);
+		encoder.encode();
+		clauses.addAll(encoder.clauses);
+	    }	    
+
             for (Method method : program.getEntryPoints()) {
                 checkEntryPoint(p, program, method); // TODO give this one a
                 // return value.
