@@ -1,9 +1,9 @@
 package jayhorn.solver.z3;
 
+import com.microsoft.z3.ArraySort;
+
 import jayhorn.solver.ArrayType;
 import jayhorn.solver.ProverType;
-
-import com.microsoft.z3.ArraySort;
 
 
 public class Z3ArrayType extends ArrayType {

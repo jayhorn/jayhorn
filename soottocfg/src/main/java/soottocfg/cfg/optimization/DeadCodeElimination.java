@@ -43,7 +43,7 @@ public class DeadCodeElimination extends CfgUpdater {
 		// If a statement writes to only variables that are not live, we can
 		// remove it!
 		// I.e. if intersection s.lvals, s.live is empty
-		return SetOperations.intersect(stmt.getLVariables(), liveVars.liveOut.get(stmt)).isEmpty();
+		return SetOperations.intersect(stmt.getDefVariables(), liveVars.liveOut.get(stmt)).isEmpty();
 	}
 
 	protected void processCfgBlock(CfgBlock block) {

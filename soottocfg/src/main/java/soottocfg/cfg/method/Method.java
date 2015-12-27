@@ -30,7 +30,6 @@ import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Node;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.statement.Statement;
 import soottocfg.util.SetOperations;
 
 /**
@@ -101,7 +100,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		// compute the modifies clause.
 		// TODO: this has to be done transitive at some point!
 		this.modifiedGlobals = new HashSet<Variable>();
-		this.modifiedGlobals.addAll(this.getLVariables());
+		this.modifiedGlobals.addAll(this.getDefVariables());
 		this.modifiedGlobals.removeAll(locals);
 		this.modifiedGlobals.removeAll(parameterList);
 		this.modifiedGlobals.remove(returnVariable);
@@ -300,96 +299,23 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	}
 
 	@Override
-	public Set<Variable> getUsedVariables() {
+	public Set<Variable> getUseVariables() {
 		Set<Variable> used = new HashSet<Variable>();
 		for (CfgBlock b : this.vertexSet()) {
-			used.addAll(b.getUsedVariables());
+			used.addAll(b.getUseVariables());
 		}
 		return used;
 	}
 
 	@Override
-	public Set<Variable> getLVariables() {
+	public Set<Variable> getDefVariables() {
 		Set<Variable> rval = new HashSet<Variable>();
 		for (CfgBlock b : this.vertexSet()) {
-			rval.addAll(b.getLVariables());
+			rval.addAll(b.getDefVariables());
 		}
 		return rval;
 	}
 
-	// Really simple for now: Just get all blocks that define each variable.
-	// Don't worry too much about
-	// dominators, etc
-	// TODO worry about dominators etc
-	public Map<Variable, Set<CfgBlock>> computeDefiningBlocks() {
-		Map<Variable, Set<CfgBlock>> rval = new HashMap<Variable, Set<CfgBlock>>();
-		for (CfgBlock b : this.vertexSet()) {
-			for (Variable v : b.getLVariables()) {
-				Set<CfgBlock> definingBlocks = rval.get(v);
-				if (definingBlocks == null) {
-					definingBlocks = new HashSet<CfgBlock>();
-					rval.put(v, definingBlocks);
-				}
-				definingBlocks.add(b);
-			}
-		}
-		return rval;
-	}
-
-	public Map<Variable, Set<Statement>> computeDefiningStatements() {
-		Map<Variable, Set<Statement>> rval = new HashMap<Variable, Set<Statement>>();
-
-		for (Map.Entry<Variable, Set<CfgBlock>> entry : computeDefiningBlocks().entrySet()) {
-			Variable v = entry.getKey();
-			Set<Statement> set = new HashSet<Statement>();
-			for (CfgBlock b : entry.getValue()) {
-				for (Statement s : b.getStatements()) {
-					if (s.getLVariables().contains(v)) {
-						set.add(s);
-					}
-				}
-			}
-			rval.put(v, set);
-		}
-		return rval;
-	}
-
-	public Map<Variable, Set<Statement>> computeUsingStatements() {
-		Map<Variable, Set<Statement>> rval = new HashMap<Variable, Set<Statement>>();
-
-		for (Map.Entry<Variable, Set<CfgBlock>> entry : computeUsingBlocks().entrySet()) {
-			Variable v = entry.getKey();
-			Set<Statement> set = new HashSet<Statement>();
-			for (CfgBlock b : entry.getValue()) {
-				for (Statement s : b.getStatements()) {
-					if (s.getUsedVariables().contains(v)) {
-						set.add(s);
-					}
-				}
-			}
-			rval.put(v, set);
-		}
-		return rval;
-	}
-
-	// Really simple for now: Just get all blocks that define each variable.
-	// Don't worry too much about
-	// dominators, etc
-	// TODO worry about dominators etc
-	public Map<Variable, Set<CfgBlock>> computeUsingBlocks() {
-		Map<Variable, Set<CfgBlock>> rval = new HashMap<Variable, Set<CfgBlock>>();
-		for (CfgBlock b : this.vertexSet()) {
-			for (Variable v : b.getUsedVariables()) {
-				Set<CfgBlock> usingBlocks = rval.get(v);
-				if (usingBlocks == null) {
-					usingBlocks = new HashSet<CfgBlock>();
-					rval.put(v, usingBlocks);
-				}
-				usingBlocks.add(b);
-			}
-		}
-		return rval;
-	}
 
 	/**
 	 * Return the set of live variable at the entry of each block. A variable is
@@ -415,8 +341,8 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		// which case we should actually recurse over all blocks!
 		for (CfgBlock b : cfg) {
 			in.put(b, new HashSet<Variable>());
-			use.put(b, b.getUsedVariables());
-			def.put(b, b.getLVariables());
+			use.put(b, b.getUseVariables());
+			def.put(b, b.getDefVariables());
 		}
 
 		boolean changed = false;

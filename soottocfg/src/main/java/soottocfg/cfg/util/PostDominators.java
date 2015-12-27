@@ -14,57 +14,56 @@ import org.jgrapht.DirectedGraph;
  * @author schaef
  *
  */
-public class Dominators<V> extends AbstractDominators<V> {
+public class PostDominators<V> extends AbstractDominators<V> {
 
-	private final Map<V, Set<V>> dominators;
-	private final Map<V, V> iDominators;
-	private final Tree<V> dominatorTree;
+	private final Map<V, Set<V>> postDominators;
+	private final Map<V, V> iPostDominators;
+	private final Tree<V> postDominatorTree;
 
 	
-	public Dominators(DirectedGraph<V, ?> g, V source) {
+	public PostDominators(DirectedGraph<V, ?> g, V sink) {
 		super(g);		
-		dominators = computeDominators(source, true);
-		iDominators = computeImmediateDominators(dominators);
-		dominatorTree = computeDominatorTree(iDominators);		
+		postDominators = computeDominators(sink, false);
+		iPostDominators = computeImmediateDominators(postDominators);
+		postDominatorTree = computeDominatorTree(iPostDominators);		
 	}
 
 	@Override
 	public boolean isDominatedBy(V node, V dominator) {
-		if (!dominators.containsKey(node)) {
+		if (!postDominators.containsKey(node)) {
 			throw new IllegalArgumentException("Node is not part of the graph: "+node);
 		}
-		if (!dominators.containsKey(dominator)) {
+		if (!postDominators.containsKey(dominator)) {
 			throw new IllegalArgumentException("Node is not part of the graph: "+node);
 		}
 
-		return dominators.get(node).contains(dominator);
+		return postDominators.get(node).contains(dominator);
 	}
 
 	@Override
 	public V getImmediateDominator(V node) {
-		if (!iDominators.containsKey(node)) {
+		if (!iPostDominators.containsKey(node)) {
 			throw new IllegalArgumentException("Node is not part of the graph: "+node);
 		}
-		return iDominators.get(node);
+		return iPostDominators.get(node);
 	}
 
 	@Override
 	public Set<V> getDominators(V node) {
-		if (!dominators.containsKey(node)) {
+		if (!postDominators.containsKey(node)) {
 			throw new IllegalArgumentException("Node is not part of the graph: "+node);
 		}
-		return new HashSet<V>(dominators.get(node));
+		return new HashSet<V>(postDominators.get(node));
 	}
 
 	@Override
 	public Map<V, Set<V>> getDominators() {
-		return new HashMap<V, Set<V>>(dominators);
+		return new HashMap<V, Set<V>>(postDominators);
 	}
-
 	
 	@Override
 	public Tree<V> getDominatorTree() {
-		return dominatorTree;
+		return postDominatorTree;
 	}
 
 }

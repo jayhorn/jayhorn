@@ -21,8 +21,8 @@ package soottocfg.soot.visitors;
 
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 
@@ -391,14 +391,11 @@ public class SootStmtSwitch implements StmtSwitch {
 			throw new RuntimeException("Cannot compute instance for " + call.getClass().toString());
 		}
 
-		List<Expression> receiver = new LinkedList<Expression>();
+		Optional<Expression> receiver = Optional.absent();
 		if (optionalLhs != null) {
 			optionalLhs.apply(valueSwitch);
-			receiver.add(valueSwitch.popExpression());
+			receiver = Optional.of(valueSwitch.popExpression());
 		}
-
-		// TODO: we don't do that anymore.
-		// receiver.add(this.methodInfo.getExceptionVariable());
 
 		Method method = program.loopupMethod(call.getMethod().getSignature());
 		CallStatement stmt = new CallStatement(SootTranslationHelpers.v().getSourceLocation(u), method, args, receiver);

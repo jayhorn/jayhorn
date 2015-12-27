@@ -11,7 +11,7 @@ import java.util.Set;
  */
 public interface Node {
 
-	public Set<Variable> getUsedVariables();
+	public Set<Variable> getUseVariables();
 
-	public Set<Variable> getLVariables();
+	public Set<Variable> getDefVariables();
 }

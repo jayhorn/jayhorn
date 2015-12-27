@@ -118,8 +118,8 @@ public class SsaPrinter {
 			sb.append(")");
 		} else if (s instanceof CallStatement) {
 			CallStatement cs = (CallStatement) s;
-			if (!cs.getReceiver().isEmpty()) {
-				printExpression(sb, cs.getReceiver().iterator().next());
+			if (cs.getReceiver().isPresent()) {
+				printExpression(sb, cs.getReceiver().get());
 				sb.append(" := ");
 			}
 			sb.append(cs.getCallTarget().getMethodName());

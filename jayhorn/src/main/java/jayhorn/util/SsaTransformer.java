@@ -5,8 +5,6 @@ package jayhorn.util;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -19,15 +17,12 @@ import com.google.common.base.Verify;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
-import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.method.CfgBlock;
-import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.statement.UnPackStatement;
 import soottocfg.cfg.util.DominanceFrontier;
 import soottocfg.cfg.util.Dominators;
 import soottocfg.cfg.util.Tree;
@@ -95,10 +90,11 @@ public class SsaTransformer {
 							W <- W U {y}
 	 */
 	private void placePhiFunctions() {
-		DominanceFrontier<CfgBlock, CfgEdge> DF = new DominanceFrontier<CfgBlock, CfgEdge>(method, method.getSource());
+		Dominators<CfgBlock> dom = new Dominators<CfgBlock>(method, method.getSource()); 
+		DominanceFrontier<CfgBlock> DF = new DominanceFrontier<CfgBlock>(dom);
 		Map<Variable, Set<CfgBlock>> defsites = new HashMap<Variable, Set<CfgBlock>>();		
 		for (CfgBlock n : method.vertexSet()) {
-			Set<Variable> variables = n.getLVariables(); //TODO check with Daniel
+			Set<Variable> variables = n.getDefVariables(); //TODO check with Daniel
 			for (Variable a : variables) {
 				if (!defsites.containsKey(a)) {
 					defsites.put(a, new HashSet<CfgBlock>());
@@ -107,7 +103,7 @@ public class SsaTransformer {
 			}
 		}
 		Map<CfgBlock, Set<Variable>> Aphi = new HashMap<CfgBlock, Set<Variable>>();
-		for (Variable a : method.getUsedVariables()) {
+		for (Variable a : method.getUseVariables()) {
 			Set<CfgBlock> W = defsites.get(a);
 			while(W!=null && !W.isEmpty()) {
 				CfgBlock n = W.iterator().next();
@@ -119,7 +115,7 @@ public class SsaTransformer {
 					if (!Aphi.get(y).contains(a)) {
 						createPhiFunction(y,a);
 						Aphi.get(y).add(a);
-						if (!y.getUsedVariables().contains(a)) {
+						if (!y.getUseVariables().contains(a)) {
 							W.add(y);
 						}
 					}
@@ -142,19 +138,20 @@ public class SsaTransformer {
 			push 0 onto Stack[a]
 	 */
 	private void renameVariables() {
-		Dominators<CfgBlock, CfgEdge> dom = new Dominators<CfgBlock, CfgEdge>(method);		
+		System.err.println(method);
+		Dominators<CfgBlock> dom = new Dominators<CfgBlock>(method, method.getSource());		
 		Map<Variable, Integer> Count = new HashMap<Variable, Integer>();
 		Map<Variable, Stack<Integer>> stack = new HashMap<Variable, Stack<Integer>>();
 		Set<Variable> allVariables = new HashSet<Variable>();
-		allVariables.addAll(method.getUsedVariables());
-		allVariables.addAll(method.getLVariables());
+		allVariables.addAll(method.getUseVariables());
+		allVariables.addAll(method.getDefVariables());
 		allVariables.add(program.getExceptionGlobal());
 		for (Variable a : allVariables) { //TODO should be ALL variables.
 			Count.put(a, 0);
 			stack.put(a, new Stack<Integer>());
 			stack.get(a).push(0);
 		}
-		Tree<CfgBlock> domTree = dom.computeDominatorTree(method.getSource());
+		Tree<CfgBlock> domTree = dom.getDominatorTree();
 		rename(domTree.getRoot(), stack, Count, domTree);		
 	}
 	
@@ -186,12 +183,12 @@ public class SsaTransformer {
 	private void rename(CfgBlock n, Map<Variable, Stack<Integer>> stack, Map<Variable, Integer> Count, Tree<CfgBlock> domTree) {
 		for (Statement S : n.getStatements()) {
 			if (!(S instanceof PhiStatement)) {
-				for (IdentifierExpression idexp : S.getIdentifierExpressions()) {
+				for (IdentifierExpression idexp : S.getUseIdentifierExpressions()) {
 					int i = stack.get(idexp.getVariable()).peek();
 					idexp.setIncarnation(i);
 				}
 			}
-			for (IdentifierExpression ie : getDefIdentifierExpressions(S)) {
+			for (IdentifierExpression ie : S.getDefIdentifierExpressions()) {
 				Variable a = ie.getVariable();
 				Count.put(a, Count.get(a)+1);
 				int i = Count.get(a);
@@ -209,6 +206,9 @@ public class SsaTransformer {
 			for (Statement s : Y.getStatements()) {
 				if (s instanceof PhiStatement) {
 					PhiStatement phi = (PhiStatement)s;
+					if (stack.get(phi.getLeft().getVariable()).isEmpty()) {
+						System.err.println("WTF " + phi.getLeft().getVariable()); //TODO
+					}
 					phi.setPredecessorIncarnation(n, stack.get(phi.getLeft().getVariable()).peek());
 				}
 			}
@@ -217,42 +217,15 @@ public class SsaTransformer {
 			rename(X, stack, Count, domTree);
 		}
 		for (Statement S : n.getStatements()) {
-			for (Variable a : S.getLVariables()) {
-				if (!stack.containsKey(a) || stack.get(a).isEmpty()) {
-					System.err.println(a);
-				}
+			for (Variable a : S.getDefVariables()) {
 				stack.get(a).pop();
+				if(stack.get(a).isEmpty()) {
+					System.err.println("wtf "+a + " in "+n.getLabel());
+				}
 			}
 		}
 	}
 	
-	private List<IdentifierExpression> getDefIdentifierExpressions(Statement s) {
-		List<IdentifierExpression> res = new LinkedList<IdentifierExpression>();
-		if (s instanceof AssignStatement) {
-			AssignStatement as = (AssignStatement)s;
-			if (as.getLeft() instanceof IdentifierExpression) {
-				IdentifierExpression ie =(IdentifierExpression)as.getLeft();
-				res.add(ie);
-			} else {
-				System.err.println("TODO: " + as.getLeft().getClass());
-			}
-		} else if (s instanceof CallStatement) {
-			CallStatement ce = (CallStatement)s;				
-			for (Expression left : ce.getReceiver()) {
-				if (left instanceof IdentifierExpression) {
-					IdentifierExpression ie = (IdentifierExpression)left;
-					res.add(ie);
-				}
-			}
-		} else if (s instanceof UnPackStatement) {
-			UnPackStatement up = (UnPackStatement)s;
-			res.addAll(up.getLeft());
-		} else if (s instanceof PhiStatement) {
-			PhiStatement phi = (PhiStatement)s;
-			res.add(phi.getLeft());
-		}
-		return res;
-	}
 
 	public static class PhiStatement extends Statement {
 
@@ -275,21 +248,7 @@ public class SsaTransformer {
 		
 		public Map<CfgBlock, Integer> getPredecessorIncarnations() {
 			return predecessorIncarnations;
-		}
-		
-		@Override
-		public Set<IdentifierExpression> getIdentifierExpressions() {
-			Set<IdentifierExpression> res = new HashSet<IdentifierExpression>();
-			res.add(left);
-			return res;
-		}
-
-		@Override
-		public Set<Variable> getLVariables() {
-			Set<Variable> res = new HashSet<Variable>();
-			res.add(left.getVariable());
-			return res;
-		}
+		}		
 		
 		@Override
 		public String toString() {
@@ -299,6 +258,18 @@ public class SsaTransformer {
 			sb.append("...");
 			sb.append(")");
 			return sb.toString();
+		}
+
+		@Override
+		public Set<IdentifierExpression> getUseIdentifierExpressions() {			
+			return new HashSet<IdentifierExpression>();
+		}
+
+		@Override
+		public Set<IdentifierExpression> getDefIdentifierExpressions() {
+			Set<IdentifierExpression> res = new HashSet<IdentifierExpression>();
+			res.add(left);
+			return res;
 		}
 	}
 	

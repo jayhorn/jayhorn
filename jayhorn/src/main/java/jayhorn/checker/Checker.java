@@ -28,12 +28,12 @@ import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
-import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
@@ -44,8 +44,8 @@ import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
-import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.MapType;
+import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 
 /**
@@ -266,15 +266,15 @@ public class Checker {
 	    for (CfgEdge edge : method.outgoingEdgesOf(block))
 		if (edge.getLabel().isPresent())
 		    interVars[interVars.length - 1]
-			.addAll(edge.getLabel().get().getUsedVariables());
+			.addAll(edge.getLabel().get().getUseVariables());
 	    interVars[interVars.length - 1].addAll(methodPreVariables);
 
             for (int i = interVars.length - 1; i > 0; --i) {
                 final Statement s = block.getStatements().get(i);
                 interVars[i - 1] = new HashSet<Variable> ();
                 interVars[i - 1].addAll(interVars[i]);
-                interVars[i - 1].removeAll(s.getLVariables());
-                interVars[i - 1].addAll(s.getUsedVariables());
+                interVars[i - 1].removeAll(s.getDefVariables());
+                interVars[i - 1].addAll(s.getUseVariables());
             }
 
             final String initName = initPred.name;
@@ -375,12 +375,11 @@ public class Checker {
 
 		assert(calledMethod.getInParams().size() ==
 		       cs.getArguments().size());
-		assert(calledMethod.getOutParams().size() ==
-		       cs.getReceiver().size());
+		assert(calledMethod.getOutParams().size() == ((cs.getReceiver().isPresent())?1:0));
 
 		final List<Variable> receiverVars = new ArrayList<Variable>();
-		for (Expression e : cs.getReceiver())
-		    receiverVars.add(((IdentifierExpression)e).getVariable());
+		if (cs.getReceiver().isPresent())
+		    receiverVars.add(((IdentifierExpression)cs.getReceiver().get()).getVariable());
 
 		final List<ProverExpr> receiverExprs = new ArrayList<ProverExpr>();
 		createVarMap(receiverVars, receiverExprs, varMap);
@@ -399,8 +398,9 @@ public class Checker {
 		    ++cnt;
 		}
 
-		for (Expression e : cs.getReceiver())
-		    actualPostParams[cnt++] = exprToProverExpr(e, varMap);
+		if (cs.getReceiver().isPresent()) {
+		    actualPostParams[cnt++] = exprToProverExpr(cs.getReceiver().get(), varMap);
+		}
 
 		final ProverExpr preCondAtom =
 		    contract.precondition.predicate.mkExpr(actualInParams);
@@ -727,8 +727,8 @@ public class Checker {
             final Statement s = block.getStatements().get(i);
             interVars[i - 1] = new HashSet<Variable> ();
             interVars[i - 1].addAll(interVars[i]);
-            interVars[i - 1].removeAll(s.getLVariables());
-            interVars[i - 1].addAll(s.getUsedVariables());
+            interVars[i - 1].removeAll(s.getDefVariables());
+            interVars[i - 1].addAll(s.getUseVariables());
         }
 
         final String initName = initPred.name;

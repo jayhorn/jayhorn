@@ -34,18 +34,41 @@ public abstract class Statement implements Node, Serializable {
 
 	}
 
-	public abstract Set<IdentifierExpression> getIdentifierExpressions();
+	public Set<IdentifierExpression> getIdentifierExpressions() {
+		Set<IdentifierExpression> res = new HashSet<>();
+		res.addAll(getUseIdentifierExpressions());
+		res.addAll(getDefIdentifierExpressions());
+		return res;
+	}
+	
+	public abstract Set<IdentifierExpression> getUseIdentifierExpressions();
+	
+	public abstract Set<IdentifierExpression> getDefIdentifierExpressions();
 
-	public Set<Variable> getUsedVariables() {
+	public Set<Variable> getUseVariables() {
 		Set<Variable> res = new HashSet<Variable>();
-		for (IdentifierExpression id : this.getIdentifierExpressions()) {
-			res.add(id.getVariable());
+		for (IdentifierExpression ie : getUseIdentifierExpressions()) {
+			res.add(ie.getVariable());
 		}
 		return res;
 	}
 
-	public abstract Set<Variable> getLVariables();
+	public Set<Variable> getDefVariables() {
+		Set<Variable> res = new HashSet<Variable>();
+		for (IdentifierExpression ie : getDefIdentifierExpressions()) {
+			res.add(ie.getVariable());
+		}
+		return res;
+	}
 
+	public Set<Variable> getAllVariables() {
+		Set<Variable> res = new HashSet<Variable>();
+		for (IdentifierExpression ie : getIdentifierExpressions()) {
+			res.add(ie.getVariable());
+		}
+		return res;
+	}
+	
 	public int getJavaSourceLine() {
 		if (sourceLocation == null) {
 			return -1;

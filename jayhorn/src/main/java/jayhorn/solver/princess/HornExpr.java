@@ -4,10 +4,10 @@ import java.math.BigInteger;
 
 import jayhorn.solver.BoolType;
 import jayhorn.solver.IntType;
+import jayhorn.solver.ProverExpr;
+import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverType;
-import jayhorn.solver.ProverFun;
-import jayhorn.solver.ProverExpr;
 import lazabs.horn.bottomup.HornClauses;
 import lazabs.horn.bottomup.SimpleWrapper;
 

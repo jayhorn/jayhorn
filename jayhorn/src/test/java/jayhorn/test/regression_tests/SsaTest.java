@@ -131,7 +131,7 @@ public class SsaTest {
 							System.err.println(left.toString()+ " is written more than once.");
 							return false;
 						}
-						if (!checkSsaInAssignment(left, ((AssignStatement)s).getRight().getIdentifierExpressions())) {
+						if (!checkSsaInAssignment(left, ((AssignStatement)s).getRight().getUseIdentifierExpressions())) {
 							StringBuilder sb = new StringBuilder();
 							sb.append("SSA didn't work\n");
 							SsaPrinter printer = new SsaPrinter();
@@ -141,8 +141,8 @@ public class SsaTest {
 						}
 					}
 				} else if (s instanceof CallStatement) {
-					if ( ((CallStatement)s).getReceiver().size()==1) {
-						Expression lexp = ((CallStatement)s).getReceiver().iterator().next();
+					if ( ((CallStatement)s).getReceiver().isPresent()) {
+						Expression lexp = ((CallStatement)s).getReceiver().get();
 						if (lexp instanceof IdentifierExpression) {
 							IdentifierExpression left = (IdentifierExpression)lexp;
 							if (hasAlreadyBeenAssigned(assignedSsaVars, left)) {

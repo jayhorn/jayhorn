@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Set;
 
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 
@@ -23,7 +22,8 @@ public class ArrayStoreStatement extends Statement {
 	 * 
 	 */
 	private static final long serialVersionUID = -5637930701746354268L;
-	private final Expression base, value;
+	private final IdentifierExpression base;
+	private final Expression value;
 	private final List<Expression> indices;
 
 	/**
@@ -33,8 +33,9 @@ public class ArrayStoreStatement extends Statement {
 	 * @param indices
 	 * @param value
 	 */
-	public ArrayStoreStatement(SourceLocation loc, Expression base, Expression[] indices, Expression value) {
+	public ArrayStoreStatement(SourceLocation loc, IdentifierExpression base, Expression[] indices, Expression value) {
 		super(loc);
+		//TODO change type of base is an IdentifierExpression. 
 		this.base = base;
 		this.indices = new LinkedList<Expression>();
 		for (int i = 0; i < indices.length; i++) {
@@ -43,7 +44,7 @@ public class ArrayStoreStatement extends Statement {
 		this.value = value;
 	}
 
-	public Expression getBase() {
+	public IdentifierExpression getBase() {
 		return this.base;
 	}
 
@@ -56,28 +57,22 @@ public class ArrayStoreStatement extends Statement {
 	}
 
 	@Override
-	public Set<IdentifierExpression> getIdentifierExpressions() {
-		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
-		used.addAll(base.getIdentifierExpressions());
+	public Set<IdentifierExpression> getUseIdentifierExpressions() {
+		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();		
 		for (Expression e : indices) {
-			used.addAll(e.getIdentifierExpressions());
+			used.addAll(e.getUseIdentifierExpressions());
 		}
-		used.addAll(value.getIdentifierExpressions());
-		return used;
+		used.addAll(value.getUseIdentifierExpressions());
+		throw new RuntimeException("Not implemented");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see soottocfg.cfg.statement.Statement#getLVariables()
-	 */
 	@Override
-	public Set<Variable> getLVariables() {
-		Set<Variable> used = new HashSet<Variable>();
-		used.addAll(base.getLVariables());
-		return used;
-	}
-
+	public Set<IdentifierExpression> getDefIdentifierExpressions() {
+		Set<IdentifierExpression> def = new HashSet<IdentifierExpression>();
+		def.add(base);
+		return def;
+	}	
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

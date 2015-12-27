@@ -10,7 +10,6 @@ import org.junit.Test;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.method.CfgBlock;
-import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.optimization.CfgUpdater;
 import soottocfg.cfg.optimization.ConstantProp;
@@ -31,8 +30,8 @@ public class OptimizationTest {
 
 		OptimizationExample testGen = new OptimizationExample();
 		Method m = testGen.getMethod1();
-		Dominators<CfgBlock, CfgEdge> dominators = new Dominators<CfgBlock, CfgEdge>(m);
-		Map<CfgBlock, Set<CfgBlock>> dom = dominators.computeDominators(m.getSource());
+		Dominators<CfgBlock> dominators = new Dominators<CfgBlock>(m, m.getSource());
+		Map<CfgBlock, Set<CfgBlock>> dom = dominators.getDominators();
 		String actual = PrettyPrinter.ppCfgBlockMapSet(dom);
 		String expected = "{Block0=[Block0],\n" + " Block1=[Block0, Block1],\n" + " Block2=[Block0, Block2]}";
 		Assert.assertEquals(expected, actual);
@@ -44,8 +43,8 @@ public class OptimizationTest {
 
 		OptimizationExample testGen = new OptimizationExample();
 		Method m = testGen.getMethod2();
-		Dominators<CfgBlock, CfgEdge> dominators = new Dominators<CfgBlock, CfgEdge>(m);
-		Map<CfgBlock, Set<CfgBlock>> dom = dominators.computeDominators(m.getSource());
+		Dominators<CfgBlock> dominators = new Dominators<CfgBlock>(m, m.getSource());
+		Map<CfgBlock, Set<CfgBlock>> dom = dominators.getDominators();
 		String actual = PrettyPrinter.ppCfgBlockMapSet(dom);
 		String expected = "{Block0=[Block0],\n" + " Block1=[Block0, Block1],\n" + " Block2=[Block0, Block2],\n"
 				+ " Block3=[Block0, Block2, Block3],\n" + " Block4=[Block0, Block2, Block3, Block4],\n"

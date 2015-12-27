@@ -1,10 +1,5 @@
 package jayhorn.solver.princess;
 
-import jayhorn.solver.BoolType;
-import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverFun;
-import jayhorn.solver.ProverType;
-import scala.collection.mutable.ArrayBuffer;
 import ap.basetypes.IdealInt$;
 import ap.parser.IExpression$;
 import ap.parser.IFunApp;
@@ -12,6 +7,11 @@ import ap.parser.IFunction;
 import ap.parser.IIntLit;
 import ap.parser.ITerm;
 import ap.parser.ITermITE;
+import jayhorn.solver.BoolType;
+import jayhorn.solver.ProverExpr;
+import jayhorn.solver.ProverFun;
+import jayhorn.solver.ProverType;
+import scala.collection.mutable.ArrayBuffer;
 
 class PrincessFun implements ProverFun {
 

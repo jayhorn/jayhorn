@@ -52,14 +52,14 @@ public class DominatorTest {
 		
 		directedGraph.addEdge("7", "2");
 		
-		Dominators<String, DefaultEdge> dom = new Dominators<String, DefaultEdge>(directedGraph);
-		Tree<String> domTree = dom.computeDominatorTree("1");
+		Dominators<String> dom = new Dominators<String>(directedGraph, "1");
+		Tree<String> domTree = dom.getDominatorTree();
 		Assert.assertTrue(domTree.getRoot().equals("1"));
 		Assert.assertTrue(domTree.getChildrenOf("1").size()==1 && domTree.getChildrenOf("1").iterator().next().equals("2"));
 		Assert.assertTrue(domTree.getChildrenOf("2").size()==2 && domTree.getChildrenOf("2").contains("3") && domTree.getChildrenOf("2").contains("4"));
 		Assert.assertTrue(domTree.getChildrenOf("3").size()==3 && domTree.getChildrenOf("3").contains("5") && domTree.getChildrenOf("3").contains("7")&& domTree.getChildrenOf("3").contains("6"));
 	
-		DominanceFrontier<String, DefaultEdge> df = new DominanceFrontier<String, DefaultEdge>(directedGraph, "1");
+		DominanceFrontier<String> df = new DominanceFrontier<String>(dom);
 		Assert.assertTrue(df.getDominanceFrontier().get("1").isEmpty());
 		Assert.assertTrue(df.getDominanceFrontier().get("2").size()==1 && df.getDominanceFrontier().get("2").iterator().next().equals("2"));
 		Assert.assertTrue(df.getDominanceFrontier().get("3").size()==1 && df.getDominanceFrontier().get("3").iterator().next().equals("2"));

@@ -11,8 +11,6 @@ import java.util.Set;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graphs;
 
-import com.google.common.base.Preconditions;
-
 /**
  * @author schaef
  * 'The dominance frontier of a node x is the set of all nodes w such that x
@@ -21,22 +19,17 @@ import com.google.common.base.Preconditions;
  * Modern Compiler Implementation in Java, Second Edition page 406
  * 
  */
-public class DominanceFrontier<V,E> {
+public class DominanceFrontier<V> {
 
-	private final DirectedGraph<V, E> graph;
-	private final V root;
-	private final Dominators<V,E> dominators;
-	private final Map<V,V> iDom;
+	private final DirectedGraph<V, ?> graph;
+	private final Dominators<V> dominators;
 	private final Map<V,Set<V>> dominanceFrontier = new HashMap<V, Set<V>>();
 	private final Tree<V> tree;
 	
-	public DominanceFrontier(DirectedGraph<V, E> g, V root) {
-		Preconditions.checkNotNull(root, "root must not be null");
-		this.graph = g;
-		this.root = root;
-		dominators = new Dominators<V,E>(graph);
-		iDom = dominators.computeImmediateDominators(root);
-		tree = dominators.computeDominatorTree(root);
+	public DominanceFrontier(Dominators<V> dom) {
+		dominators = dom;
+		this.graph = dominators.getGraph();		
+		tree = dominators.getDominatorTree();
 		computeDominanceFrontier(tree.getRoot());
 	}
 	
@@ -64,14 +57,14 @@ public class DominanceFrontier<V,E> {
 	private void computeDominanceFrontier(V n) {
 		Set<V> S = new HashSet<V>();
 		for (V y : Graphs.successorListOf(graph, n)) {
-			if (iDom.containsKey(y) && !iDom.get(y).equals(n)) {
+			if (!n.equals(dominators.getImmediateDominator(y))) {
 				S.add(y);
 			}
 		}
 		for (V c : tree.getChildrenOf(n)) {
 			computeDominanceFrontier(c);
 			for (V w : dominanceFrontier.get(c)) {
-				if (!dominators.computeDominators(root).get(w).contains(n) || n.equals(w)) {
+				if (!dominators.isDominatedBy(w, n) || n.equals(w)) {
 					S.add(w);
 				}
 			}

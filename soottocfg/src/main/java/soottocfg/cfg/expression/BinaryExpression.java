@@ -98,15 +98,15 @@ public class BinaryExpression extends Expression {
 	}
 
 	@Override
-	public Set<IdentifierExpression> getIdentifierExpressions() {
+	public Set<IdentifierExpression> getUseIdentifierExpressions() {
 		Set<IdentifierExpression> ret = new HashSet<IdentifierExpression>();
-		ret.addAll(left.getIdentifierExpressions());
-		ret.addAll(right.getIdentifierExpressions());
+		ret.addAll(left.getUseIdentifierExpressions());
+		ret.addAll(right.getUseIdentifierExpressions());
 		return ret;
 	}
 
 	@Override
-	public Set<Variable> getLVariables() {
+	public Set<Variable> getDefVariables() {
 		// because this can't happen on the left.
 		Set<Variable> used = new HashSet<Variable>();
 		return used;

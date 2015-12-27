@@ -12,7 +12,9 @@ import org.jgrapht.graph.DefaultEdge;
 import org.junit.Assert;
 import org.junit.Test;
 
+import soottocfg.cfg.util.Dominators;
 import soottocfg.cfg.util.EffectualSet;
+import soottocfg.cfg.util.PostDominators;
 
 /**
  * @author schaef
@@ -53,7 +55,9 @@ public class EffectualSetTest {
 		expectedResult.add("2");
 		expectedResult.add("3");
 
-		EffectualSet<String, DefaultEdge> effectualSet = new EffectualSet<String, DefaultEdge>(directedGraph, "0", "4");
+		Dominators<String> dom = new Dominators<String>(directedGraph, "0");
+		PostDominators<String> pdom = new PostDominators<String>(directedGraph, "4");
+		EffectualSet<String> effectualSet = new EffectualSet<String>(dom, pdom);
 		Assert.assertTrue(effectualSet.getEffectualSet().equals(expectedResult));
 	}
 
@@ -85,7 +89,10 @@ public class EffectualSetTest {
 		}
 		String snk = node;
 
-		EffectualSet<String, DefaultEdge> effectualSet = new EffectualSet<String, DefaultEdge>(directedGraph, src, snk);
+		Dominators<String> dom = new Dominators<String>(directedGraph, src);
+		PostDominators<String> pdom = new PostDominators<String>(directedGraph, snk);
+		EffectualSet<String> effectualSet = new EffectualSet<String>(dom, pdom);
+
 		Assert.assertTrue(effectualSet.getEffectualSet().equals(expectedResult));
 	}
 
@@ -100,7 +107,9 @@ public class EffectualSetTest {
 		directedGraph.addVertex(snk);
 		nodeNumberer = 0;
 		Set<String> expectedResult = createdNestedDiamonds(directedGraph, src, snk, depthOfNestedDiamonds);
-		EffectualSet<String, DefaultEdge> effectualSet = new EffectualSet<String, DefaultEdge>(directedGraph, src, snk);
+		Dominators<String> dom = new Dominators<String>(directedGraph, src);
+		PostDominators<String> pdom = new PostDominators<String>(directedGraph, snk);
+		EffectualSet<String> effectualSet = new EffectualSet<String>(dom, pdom);
 
 		// effectualSet.latticToDot(new File("lattice.dot"));
 		// try (FileOutputStream fileStream = new FileOutputStream(new

@@ -59,15 +59,15 @@ public class IdentifierExpression extends Expression {
 	}
 
 	@Override
-	public Set<IdentifierExpression> getIdentifierExpressions() {
+	public Set<IdentifierExpression> getUseIdentifierExpressions() {
 		Set<IdentifierExpression> ret = new HashSet<IdentifierExpression>();
 		ret.add(this);
 		return ret;
 	}
 
 	@Override
-	public Set<Variable> getLVariables() {
-		return getUsedVariables();
+	public Set<Variable> getDefVariables() {
+		return getUseVariables();
 	}
 
 	public Variable getVariable() {

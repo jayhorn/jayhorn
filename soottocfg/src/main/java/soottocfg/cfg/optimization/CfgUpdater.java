@@ -3,6 +3,8 @@ package soottocfg.cfg.optimization;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.google.common.base.Optional;
+
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BooleanLiteral;
@@ -85,7 +87,7 @@ public class CfgUpdater extends CfgVisitor {
 
 	@Override
 	protected Statement processStatement(ArrayReadStatement s) {
-		Expression base = processExpression(s.getBase());
+		IdentifierExpression base = (IdentifierExpression)processExpression(s.getBase());
 		Expression[] ids = s.getIndices();
 		List<Expression> indices = new LinkedList<Expression>();
 		for (int i = 0; i < ids.length; i++) {
@@ -98,7 +100,7 @@ public class CfgUpdater extends CfgVisitor {
 
 	@Override
 	protected Statement processStatement(ArrayStoreStatement s) {
-		Expression base = processExpression(s.getBase());
+		IdentifierExpression base = (IdentifierExpression)processExpression(s.getBase());
 		Expression[] ids = s.getIndices();
 		List<Expression> indices = new LinkedList<Expression>();
 		for (int i = 0; i < ids.length; i++) {
@@ -117,8 +119,11 @@ public class CfgUpdater extends CfgVisitor {
 
 	protected Statement processStatement(CallStatement s) {
 		List<Expression> args = processExpressionList(s.getArguments());
-		List<Expression> receivers = processExpressionList(s.getReceiver());
-		return new CallStatement(s.getSourceLocation(), s.getCallTarget(), args, receivers);
+		Optional<Expression> receiver = Optional.absent();
+		if (s.getReceiver().isPresent()) {
+			receiver = Optional.of(processExpression(s.getReceiver().get()));
+		}		
+		return new CallStatement(s.getSourceLocation(), s.getCallTarget(), args, receiver);
 	}
 
 	/// Expressions

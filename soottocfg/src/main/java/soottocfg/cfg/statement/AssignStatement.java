@@ -9,7 +9,6 @@ import java.util.Set;
 import com.google.common.base.Preconditions;
 
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
@@ -83,18 +82,22 @@ public class AssignStatement extends Statement {
 	}
 
 	@Override
-	public Set<IdentifierExpression> getIdentifierExpressions() {
+	public Set<IdentifierExpression> getUseIdentifierExpressions() {
 		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
-		used.addAll(left.getIdentifierExpressions());
-		used.addAll(right.getIdentifierExpressions());
+		used.addAll(right.getUseIdentifierExpressions());
 		return used;
 	}
 
 	@Override
-	public Set<Variable> getLVariables() {
-		Set<Variable> used = new HashSet<Variable>();
-		used.addAll(left.getLVariables());
-		return used;
+	public Set<IdentifierExpression> getDefIdentifierExpressions() {
+		Set<IdentifierExpression> res = new HashSet<IdentifierExpression>();
+		if (left instanceof IdentifierExpression) {
+			res.add((IdentifierExpression)left);	
+		} else {
+			throw new RuntimeException("Did not consider the case where lhs is not an IdentifierExpression.");
+		}
+		return res;
 	}
+
 
 }

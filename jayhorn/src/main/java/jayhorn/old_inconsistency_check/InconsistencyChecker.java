@@ -90,7 +90,7 @@ public class InconsistencyChecker {
 					e.printStackTrace();
 				} catch (ExecutionException e) {
 					execException++;
-					e.printStackTrace();
+					throw new RuntimeException(e);
 				} catch (OutOfMemoryError e) {
 					outOfMemory++;
 					e.printStackTrace();

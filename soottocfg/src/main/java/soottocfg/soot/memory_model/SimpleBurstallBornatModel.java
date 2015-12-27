@@ -52,7 +52,7 @@ public class SimpleBurstallBornatModel extends BasicMemoryModel {
 			Expression base = valueSwitch.popExpression();
 			rhs.apply(valueSwitch);
 			Expression value = valueSwitch.popExpression();
-			Expression target;
+			IdentifierExpression target;
 			Expression[] indices;
 			indices = new Expression[] { base, new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar) };
 			target = new IdentifierExpression(this.statementSwitch.getCurrentLoc(), this.heapVariable);
@@ -78,7 +78,7 @@ public class SimpleBurstallBornatModel extends BasicMemoryModel {
 			InstanceFieldRef ifr = (InstanceFieldRef) field;
 			ifr.getBase().apply(valueSwitch);
 			Expression base = valueSwitch.popExpression();
-			Expression target;
+			IdentifierExpression target;
 			Expression[] indices;
 			indices = new Expression[] { base, new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar) };
 			target = new IdentifierExpression(this.statementSwitch.getCurrentLoc(), this.heapVariable);

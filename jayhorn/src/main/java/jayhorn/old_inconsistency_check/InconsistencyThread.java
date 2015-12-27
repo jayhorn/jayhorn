@@ -303,9 +303,8 @@ public class InconsistencyThread implements Runnable {
 			return expressionToProverExpr(((AssumeStatement) s).getExpression());
 		} else if (s instanceof CallStatement) {
 			CallStatement cs = (CallStatement)s;
-			//TODO replace receiver by Optional			
-			for (Expression e : cs.getReceiver()) {
-				return prover.mkEq(expressionToProverExpr(e), prover.mkVariable("dummy"+(dummyvarcounter++), lookupProverType(e.getType())));		
+			if (cs.getReceiver().isPresent()) {
+				return prover.mkEq(expressionToProverExpr(cs.getReceiver().get()), prover.mkVariable("dummy"+(dummyvarcounter++), lookupProverType(cs.getReceiver().get().getType())));		
 			}
 			return null;
 		} else if (s instanceof ArrayReadStatement) {
@@ -369,7 +368,7 @@ public class InconsistencyThread implements Runnable {
 				ssaVariableMap.put(ie.getVariable(), new HashMap<Integer, ProverExpr>());
 			}
 			if (!ssaVariableMap.get(ie.getVariable()).containsKey(ie.getIncarnation())) {
-				ProverExpr ssaVar = prover.mkVariable(ie.getLVariables() + "__" + ie.getIncarnation(),
+				ProverExpr ssaVar = prover.mkVariable(ie.getDefVariables() + "__" + ie.getIncarnation(),
 						lookupProverType(ie.getType()));
 				ssaVariableMap.get(ie.getVariable()).put(ie.getIncarnation(), ssaVar);
 			}

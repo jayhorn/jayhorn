@@ -26,11 +26,11 @@ public abstract class Expression implements Node, Serializable {
 	 */
 	private static final long serialVersionUID = 6933938841592139875L;
 
-	public abstract Set<IdentifierExpression> getIdentifierExpressions();
+	public abstract Set<IdentifierExpression> getUseIdentifierExpressions();
 
-	public Set<Variable> getUsedVariables() {
+	public Set<Variable> getUseVariables() {
 		Set<Variable> res = new HashSet<Variable>();
-		for (IdentifierExpression id : this.getIdentifierExpressions()) {
+		for (IdentifierExpression id : this.getUseIdentifierExpressions()) {
 			res.add(id.getVariable());
 		}
 		return res;
@@ -45,10 +45,6 @@ public abstract class Expression implements Node, Serializable {
 	public SourceLocation getSourceLocation() {
 		return this.sourceLocation;
 	}
-
-	
-	// TODO: remove?
-	public abstract Set<Variable> getLVariables();
 
 	public abstract Type getType();
 

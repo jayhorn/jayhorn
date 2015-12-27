@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Set;
 
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 
@@ -23,14 +22,14 @@ public class ArrayReadStatement extends Statement {
 	 * 
 	 */
 	private static final long serialVersionUID = 602143184115962549L;
-	private final Expression base;
+	private final IdentifierExpression base;
 	private final List<Expression> indices;
 	private final IdentifierExpression left;
 
 	/**
 	 * @param loc
 	 */
-	public ArrayReadStatement(SourceLocation loc, Expression base, Expression[] indices, IdentifierExpression lhs) {
+	public ArrayReadStatement(SourceLocation loc, IdentifierExpression base, Expression[] indices, IdentifierExpression lhs) {
 		super(loc);
 		this.base = base;
 		this.indices = new LinkedList<Expression>();
@@ -40,7 +39,7 @@ public class ArrayReadStatement extends Statement {
 		this.left = lhs;
 	}
 
-	public Expression getBase() {
+	public IdentifierExpression getBase() {
 		return this.base;
 	}
 
@@ -53,28 +52,21 @@ public class ArrayReadStatement extends Statement {
 	}
 
 	@Override
-	public Set<IdentifierExpression> getIdentifierExpressions() {
+	public Set<IdentifierExpression> getUseIdentifierExpressions() {
 		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
-		used.addAll(base.getIdentifierExpressions());
+		used.addAll(base.getUseIdentifierExpressions());
 		for (Expression e : indices) {
-			used.addAll(e.getIdentifierExpressions());
+			used.addAll(e.getUseIdentifierExpressions());
 		}
-		used.add(left);
 		return used;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see soottocfg.cfg.statement.Statement#getLVariables()
-	 */
 	@Override
-	public Set<Variable> getLVariables() {
-		// because this can't happen on the left.
-		Set<Variable> used = new HashSet<Variable>();
-		used.add(left.getVariable());
-		return used;
-	}
+	public Set<IdentifierExpression> getDefIdentifierExpressions() {
+		Set<IdentifierExpression> def = new HashSet<IdentifierExpression>();
+		def.add(left);
+		return def;
+	}	
 
 	@Override
 	public String toString() {

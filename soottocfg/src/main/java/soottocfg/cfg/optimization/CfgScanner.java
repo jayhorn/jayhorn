@@ -64,7 +64,9 @@ public class CfgScanner extends CfgVisitor {
 
 	protected Statement processStatement(CallStatement s) {
 		processExpressionList(s.getArguments());
-		processExpressionList(s.getReceiver());
+		if (s.getReceiver().isPresent()) {
+			processExpression(s.getReceiver().get());
+		}
 		return s;
 	}
 

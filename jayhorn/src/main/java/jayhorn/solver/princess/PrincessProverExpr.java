@@ -1,10 +1,9 @@
 package jayhorn.solver.princess;
 
-import jayhorn.solver.ProverExpr;
-
-import ap.parser.ITerm;
-import ap.parser.IFormula;
 import ap.parser.IExpression;
+import ap.parser.IFormula;
+import ap.parser.ITerm;
+import jayhorn.solver.ProverExpr;
 
 abstract class PrincessProverExpr implements ProverExpr {
 

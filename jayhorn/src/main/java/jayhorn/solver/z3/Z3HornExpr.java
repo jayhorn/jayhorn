@@ -9,9 +9,9 @@ import java.util.List;
 
 import jayhorn.solver.BoolType;
 import jayhorn.solver.ProverExpr;
+import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverType;
-import jayhorn.solver.ProverFun;
 
 /**
  * @author schaef

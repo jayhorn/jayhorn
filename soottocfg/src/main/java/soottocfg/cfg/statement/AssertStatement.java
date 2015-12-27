@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 
@@ -44,16 +43,14 @@ public class AssertStatement extends Statement {
 	}
 
 	@Override
-	public Set<IdentifierExpression> getIdentifierExpressions() {
+	public Set<IdentifierExpression> getUseIdentifierExpressions() {
 		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
-		used.addAll(expression.getIdentifierExpressions());
+		used.addAll(expression.getUseIdentifierExpressions());
 		return used;
 	}
 
 	@Override
-	public Set<Variable> getLVariables() {
-		Set<Variable> used = new HashSet<Variable>();
-		return used;
+	public Set<IdentifierExpression> getDefIdentifierExpressions() {
+		return new HashSet<IdentifierExpression>();
 	}
-
 }

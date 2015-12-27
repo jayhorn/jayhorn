@@ -19,7 +19,6 @@ import org.jgrapht.ext.StringNameProvider;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 
 /**
@@ -49,10 +48,7 @@ import com.google.common.base.Verify;
  * 
  * 
  */
-public class EffectualSet<A, B extends DefaultEdge> {
-
-	private final DirectedGraph<A, B> graph;
-	private final A source, sink;
+public class EffectualSet<A> {
 
 	private final Map<A, Set<A>> inevitable;
 	private final DirectedGraph<Set<A>, DefaultEdge> lattice;
@@ -61,16 +57,9 @@ public class EffectualSet<A, B extends DefaultEdge> {
 	/**
 	 * 
 	 */
-	public EffectualSet(DirectedGraph<A, B> g, A src, A snk) {
-		Preconditions.checkArgument(g.containsVertex(src), "Source not found in graph");
-		Preconditions.checkArgument(g.containsVertex(snk), "Sink not found in graph");
-		graph = g;
-		source = src;
-		sink = snk;
-
-		Dominators<A, B> dominators = new Dominators<A, B>(graph);
-		Map<A, Set<A>> dom = dominators.computeDominators(source);
-		Map<A, Set<A>> pdom = dominators.computePostDominators(sink);
+	public EffectualSet(Dominators<A> dominators, PostDominators<A> postDominators) {
+		Map<A, Set<A>> dom = dominators.getDominators();
+		Map<A, Set<A>> pdom = postDominators.getDominators();
 		inevitable = new HashMap<A, Set<A>>(dom);
 		for (Entry<A, Set<A>> entry : pdom.entrySet()) {
 			inevitable.get(entry.getKey()).addAll(entry.getValue());

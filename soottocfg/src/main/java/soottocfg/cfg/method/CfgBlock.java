@@ -98,25 +98,25 @@ public class CfgBlock implements Node, Serializable {
 	}
 
 	@Override
-	public Set<Variable> getUsedVariables() {
+	public Set<Variable> getUseVariables() {
 		Set<Variable> used = new HashSet<Variable>();
 		for (Statement s : statements) {
-			used.addAll(s.getUsedVariables());
+			used.addAll(s.getUseVariables());
 		}
 		// TODO: do the variables in the conditional belong to this block?
 		for (CfgEdge edge : this.method.outgoingEdgesOf(this)) {
 			if (edge.getLabel().isPresent()) {
-				used.addAll(edge.getLabel().get().getUsedVariables());
+				used.addAll(edge.getLabel().get().getUseVariables());
 			}
 		}
 		return used;
 	}
 
 	@Override
-	public Set<Variable> getLVariables() {
+	public Set<Variable> getDefVariables() {
 		Set<Variable> used = new HashSet<Variable>();
 		for (Statement s : statements) {
-			used.addAll(s.getLVariables());
+			used.addAll(s.getDefVariables());
 		}
 		return used;
 	}
@@ -145,8 +145,8 @@ public class CfgBlock implements Node, Serializable {
 		for (ListIterator<Statement> li = getStatements().listIterator(getStatements().size()); li.hasPrevious();) {
 			Statement stmt = li.previous();
 			out.put(stmt, currentLiveOut);
-			Set<Variable> liveIn = SetOperations.union(stmt.getUsedVariables(),
-					SetOperations.minus(currentLiveOut, stmt.getLVariables()));
+			Set<Variable> liveIn = SetOperations.union(stmt.getUseVariables(),
+					SetOperations.minus(currentLiveOut, stmt.getDefVariables()));
 			in.put(stmt, liveIn);
 			currentLiveOut = liveIn;
 		}

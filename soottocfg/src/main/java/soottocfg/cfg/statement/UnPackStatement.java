@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Set;
 
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.type.ClassSignature;
 
@@ -44,25 +43,19 @@ public class UnPackStatement extends Statement {
 	}
 	
 	@Override
-	public Set<IdentifierExpression> getIdentifierExpressions() {
+	public Set<IdentifierExpression> getUseIdentifierExpressions() {
 		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
-		used.addAll(left);
+		used.add(object);
 		return used;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see soottocfg.cfg.statement.Statement#getLVariables()
-	 */
 	@Override
-	public Set<Variable> getLVariables() {
-		Set<Variable> ret = new HashSet<Variable>();
-		for (IdentifierExpression v : left) {
-			ret.add(v.getVariable());
-		}
-		return ret;
+	public Set<IdentifierExpression> getDefIdentifierExpressions() {
+		Set<IdentifierExpression> res = new HashSet<IdentifierExpression>();
+		res.addAll(left);
+		return res;
 	}
+
 
 	@Override
 	public String toString() {

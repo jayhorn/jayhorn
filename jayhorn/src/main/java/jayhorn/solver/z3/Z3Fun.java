@@ -1,14 +1,14 @@
 package jayhorn.solver.z3;
 
-import jayhorn.solver.BoolType;
-import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverFun;
-import jayhorn.solver.ProverType;
-
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.FuncDecl;
+
+import jayhorn.solver.BoolType;
+import jayhorn.solver.ProverExpr;
+import jayhorn.solver.ProverFun;
+import jayhorn.solver.ProverType;
 
 
 class Z3Fun implements ProverFun {

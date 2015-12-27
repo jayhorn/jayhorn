@@ -54,12 +54,12 @@ public class InstanceOfExpression extends Expression {
 	}
 
 	@Override
-	public Set<IdentifierExpression> getIdentifierExpressions() {
-		return expression.getIdentifierExpressions();
+	public Set<IdentifierExpression> getUseIdentifierExpressions() {
+		return expression.getUseIdentifierExpressions();
 	}
 
 	@Override
-	public Set<Variable> getLVariables() {
+	public Set<Variable> getDefVariables() {
 		// because this can't happen on the left.
 		Set<Variable> used = new HashSet<Variable>();
 		return used;
