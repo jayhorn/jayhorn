@@ -169,10 +169,7 @@ public class SootToCfg {
 	}
 
 	private void processMethodBody(Body body) {
-
-		System.err.println(body.toString());
-		preProcessBody(body);
-		System.out.println(body.toString());
+		preProcessBody(body);		
 
 		// generate the CFG structures on the processed body.
 		MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
@@ -208,6 +205,9 @@ public class SootToCfg {
 		AssertionReconstruction.v().removeAssertionRelatedNonsense(body);
 		AssertionReconstruction.v().reconstructJavaAssertions(body);
 
+//		UnreachableFinallyCodeRemover ufcr = new UnreachableFinallyCodeRemover(new NullnessAnalysis(new CompleteUnitGraph(body)), duplicatedFinallyUnits);
+//		ufcr.transform(body);
+		
 		// make the exception handling explicit
 		ExceptionTransformer em = new ExceptionTransformer(new NullnessAnalysis(new CompleteUnitGraph(body)),
 				createAssertionsForUncaughtExceptions);

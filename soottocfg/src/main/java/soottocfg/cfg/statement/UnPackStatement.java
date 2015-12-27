@@ -39,10 +39,14 @@ public class UnPackStatement extends Statement {
 		assert (c.getAssociatedFields().length == left.size());
 	}
 
+	public List<IdentifierExpression> getLeft() {
+		return left;
+	}
+	
 	@Override
 	public Set<IdentifierExpression> getIdentifierExpressions() {
 		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
-		used.add(object);
+		used.addAll(left);
 		return used;
 	}
 

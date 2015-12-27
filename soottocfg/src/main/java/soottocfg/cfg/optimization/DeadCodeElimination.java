@@ -32,11 +32,12 @@ public class DeadCodeElimination extends CfgUpdater {
 			processCfgBlock(block);
 		}
 		UnreachableNodeRemover<CfgBlock, CfgEdge> remover = new UnreachableNodeRemover<CfgBlock, CfgEdge>(currentMethod,
-				currentMethod.getSource(), currentMethod.getSink());
+				currentMethod.getSource(), null);
 		remover.pruneUnreachableNodes();
 		blockLiveVars = null;
 		return changed;
 	}
+
 
 	protected boolean isDead(Statement stmt, LiveVars<Statement> liveVars) {
 		// If a statement writes to only variables that are not live, we can

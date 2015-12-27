@@ -197,7 +197,8 @@ public class DynamicTest {
 				sb.append(out1);
 				sb.append(" is different from ");
 				sb.append(out2);
-				Assert.fail(sb.toString());
+				System.out.println(sb.toString());
+				return false;
 			}
 
 			StringBuilder sb = new StringBuilder();

@@ -24,6 +24,7 @@ import org.jgrapht.graph.AbstractBaseGraph;
 import org.jgrapht.graph.ClassBasedEdgeFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Verify;
 
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Node;
@@ -53,7 +54,6 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	public Method(String uniqueName) {
 		super(new ClassBasedEdgeFactory<CfgBlock, CfgEdge>(CfgEdge.class), true, true);
 		methodName = uniqueName;
-
 	}
 
 	public String getMethodName() {
@@ -97,7 +97,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		this.locals = locals;
 		this.source = source;
 		this.isProgramEntry = isEntryPoint;
-
+		
 		// compute the modifies clause.
 		// TODO: this has to be done transitive at some point!
 		this.modifiedGlobals = new HashSet<Variable>();
@@ -108,6 +108,26 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		this.modifiedGlobals.remove(thisVariable);
 
 	}
+	
+	
+//	private void createUnifiedExitIfNecessary() {		
+//		Set<CfgBlock> sinks = new HashSet<CfgBlock>();
+//		for (CfgBlock b : vertexSet()) {
+//			if (outDegreeOf(b)==0) {
+//				sinks.add(b);
+//			}
+//		}
+//		if (sinks.size()>1) {
+//			System.err.println("Warning: "+getMethodName()+ " has multiple exits. Creating unified exit.");
+//			//create a new unique source.
+//			CfgBlock newSink = new CfgBlock(this);
+//			for (CfgBlock pre : sinks) {
+//				addEdge(newSink, pre);
+//			}
+//			sink = newSink;
+//		}
+//		
+//	}
 
 	/**
 	 * Adds a guard expression as label to an edge. The label must not be null
@@ -126,11 +146,27 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	}
 
 	public CfgBlock getSource() {
-		return this.source;
+		if (source==null) {
+			for (CfgBlock b : vertexSet()) {				
+				if (inDegreeOf(b)==0) {
+					Verify.verify(source==null, "More than one source in graph!");
+					source = b;
+				}
+			}
+		}
+		return source;
 	}
 
 	public CfgBlock getSink() {
-		return this.sink;
+		if (sink==null) {
+			for (CfgBlock b : vertexSet()) {				
+				if (outDegreeOf(b)==0) {
+					Verify.verify(sink==null, "More than one source in graph!");
+					sink = b;
+				}
+			}
+		}		
+		return sink;
 	}
 
 	/**

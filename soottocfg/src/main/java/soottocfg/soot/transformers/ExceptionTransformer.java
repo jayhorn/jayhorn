@@ -117,7 +117,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 		// first remove all the monitor related exceptions
 		removeUnreachableTraps(body);
 		removeMonitorTraps(body);
-
+		
 		PatchingChain<Unit> units = body.getUnits();
 		for (Unit u : units) {
 			collectPossibleExceptions(u);
@@ -194,7 +194,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 		// System.err.println(body);
 		body.validate();
 	}
-
+	
 	private Set<Trap> handleRuntimeException() {
 		Set<Trap> usedTraps = new HashSet<Trap>();
 		// handle the runtime exceptions first.
@@ -421,7 +421,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 	 * @param t
 	 *            The trap that catches this exception
 	 */
-	protected void handleCaughtRuntimeException(Unit u, Value v, SootClass exception, Trap t) {
+	protected void handleCaughtRuntimeException(Unit u, Value v, SootClass exception, Trap t) {		
 		List<Pair<Value, List<Unit>>> guards = constructGuardExpression(v, exception, true, u);
 		Unit newTarget = createNewExceptionAndGoToTrap(u, exception, t);
 		for (Pair<Value, List<Unit>> pair : guards) {
@@ -832,7 +832,6 @@ public class ExceptionTransformer extends AbstractTransformer {
 		return result;
 	}
 	
-	
 	protected void removeUnreachableTraps(Body b) {
 		List<Trap> duplicates = new LinkedList<Trap>();
 		for (Trap t : b.getTraps()) {
@@ -852,5 +851,4 @@ public class ExceptionTransformer extends AbstractTransformer {
 	protected boolean equalTraps(Trap a, Trap b) {
 		return a.getBeginUnit()==b.getBeginUnit() && a.getEndUnit()==b.getEndUnit() && a.getException()==b.getException();
 	}
-	
 }

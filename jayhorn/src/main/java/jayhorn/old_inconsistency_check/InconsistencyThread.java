@@ -20,6 +20,7 @@ import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverType;
+import jayhorn.util.SsaTransformer;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
@@ -36,7 +37,6 @@ import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.optimization.DeadCodeElimination;
 import soottocfg.cfg.statement.ArrayReadStatement;
 import soottocfg.cfg.statement.ArrayStoreStatement;
 import soottocfg.cfg.statement.AssertStatement;
@@ -99,9 +99,11 @@ public class InconsistencyThread implements Runnable {
 
 		lr.verifyLoopFree();// TODO: run only in debug mode.
 
-		SingleStaticAssignment ssa = new SingleStaticAssignment(program, method);
-		ssa.computeSSA();
-
+//		SingleStaticAssignment ssa = new SingleStaticAssignment(program, method);
+//		ssa.computeSSA();
+		SsaTransformer ssa = new SsaTransformer(program, method);
+		ssa.eliminatePhiStatements();
+		
 //		System.err.println(method);
 		//now clean up dead code to avoid trivial reports
 //		DeadCodeElimination dce = new DeadCodeElimination();
@@ -150,7 +152,7 @@ public class InconsistencyThread implements Runnable {
 			// ProverExpr[enablingClause.size()]));
 			// prover.addAssertion(enabling);
 			ProverExpr blocking = prover.mkNot(prover.mkAnd(conj.toArray(new ProverExpr[conj.size()])));
-			prover.addAssertion(blocking);
+			prover.addAssertion(blocking);			
 			result = prover.checkSat(true);
 		}
 		// prover.pop();
@@ -166,8 +168,14 @@ public class InconsistencyThread implements Runnable {
 			sb.append("Not covered ");
 			for (CfgBlock b : inconsistentBlocks) {
 				sb.append(b.getLabel());
-				sb.append(", ");
+				sb.append("\n");
+				for (Statement s : b.getStatements()) {
+					sb.append("\t");
+					sb.append(s);
+					sb.append("\n");
+				}
 			}
+			
 			System.err.println(sb.toString());
 			System.err.println("**************");
 		}

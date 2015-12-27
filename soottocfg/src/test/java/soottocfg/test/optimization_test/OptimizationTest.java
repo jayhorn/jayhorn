@@ -63,6 +63,7 @@ public class OptimizationTest {
 
 		OptimizationExample testGen = new OptimizationExample();
 		Method m = testGen.getMethod1();
+
 		CfgUpdater ie = new ExpressionInliner();
 		CfgUpdater dce = new DeadCodeElimination();
 		CfgUpdater cp = new ConstantProp();
