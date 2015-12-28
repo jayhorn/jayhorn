@@ -43,13 +43,13 @@ public class TruePositives01 {
 		o.hashCode();
 		return 2;
 	}
-//
-//	public void infeasible2(int [] arr) {
-//		for (int i=0; i<=arr.length;i++) {
-//			arr[i]=i; // INFEASIBLE
-//		}
-//	}
-//	
+
+	public void infeasible2(int [] arr) {
+		for (int i=0; i<=arr.length;i++) {
+			arr[i]=i; // INFEASIBLE
+		}
+	}
+	
 //	public void infeasible3(int a, int b) {
 //		b=1; // ALL INFEASIBLE
 //		if (a>0) b--;
@@ -57,14 +57,16 @@ public class TruePositives01 {
 //		if (a<=0) b=1/(1-b);
 //	}
 //	
-//	public boolean infeasible4(Object o) {
-//		System.err.println(o.toString());
-//		if (o==null) {
-//			return false; // INFEASIBLE
-//		}
-//		return true;
-//	}
-//	
+	
+	@SuppressWarnings("unused")
+	public boolean infeasible4(Object o) {
+		System.err.println(o.toString());
+		if (o==null) {
+			return false; // INFEASIBLE
+		}
+		return true;
+	}
+	
 //	public void infeasible5() {
 //		String test="too long";
 //		if (test.length()==3) {
@@ -72,10 +74,10 @@ public class TruePositives01 {
 //		}
 //	}
 //	
-//	public int infeasible6(int[] arr) {
-//		return arr[-1] + arr[arr.length]; // INFEASIBLE
-//	}	
-//	
+	public int infeasible6(int[] arr) {
+		return arr[-1] + arr[arr.length]; // INFEASIBLE
+	}	
+	
 //	public void infeasible07(char[] temp) {
 //		int repos = -1;
 //		int end = -1;

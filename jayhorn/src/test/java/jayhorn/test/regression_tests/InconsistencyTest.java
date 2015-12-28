@@ -90,27 +90,59 @@ public class InconsistencyTest {
 			
 			Map<String, Set<CfgBlock>> result = checker.checkProgram(soot2cfg.getProgram());
 			
-			int check = 0;
-			for (CfgBlock b : result.get("<inconsistencies.TruePositives01: int infeasible1(java.lang.Object)>")) {
+			int check;
+			String methodName;
+			int goal;
+			
+			check = 0; goal = 2;
+			methodName = "<inconsistencies.TruePositives01: int infeasible1(java.lang.Object)>";
+			for (CfgBlock b : result.get(methodName)) {
 				if ("Block4".equals(b.getLabel())) check++;
 				if ("Block2".equals(b.getLabel())) check++;
 			}
-			for (CfgBlock b :  result.get("<inconsistencies.TruePositives01: int infeasible0(int[])>")) {
+			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
+			
+			check = 0; goal = 2;
+			methodName = "<inconsistencies.TruePositives01: int infeasible0(int[])>";
+			for (CfgBlock b :  result.get(methodName)) {
 				if ("Block0".equals(b.getLabel())) check++;
 				if ("Block1".equals(b.getLabel())) check++;				
 			}
+			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
 
-			for (CfgBlock b :  result.get("<inconsistencies.TruePositives01: boolean stringCompare()>")) {
+			check = 0; goal = 2;
+			methodName = "<inconsistencies.TruePositives01: boolean stringCompare()>";
+			for (CfgBlock b :  result.get(methodName)) {
 				if ("Block5".equals(b.getLabel())) check++;
 				if ("Block3".equals(b.getLabel())) check++;				
 			}			
+			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
 
-//			for (CfgBlock b :  result.get("<inconsistencies.TruePositives01: boolean fieldTest(inconsistencies.TruePositives01)>")) {
-//				if ("Block5".equals(b.getLabel())) check++;
-//				if ("Block3".equals(b.getLabel())) check++;				
-//			}	
+			check = 0; goal = 3;
+			methodName = "<inconsistencies.TruePositives01: void infeasible2(int[])>";
+			for (CfgBlock b :  result.get(methodName)) {
+				if ("Block4".equals(b.getLabel())) check++;
+				if ("Block6".equals(b.getLabel())) check++;
+				if ("Block7".equals(b.getLabel())) check++;
+			}			
+			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
+
+			check = 0; goal = 2;
+			methodName = "<inconsistencies.TruePositives01: boolean infeasible4(java.lang.Object)>";
+			for (CfgBlock b :  result.get(methodName)) {
+				if ("Block3".equals(b.getLabel())) check++;
+				if ("Block5".equals(b.getLabel())) check++;
+			}			
+			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
+
+			check = 0; goal = 1;
+			methodName = "<inconsistencies.TruePositives01: int infeasible6(int[])>";
+			for (CfgBlock b :  result.get(methodName)) {
+				if ("Block0".equals(b.getLabel())) check++;
+			}			
+			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
+
 			
-			Assert.assertTrue("Should be 6 but is " + check, check==6);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Assert.fail();

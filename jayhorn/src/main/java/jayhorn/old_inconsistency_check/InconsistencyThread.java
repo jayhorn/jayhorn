@@ -97,7 +97,7 @@ public class InconsistencyThread implements Runnable {
 			System.out.println("Analyzing " + method.getMethodName());
 		}		
 		
-		System.out.println(method);
+//		System.out.println(method);
 		
 		UnreachableNodeRemover<CfgBlock, CfgEdge> unr = new UnreachableNodeRemover<CfgBlock, CfgEdge>(method, method.getSource(), method.getSink());
 		if (unr.pruneUnreachableNodes()) {
@@ -114,15 +114,13 @@ public class InconsistencyThread implements Runnable {
 
 		SsaTransformer ssa = new SsaTransformer(program, method);
 		ssa.eliminatePhiStatements();
-		
-		
-//		if (method.getMethodName().equals("<ssa.SsaTest01: void f1()>"))
-		{
-		SsaPrinter printer = new SsaPrinter();
-		StringBuilder sb = new StringBuilder();
-		printer.printMethod(sb, method);
-		System.out.println(sb);
-		}
+
+//		{
+//		SsaPrinter printer = new SsaPrinter();
+//		StringBuilder sb = new StringBuilder();
+//		printer.printMethod(sb, method);
+//		System.out.println(sb);
+//		}
 
 		createVerificationCondition();
 
