@@ -138,7 +138,6 @@ public class SsaTransformer {
 			push 0 onto Stack[a]
 	 */
 	private void renameVariables() {
-		System.err.println(method);
 		Dominators<CfgBlock> dom = new Dominators<CfgBlock>(method, method.getSource());		
 		Map<Variable, Integer> Count = new HashMap<Variable, Integer>();
 		Map<Variable, Stack<Integer>> stack = new HashMap<Variable, Stack<Integer>>();
@@ -206,9 +205,6 @@ public class SsaTransformer {
 			for (Statement s : Y.getStatements()) {
 				if (s instanceof PhiStatement) {
 					PhiStatement phi = (PhiStatement)s;
-					if (stack.get(phi.getLeft().getVariable()).isEmpty()) {
-						System.err.println("WTF " + phi.getLeft().getVariable()); //TODO
-					}
 					phi.setPredecessorIncarnation(n, stack.get(phi.getLeft().getVariable()).peek());
 				}
 			}
@@ -219,9 +215,6 @@ public class SsaTransformer {
 		for (Statement S : n.getStatements()) {
 			for (Variable a : S.getDefVariables()) {
 				stack.get(a).pop();
-				if(stack.get(a).isEmpty()) {
-					System.err.println("wtf "+a + " in "+n.getLabel());
-				}
 			}
 		}
 	}

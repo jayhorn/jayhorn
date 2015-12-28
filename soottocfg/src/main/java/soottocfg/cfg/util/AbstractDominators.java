@@ -115,7 +115,7 @@ public abstract class AbstractDominators<V> {
 
 		// Initialize the set
 		for (V b : vertices) {
-			if (b == source) {
+			if (b.equals(source)) {
 				// The Source node only dominates itself
 				Set<V> tmp = new LinkedHashSet<V>();
 				tmp.add(b);
@@ -133,18 +133,18 @@ public abstract class AbstractDominators<V> {
 			changed = false;
 			for (V b : vertices) {
 				// Source node is always only dominated by itself.
-				if (b != source) {
+				if (!b.equals(source)) {
 					Set<V> newDom = new HashSet<V>(vertices);
 					// This is a bit ugly way to handle the initialization
 					// of the intersection problem
 					// but it should work
 					if (forward) {
-						Verify.verify(graph.inDegreeOf(b) != 0, "Unexpected indegree of 0");
+						Verify.verify(graph.inDegreeOf(b) != 0, "Unexpected indegree of 0 for " + b);
 						for (V inBlock : Graphs.predecessorListOf(graph, b)) {
 							newDom.retainAll(dominators.get(inBlock));
 						}
 					} else {
-						Verify.verify(graph.outDegreeOf(b) != 0, "Unexpected outdegree of 0");
+						Verify.verify(graph.outDegreeOf(b) != 0, "Unexpected outdegree of 0 for "+b);
 						for (V inBlock : Graphs.successorListOf(graph, b)) {
 							newDom.retainAll(dominators.get(inBlock));
 						}

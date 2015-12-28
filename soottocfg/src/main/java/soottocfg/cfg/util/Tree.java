@@ -3,7 +3,9 @@
  */
 package soottocfg.cfg.util;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -19,8 +21,9 @@ public class Tree<V> {
 
 	private final DefaultDirectedGraph<V, DefaultEdge> tree;
 
-	private boolean rootIsDirty = false;
-	private V root = null;	
+	private boolean isDirty = false;
+	private V root = null;
+	private Set<V> leaves = new HashSet<V>();
 
 	public Tree() {
 		tree = new DefaultDirectedGraph<V, DefaultEdge>(DefaultEdge.class);
@@ -31,20 +34,11 @@ public class Tree<V> {
 		tree.addVertex(child);
 		Verify.verify(tree.inDegreeOf(child)==0, "Node already has a parent: "+child);
 		tree.addEdge(parent, child);
-		rootIsDirty = true;
+		isDirty = true;
 	}
 
 	public V getRoot() {
-		if (rootIsDirty) {
-			root = null;
-			rootIsDirty = false;
-			for (V vertex : tree.vertexSet()) {
-				if (tree.inDegreeOf(vertex)==0) {
-					Verify.verify(root==null, "More than one root in tree.");
-					root = vertex;
-				}
-			}
-		}
+		recomputeRootAndLeavesIfDirty();
 		return root;
 	}
 
@@ -57,6 +51,29 @@ public class Tree<V> {
 	
 	public List<V> getChildrenOf(V node) {
 		return Graphs.successorListOf(tree, node);
+	}
+	
+	public Set<V> getLeaves() {
+		recomputeRootAndLeavesIfDirty();
+		return leaves;
+	}
+	
+	private void recomputeRootAndLeavesIfDirty() {
+		if (isDirty) {
+			root = null;
+			leaves = new HashSet<V>();
+			isDirty = false;
+			for (V vertex : tree.vertexSet()) {
+				if (tree.inDegreeOf(vertex)==0) {
+					Verify.verify(root==null, "More than one root in tree.");
+					root = vertex;
+				}
+				if (tree.outDegreeOf(vertex)==0) {
+					leaves.add(vertex);
+				}
+
+			}
+		}
 	}
 	
 }
