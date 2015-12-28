@@ -63,7 +63,7 @@ public class ArrayStoreStatement extends Statement {
 			used.addAll(e.getUseIdentifierExpressions());
 		}
 		used.addAll(value.getUseIdentifierExpressions());
-		throw new RuntimeException("Not implemented");
+		return used;
 	}
 
 	@Override

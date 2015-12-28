@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -59,37 +58,11 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		return this.methodName;
 	}
 
-	/**
-	 * Returns the set of predecessor vertices of b
-	 * 
-	 * @param b
-	 * @return
-	 */
-	public Set<CfgBlock> getPredsOf(CfgBlock b) {
-		Set<CfgBlock> result = new LinkedHashSet<CfgBlock>();
-		for (CfgEdge e : incomingEdgesOf(b)) {
-			result.add(getEdgeSource(e));
-		}
-		return result;
-	}
-
-	/**
-	 * Returns the set of successor vertices of b
-	 * 
-	 * @param b
-	 * @return
-	 */
-	public Set<CfgBlock> getSuccsOf(CfgBlock b) {
-		Set<CfgBlock> result = new LinkedHashSet<CfgBlock>();
-		for (CfgEdge e : outgoingEdgesOf(b)) {
-			result.add(getEdgeTarget(e));
-		}
-		return result;
-	}
-
 	public void initialize(Variable thisVariable, Variable returnVariable, List<Variable> parameterList,
 			Collection<Variable> locals, CfgBlock source, boolean isEntryPoint) {
 		Preconditions.checkNotNull(parameterList, "Parameter list must not be null");
+//		Preconditions.checkArgument(inDegreeOf(source)==0, "Source is not a source!");
+		
 		this.thisVariable = thisVariable;
 		this.returnVariable = returnVariable;
 		this.parameterList = parameterList;
@@ -105,7 +78,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		this.modifiedGlobals.removeAll(parameterList);
 		this.modifiedGlobals.remove(returnVariable);
 		this.modifiedGlobals.remove(thisVariable);
-
+				
 	}
 	
 	

@@ -3,6 +3,7 @@
  */
 package soottocfg.cfg.util;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,12 +23,12 @@ import org.jgrapht.util.VertexPair;
 public class LoopFinder<V> {
 	
 	private final Map<V, Set<V>> loops;	
-	private final TreeSet<V> loopNestTree;
+	private final LoopNestedTreeSet loopNestTree;
 	
 	public LoopFinder(Dominators<V> dom) {
 		Set<VertexPair<V>> backEdges = findBackEdges(dom);
 		loops = findLoops(dom, backEdges);
-		loopNestTree = new TreeSet<V>();
+		loopNestTree = new LoopNestedTreeSet();
 		loopNestTree.addAll(getLoopHeaders());
 	}
 	
@@ -47,17 +48,17 @@ public class LoopFinder<V> {
 	public Set<V> getLoopBody(V header) {
 		return loops.get(header);
 	}
-	
+		
 	/**
 	 * Returns a loop-nested TreeSet where each element is a loop header
-	 * and last (highest) elements are the inner-most loops.
+	 * and first (lowest) elements are the inner-most loops.
 	 * This contains less information than a proper loop-nested tree but 
 	 * is sufficient to iterate over the loops from inner loops to outer
 	 * loops.
 	 * @return Loop-nested TreeSet.
 	 */
-	public TreeSet<V> getLoopNestTreeSet() {
-		return new TreeSet<V>(loopNestTree);
+	public LoopNestedTreeSet getLoopNestTreeSet() {
+		return new LoopNestedTreeSet(loopNestTree);
 	}
 
 	/**
@@ -142,6 +143,11 @@ public class LoopFinder<V> {
 		public LoopNestedTreeSet() {
 			super(new LoopNestTreeComparator());
 		}
-		
+
+		public LoopNestedTreeSet(Collection<V> vertices) {
+			super(new LoopNestTreeComparator());
+			addAll(vertices);
+		}
+
 	}
 }

@@ -15,6 +15,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
+import org.jgrapht.Graphs;
+
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFun;
@@ -47,6 +49,7 @@ import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.MapType;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.util.UnreachableNodeRemover;
 
 /**
  * @author schaef
@@ -93,10 +96,15 @@ public class InconsistencyThread implements Runnable {
 			System.out.println("Analyzing " + method.getMethodName());
 		}
 		
+		UnreachableNodeRemover<CfgBlock, CfgEdge> unr = new UnreachableNodeRemover<CfgBlock, CfgEdge>(method, method.getSource(), method.getSink());
+		if (unr.pruneUnreachableNodes()) {
+			System.err.println("removed unreachable nodes for "+method.getMethodName());
+		}
+		
+		turnLabeledEdgesIntoAssumes();
 		LoopRemoval lr = new LoopRemoval(method);
 		lr.removeLoops();
-		turnLabeledEdgesIntoAssumes();
-
+		
 		lr.verifyLoopFree();// TODO: run only in debug mode.
 
 //		SingleStaticAssignment ssa = new SingleStaticAssignment(program, method);
@@ -169,11 +177,11 @@ public class InconsistencyThread implements Runnable {
 			for (CfgBlock b : inconsistentBlocks) {
 				sb.append(b.getLabel());
 				sb.append("\n");
-				for (Statement s : b.getStatements()) {
-					sb.append("\t");
-					sb.append(s);
-					sb.append("\n");
-				}
+//				for (Statement s : b.getStatements()) {
+//					sb.append("\t");
+//					sb.append(s);
+//					sb.append("\n");
+//				}
 			}
 			
 			System.err.println(sb.toString());
@@ -237,7 +245,7 @@ public class InconsistencyThread implements Runnable {
 
 			// ensure that only complete paths can be in a model
 			List<ProverExpr> comeFrom = new LinkedList<ProverExpr>();
-			for (CfgBlock pre : method.getPredsOf(b)) {
+			for (CfgBlock pre : Graphs.predecessorListOf(method, b)) {
 				comeFrom.add(blockVars.get(pre));
 			}
 			if (!comeFrom.isEmpty()) {
@@ -252,7 +260,7 @@ public class InconsistencyThread implements Runnable {
 				conj.add(statementToTransitionRelation(s));
 			}
 			List<ProverExpr> disj = new LinkedList<ProverExpr>();
-			for (CfgBlock succ : method.getSuccsOf(b)) {
+			for (CfgBlock succ : Graphs.successorListOf(method, b)) {
 				// This assumes that all edge labels have been turned into
 				// assumes.
 				disj.add(blockVars.get(succ));

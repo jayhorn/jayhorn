@@ -41,8 +41,12 @@ public class UnreachableNodeRemover<A, B extends DefaultEdge> {
 	/**
 	 * Removes all nodes and edges from the control-flow graph that are not
 	 * connected to the source.
+	 * @return true if vertices or edges have been removed.
 	 */
-	public void pruneUnreachableNodes() {
+	public boolean pruneUnreachableNodes() {
+		int vertCount = graph.vertexSet().size();
+		int edgeCount = graph.edgeSet().size();
+		
 		ConnectivityInspector<A, B> insp = new ConnectivityInspector<A, B>(graph);
 		// collect all unreachable nodes.
 		Set<A> verticesToRemove = new HashSet<A>(graph.vertexSet());
@@ -63,6 +67,8 @@ public class UnreachableNodeRemover<A, B extends DefaultEdge> {
 		}
 		graph.removeAllVertices(verticesToRemove);
 		graph.removeAllEdges(egdesToRemove);
+		
+		return !(vertCount == graph.vertexSet().size() && edgeCount == graph.edgeSet().size());
 	}
 
 	/**

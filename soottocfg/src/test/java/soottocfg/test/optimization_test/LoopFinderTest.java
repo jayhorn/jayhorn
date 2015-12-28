@@ -99,13 +99,14 @@ public class LoopFinderTest {
     @Test 
     public void testLoopNestTree() {
     	TreeSet<String> lnt = loopFinder.getLoopNestTreeSet();
-    	Assert.assertTrue(lnt.higher("5").equals("8"));
-    	Assert.assertTrue(lnt.higher("8")==null);
-    	Assert.assertTrue(lnt.lower("2")==null);
+
+    	Assert.assertTrue(lnt.lower("5").equals("8"));
+    	Assert.assertTrue(lnt.higher("8").equals("5"));
+    	Assert.assertTrue(lnt.higher("2")==null);
 
 //    	while (!lnt.isEmpty()) {
-//    		System.err.println(lnt.pollLast());
-//    	}
+//		System.err.println(lnt.pollFirst());
+    	//TODO more testing needed.
     }
 		
 }
