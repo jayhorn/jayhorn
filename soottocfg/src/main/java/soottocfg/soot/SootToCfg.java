@@ -92,13 +92,12 @@ public class SootToCfg {
 
 		SootTranslationHelpers.v().getExceptionGlobalRef();
 
-		//TODO, hacky way to get the exceptionGlobal into the program.
-		Variable exceptionGlobal = this.program.loopupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(),
-				SootTranslationHelpers.v().getMemoryModel()
-						.lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
+		// TODO, hacky way to get the exceptionGlobal into the program.
+		Variable exceptionGlobal = this.program
+				.loopupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
+						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
 		program.setExceptionGlobal(exceptionGlobal);
-		
-		
+
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
 			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
@@ -169,7 +168,7 @@ public class SootToCfg {
 	}
 
 	private void processMethodBody(Body body) {
-		preProcessBody(body);		
+		preProcessBody(body);
 
 		// generate the CFG structures on the processed body.
 		MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
@@ -205,9 +204,11 @@ public class SootToCfg {
 		AssertionReconstruction.v().removeAssertionRelatedNonsense(body);
 		AssertionReconstruction.v().reconstructJavaAssertions(body);
 
-//		UnreachableFinallyCodeRemover ufcr = new UnreachableFinallyCodeRemover(new NullnessAnalysis(new CompleteUnitGraph(body)), duplicatedFinallyUnits);
-//		ufcr.transform(body);
-		
+		// UnreachableFinallyCodeRemover ufcr = new
+		// UnreachableFinallyCodeRemover(new NullnessAnalysis(new
+		// CompleteUnitGraph(body)), duplicatedFinallyUnits);
+		// ufcr.transform(body);
+
 		// make the exception handling explicit
 		ExceptionTransformer em = new ExceptionTransformer(new NullnessAnalysis(new CompleteUnitGraph(body)),
 				createAssertionsForUncaughtExceptions);

@@ -4,11 +4,13 @@
 package soottocfg.cfg.util;
 
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
-import org.jgrapht.alg.ConnectivityInspector;
+import org.jgrapht.Graphs;
 import org.jgrapht.alg.DijkstraShortestPath;
 import org.jgrapht.alg.NaiveLcaFinder;
 import org.jgrapht.graph.DefaultEdge;
@@ -47,10 +49,9 @@ public class UnreachableNodeRemover<A, B extends DefaultEdge> {
 		int vertCount = graph.vertexSet().size();
 		int edgeCount = graph.edgeSet().size();
 		
-		ConnectivityInspector<A, B> insp = new ConnectivityInspector<A, B>(graph);
 		// collect all unreachable nodes.
 		Set<A> verticesToRemove = new HashSet<A>(graph.vertexSet());
-		verticesToRemove.removeAll(insp.connectedSetOf(source));
+		verticesToRemove.removeAll(reachableFromSource());
 		// collect all unreachable edges
 		Set<B> egdesToRemove = new HashSet<B>();
 		for (A b : verticesToRemove) {
@@ -71,6 +72,22 @@ public class UnreachableNodeRemover<A, B extends DefaultEdge> {
 		return !(vertCount == graph.vertexSet().size() && edgeCount == graph.edgeSet().size());
 	}
 
+	private Set<A> reachableFromSource() {
+		Set<A> res = new HashSet<A>();
+		Queue<A> todo = new LinkedList<A>();
+		todo.add(source);
+		while (!todo.isEmpty()) {
+			A current = todo.poll();
+			res.add(current);
+			for (A succ : Graphs.successorListOf(graph, current)) {
+				if (!todo.contains(succ) && !res.contains(succ)) {
+					todo.add(succ);
+				}
+			}
+		}
+		return res;
+	}
+	
 	/**
 	 * Removes all nodes and edges from which the sink of the method is not
 	 * reachable. Normally, all nodes and edges should be able to reach the

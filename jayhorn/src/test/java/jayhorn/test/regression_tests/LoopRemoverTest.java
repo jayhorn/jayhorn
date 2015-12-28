@@ -13,13 +13,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.jgrapht.alg.CycleDetector;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import jayhorn.test.Util;
+import jayhorn.util.EdgeLabelToAssume;
+import jayhorn.util.LoopRemoval;
 import jayhorn.util.SsaPrinter;
 import jayhorn.util.SsaTransformer;
 import soottocfg.cfg.Program;
@@ -32,6 +33,7 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.util.UnreachableNodeRemover;
 import soottocfg.soot.SootToCfg;
 import soottocfg.soot.SootToCfg.MemModel;
 
@@ -40,7 +42,7 @@ import soottocfg.soot.SootToCfg.MemModel;
  *
  */
 @RunWith(Parameterized.class)
-public class SsaTest {
+public class LoopRemoverTest {
 
 	private static final String userDir = System.getProperty("user.dir") + "/";
 	private static final String testRoot = userDir + "src/test/resources/";
@@ -71,7 +73,7 @@ public class SsaTest {
 		return filenames;
 	}
 
-	public SsaTest(File source, String name) {
+	public LoopRemoverTest(File source, String name) {
 		this.sourceFile = source;
 	}
 
@@ -88,24 +90,28 @@ public class SsaTest {
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			Program prog = soot2cfg.getProgram();
 			for (Method m : prog.getMethods()) {
+				if (m.vertexSet().isEmpty()) continue;
+				System.out.println("For method "+ m.getMethodName());
+				System.out.println(m);
+				//now remove the loops and do ssa again.
+				UnreachableNodeRemover<CfgBlock, CfgEdge> unr = new UnreachableNodeRemover<CfgBlock, CfgEdge>(m, m.getSource(), m.getSink());
+				if (unr.pruneUnreachableNodes()) {
+					System.err.println("removed unreachable nodes for "+m.getMethodName());
+				}				
+				EdgeLabelToAssume etoa = new EdgeLabelToAssume(m);
+				etoa.turnLabeledEdgesIntoAssumes();
 
-				CycleDetector<CfgBlock, CfgEdge> cycles = new CycleDetector<CfgBlock, CfgEdge>(m);
-				boolean loopfree = cycles.findCycles().isEmpty();
-
-				if (m.vertexSet().isEmpty()) {
-					continue;
-				}
-				SsaTransformer ssatrans = new SsaTransformer(prog, m);	
-				if (loopfree) {
-					ssatrans.eliminatePhiStatements();
-				}
-				System.out.println("Checking method: "+m.getMethodName());				
-				SsaPrinter printer = new SsaPrinter();
-				StringBuilder sb = new StringBuilder();
-				printer.printMethod(sb, m);
-				System.out.println(sb);
-				
+				LoopRemoval lr = new LoopRemoval(m);
+				lr.removeLoops();				
+				lr.verifyLoopFree();
+				SsaTransformer ssa = new SsaTransformer(prog, m);
 				Assert.assertTrue("Variable is written more than once.", validateSsa(m));
+				ssa.eliminatePhiStatements();
+				//TODO: assert that after removing the phi statement, each variable is only
+				//written once per path. Note that we cannot use validateSsa because it
+				//checks if every variable is only written once per procedure. This is
+				//violated when eliminating the phi statements.
+								
 			}
 			
 		} catch (IOException e) {
@@ -135,6 +141,7 @@ public class SsaTest {
 							sb.append("SSA didn't work\n");
 							SsaPrinter printer = new SsaPrinter();
 							printer.printStatement(sb, s);
+							printer.printMethod(sb, m);
 							System.err.println(sb.toString());
 							return false;
 						}
@@ -150,7 +157,7 @@ public class SsaTest {
 							}
 							if (!checkSsaInAssignment(left, ((CallStatement)s).getUseIdentifierExpressions())) {
 								StringBuilder sb = new StringBuilder();
-								sb.append("SSA didn't work: ");
+								sb.append("SSA didn't work ");
 								SsaPrinter printer = new SsaPrinter();
 								printer.printStatement(sb, s);
 								System.err.println(sb.toString());
@@ -166,7 +173,7 @@ public class SsaTest {
 	
 	private boolean checkSsaInAssignment(IdentifierExpression left, Set<IdentifierExpression> rights) {		
 		for (IdentifierExpression ie : rights) {
-			if (ie.getVariable().equals(left.getVariable())) {
+			if (ie.getVariable()==left.getVariable()) {
 				if (ie.getIncarnation()>=left.getIncarnation()) {
 					return false;
 				}

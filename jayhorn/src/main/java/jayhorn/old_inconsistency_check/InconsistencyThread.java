@@ -7,7 +7,6 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -17,14 +16,17 @@ import java.util.UUID;
 
 import org.jgrapht.Graphs;
 
+import com.google.common.base.Verify;
+
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverType;
+import jayhorn.util.EdgeLabelToAssume;
+import jayhorn.util.LoopRemoval;
 import jayhorn.util.SsaTransformer;
 import soottocfg.cfg.Program;
-import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.ArrayLengthExpression;
 import soottocfg.cfg.expression.BinaryExpression;
@@ -81,6 +83,21 @@ public class InconsistencyThread implements Runnable {
 		program = prog;
 	}
 
+	protected void todoTests(Method method) {
+		CfgBlock src = null;
+		boolean broken = false;
+		for (CfgBlock b : method.vertexSet()) {
+			if (method.inDegreeOf(b)==0) {				
+				if(src!=null) {
+					System.err.println("more than one source! "+src.getLabel() + " and "+ b.getLabel());
+					broken = true;
+				}
+				src = b;
+			}
+		}
+		Verify.verify(!broken);
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -94,23 +111,34 @@ public class InconsistencyThread implements Runnable {
 			return;
 		} else {
 			System.out.println("Analyzing " + method.getMethodName());
-		}
+		}		
 		
 		UnreachableNodeRemover<CfgBlock, CfgEdge> unr = new UnreachableNodeRemover<CfgBlock, CfgEdge>(method, method.getSource(), method.getSink());
 		if (unr.pruneUnreachableNodes()) {
 			System.err.println("removed unreachable nodes for "+method.getMethodName());
 		}
 		
-		turnLabeledEdgesIntoAssumes();
+//		todoTests(method);
+		EdgeLabelToAssume etoa = new EdgeLabelToAssume(method);
+		etoa.turnLabeledEdgesIntoAssumes();
+//		todoTests(method);
 		LoopRemoval lr = new LoopRemoval(method);
 		lr.removeLoops();
 		
 		lr.verifyLoopFree();// TODO: run only in debug mode.
 
+		
 //		SingleStaticAssignment ssa = new SingleStaticAssignment(program, method);
 //		ssa.computeSSA();
 		SsaTransformer ssa = new SsaTransformer(program, method);
 		ssa.eliminatePhiStatements();
+		
+//		if (method.getMethodName().equals("<ssa.SsaTest01: void f1()>")){
+//		SsaPrinter printer = new SsaPrinter();
+//		StringBuilder sb = new StringBuilder();
+//		printer.printMethod(sb, method);
+//		System.out.println(sb);
+//		}
 		
 //		System.err.println(method);
 		//now clean up dead code to avoid trivial reports
@@ -191,35 +219,7 @@ public class InconsistencyThread implements Runnable {
 		return;
 	}
 
-	/**
-	 * For each edge labeled with a conditional, introduce a new vertex that
-	 * contains this conditional as assume statement, remove the edge and add
-	 * new edges to but this vertex between source and target
-	 */
-	private void turnLabeledEdgesIntoAssumes() {
-		Set<CfgEdge> edges = new LinkedHashSet<CfgEdge>(method.edgeSet());
-		for (CfgEdge edge : edges) {
-			if (edge.getLabel().isPresent()) {
-				CfgBlock src = method.getEdgeSource(edge);
-				CfgBlock tgt = method.getEdgeTarget(edge);
-				SourceLocation loc = edge.getLabel().get().getSourceLocation();
-				if (!tgt.getStatements().isEmpty()) {
-					loc = tgt.getStatements().iterator().next().getSourceLocation();
-				} else if (!src.getStatements().isEmpty()) {
-					loc = src.getStatements().get(src.getStatements().size() - 1).getSourceLocation();
-				} else {
-//					System.err.println(
-//							"ERROR: these labeled edges without location tags will cause problems later. @Martin, fix that!");
-				}
-				Statement assume = new AssumeStatement(loc, edge.getLabel().get());
-				method.removeEdge(edge);
-				CfgBlock between = new CfgBlock(method);
-				between.addStatement(assume);
-				method.addEdge(src, between);
-				method.addEdge(between, tgt);
-			}
-		}
-	}
+
 
 	ProverFun arrayLength;
 

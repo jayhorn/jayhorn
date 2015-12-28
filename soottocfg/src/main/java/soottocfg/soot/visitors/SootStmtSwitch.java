@@ -261,6 +261,10 @@ public class SootStmtSwitch implements StmtSwitch {
 		precheck(arg0);
 		arg0.getCondition().apply(valueSwitch);
 		Expression cond = valueSwitch.popExpression();
+		//apply the switch twice. Otherwise the conditional and its negation are aliased.
+		arg0.getCondition().apply(valueSwitch);
+		Expression negCond = new UnaryExpression(loc, UnaryOperator.LNot, valueSwitch.popExpression());
+
 		/*
 		 * In jimple, conditionals are of the form if (x) goto y; So we end the
 		 * current block and create two new blocks for then and else branch. The
@@ -283,10 +287,10 @@ public class SootStmtSwitch implements StmtSwitch {
 		connectBlocks(currentBlock, thenBlock, cond);
 		if (next != null) {
 			CfgBlock elseBlock = methodInfo.lookupCfgBlock(next);
-			connectBlocks(currentBlock, elseBlock, new UnaryExpression(loc, UnaryOperator.LNot, cond));
+			connectBlocks(currentBlock, elseBlock,negCond);
 			this.currentBlock = elseBlock;
 		} else {
-			connectBlocks(currentBlock, methodInfo.getSink(), new UnaryExpression(loc, UnaryOperator.LNot, cond));
+			connectBlocks(currentBlock, methodInfo.getSink(), negCond);
 			this.currentBlock = null;
 		}
 	}

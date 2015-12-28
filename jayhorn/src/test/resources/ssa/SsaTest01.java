@@ -1,9 +1,9 @@
 package ssa;
 
 public class SsaTest01 {
-	public static int plusOne(int x) {
-		return x + 1;
-	}
+//	public static int plusOne(int x) {
+//		return x + 1;
+//	}
 
 	public void f1() {
 		int i = 0;

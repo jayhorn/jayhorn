@@ -5,6 +5,8 @@ package jayhorn.util;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -35,32 +37,34 @@ public class SsaTransformer {
 
 	private final Method method;
 	private final Program program;
-		
+	private Dominators<CfgBlock> dom;
+
 	public SsaTransformer(Program prog, Method m) {
 		program = prog;
 		method = m;
 		if (!method.vertexSet().isEmpty()) {
+			dom = new Dominators<CfgBlock>(method, method.getSource());
+			insertBlocksBetweenForPhiStatements();
 			placePhiFunctions();
 			renameVariables();
 		}
 	}
-	
+
 	public void eliminatePhiStatements() {
-		//TODO assert loop-freeness
+		// TODO assert loop-freeness
 		for (CfgBlock b : method.vertexSet()) {
 			Set<PhiStatement> toRemove = new HashSet<PhiStatement>();
 			for (Statement s : b.getStatements()) {
 				if (s instanceof PhiStatement) {
-					PhiStatement phi = (PhiStatement)s;
+					PhiStatement phi = (PhiStatement) s;
 					toRemove.add(phi);
 					int inc = phi.getLeft().getIncarnation();
 					Variable v = phi.getLeft().getVariable();
 					SourceLocation loc = null;
 					for (Entry<CfgBlock, Integer> entry : phi.getPredecessorIncarnations().entrySet()) {
 						CfgBlock pred = entry.getKey();
-						Verify.verify(pred!=b);
-						AssignStatement asgn = new AssignStatement(loc, 
-								new IdentifierExpression(loc, v, inc), 
+						Verify.verify(pred != b);
+						AssignStatement asgn = new AssignStatement(loc, new IdentifierExpression(loc, v, inc),
 								new IdentifierExpression(loc, v, entry.getValue()));
 						pred.getStatements().add(asgn);
 					}
@@ -69,32 +73,60 @@ public class SsaTransformer {
 			b.getStatements().removeAll(toRemove);
 		}
 	}
-	
-	/** Modern Compiler Implementation in Java, Second Edition page 407
-	 * For each node n, Aorig[n] is the set of variables defined in node n
-	 * Place-phi-Functions =
-		for each node n
-			for each variable a in Aorig[n]
-				defsites[a] <- defsites[a] U {n}
-		for each variable a
-			W <- defsites[a]
-			while W not empty
-				remove some node n from W
-				for each y in DF[n]
-					if a not in Aphi[y]
-						insert the statement a <- phi(a, a,..., a) at the top
-						  of block y, where the phi-function has as many
-						  arguments as y has predecessors.
-						Aphi[y] ← Aphi[y]U{a}
-						if a not in Aorig[y]
-							W <- W U {y}
+
+	/**
+	 * Before placing the phi statements check for each block if it 
+	 * has predecessors that dominate each other. If so, add blocks
+	 * in between.
+	 */
+	private void insertBlocksBetweenForPhiStatements() {
+		boolean dirty = false;
+		for (CfgBlock b : new HashSet<CfgBlock>(method.vertexSet())) {
+
+			List<CfgBlock> preds = new LinkedList<CfgBlock>(Graphs.predecessorListOf(method, b));
+			Set<CfgBlock> blockBetweenNeeded = new HashSet<CfgBlock>();
+			for (CfgBlock pre : preds) {
+				/*
+				 * If a predecessor of a block containing a phi statement
+				 * dominates another predecessor of the same block, we have to
+				 * add a block between the dominating predecessor and the
+				 * current block, otherwise we cannot remove the phi statement.
+				 */
+				for (CfgBlock other : preds) {
+					if (!pre.equals(other) && dom.isDominatedBy(other, pre)) {
+						blockBetweenNeeded.add(pre);
+					}
+				}
+			}
+			for (CfgBlock pred : blockBetweenNeeded) {
+				CfgBlock between = new CfgBlock(method);
+				method.removeEdge(pred, b);
+				method.addEdge(pred, between);
+				method.addEdge(between, b);
+				dirty = true;
+			}			
+		}
+		if (dirty) {
+			dom = new Dominators<CfgBlock>(method, method.getSource());
+		}
+	}
+
+	/**
+	 * Modern Compiler Implementation in Java, Second Edition page 407 For each
+	 * node n, Aorig[n] is the set of variables defined in node n
+	 * Place-phi-Functions = for each node n for each variable a in Aorig[n]
+	 * defsites[a] <- defsites[a] U {n} for each variable a W <- defsites[a]
+	 * while W not empty remove some node n from W for each y in DF[n] if a not
+	 * in Aphi[y] insert the statement a <- phi(a, a,..., a) at the top of block
+	 * y, where the phi-function has as many arguments as y has predecessors.
+	 * Aphi[y] ← Aphi[y]U{a} if a not in Aorig[y] W <- W U {y}
 	 */
 	private void placePhiFunctions() {
-		Dominators<CfgBlock> dom = new Dominators<CfgBlock>(method, method.getSource()); 
 		DominanceFrontier<CfgBlock> DF = new DominanceFrontier<CfgBlock>(dom);
-		Map<Variable, Set<CfgBlock>> defsites = new HashMap<Variable, Set<CfgBlock>>();		
+		Map<Variable, Set<CfgBlock>> defsites = new HashMap<Variable, Set<CfgBlock>>();
 		for (CfgBlock n : method.vertexSet()) {
-			Set<Variable> variables = n.getDefVariables(); //TODO check with Daniel
+			Set<Variable> variables = n.getDefVariables(); // TODO check with
+															// Daniel
 			for (Variable a : variables) {
 				if (!defsites.containsKey(a)) {
 					defsites.put(a, new HashSet<CfgBlock>());
@@ -105,7 +137,7 @@ public class SsaTransformer {
 		Map<CfgBlock, Set<Variable>> Aphi = new HashMap<CfgBlock, Set<Variable>>();
 		for (Variable a : method.getUseVariables()) {
 			Set<CfgBlock> W = defsites.get(a);
-			while(W!=null && !W.isEmpty()) {
+			while (W != null && !W.isEmpty()) {
 				CfgBlock n = W.iterator().next();
 				W.remove(n);
 				for (CfgBlock y : DF.getDominanceFrontier().get(n)) {
@@ -113,7 +145,7 @@ public class SsaTransformer {
 						Aphi.put(y, new HashSet<Variable>());
 					}
 					if (!Aphi.get(y).contains(a)) {
-						createPhiFunction(y,a);
+						createPhiFunction(y, a);
 						Aphi.get(y).add(a);
 						if (!y.getUseVariables().contains(a)) {
 							W.add(y);
@@ -123,63 +155,50 @@ public class SsaTransformer {
 			}
 		}
 	}
-	
+
 	private void createPhiFunction(CfgBlock b, Variable v) {
 		IdentifierExpression left = new IdentifierExpression(null, v);
 		PhiStatement phi = new PhiStatement(left, b);
 		b.getStatements().add(0, phi);
 	}
-	
-	
-	/** Modern Compiler Implementation in Java, Second Edition page 409
-	 * 	for each variable a
-			Count[a] <- 0
-			Stack[a] <- empty
-			push 0 onto Stack[a]
+
+	/**
+	 * Modern Compiler Implementation in Java, Second Edition page 409 for each
+	 * variable a Count[a] <- 0 Stack[a] <- empty push 0 onto Stack[a]
 	 */
 	private void renameVariables() {
-		Dominators<CfgBlock> dom = new Dominators<CfgBlock>(method, method.getSource());		
+		Dominators<CfgBlock> dom = new Dominators<CfgBlock>(method, method.getSource());
 		Map<Variable, Integer> Count = new HashMap<Variable, Integer>();
 		Map<Variable, Stack<Integer>> stack = new HashMap<Variable, Stack<Integer>>();
 		Set<Variable> allVariables = new HashSet<Variable>();
 		allVariables.addAll(method.getUseVariables());
 		allVariables.addAll(method.getDefVariables());
 		allVariables.add(program.getExceptionGlobal());
-		for (Variable a : allVariables) { //TODO should be ALL variables.
+		for (Variable a : allVariables) { // TODO should be ALL variables.
 			Count.put(a, 0);
 			stack.put(a, new Stack<Integer>());
 			stack.get(a).push(0);
 		}
 		Tree<CfgBlock> domTree = dom.getDominatorTree();
-		rename(domTree.getRoot(), stack, Count, domTree);		
+		rename(domTree.getRoot(), stack, Count, domTree);
 	}
-	
+
 	/**
-	 * Modern Compiler Implementation in Java, Second Edition page 409
-	 * 	for each statement S in block n
-	 *		if S is not a phi-function
-	 *			for each use of some variable x in S
-	 *				i <- top(Stack[x])
-	 *				replace the use of x with xi in S
-	 *		for each definition of some variable a in S
-	 *			Count[a] <- Count[a] + 1
-	 *			i <- Count[a]
-	 *			push i onto Stack[a]
-	 *			replace definition of a with definition of ai in S	
-	 *	for each successor Y of block n,
-	 *		Suppose n is the jth predecessor of Y
-	 *		for each phi-function in Y
-	 *		suppose the jth operand of the phi-function is a
-	 *		i <- top(Stack[a])
-	 *		replace the jth operand with ai
-	 *	for each child X of n
-	 *		Rename(X)
-	 *	for each statement S in block n
-	 *		for each definition of some variable a in S
-	 *			pop Stack[a]			
+	 * Modern Compiler Implementation in Java, Second Edition page 409 for each
+	 * statement S in block n if S is not a phi-function for each use of some
+	 * variable x in S i <- top(Stack[x]) replace the use of x with xi in S for
+	 * each definition of some variable a in S Count[a] <- Count[a] + 1 i <-
+	 * Count[a] push i onto Stack[a] replace definition of a with definition of
+	 * ai in S for each successor Y of block n, Suppose n is the jth predecessor
+	 * of Y for each phi-function in Y suppose the jth operand of the
+	 * phi-function is a i <- top(Stack[a]) replace the jth operand with ai for
+	 * each child X of n Rename(X) for each statement S in block n for each
+	 * definition of some variable a in S pop Stack[a]
+	 * 
 	 * @param n
 	 */
-	private void rename(CfgBlock n, Map<Variable, Stack<Integer>> stack, Map<Variable, Integer> Count, Tree<CfgBlock> domTree) {
+	private void rename(CfgBlock n, Map<Variable, Stack<Integer>> stack, Map<Variable, Integer> Count,
+			Tree<CfgBlock> domTree) {
 		for (Statement S : n.getStatements()) {
 			if (!(S instanceof PhiStatement)) {
 				for (IdentifierExpression idexp : S.getUseIdentifierExpressions()) {
@@ -189,22 +208,22 @@ public class SsaTransformer {
 			}
 			for (IdentifierExpression ie : S.getDefIdentifierExpressions()) {
 				Variable a = ie.getVariable();
-				Count.put(a, Count.get(a)+1);
+				Count.put(a, Count.get(a) + 1);
 				int i = Count.get(a);
 				stack.get(a).push(i);
 				ie.setIncarnation(i);
 			}
-			//TODO: procedure hack:
+			// TODO: procedure hack:
 			if (S instanceof CallStatement) {
 				Variable a = program.getExceptionGlobal();
-				Count.put(a, Count.get(a)+1);
+				Count.put(a, Count.get(a) + 1);
 				stack.get(a).push(Count.get(a));
-			} //end of hack
+			} // end of hack
 		}
 		for (CfgBlock Y : Graphs.successorListOf(method, n)) {
 			for (Statement s : Y.getStatements()) {
 				if (s instanceof PhiStatement) {
-					PhiStatement phi = (PhiStatement)s;
+					PhiStatement phi = (PhiStatement) s;
 					phi.setPredecessorIncarnation(n, stack.get(phi.getLeft().getVariable()).peek());
 				}
 			}
@@ -218,7 +237,6 @@ public class SsaTransformer {
 			}
 		}
 	}
-	
 
 	public static class PhiStatement extends Statement {
 
@@ -234,15 +252,15 @@ public class SsaTransformer {
 		public IdentifierExpression getLeft() {
 			return left;
 		}
-		
+
 		public void setPredecessorIncarnation(CfgBlock pred, Integer incarnation) {
 			predecessorIncarnations.put(pred, incarnation);
 		}
-		
+
 		public Map<CfgBlock, Integer> getPredecessorIncarnations() {
 			return predecessorIncarnations;
-		}		
-		
+		}
+
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
@@ -254,7 +272,7 @@ public class SsaTransformer {
 		}
 
 		@Override
-		public Set<IdentifierExpression> getUseIdentifierExpressions() {			
+		public Set<IdentifierExpression> getUseIdentifierExpressions() {
 			return new HashSet<IdentifierExpression>();
 		}
 
@@ -265,5 +283,5 @@ public class SsaTransformer {
 			return res;
 		}
 	}
-	
+
 }
