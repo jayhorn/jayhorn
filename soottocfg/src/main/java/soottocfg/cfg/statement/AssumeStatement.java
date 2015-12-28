@@ -56,4 +56,9 @@ public class AssumeStatement extends Statement {
 		return new HashSet<IdentifierExpression>();
 	}
 
+	@Override
+	public Statement deepCopy() {
+		return new AssumeStatement(getSourceLocation(), expression.deepCopy());
+	}
+
 }

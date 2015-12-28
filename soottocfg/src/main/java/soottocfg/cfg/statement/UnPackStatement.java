@@ -74,4 +74,13 @@ public class UnPackStatement extends Statement {
 		return sb.toString();
 	}
 
+	@Override
+	public Statement deepCopy() {
+		List<IdentifierExpression> leftCopy = new LinkedList<IdentifierExpression>();
+		for (IdentifierExpression e : left) {
+			leftCopy.add(e.deepCopy());
+		}
+		return new UnPackStatement(getSourceLocation(), classConstant, object.deepCopy(), leftCopy);
+	}
+
 }

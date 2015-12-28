@@ -78,4 +78,9 @@ public class IdentifierExpression extends Expression {
 	public Type getType() {
 		return variable.getType();
 	}
+
+	@Override
+	public IdentifierExpression deepCopy() {		
+		return new IdentifierExpression(getSourceLocation(), variable, ssaIncarnation);
+	}
 }

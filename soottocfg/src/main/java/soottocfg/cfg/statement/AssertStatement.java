@@ -11,14 +11,11 @@ import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 
 /**
- * @author teme
+ * @author teme, schaef
  *
  */
 public class AssertStatement extends Statement {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -2043514337815140767L;
 	private final Expression expression;
 
@@ -52,5 +49,10 @@ public class AssertStatement extends Statement {
 	@Override
 	public Set<IdentifierExpression> getDefIdentifierExpressions() {
 		return new HashSet<IdentifierExpression>();
+	}
+
+	@Override
+	public Statement deepCopy() {
+		return new AssertStatement(getSourceLocation(), expression.deepCopy());
 	}
 }

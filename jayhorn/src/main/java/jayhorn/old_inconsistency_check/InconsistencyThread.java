@@ -16,8 +16,6 @@ import java.util.UUID;
 
 import org.jgrapht.Graphs;
 
-import com.google.common.base.Verify;
-
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFun;
@@ -25,6 +23,7 @@ import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverType;
 import jayhorn.util.EdgeLabelToAssume;
 import jayhorn.util.LoopRemoval;
+import jayhorn.util.SsaPrinter;
 import jayhorn.util.SsaTransformer;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.Variable;
@@ -82,21 +81,6 @@ public class InconsistencyThread implements Runnable {
 		prover = p;
 		program = prog;
 	}
-
-	protected void todoTests(Method method) {
-		CfgBlock src = null;
-		boolean broken = false;
-		for (CfgBlock b : method.vertexSet()) {
-			if (method.inDegreeOf(b)==0) {				
-				if(src!=null) {
-					System.err.println("more than one source! "+src.getLabel() + " and "+ b.getLabel());
-					broken = true;
-				}
-				src = b;
-			}
-		}
-		Verify.verify(!broken);
-	}
 	
 	/*
 	 * (non-Javadoc)
@@ -113,42 +97,32 @@ public class InconsistencyThread implements Runnable {
 			System.out.println("Analyzing " + method.getMethodName());
 		}		
 		
+		System.out.println(method);
+		
 		UnreachableNodeRemover<CfgBlock, CfgEdge> unr = new UnreachableNodeRemover<CfgBlock, CfgEdge>(method, method.getSource(), method.getSink());
 		if (unr.pruneUnreachableNodes()) {
 			System.err.println("removed unreachable nodes for "+method.getMethodName());
 		}
 		
-//		todoTests(method);
 		EdgeLabelToAssume etoa = new EdgeLabelToAssume(method);
 		etoa.turnLabeledEdgesIntoAssumes();
-//		todoTests(method);
+
 		LoopRemoval lr = new LoopRemoval(method);
 		lr.removeLoops();
 		
 		lr.verifyLoopFree();// TODO: run only in debug mode.
 
-		
-//		SingleStaticAssignment ssa = new SingleStaticAssignment(program, method);
-//		ssa.computeSSA();
 		SsaTransformer ssa = new SsaTransformer(program, method);
 		ssa.eliminatePhiStatements();
 		
-//		if (method.getMethodName().equals("<ssa.SsaTest01: void f1()>")){
-//		SsaPrinter printer = new SsaPrinter();
-//		StringBuilder sb = new StringBuilder();
-//		printer.printMethod(sb, method);
-//		System.out.println(sb);
-//		}
 		
-//		System.err.println(method);
-		//now clean up dead code to avoid trivial reports
-//		DeadCodeElimination dce = new DeadCodeElimination();
-		//TODO freezes!
-//		dce.updateMethod(method);
-		
-//		if (debugMode) {
-//			System.out.println(method);
-//		}
+//		if (method.getMethodName().equals("<ssa.SsaTest01: void f1()>"))
+		{
+		SsaPrinter printer = new SsaPrinter();
+		StringBuilder sb = new StringBuilder();
+		printer.printMethod(sb, method);
+		System.out.println(sb);
+		}
 
 		createVerificationCondition();
 

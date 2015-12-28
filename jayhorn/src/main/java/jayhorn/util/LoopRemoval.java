@@ -76,11 +76,18 @@ public class LoopRemoval {
 			headerExitBlock = Optional.of(headerExitBlocks.iterator().next());
 		}
 		
+		CfgBlock headerClone = null;
+		
 		for (CfgBlock b : body) {
 			if (method.containsEdge(b, header)) {
 				method.removeEdge(method.getEdge(b, header));
+				//TODO add a copy of the head.
 				if (headerExitBlock.isPresent()) {
-					method.addEdge(b, headerExitBlock.get());
+					if (headerClone==null) {
+						headerClone = header.deepCopy();
+						method.addEdge(headerClone, headerExitBlock.get());
+					}
+					method.addEdge(b, headerClone);
 				}
 			}
 		}
@@ -96,9 +103,6 @@ public class LoopRemoval {
 	private void addNonDetAssignmentsToBody(CfgBlock header, Set<CfgBlock> body, Set<CfgBlock> entryBlocks) {
 		Set<Variable> modifiedVariables = new HashSet<Variable>();
 		for (CfgBlock b : body) {
-			if (b.equals(header)) {
-				continue;
-			}
 			modifiedVariables.addAll(b.getDefVariables());
 		}
 		Map<Variable, Variable> havocVariables = new HashMap<Variable, Variable>();

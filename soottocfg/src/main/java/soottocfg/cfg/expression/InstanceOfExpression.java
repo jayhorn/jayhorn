@@ -17,11 +17,15 @@ import soottocfg.cfg.type.Type;
  */
 public class InstanceOfExpression extends Expression {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -3697139804431041726L;
 	private final Expression expression;
+	private final Variable typeVariable;
+	
+	public InstanceOfExpression(SourceLocation loc, Expression expr, Variable typeVar) {
+		super(loc);
+		this.expression = expr;
+		this.typeVariable = typeVar;
+	}
 
 	public Expression getExpression() {
 		return expression;
@@ -31,16 +35,6 @@ public class InstanceOfExpression extends Expression {
 		return typeVariable;
 	}
 
-	private final Variable typeVariable;
-
-	/**
-	 * 
-	 */
-	public InstanceOfExpression(SourceLocation loc, Expression expr, Variable typeVar) {
-		super(loc);
-		this.expression = expr;
-		this.typeVariable = typeVar;
-	}
 
 	@Override
 	public String toString() {
@@ -68,5 +62,10 @@ public class InstanceOfExpression extends Expression {
 	@Override
 	public Type getType() {
 		return BoolType.instance();
+	}
+
+	@Override
+	public Expression deepCopy() {		
+		return new InstanceOfExpression(getSourceLocation(), expression.deepCopy(), typeVariable);
 	}
 }

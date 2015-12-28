@@ -91,4 +91,13 @@ public class ArrayStoreStatement extends Statement {
 		return sb.toString();
 	}
 
+	@Override
+	public Statement deepCopy() {
+		List<Expression> idxCopy = new LinkedList<Expression>();
+		for (Expression e : indices) {
+			idxCopy.add(e.deepCopy());
+		}
+		return new ArrayStoreStatement(getSourceLocation(), base.deepCopy(), idxCopy.toArray(new Expression[idxCopy.size()]), value.deepCopy());
+	}
+
 }

@@ -147,4 +147,9 @@ public class BinaryExpression extends Expression {
 		}
 	}
 
+	@Override
+	public Expression deepCopy() {		
+		return new BinaryExpression(getSourceLocation(), op, left.deepCopy(), right.deepCopy());
+	}
+
 }

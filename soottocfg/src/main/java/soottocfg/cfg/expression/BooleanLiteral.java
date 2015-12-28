@@ -77,4 +77,9 @@ public class BooleanLiteral extends Expression {
 		// same hash code as Boolean.hashCode
 		return value ? 1231 : 1237;
 	}
+
+	@Override
+	public Expression deepCopy() {
+		return new BooleanLiteral(getSourceLocation(), value);
+	}
 }

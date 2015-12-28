@@ -282,6 +282,15 @@ public class SsaTransformer {
 			res.add(left);
 			return res;
 		}
+
+		@Override
+		public Statement deepCopy() {
+			PhiStatement ret = new PhiStatement(left.deepCopy(), null);
+			for (Entry<CfgBlock, Integer> entry : predecessorIncarnations.entrySet()) {
+				ret.setPredecessorIncarnation(entry.getKey(), entry.getValue());
+			}
+			return ret;
+		}
 	}
 
 }

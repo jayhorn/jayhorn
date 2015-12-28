@@ -17,9 +17,6 @@ import soottocfg.cfg.type.Type;
  */
 public class IntegerLiteral extends Expression {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 7913206010686231183L;
 
 	private final Long value;
@@ -89,5 +86,10 @@ public class IntegerLiteral extends Expression {
 	@Override
 	public int hashCode() {
 		return value.hashCode();
+	}
+
+	@Override
+	public Expression deepCopy() {		
+		return new IntegerLiteral(getSourceLocation(), value);
 	}
 }

@@ -172,4 +172,19 @@ public class CfgBlock implements Node, Serializable {
 		return out;
 	}
 
+	/**
+	 * Returns a new block with a deep copy of the statements of this
+	 * block.
+	 * The new block has a different label from this block.
+	 * @return
+	 */
+	public CfgBlock deepCopy() {
+		CfgBlock copy = new CfgBlock(method);
+		List<Statement> stmtCopy = new LinkedList<Statement>(); 
+		for (Statement s : statements) {
+			stmtCopy.add(s.deepCopy());
+		}
+		copy.setStatements(stmtCopy);
+		return copy;
+	}
 }

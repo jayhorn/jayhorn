@@ -22,9 +22,6 @@ import soottocfg.soot.util.SootTranslationHelpers;
  */
 public class AssignStatement extends Statement {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 6725099779878843508L;
 
 	public Expression getLeft() {
@@ -99,5 +96,9 @@ public class AssignStatement extends Statement {
 		return res;
 	}
 
+	@Override
+	public Statement deepCopy() {
+		return new AssignStatement(getSourceLocation(), left.deepCopy(), right.deepCopy());
+	}
 
 }

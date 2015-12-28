@@ -16,9 +16,6 @@ import soottocfg.cfg.type.Type;
  */
 public class IteExpression extends Expression {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -7138261822713810587L;
 	private final Expression condition, thenExpr, elseExpr;
 
@@ -74,6 +71,11 @@ public class IteExpression extends Expression {
 	public Type getType() {
 		assert (thenExpr.getType().equals(elseExpr.getType()));
 		return thenExpr.getType();
+	}
+
+	@Override
+	public Expression deepCopy() {		
+		return new IteExpression(getSourceLocation(), condition.deepCopy(), thenExpr.deepCopy(), elseExpr.deepCopy());
 	}
 
 }

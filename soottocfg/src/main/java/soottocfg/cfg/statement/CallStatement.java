@@ -4,6 +4,7 @@
 package soottocfg.cfg.statement;
 
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -20,9 +21,6 @@ import soottocfg.cfg.method.Method;
  */
 public class CallStatement extends Statement {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 7267962774002374725L;
 	private final Method method;
 	private final List<Expression> arguments;
@@ -87,5 +85,18 @@ public class CallStatement extends Statement {
 			res.add((IdentifierExpression)returnReceiver.get());
 		}
 		return res;
+	}
+
+	@Override
+	public Statement deepCopy() {
+		List<Expression> argCopy = new LinkedList<Expression>();
+		for (Expression e : arguments) {
+			argCopy.add(e.deepCopy());
+		}
+		Optional<Expression> left = Optional.absent();
+		if (returnReceiver.isPresent()) {
+			left = Optional.of(returnReceiver.get().deepCopy());
+		}
+		return new CallStatement(getSourceLocation(), method, argCopy, left);
 	}
 }

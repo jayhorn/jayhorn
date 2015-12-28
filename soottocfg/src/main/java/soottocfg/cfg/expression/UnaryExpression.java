@@ -17,9 +17,6 @@ import soottocfg.cfg.type.Type;
  */
 public class UnaryExpression extends Expression {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -3534248180235954114L;
 
 	public enum UnaryOperator {
@@ -90,6 +87,11 @@ public class UnaryExpression extends Expression {
 		}
 		}
 		throw new RuntimeException("Unknown case " + op);
+	}
+
+	@Override
+	public Expression deepCopy() {		
+		return new UnaryExpression(getSourceLocation(), op, expression.deepCopy());
 	}
 
 }

@@ -19,9 +19,6 @@ import soottocfg.cfg.type.ClassSignature;
  */
 public class PackStatement extends Statement {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 5776310555422969945L;
 	private final ClassSignature classConstant;
 	private final IdentifierExpression object;
@@ -71,6 +68,15 @@ public class PackStatement extends Statement {
 		sb.append("]");
 		sb.append(")");
 		return sb.toString();
+	}
+
+	@Override
+	public Statement deepCopy() {
+		List<Expression> rightCopy = new LinkedList<Expression>();
+		for (Expression e : right) {
+			rightCopy.add(e.deepCopy());
+		}
+		return new PackStatement(getSourceLocation(), classConstant, object.deepCopy(), rightCopy);
 	}
 
 }

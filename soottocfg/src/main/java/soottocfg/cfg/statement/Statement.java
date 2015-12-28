@@ -75,4 +75,6 @@ public abstract class Statement implements Node, Serializable {
 		}
 		return this.sourceLocation.getLineNumber();
 	}
+	
+	public abstract Statement deepCopy();
 }

@@ -56,4 +56,9 @@ public class ArrayLengthExpression extends Expression {
 		return IntType.instance();
 	}
 
+	@Override
+	public Expression deepCopy() {
+		return new ArrayLengthExpression(getSourceLocation(), expression.deepCopy());
+	}
+
 }
