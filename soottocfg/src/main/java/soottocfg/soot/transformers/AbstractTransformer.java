@@ -8,17 +8,14 @@ import java.util.Map;
 import soot.Body;
 import soot.BodyTransformer;
 import soot.Local;
-import soot.PrimType;
 import soot.Type;
 import soot.Unit;
 import soot.Value;
-import soot.VoidType;
 import soot.jimple.GotoStmt;
 import soot.jimple.IfStmt;
 import soot.jimple.IntConstant;
 import soot.jimple.InvokeStmt;
 import soot.jimple.Jimple;
-import soot.jimple.NullConstant;
 import soot.tagkit.Host;
 
 /**
@@ -82,27 +79,6 @@ public abstract class AbstractTransformer extends BodyTransformer {
 
 	protected Unit invokeStmtFor(Value ivk, Host createdFrom) {
 		InvokeStmt stmt = Jimple.v().newInvokeStmt(ivk);
-		stmt.addAllTagsOf(createdFrom);
-		return stmt;
-	}
-
-	// protected Unit throwStmtFor(Value op, Host createdFrom) {
-	// ThrowStmt stmt = Jimple.v().newThrowStmt(op);
-	// stmt.addAllTagsOf(createdFrom);
-	// return stmt;
-	// }
-
-	protected Unit getDefaultReturnStatement(Type returnType, Host createdFrom) {
-		Unit stmt;
-		if (returnType instanceof VoidType) {
-			stmt = Jimple.v().newReturnVoidStmt();
-		} else {
-			Value retVal = NullConstant.v();
-			if (returnType instanceof PrimType) {
-				retVal = IntConstant.v(0);
-			}
-			stmt = Jimple.v().newReturnStmt(retVal);
-		}
 		stmt.addAllTagsOf(createdFrom);
 		return stmt;
 	}

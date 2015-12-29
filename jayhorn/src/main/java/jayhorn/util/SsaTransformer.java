@@ -137,18 +137,20 @@ public class SsaTransformer {
 		Map<CfgBlock, Set<Variable>> Aphi = new HashMap<CfgBlock, Set<Variable>>();
 		for (Variable a : method.getUseVariables()) {
 			Set<CfgBlock> W = defsites.get(a);
-			while (W != null && !W.isEmpty()) {
-				CfgBlock n = W.iterator().next();
-				W.remove(n);
-				for (CfgBlock y : DF.getDominanceFrontier().get(n)) {
-					if (!Aphi.containsKey(y)) {
-						Aphi.put(y, new HashSet<Variable>());
-					}
-					if (!Aphi.get(y).contains(a)) {
-						createPhiFunction(y, a);
-						Aphi.get(y).add(a);
-						if (!y.getUseVariables().contains(a)) {
-							W.add(y);
+			if (W!=null) {
+				while (!W.isEmpty()) {
+					CfgBlock n = W.iterator().next();
+					W.remove(n);
+					for (CfgBlock y : DF.getDominanceFrontier().get(n)) {
+						if (!Aphi.containsKey(y)) {
+							Aphi.put(y, new HashSet<Variable>());
+						}
+						if (!Aphi.get(y).contains(a)) {
+							createPhiFunction(y, a);
+							Aphi.get(y).add(a);
+							if (!y.getUseVariables().contains(a)) {
+								W.add(y);
+							}
 						}
 					}
 				}

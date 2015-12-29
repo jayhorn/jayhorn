@@ -57,9 +57,6 @@ import soot.jimple.ThrowStmt;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.expression.BinaryExpression;
-import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
-import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
@@ -444,38 +441,38 @@ public class SootStmtSwitch implements StmtSwitch {
 		}
 
 		if (call.getMethod().getDeclaringClass().getName().contains("org.junit.Assert")) {
-			// staticinvoke <org.junit.Assert: void fail()>()
-			if (call.getMethod().getName().equals("fail")) {
-				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u),
-						BooleanLiteral.falseLiteral()));
+			//TODO: this should not be hard coded! 
+			if (call.getMethod().getName().equals("fail")) {				
+				Stmt ret = SootTranslationHelpers.v().getDefaultReturnStatement(sootMethod.getReturnType(), currentStmt);
+				ret.apply(this);
 				return true;
 			}
-			if (call.getMethod().getName().equals("assertTrue")) {
-				Preconditions.checkArgument(optionalLhs == null);
-				int idx = 0;
-				if (call.getArgCount() > 1) {
-					idx = 1;
-				}
-				call.getArg(idx).apply(valueSwitch);
-				Expression guard = valueSwitch.popExpression();
-				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u), guard));
-				return true;
-			}
-			if (call.getMethod().getName().equals("assertEquals")) {
-				int idx = 0;
-				if (call.getArgCount() > 2) {
-					idx = 1;
-				}
-
-				Preconditions.checkArgument(optionalLhs == null);
-				call.getArg(idx).apply(valueSwitch);
-				Expression left = valueSwitch.popExpression();
-				call.getArg(idx + 1).apply(valueSwitch);
-				Expression right = valueSwitch.popExpression();
-				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u),
-						new BinaryExpression(loc, BinaryOperator.Eq, left, right)));
-				return true;
-			}
+//			if (call.getMethod().getName().equals("assertTrue")) {
+//				Preconditions.checkArgument(optionalLhs == null);
+//				int idx = 0;
+//				if (call.getArgCount() > 1) {
+//					idx = 1;
+//				}
+//				call.getArg(idx).apply(valueSwitch);
+//				Expression guard = valueSwitch.popExpression();
+//				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u), guard));
+//				return true;
+//			}
+//			if (call.getMethod().getName().equals("assertEquals")) {
+//				int idx = 0;
+//				if (call.getArgCount() > 2) {
+//					idx = 1;
+//				}
+//
+//				Preconditions.checkArgument(optionalLhs == null);
+//				call.getArg(idx).apply(valueSwitch);
+//				Expression left = valueSwitch.popExpression();
+//				call.getArg(idx + 1).apply(valueSwitch);
+//				Expression right = valueSwitch.popExpression();
+//				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u),
+//						new BinaryExpression(loc, BinaryOperator.Eq, left, right)));
+//				return true;
+//			}
 
 			System.err.println("We should hardcode JUnit stuff " + call.getMethod().getDeclaringClass().getName()
 					+ "  method " + call.getMethod().getName());

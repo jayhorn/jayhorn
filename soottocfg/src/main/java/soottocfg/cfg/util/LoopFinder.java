@@ -50,6 +50,15 @@ public class LoopFinder<V> {
 	}
 		
 	/**
+	 * Returns a map from loop header to loop body for
+	 * each loop in the graph.
+	 * @return
+	 */
+	public Map<V, Set<V>> getLoops() {
+		return new HashMap<V, Set<V>>(loops);
+	}
+	
+	/**
 	 * Returns a loop-nested TreeSet where each element is a loop header
 	 * and first (lowest) elements are the inner-most loops.
 	 * This contains less information than a proper loop-nested tree but 

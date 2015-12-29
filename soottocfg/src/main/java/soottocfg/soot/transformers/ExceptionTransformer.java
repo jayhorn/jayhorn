@@ -545,7 +545,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 	protected List<Unit> updateExceptionVariableAndReturn(Body b, Value v, Host createdFrom) {
 		List<Unit> result = new LinkedList<Unit>();
 		result.add(assignStmtFor(SootTranslationHelpers.v().getExceptionGlobalRef(), v, createdFrom));
-		result.add(getDefaultReturnStatement(b.getMethod().getReturnType(), createdFrom));
+		result.add(SootTranslationHelpers.v().getDefaultReturnStatement(b.getMethod().getReturnType(), createdFrom));
 		// result.add(throwStmtFor(l, createdFrom));
 		return result;
 	}

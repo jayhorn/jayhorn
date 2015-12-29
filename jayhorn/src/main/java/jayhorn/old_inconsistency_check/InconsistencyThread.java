@@ -23,7 +23,6 @@ import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverType;
 import jayhorn.util.EdgeLabelToAssume;
 import jayhorn.util.LoopRemoval;
-import jayhorn.util.SsaPrinter;
 import jayhorn.util.SsaTransformer;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.Variable;

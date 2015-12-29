@@ -8,15 +8,22 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import soot.PrimType;
 import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
+import soot.Type;
 import soot.Unit;
 import soot.Value;
+import soot.VoidType;
+import soot.jimple.IntConstant;
 import soot.jimple.Jimple;
+import soot.jimple.NullConstant;
+import soot.jimple.Stmt;
 import soot.tagkit.AbstractHost;
+import soot.tagkit.Host;
 import soot.tagkit.SourceFileTag;
 import soot.tagkit.Tag;
 import soottocfg.cfg.Program;
@@ -59,6 +66,21 @@ public enum SootTranslationHelpers {
 		program = null;
 	}
 
+	public Stmt getDefaultReturnStatement(Type returnType, Host createdFrom) {
+		Stmt stmt;
+		if (returnType instanceof VoidType) {
+			stmt = Jimple.v().newReturnVoidStmt();
+		} else {
+			Value retVal = NullConstant.v();
+			if (returnType instanceof PrimType) {
+				retVal = IntConstant.v(0);
+			}
+			stmt = Jimple.v().newReturnStmt(retVal);
+		}
+		stmt.addAllTagsOf(createdFrom);
+		return stmt;
+	}
+	
 	public void setProgram(Program p) {
 		this.program = p;
 	}

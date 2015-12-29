@@ -52,8 +52,7 @@ public class CbmcTest {
 		Checker checker = new Checker();
 		boolean result = checker.checkProgram(soot2cfg.getProgram());
 		
-		org.junit.Assert.assertTrue("Unexpected result for "+dir, expectedResult==result);
-		
+		org.junit.Assert.assertTrue("Unexpected result for "+dir, expectedResult==result);		
 	}
 	
 	/**

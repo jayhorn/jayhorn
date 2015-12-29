@@ -14,7 +14,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import jayhorn.solver.Main;
-import jayhorn.solver.Prover;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.solver.z3.Z3ProverFactory;
@@ -44,7 +43,6 @@ public class ProverTest {
 	
 	@Test
 	public void test() {
-		Prover p = null;
 		try {
 			System.out.println("Checking prover: "+ this.proverName);
 			Main proverMain = new Main();
@@ -52,10 +50,6 @@ public class ProverTest {
 		} catch (Throwable e) {
 			e.printStackTrace();
 			fail(e.toString());
-		} finally {
-			if (p!=null) {
-				p.shutdown();
-			}
 		}
 	}
 

@@ -6,6 +6,7 @@ package jayhorn.util;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -45,10 +46,11 @@ public class LoopRemoval {
 		Dominators<CfgBlock> dom = new Dominators<CfgBlock>(method, method.getSource());
 		LoopFinder<CfgBlock> loopFinder = new LoopFinder<CfgBlock>(dom);
 		TreeSet<CfgBlock> lnt = loopFinder.getLoopNestTreeSet();
-
+		Map<CfgBlock, Set<CfgBlock>> loops = loopFinder.getLoops();
+		
 		while (!lnt.isEmpty()) {
 			CfgBlock header = lnt.pollFirst();
-			removeLoop(header, loopFinder.getLoopBody(header));
+			removeLoop(header, loops.get(header), loops);
 		}
 	}
 
@@ -59,8 +61,10 @@ public class LoopRemoval {
 	 * are no non-looping successors, just remove the back edges. 
 	 * @param header
 	 * @param body
+	 * @param loops The mapping from header to loop body for all loops. This will be updated 
+	 * 			if we introduce new nodes during the loop removal.
 	 */
-	private void removeLoop(CfgBlock header, Set<CfgBlock> body) {
+	private void removeLoop(CfgBlock header, Set<CfgBlock> body, Map<CfgBlock, Set<CfgBlock>> loops) {
 		Set<CfgBlock> successorsOfHeader = new HashSet<CfgBlock>(Graphs.successorListOf(method, header));
 		Set<CfgBlock> entryBlocks = new HashSet<CfgBlock>(successorsOfHeader);
 		entryBlocks.retainAll(body);
@@ -78,13 +82,13 @@ public class LoopRemoval {
 		
 		CfgBlock headerClone = null;
 		
-		for (CfgBlock b : body) {
+		for (CfgBlock b : new HashSet<CfgBlock>(body)) {
 			if (method.containsEdge(b, header)) {
 				method.removeEdge(method.getEdge(b, header));
-				//TODO add a copy of the head.
 				if (headerExitBlock.isPresent()) {
 					if (headerClone==null) {
 						headerClone = header.deepCopy();
+						addBlockToLoops(header, headerClone, loops);
 						method.addEdge(headerClone, headerExitBlock.get());
 					}
 					method.addEdge(b, headerClone);
@@ -93,6 +97,14 @@ public class LoopRemoval {
 		}
 	}
 
+	private void addBlockToLoops(CfgBlock header, CfgBlock newBlock, Map<CfgBlock, Set<CfgBlock>> loops) {
+		for (Entry<CfgBlock, Set<CfgBlock>> entry : loops.entrySet()) {
+			if (entry.getValue().contains(header)) {
+				entry.getValue().add(newBlock);
+			}
+		}
+	}
+	
 	/**
 	 * For each loop entry, add statements that assign a fresh local to all variables
 	 * that are modified within the loop body.
