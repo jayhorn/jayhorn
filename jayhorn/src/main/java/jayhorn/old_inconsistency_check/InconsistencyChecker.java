@@ -154,7 +154,7 @@ public class InconsistencyChecker {
 		Prover prover = factory.spawn();
 		Preconditions.checkArgument(prover != null, "Failed to initialize prover.");
 		prover.setHornLogic(false);
-		InconsistencyLocalization localizationThread = new InconsistencyLocalization(program, inconsistency, prover);
+		LocalizationThread localizationThread = new LocalizationThread(program, inconsistency, prover);
 		final Future<?> inconsistencyFuture = executor.submit(localizationThread);
 		try {
 			if (Options.v().getTimeout() <= 0) {

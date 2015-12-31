@@ -1,6 +1,3 @@
-/**
- * 
- */
 package jayhorn.old_inconsistency_check;
 
 import java.util.HashMap;
@@ -11,17 +8,17 @@ import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graphs;
+import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.util.VertexPair;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverResult;
-import jayhorn.util.ConvertToDiamondShape;
 import jayhorn.util.SimplCfgToProver;
-import soottocfg.cfg.Program;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
@@ -32,48 +29,95 @@ import soottocfg.cfg.util.GraphUtil;
 import soottocfg.cfg.util.PostDominators;
 import soottocfg.util.Pair;
 
-/**
- * @author schaef
- *
- */
-public class InconsistencyLocalization implements Runnable {
+public class InconsistencyLocalization {
 
-	// private final Program program;
-	private final Inconsistency inconsistency;
-	private final Prover prover;
+	private final Prover prover;	
+	private final Map<ProverExpr, Statement> peToStatement;
+	private final Map<ProverExpr, VertexPair<CfgBlock>> nestedDiamondMap;
 	
-	private Map<ProverExpr, Statement> peToStatement;
-	private Map<ProverExpr, VertexPair<CfgBlock>> nestedDiamondMap;
-
-	public InconsistencyLocalization(Program prog, Inconsistency ic, Prover p) {
-		// program = prog;
-		inconsistency = ic;
+	public InconsistencyLocalization(Prover p) {
 		prover = p;
-	}
-
-	@Override
-	public void run() {
 		peToStatement = new HashMap<ProverExpr, Statement>();
 		nestedDiamondMap = new HashMap<ProverExpr, VertexPair<CfgBlock>> ();
+	}
 
-		prover.setConstructProofs(true);
-		SimplCfgToProver s2p = new SimplCfgToProver(prover);
-
+	public List<Statement> foo(SimplCfgToProver s2p, Method graph, CfgBlock source, CfgBlock joinAfterSink, Optional<ProverExpr> precondition, Optional<ProverExpr> postcondition) {
+		List<Statement> result = new LinkedList<Statement>();
+		if (source.equals(graph.getSource()) && joinAfterSink==null) {
+			//this is the original graph and we can use it immediately.
+		} else {
+			//extract the subgraph from 'source' to 'joinAfterSink'.
+			//Where we have to remove all statements from 'joinAfterSink'.
+			DirectedGraph<CfgBlock, CfgEdge> subgraph = new DefaultDirectedGraph<CfgBlock, CfgEdge>(graph.getEdgeFactory());			
+			for (CfgBlock v : GraphUtil.getVerticesBetween(graph, source, joinAfterSink)) {
+				subgraph.addVertex(v);
+			}
+			for (CfgEdge e : graph.edgeSet()) {
+				if (subgraph.vertexSet().contains(graph.getEdgeSource(e)) && subgraph.vertexSet().contains(graph.getEdgeTarget(e))) {
+					subgraph.addEdge(graph.getEdgeSource(e), graph.getEdgeTarget(e));
+				}
+			}			
+			graph = graph.createMethodFromSubgraph(subgraph , graph.getMethodName()+"__nested");
+			CfgBlock newSink = new CfgBlock(graph);
+			for (CfgBlock pre : Graphs.predecessorListOf(graph, joinAfterSink)) {
+				graph.removeEdge(pre, joinAfterSink);
+				graph.addEdge(pre, newSink);
+			}
+			graph.removeVertex(joinAfterSink);
+		}
+		List<ProverExpr> proofObligations = generatProofObligations(s2p, graph);		
+		ProverExpr[] interpolants = computeInterpolants(proofObligations, s2p.generatedAxioms(), precondition, postcondition);
+		
+		List<Integer> changePositions = findPositionsWhereInterpolantChanges(interpolants);
+		Verify.verify(!changePositions.isEmpty());
+		for (Integer i : changePositions) {
+			Verify.verify(proofObligations.size()>i);
+			ProverExpr pe = proofObligations.get(i);
+			if (peToStatement.containsKey(pe)) {
+				result.add(peToStatement.get(pe));
+			} else {
+				System.err.println("RECURSION NEEDED");
+				VertexPair<CfgBlock> diamond = nestedDiamondMap.get(pe);
+				Optional<ProverExpr> interpolantBefore = Optional.fromNullable((i>0)?interpolants[i-1]:null);
+				
+				List<ProverExpr> newPostCondition = proofObligations.subList(i, proofObligations.size());
+				if (postcondition.isPresent()) {
+					newPostCondition.add(postcondition.get());
+				}
+				Optional<ProverExpr> interpolantAfter = Optional.fromNullable(prover.mkAnd(newPostCondition.toArray(new ProverExpr[newPostCondition.size()])));
+				for (CfgBlock suc : Graphs.successorListOf(graph, diamond.getFirst())) {
+					InconsistencyLocalization nestedLoc = new InconsistencyLocalization(prover);
+					result.addAll(nestedLoc.foo(s2p, graph, suc, diamond.getSecond(), interpolantBefore, interpolantAfter));
+				}
+			}
+		}
+		return result;
+	}
+	
+	private ProverExpr[] computeInterpolants(List<ProverExpr> proofObligations, List<ProverExpr> axioms, Optional<ProverExpr> precondition, Optional<ProverExpr> postcondition) {
+		prover.push();
+		
 		int partition = 0;
-		//first generate a subgraph of the method that only contains
-		//paths through the inconsistent block and where all branching
-		//has diamond shape.
-		Method subgraph = createDiamondShapedSliceForFaultLocalization(inconsistency.getMethod(),
-				inconsistency.getRootOfInconsistency());
-		//then generate the verification condition for the fault localization.
-		List<ProverExpr> proofObligations = generatProofObligations(s2p, subgraph,
-				inconsistency.getRootOfInconsistency());
+		prover.setPartitionNumber(partition++);
+		if (precondition.isPresent()) {
+			prover.addAssertion(precondition.get());
+		} else {
+			prover.addAssertion(prover.mkLiteral(true));
+		}
+		
 		for (ProverExpr pe : proofObligations) {
 			prover.setPartitionNumber(partition++);
 			prover.addAssertion(pe);
 		}
 		prover.setPartitionNumber(partition++);
-		s2p.finalizeProofObligations();
+
+		for (ProverExpr axiom : axioms) {
+			prover.addAssertion(axiom);
+		}
+
+		if (postcondition.isPresent()) {
+			prover.addAssertion(postcondition.get());
+		}
 
 		ProverResult proverResult = prover.checkSat(true);
 		if (proverResult != ProverResult.Unsat) {
@@ -83,63 +127,44 @@ public class InconsistencyLocalization implements Runnable {
 		int[][] ordering = new int[partition][1];
 		for (int i = 0; i < partition; i++) {
 			ordering[i][0] = i;
-		}
-
-		ProverExpr[] interpolants = prover.interpolate(ordering);
-//		for (int i = 0; i < interpolants.length; i++) {
-//			System.err.println("Interpolant " + i + ": " + interpolants[i]);
-//		}
-		
-		List<Integer> changePositions = findPositionsWhereInterpolantChanges(interpolants);
-		Verify.verify(!changePositions.isEmpty());
-		for (Integer i : changePositions) {
-			Verify.verify(proofObligations.size()>i);
-			ProverExpr pe = proofObligations.get(i);
-			if (peToStatement.containsKey(pe)) {
-				Statement relevantStmt = peToStatement.get(pe);
-				System.err.println("relevant stmt "+relevantStmt);
-			} else {
-				//TODO apply recursive fault localization.
-				Verify.verify(nestedDiamondMap.containsKey(pe));
-			}
-		}
-		
+		}		
+		ProverExpr[] interpolants = prover.interpolate(ordering);			
+		prover.pop();
+		return interpolants;
 	}
 
+	/**
+	 * Traverses 'interpolants' from left to right and returns the list of all 
+	 * indices 'i' where !interpolantsAreEqual(interpolants[i-1], interpolants[i]).
+	 * @param interpolants
+	 * @return
+	 */
 	private List<Integer> findPositionsWhereInterpolantChanges(ProverExpr[] interpolants) {
 		Preconditions.checkArgument(interpolants!=null && interpolants.length>0);
 		List<Integer> result = new LinkedList<Integer>();
 		ProverExpr current = interpolants[0];
 		for (int i = 1; i<interpolants.length; i++) {
 			if (!interpolantsAreEqual(current, interpolants[i])) {
-				result.add(i);
+				result.add(i-1); //subtract 1 because we do not want to include the
+				                 //precondition
 				current = interpolants[i];
 			}
 		}	
 		return result;		
 	}
 	
+	/**
+	 * Checks if two ProverExpr are equal.
+	 * @param i1
+	 * @param i2
+	 * @return
+	 */
 	private boolean interpolantsAreEqual(ProverExpr i1, ProverExpr i2) {
 		Preconditions.checkNotNull(i1);
 		Preconditions.checkNotNull(i2);
 		return i1.toString().equals(i2.toString()); //TODO
 	}
-	
-	/**
-	 * Create a subgraph of all paths going through 'inconsistentBlock'
-	 * and enforce that all conditionals are diamond shaped. 
-	 * @param method
-	 * @param inconsistentBlock
-	 * @return
-	 */
-	private Method createDiamondShapedSliceForFaultLocalization(Method method, CfgBlock inconsistentBlock) {
-		Method subgraph = method.createMethodFromSubgraph(
-				GraphUtil.computeSubgraphThroughVertex(method, inconsistentBlock), method.getMethodName() + "_slice");
-		ConvertToDiamondShape converter = new ConvertToDiamondShape();
-		converter.convert(subgraph);
-		return subgraph;
-	}
-	
+		
 	/**
 	 * Creates a sequence of prover expressions between which we interpolate
 	 * for the fault localization. One proof obligation is either the
@@ -153,18 +178,14 @@ public class InconsistencyLocalization implements Runnable {
 	 * 
 	 * @param s2p
 	 * @param method
-	 * @param inconsistentBlock
 	 * @return
 	 */
-	private List<ProverExpr> generatProofObligations(SimplCfgToProver s2p, Method method, CfgBlock inconsistentBlock) {
+	private List<ProverExpr> generatProofObligations(SimplCfgToProver s2p, Method method) {
 		CfgBlock source = GraphUtil.getSource(method);
 		CfgBlock sink = GraphUtil.getSink(method);
 		Dominators<CfgBlock> dom = new Dominators<CfgBlock>(method, source);
 		PostDominators<CfgBlock> pdom = new PostDominators<CfgBlock>(method, sink);
 		EffectualSet<CfgBlock> effSet = new EffectualSet<CfgBlock>(dom, pdom);
-		DirectedGraph<Set<CfgBlock>, ?> lattice = effSet.getLattice();
-		Set<CfgBlock> inevitableBlocks = GraphUtil.getSource(lattice);
-		Verify.verify(inevitableBlocks.contains(inconsistentBlock));
 
 		Pair<CfgBlock, List<ProverExpr>> pair = generateProofObligations(s2p, method, source, effSet);
 		Verify.verify(sink.equals(pair.getFirst()));
@@ -256,27 +277,5 @@ public class InconsistencyLocalization implements Runnable {
 		}
 		return new Pair<CfgBlock, List<ProverExpr>>(null, conj);
 	}
-
-	// private void graphToDot(File dotFile, DirectedGraph<CfgBlock, CfgEdge>
-	// graph) {
-	// try (FileOutputStream fileStream = new FileOutputStream(dotFile);
-	// OutputStreamWriter writer = new OutputStreamWriter(fileStream, "UTF-8");)
-	// {
-	// DOTExporter<CfgBlock, CfgEdge> dot = new DOTExporter<CfgBlock, CfgEdge>(
-	// new StringNameProvider<CfgBlock>() {
-	// @Override
-	// public String getVertexName(CfgBlock vertex) {
-	// StringBuilder sb = new StringBuilder();
-	// sb.append("\"");
-	// sb.append(vertex.getLabel());
-	// sb.append("\"");
-	// return sb.toString();
-	// }
-	// }, null, null);
-	// dot.export(writer, graph);
-	// } catch (IOException e) {
-	// e.printStackTrace();
-	// }
-	// }
-
+		
 }

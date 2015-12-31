@@ -5,11 +5,10 @@ package jayhorn.util;
 
 import java.math.BigInteger;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import jayhorn.solver.Prover;
@@ -47,7 +46,8 @@ public class SimplCfgToProver implements ICfgToProver {
 	private int dummyvarcounter = 0;
 	private final Prover prover;
 	private final Map<Variable, Map<Integer, ProverExpr>> ssaVariableMap = new HashMap<Variable, Map<Integer, ProverExpr>>();
-	
+	private Map<ProverExpr, Integer> usedUniqueVariables = new HashMap<ProverExpr, Integer>();
+
 	public SimplCfgToProver(Prover p) {
 		prover = p;
 		createHelperFunctions();
@@ -57,13 +57,13 @@ public class SimplCfgToProver implements ICfgToProver {
 	 * @see jayhorn.util.ICfgToProver#finalize()
 	 */
 	@Override
-	public void finalizeProofObligations() {
+	public List<ProverExpr> generatedAxioms() {
+		List<ProverExpr> axioms = new LinkedList<ProverExpr>();
 		// now add assertions to ensure that all unique variables are different.
-		int superHackIntCounter = 0;
-		for (ProverExpr var : usedUniqueVariables) {
-			// TODO: this is a hack
-			prover.addAssertion(prover.mkEq(var, prover.mkLiteral(superHackIntCounter++)));
+		for (Entry<ProverExpr, Integer> entry : usedUniqueVariables.entrySet()) {
+			axioms.add(prover.mkEq(entry.getKey(), prover.mkLiteral(entry.getValue())));
 		}
+		return axioms;
 	}
 	
 
@@ -119,8 +119,6 @@ public class SimplCfgToProver implements ICfgToProver {
 		}
 		return null; // TODO: these are hacks. Later, this must not return null.
 	}
-
-	public Set<ProverExpr> usedUniqueVariables = new HashSet<ProverExpr>();
 
 	/* (non-Javadoc)
 	 * @see jayhorn.util.ICfgToProver#expressionToProverExpr(soottocfg.cfg.expression.Expression)
@@ -180,7 +178,7 @@ public class SimplCfgToProver implements ICfgToProver {
 				// If this is a unique variable, remember it and add axioms
 				// later that ensure that
 				// all unique variables are different.
-				usedUniqueVariables.add(ssaVariableMap.get(ie.getVariable()).get(ie.getIncarnation()));
+				usedUniqueVariables.put(ssaVariableMap.get(ie.getVariable()).get(ie.getIncarnation()), usedUniqueVariables.size());
 			}
 			return ssaVariableMap.get(ie.getVariable()).get(ie.getIncarnation());
 		} else if (e instanceof InstanceOfExpression) {

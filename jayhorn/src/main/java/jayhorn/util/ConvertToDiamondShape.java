@@ -159,12 +159,10 @@ public class ConvertToDiamondShape {
 
 		// copy the vertices between 'through' and 'to'
 		Set<CfgBlock> toCopy = GraphUtil.getVerticesBetween(graph, through, to);
-		StringBuilder sb = new StringBuilder();
 
 		toCopy.remove(to);
 		Map<CfgBlock, CfgBlock> copies = new HashMap<CfgBlock, CfgBlock>();
 		for (CfgBlock orig : toCopy) {
-			sb.append(orig.getLabel() + ", ");
 			CfgBlock cpy = new CfgBlock(graph);
 			cpy.setStatements(orig.getStatements());
 			copies.put(orig, cpy);

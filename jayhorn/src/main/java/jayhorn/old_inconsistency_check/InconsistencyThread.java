@@ -146,23 +146,23 @@ public class InconsistencyThread implements Runnable {
 
 		inconsistentBlocks.addAll(notCovered);
 
-		if (!inconsistentBlocks.isEmpty()) {
-			System.err.println("*** REPORT ***");
-			StringBuilder sb = new StringBuilder();
-			sb.append("Not covered ");
-			for (CfgBlock b : inconsistentBlocks) {
-				sb.append(b.getLabel());
-				sb.append("\n");
-//				for (Statement s : b.getStatements()) {
-//					sb.append("\t");
-//					sb.append(s);
-//					sb.append("\n");
-//				}
-			}
-			
-			System.err.println(sb.toString());
-			System.err.println("**************");
-		}
+//		if (!inconsistentBlocks.isEmpty()) {
+//			System.err.println("*** REPORT ***");
+//			StringBuilder sb = new StringBuilder();
+//			sb.append("Not covered ");
+//			for (CfgBlock b : inconsistentBlocks) {
+//				sb.append(b.getLabel());
+//				sb.append("\n");
+////				for (Statement s : b.getStatements()) {
+////					sb.append("\t");
+////					sb.append(s);
+////					sb.append("\n");
+////				}
+//			}
+//			
+//			System.err.println(sb.toString());
+//			System.err.println("**************");
+//		}
 
 		return;
 	}
@@ -216,8 +216,10 @@ public class InconsistencyThread implements Runnable {
 			ProverExpr blockTransitionFormula = prover.mkImplies(blockVars.get(b), tr);
 			prover.addAssertion(blockTransitionFormula);
 		}
-
-		cfg2prover.finalizeProofObligations();
+		
+		for (ProverExpr axiom : cfg2prover.generatedAxioms()) {
+			prover.addAssertion(axiom);
+		}
 		System.err.println("done");
 	}
 

@@ -11,7 +11,7 @@ public interface ICfgToProver {
 	/**
 	 * creates missing axioms about variables used during the translation.
 	 */
-	public void finalizeProofObligations();
+	public List<ProverExpr> generatedAxioms();
 
 	public ProverExpr statementListToTransitionRelation(List<Statement> stmts);
 	
