@@ -24,11 +24,13 @@ import com.google.common.base.Preconditions;
 import jayhorn.Options;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverFactory;
+import jayhorn.solver.princess.PrincessProverFactory;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.util.Dominators;
 
 /**
  * @author schaef
@@ -45,106 +47,173 @@ public class InconsistencyChecker {
 		factory = f;
 	}
 	
+	// statistics counters
+	int normal = 0, timeouts = 0, interrupt = 0, execException = 0, outOfMemory = 0, other = 0;
+	Map<String, Set<CfgBlock>> result = new HashMap<String, Set<CfgBlock>>();
+	
+	
 	public Map<String, Set<CfgBlock>> checkProgram(Program program) {
-		Map<String, Set<CfgBlock>> result = new HashMap<String, Set<CfgBlock>>();
-		//statistics counters 
-		int normal=0, timeouts=0, interrupt=0, execException=0, outOfMemory=0, other = 0;
-		ExecutorService executor = null;		
-		try {			
+		ExecutorService executor = null;
+		try {
 			executor = Executors.newSingleThreadExecutor();
 			for (Method method : program.getMethods()) {
-				if (method.vertexSet().isEmpty()) {
-					//ignore empty methods
-					normal++;
-					continue;
-				}
+//				if (!method.getMethodName().equals("<jayhorn.Main: void main(java.lang.String[])>")) continue;
 				
-				Prover prover = factory.spawn();
-				Preconditions.checkArgument(prover!=null, "Failed to initialize prover.");
-				prover.setHornLogic(false);
-
-				Set<CfgBlock> inconsistencies = new HashSet<CfgBlock>();			
+				Set<Inconsistency> inconsistencies = checkMethod(executor, program, method);
 				
-				InconsistencyThread thread = new InconsistencyThread(program, method, prover);
-				final Future<?> future = executor.submit(thread);
-				try {
-					if (Options.v().getTimeout() <= 0) {
-						future.get();
-					} else {
-						future.get(Options.v().getTimeout(), TimeUnit.SECONDS);						
-					}
-					normal++;
-					inconsistencies.addAll(thread.getInconsistentBlocks());
-					if (!inconsistencies.isEmpty()) {
-						result.put(method.getMethodName(), inconsistencies);
-					}
-				} catch (TimeoutException e) {
-					if (!future.cancel(true)) {
-						System.err.println("failed to cancle after timeout");
-					}
-					timeouts++;
-					inconsistencies.clear();
-					System.err.println("Timeout for " + method.getMethodName());
-				} catch (InterruptedException e) {
-					interrupt++;
-					e.printStackTrace();
-				} catch (ExecutionException e) {
-					execException++;
-					throw new RuntimeException(e);
-				} catch (OutOfMemoryError e) {
-					outOfMemory++;
-					e.printStackTrace();
-				} catch (Throwable e) {
-					other++;
-					e.printStackTrace();
-				} finally {
-					prover.stop();
-					prover.shutdown();
-					if (future != null && !future.isDone() && !future.cancel(true)) {
-						throw new RuntimeException("Could not cancel broken thread!");
+				// if we found inconsistencies, do the fault localization.
+				if (!(factory instanceof PrincessProverFactory)) continue; //TODO: update z3
+				if (!inconsistencies.isEmpty()) {
+					for (Inconsistency inconsistency : inconsistencies) {
+						localizeInconsistency(executor, program, inconsistency);
 					}
 				}
 			}
 		} finally {
-			if (executor!=null) {
+			if (executor != null) {
 				executor.shutdown();
 			}
-			
+
 		}
-		
+
 		StringBuilder sb = new StringBuilder();
 		sb.append("Statistics:");
 		sb.append(String.format("%n  Analyzed procedure: %d", program.getMethods().length));
 		sb.append(String.format("%n  Analysis terminated normally for: %d", normal));
 		sb.append(String.format("%n\t With inconsistencies: %d", result.size()));
-		sb.append(String.format("%n  Analysis terminated with timeout after %d sec: %d", Options.v().getTimeout(), timeouts));
+		sb.append(String.format("%n  Analysis terminated with timeout after %d sec: %d", Options.v().getTimeout(),
+				timeouts));
 		sb.append(String.format("%n  Analysis terminated with intterupt exception: %d", interrupt));
 		sb.append(String.format("%n  Analysis terminated with execException exception: %d", execException));
 		sb.append(String.format("%n  Analysis terminated with outOfMemory exception: %d", outOfMemory));
 		sb.append(String.format("%n  Analysis terminated with other exception: %d", other));
 		System.out.println(sb.toString());
-		
+
 		printResults(result);
-		
+
 		return result;
 	}
 
-	Map<String, Set<Integer>> bla = new HashMap<String, Set<Integer>>();
+	private Set<Inconsistency> checkMethod(ExecutorService executor, Program program, Method method) {
+		Set<Inconsistency> inconsistencies = new HashSet<Inconsistency>();
+		if (method.vertexSet().isEmpty()) {
+			// ignore empty methods
+			normal++;
+			return inconsistencies;
+		}
+		Prover prover = factory.spawn();
+		Preconditions.checkArgument(prover != null, "Failed to initialize prover.");
+		prover.setHornLogic(false);
+
+		Set<CfgBlock> inconsistentBlocks = new HashSet<CfgBlock>();
+
+		InconsistencyThread thread = new InconsistencyThread(program, method, prover);
+		final Future<?> future = executor.submit(thread);
+		try {
+			if (Options.v().getTimeout() <= 0) {
+				future.get();
+			} else {
+				future.get(Options.v().getTimeout(), TimeUnit.SECONDS);
+			}
+			normal++;
+			inconsistencies.addAll(getInconsistencies(method, thread.getInconsistentBlocks()));
+			
+			inconsistentBlocks.addAll(thread.getInconsistentBlocks());
+			if (!inconsistentBlocks.isEmpty()) {
+				result.put(method.getMethodName(), inconsistentBlocks);
+			}
+		} catch (TimeoutException e) {
+			if (!future.cancel(true)) {
+				System.err.println("failed to cancel after timeout");
+			}
+			timeouts++;
+			System.err.println("Timeout for " + method.getMethodName());
+		} catch (InterruptedException e) {
+			interrupt++;
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			execException++;
+			throw new RuntimeException(e);
+		} catch (OutOfMemoryError e) {
+			outOfMemory++;
+			e.printStackTrace();
+		} catch (Throwable e) {
+			other++;
+			e.printStackTrace();
+		} finally {
+			prover.stop();
+			prover.shutdown();
+			if (future != null && !future.isDone() && !future.cancel(true)) {
+				throw new RuntimeException("Could not cancel broken thread!");
+			}
+		}		
+		return inconsistencies;
+	}
 	
+	private void localizeInconsistency(ExecutorService executor, Program program, Inconsistency inconsistency) {
+		Prover prover = factory.spawn();
+		Preconditions.checkArgument(prover != null, "Failed to initialize prover.");
+		prover.setHornLogic(false);
+		InconsistencyLocalization localizationThread = new InconsistencyLocalization(program, inconsistency, prover);
+		final Future<?> inconsistencyFuture = executor.submit(localizationThread);
+		try {
+			if (Options.v().getTimeout() <= 0) {
+				inconsistencyFuture.get();
+			} else {
+				inconsistencyFuture.get(Options.v().getTimeout(), TimeUnit.SECONDS);
+			}
+		} catch (TimeoutException e) {
+			if (!inconsistencyFuture.cancel(true)) {
+				System.err.println("failed to cancel after timeout");
+			}
+			System.err.println("Localization timeout for " + inconsistency.getMethod().getMethodName());
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (ExecutionException e) {							
+			throw new RuntimeException(e);
+		} catch (OutOfMemoryError e) {
+			e.printStackTrace();
+		} catch (Throwable e) {
+			e.printStackTrace();
+		} finally {
+			prover.stop();
+			prover.shutdown();
+			if (inconsistencyFuture != null && !inconsistencyFuture.isDone() && !inconsistencyFuture.cancel(true)) {
+				throw new RuntimeException("Could not cancel broken thread!");
+			}
+		}	
+	}
+	
+	
+	
+	private Set<Inconsistency> getInconsistencies(Method method, Set<CfgBlock> inconsistentBlocks) {		
+		Set<Inconsistency> inconsistencies = new HashSet<Inconsistency>();
+		if (inconsistentBlocks != null && !inconsistentBlocks.isEmpty()) {
+			Dominators<CfgBlock> dom = new Dominators<CfgBlock>(method, method.getSource());
+			for (CfgBlock b : inconsistentBlocks) {
+				if (!dom.isStrictlyDominatedByAny(b, inconsistentBlocks)) {
+					inconsistencies.add(new Inconsistency(method, b));
+				}
+			}
+		}
+		return inconsistencies;
+	}
+
+	Map<String, Set<Integer>> bla = new HashMap<String, Set<Integer>>();
+
 	public void setDuplicatedSourceLocations(Set<SourceLocation> duplicates) {
 		for (SourceLocation loc : duplicates) {
-			if (loc.getSourceFileName()!=null) {
+			if (loc.getSourceFileName() != null) {
 				if (!bla.containsKey(loc.getSourceFileName())) {
 					bla.put(loc.getSourceFileName(), new HashSet<Integer>());
 				}
-				if (loc.getLineNumber()>0) {
+				if (loc.getLineNumber() > 0) {
 					bla.get(loc.getSourceFileName()).add(loc.getLineNumber());
 				}
 			}
 		}
 	}
 
-	
 	private void printResults(Map<String, Set<CfgBlock>> result) {
 		Map<String, Map<String, List<Integer>>> resultsByFile = new HashMap<String, Map<String, List<Integer>>>();
 		for (Entry<String, Set<CfgBlock>> entry : result.entrySet()) {
@@ -153,12 +222,13 @@ public class InconsistencyChecker {
 			for (CfgBlock b : entry.getValue()) {
 				for (Statement s : b.getStatements()) {
 					SourceLocation loc = s.getSourceLocation();
-					if (loc!=null) {
-						if (loc.getSourceFileName()!=null) {
+					if (loc != null) {
+						if (loc.getSourceFileName() != null) {
 							sourceFileName = loc.getSourceFileName();
 						}
 						if (bla.containsKey(entry.getKey()) && bla.get(entry.getKey()).contains(loc.getLineNumber())) {
-							//ditch that warning because it contians a duplicated block
+							// ditch that warning because it contians a
+							// duplicated block
 							System.err.println("Suppressed lines");
 							lines.clear();
 							break;
@@ -196,7 +266,7 @@ public class InconsistencyChecker {
 					sb.append(line);
 					comma = ", ";
 				}
-				sb.append(System.getProperty("line.separator"));				
+				sb.append(System.getProperty("line.separator"));
 			}
 			sb.append(System.getProperty("line.separator"));
 			sb.append(System.getProperty("line.separator"));

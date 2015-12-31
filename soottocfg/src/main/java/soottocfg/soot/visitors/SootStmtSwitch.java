@@ -474,8 +474,8 @@ public class SootStmtSwitch implements StmtSwitch {
 //				return true;
 //			}
 
-			System.err.println("We should hardcode JUnit stuff " + call.getMethod().getDeclaringClass().getName()
-					+ "  method " + call.getMethod().getName());
+//			System.err.println("We should hardcode JUnit stuff " + call.getMethod().getDeclaringClass().getName()
+//					+ "  method " + call.getMethod().getName());
 		}
 
 		if (call.getMethod().getDeclaringClass().getName().contains("com.google.common.base.")) {
@@ -486,7 +486,7 @@ public class SootStmtSwitch implements StmtSwitch {
 				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u), guard));
 				return true;
 			}
-			System.err.println("TODO: handle Guava properly: " + call.getMethod().getSignature());
+//			System.err.println("TODO: handle Guava properly: " + call.getMethod().getSignature());
 		}
 
 		return false;

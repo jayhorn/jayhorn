@@ -3,6 +3,7 @@
  */
 package soottocfg.cfg.util;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -24,7 +25,10 @@ import com.google.common.base.Verify;
 public abstract class AbstractDominators<V> {
 
 	private final DirectedGraph<V, ?> graph;
-	
+	protected Map<V, Set<V>> dominators;
+	protected Map<V, V> iDominators;
+	protected Tree<V> dominatorTree;
+
 	public AbstractDominators(DirectedGraph<V, ?> g) {
 		graph = g;
 	}
@@ -43,35 +47,87 @@ public abstract class AbstractDominators<V> {
 	 * @param dominator
 	 * @return
 	 */
-	public abstract boolean isDominatedBy(V node, V dominator);
+	public boolean isDominatedBy(V node, V dominator) {
+		if (!dominators.containsKey(node)) {
+			throw new IllegalArgumentException("Node is not part of the graph: "+node);
+		}
+		if (!dominators.containsKey(dominator)) {
+			throw new IllegalArgumentException("Node is not part of the graph: "+node);
+		}
+		return dominators.get(node).contains(dominator);
+	}
+
+	/**
+	 * Check if node is strictly dominated by dominator 
+	 * (i.e., node!=dominator and dominator dominates node)  
+	 * @param node
+	 * @param dominator
+	 * @return
+	 */
+	public boolean isStrictlyDominatedBy(V node, V dominator) {
+		if (node.equals(dominator)) {
+			return false;
+		}
+		return isDominatedBy(node, dominator);
+	}
+
+	/**
+	 * Returns true if there exists an element in dominators that
+	 * strictly dominates node.
+	 * @param node
+	 * @param dominators
+	 * @return
+	 */
+	public boolean isStrictlyDominatedByAny(V node, Collection<V> dominators) {
+		for (V dom : dominators) {
+			if (isStrictlyDominatedBy(node, dom)) {
+				return true;
+			}
+		}
+		return false;
+	}
 	
 	/**
 	 * Get the immediate dominator for node
 	 * @param node
 	 * @return The immediate dominator of node, or null if node has no dominator.
 	 */
-	public abstract V getImmediateDominator(V node);
+	public V getImmediateDominator(V node) {
+		if (!iDominators.containsKey(node)) {
+			throw new IllegalArgumentException("Node is not part of the graph: "+node);
+		}
+		return iDominators.get(node);
+	}
 	
 	/**
 	 * Get the dominators for node
 	 * @param node
 	 * @return
 	 */
-	public abstract Set<V> getDominators(V node);
+	public Set<V> getDominators(V node) {
+		if (!dominators.containsKey(node)) {
+			throw new IllegalArgumentException("Node is not part of the graph: "+node);
+		}
+		return new HashSet<V>(dominators.get(node));
+	}
 
 	/**
 	 * Get the mapping from vertex to its set of dominators
 	 * @param node
 	 * @return
 	 */
-	public abstract Map<V, Set<V>> getDominators();
+	public Map<V, Set<V>> getDominators() {
+		return new HashMap<V, Set<V>>(dominators);
+	}
 
 	
 	/**
 	 * Get the dominator tree of the graph.
 	 * @return
 	 */
-	public abstract Tree<V> getDominatorTree();
+	public Tree<V> getDominatorTree() {
+		return dominatorTree;
+	}
 	
 	/**
 	 * Compute the immediate (post)dominator for each vertex. 

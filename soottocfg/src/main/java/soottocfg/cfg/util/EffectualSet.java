@@ -9,11 +9,14 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
+import org.jgrapht.Graphs;
 import org.jgrapht.ext.DOTExporter;
 import org.jgrapht.ext.StringNameProvider;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -22,7 +25,9 @@ import org.jgrapht.graph.DefaultEdge;
 import com.google.common.base.Verify;
 
 /**
- * @author schaef Given a directed graph with unique source and unique sink,
+ * @author schaef 
+ * 
+ * Given a directed graph with unique source and unique sink,
  *         perform the following steps: 1) Compute the set of 'inevitable'
  *         vertices for each vertex. Here, a vertex A is inevitable for a vertex
  *         B if any complete path through B must contain A as well. I.e., the
@@ -53,11 +58,15 @@ public class EffectualSet<A> {
 	private final Map<A, Set<A>> inevitable;
 	private final DirectedGraph<Set<A>, DefaultEdge> lattice;
 	private final Set<A> effectualSet;
+	private final Dominators<A> dominators;
+	private final PostDominators<A> postDominators;
 
 	/**
 	 * 
 	 */
 	public EffectualSet(Dominators<A> dominators, PostDominators<A> postDominators) {
+		this.dominators = dominators;
+		this.postDominators = postDominators;
 		Map<A, Set<A>> dom = dominators.getDominators();
 		Map<A, Set<A>> pdom = postDominators.getDominators();
 		inevitable = new HashMap<A, Set<A>>(dom);
@@ -76,7 +85,16 @@ public class EffectualSet<A> {
 	}
 
 	/**
-	 * TODO: find a good name and a good description for that lattice.
+	 * Returns the lattice of the partial order defined by subset relation
+	 * over the set of complete paths that go through a vertex.
+	 * That is, two vertices are in the same set in the lattice if they share
+	 * the exact same set of complete paths. For example, if a graph has a
+	 * unique source and a unique sink, both vertices share the same set of
+	 * complete paths. If there is a diamond in the graph, the vertices before
+	 * and after the diamond share the same set of complete paths while the
+	 * vertices on either side of the diamond share a subset of paths with the
+	 * vertices before and after the diamond (i.e., all but those that go through
+	 * the other side of the diamond).
 	 * 
 	 * @return
 	 */
@@ -84,6 +102,23 @@ public class EffectualSet<A> {
 		return lattice;
 	}
 
+	/**
+	 * Get the dominators that were used to build the effectual set.
+	 * @return
+	 */
+	public Dominators<A> getDominators() {
+		return dominators;
+	}
+
+	/**
+	 * Get the post dominators that were used to build the effectual set.
+	 * @return
+	 */
+	public PostDominators<A> getPostDominators() {
+		return postDominators;
+	}
+
+	
 	/**
 	 * Compute an effectual set for the graph. I.e., a minimal set of vertices
 	 * that need to be covered to obtain a path cover of the graph.
@@ -95,6 +130,83 @@ public class EffectualSet<A> {
 		return effectualSet;
 	}
 
+	/**
+	 * Finds the vertex 'b' in the lattice and returns the set of blocks
+	 * that share the same set of traces.
+	 * @param b
+	 * @return
+	 */
+	public Set<A> findInLattice(A b) {
+		Queue<Set<A>> todo = new LinkedList<Set<A>>();
+		todo.add(GraphUtil.getSource(lattice));
+		Set<Set<A>> done = new HashSet<Set<A>>();
+		while (!todo.isEmpty()) {
+			Set<A> current = todo.poll();
+			if (current.contains(b)) {
+				return current;
+			}
+			done.add(current);
+			for (Set<A> next : Graphs.successorListOf(lattice, current)) {
+				if (!todo.contains(next) && !done.contains(next)) {
+					todo.add(next);
+				}
+			}
+		}
+		throw new RuntimeException("Not found!");
+	}
+
+	/**
+	 * Check if 'b' is in a lattice element below 'latticeElement'.
+	 * @param b
+	 * @param latticeElement
+	 * @return
+	 */
+	public boolean isBelowInLattice(A b, Set<A> latticeElement) {
+		if (latticeElement.contains(b))
+			return false;
+		Queue<Set<A>> todo = new LinkedList<Set<A>>(Graphs.successorListOf(lattice, latticeElement));
+		Set<Set<A>> done = new HashSet<Set<A>>();
+		while (!todo.isEmpty()) {
+			Set<A> current = todo.poll();
+			if (current.contains(b)) {
+				return true;
+			}
+			done.add(current);
+			for (Set<A> next : Graphs.successorListOf(lattice, current)) {
+				if (!todo.contains(next) && !done.contains(next)) {
+					todo.add(next);
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Check if 'b' is in a lattice element above 'latticeElement'.
+	 * @param b
+	 * @param latticeElement
+	 * @return
+	 */
+	public boolean isAboveInLattice(A b, Set<A> latticeElement) {
+		if (latticeElement.contains(b))
+			return false;
+		Queue<Set<A>> todo = new LinkedList<Set<A>>(Graphs.predecessorListOf(lattice, latticeElement));
+		Set<Set<A>> done = new HashSet<Set<A>>();
+		while (!todo.isEmpty()) {
+			Set<A> current = todo.poll();
+			if (current.contains(b)) {
+				return true;
+			}
+			done.add(current);
+			for (Set<A> next : Graphs.predecessorListOf(lattice, current)) {
+				if (!todo.contains(next) && !done.contains(next)) {
+					todo.add(next);
+				}
+			}
+		}
+		return false;
+	}	
+	
 	private DirectedGraph<Set<A>, DefaultEdge> buildLattice() {
 		DirectedGraph<Set<A>, DefaultEdge> lattice = new DefaultDirectedGraph<Set<A>, DefaultEdge>(DefaultEdge.class);
 		Set<EquivalentVertices<A>> poset = new HashSet<EquivalentVertices<A>>();

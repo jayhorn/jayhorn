@@ -245,26 +245,25 @@ public abstract class BasicMemoryModel extends MemoryModel {
 			Type type = null;
 			if (t instanceof soot.BooleanType) {
 				type = BoolType.instance();
-			} else if (t instanceof soot.ByteType) {
-				System.err.println("Warning: type " + t + " is unknown, assuming int");
+			} else if (t instanceof soot.ByteType) {				
 				type = IntType.instance();
 			} else if (t instanceof soot.CharType) {
-				System.err.println("Warning: type " + t + " is unknown, assuming int");
+				//TODO
 				type = IntType.instance();
 			} else if (t instanceof soot.DoubleType) {
-				System.err.println("Warning: type " + t + " is unknown, assuming int");
+				//TODO
 				type = IntType.instance();
 			} else if (t instanceof soot.FloatType) {
-				System.err.println("Warning: type " + t + " is unknown, assuming int");
+				//TODO
 				type = IntType.instance();
 			} else if (t instanceof soot.IntType) {
-				System.err.println("Warning: type " + t + " is unknown, assuming int");
+				//TODO
 				type = IntType.instance();
 			} else if (t instanceof soot.LongType) {
-				System.err.println("Warning: type " + t + " is unknown, assuming int");
+				//TODO
 				type = IntType.instance();
 			} else if (t instanceof soot.ShortType) {
-				System.err.println("Warning: type " + t + " is unknown, assuming int");
+				//TODO
 				type = IntType.instance();
 			} else if (t instanceof soot.ArrayType) {
 				soot.ArrayType at = (soot.ArrayType) t;

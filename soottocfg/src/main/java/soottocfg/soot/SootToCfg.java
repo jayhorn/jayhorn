@@ -168,7 +168,7 @@ public class SootToCfg {
 	}
 
 	private void processMethodBody(Body body) {
-		System.err.println(body);
+//		System.err.println(body);
 		preProcessBody(body);
 
 		// generate the CFG structures on the processed body.

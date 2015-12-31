@@ -3,7 +3,6 @@
  */
 package jayhorn.old_inconsistency_check;
 
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -12,43 +11,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.UUID;
 
 import org.jgrapht.Graphs;
 
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverResult;
-import jayhorn.solver.ProverType;
 import jayhorn.util.EdgeLabelToAssume;
+import jayhorn.util.ICfgToProver;
 import jayhorn.util.LoopRemoval;
+import jayhorn.util.SimplCfgToProver;
 import jayhorn.util.SsaTransformer;
 import soottocfg.cfg.Program;
-import soottocfg.cfg.Variable;
-import soottocfg.cfg.expression.ArrayLengthExpression;
-import soottocfg.cfg.expression.BinaryExpression;
-import soottocfg.cfg.expression.BooleanLiteral;
-import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.InstanceOfExpression;
-import soottocfg.cfg.expression.IntegerLiteral;
-import soottocfg.cfg.expression.IteExpression;
-import soottocfg.cfg.expression.UnaryExpression;
-import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.statement.ArrayReadStatement;
-import soottocfg.cfg.statement.ArrayStoreStatement;
-import soottocfg.cfg.statement.AssertStatement;
-import soottocfg.cfg.statement.AssignStatement;
-import soottocfg.cfg.statement.AssumeStatement;
-import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.type.BoolType;
-import soottocfg.cfg.type.MapType;
-import soottocfg.cfg.type.Type;
 import soottocfg.cfg.util.UnreachableNodeRemover;
 
 /**
@@ -62,8 +40,7 @@ public class InconsistencyThread implements Runnable {
 	private final Method method;
 	private final Prover prover;
 	private final Program program;
-
-	private final Map<Variable, Map<Integer, ProverExpr>> ssaVariableMap = new HashMap<Variable, Map<Integer, ProverExpr>>();
+	
 	private final Map<CfgBlock, ProverExpr> blockVars = new LinkedHashMap<CfgBlock, ProverExpr>();
 
 	private final Set<CfgBlock> inconsistentBlocks = new HashSet<CfgBlock>();
@@ -191,19 +168,10 @@ public class InconsistencyThread implements Runnable {
 	}
 
 
-
-	ProverFun arrayLength;
-
-	private void createHelperFunctions() {
-		// TODO: change the type of this
-		arrayLength = prover.mkUnintFunction("$arrayLength", new ProverType[] { prover.getIntType() },
-				prover.getIntType());
-	}
-
 	private void createVerificationCondition() {
 		System.err.println("Creating transition relation");
-		createHelperFunctions();
-
+		ICfgToProver cfg2prover = new SimplCfgToProver(prover);
+		
 		// first create a boolean variable for each block.
 		for (CfgBlock b : method.vertexSet()) {
 			blockVars.put(b, prover.mkVariable(b.getLabel(), prover.getBooleanType()));
@@ -222,13 +190,13 @@ public class InconsistencyThread implements Runnable {
 			if (!comeFrom.isEmpty()) {
 				conj.add(prover.mkOr(comeFrom.toArray(new ProverExpr[comeFrom.size()])));
 			}
-			// ---------
 
-			// transition relation of the statements
 			for (Statement s : b.getStatements()) {
-				if (statementToTransitionRelation(s) == null)
-					continue; // TOOD: hack, remove later
-				conj.add(statementToTransitionRelation(s));
+				ProverExpr c = cfg2prover.statementToTransitionRelation(s);
+				if (c == null) {					
+					continue; // TODO: hack, remove later
+				}
+				conj.add(c);
 			}
 			List<ProverExpr> disj = new LinkedList<ProverExpr>();
 			for (CfgBlock succ : Graphs.successorListOf(method, b)) {
@@ -246,146 +214,13 @@ public class InconsistencyThread implements Runnable {
 				tr = prover.mkAnd(conj.toArray(new ProverExpr[conj.size()]));
 			}
 			ProverExpr blockTransitionFormula = prover.mkImplies(blockVars.get(b), tr);
-			// if (method.inDegreeOf(b) == 0) {
-			// System.err.print("(source)");
-			// }
-			// if (method.outDegreeOf(b) == 0) {
-			// System.err.print("(sink)");
-			// }
-			//
-			// System.err.println(b.getLabel() + ": " +
-			// blockTransitionFormula.toString());
 			prover.addAssertion(blockTransitionFormula);
 		}
 
-		// now add assertions to ensure that all unique variables are different.
-		int superHackIntCounter = 0;
-		for (ProverExpr var : usedUniqueVariables) {
-			// TODO: this is a hack
-			prover.addAssertion(prover.mkEq(var, prover.mkLiteral(superHackIntCounter++)));
-		}
-
+		cfg2prover.finalizeProofObligations();
 		System.err.println("done");
 	}
 
-	private int dummyvarcounter = 0;
-	
-	private ProverExpr statementToTransitionRelation(Statement s) {
-		if (s instanceof AssertStatement) {
-			return expressionToProverExpr(((AssertStatement) s).getExpression());
-		} else if (s instanceof AssignStatement) {
-			ProverExpr l = expressionToProverExpr(((AssignStatement) s).getLeft());
-			ProverExpr r = expressionToProverExpr(((AssignStatement) s).getRight());
 
-			return prover.mkEq(l, r);
-		} else if (s instanceof AssumeStatement) {
-			return expressionToProverExpr(((AssumeStatement) s).getExpression());
-		} else if (s instanceof CallStatement) {
-			CallStatement cs = (CallStatement)s;
-			if (cs.getReceiver().isPresent()) {
-				return prover.mkEq(expressionToProverExpr(cs.getReceiver().get()), prover.mkVariable("dummy"+(dummyvarcounter++), lookupProverType(cs.getReceiver().get().getType())));		
-			}
-			return null;
-		} else if (s instanceof ArrayReadStatement) {
-			ArrayReadStatement ar = (ArrayReadStatement)s;
-			MapType mt = (MapType)ar.getBase().getType();			
-			return prover.mkEq(expressionToProverExpr(ar.getLeftValue()), prover.mkVariable("dummy"+(dummyvarcounter++), lookupProverType(mt.getValueType())));
-		} else if (s instanceof ArrayStoreStatement) {
-			// TODO
-		} else {
-			// TODO ignore all other statements?
-			return null;
-		}
-		return null; // TODO: these are hacks. Later, this must not return null.
-	}
-
-	private Set<ProverExpr> usedUniqueVariables = new HashSet<ProverExpr>();
-
-	private ProverExpr expressionToProverExpr(Expression e) {
-		if (e instanceof ArrayLengthExpression) {
-			return arrayLength
-					.mkExpr(new ProverExpr[] { expressionToProverExpr(((ArrayLengthExpression) e).getExpression()) });
-		} else if (e instanceof BinaryExpression) {
-			BinaryExpression be = (BinaryExpression) e;
-			ProverExpr left = expressionToProverExpr(be.getLeft());
-			ProverExpr right = expressionToProverExpr(be.getRight());
-			switch (be.getOp()) {
-			case Plus:
-				return prover.mkPlus(left, right);
-			case Minus:
-				return prover.mkMinus(left, right);
-			case Mul:
-				return prover.mkMult(left, right);
-			case Div:
-				return prover.mkTDiv(left, right);
-			case Mod:
-				return prover.mkTMod(left, right);
-
-			case Eq:
-				return prover.mkEq(left, right);
-			case Ne:
-				return prover.mkNot(prover.mkEq(left, right));
-			case Gt:
-				return prover.mkGt(left, right);
-			case Ge:
-				return prover.mkGeq(left, right);
-			case Lt:
-				return prover.mkLt(left, right);
-			case Le:
-				return prover.mkLeq(left, right);
-			default: {
-				throw new RuntimeException("Not implemented for " + be.getOp());
-			}
-			}
-		} else if (e instanceof BooleanLiteral) {
-			return prover.mkLiteral(((BooleanLiteral) e).getValue());
-		} else if (e instanceof IdentifierExpression) {
-			IdentifierExpression ie = (IdentifierExpression) e;
-			ie.getVariable();
-			ie.getIncarnation();
-			if (!ssaVariableMap.containsKey(ie.getVariable())) {
-				ssaVariableMap.put(ie.getVariable(), new HashMap<Integer, ProverExpr>());
-			}
-			if (!ssaVariableMap.get(ie.getVariable()).containsKey(ie.getIncarnation())) {
-				ProverExpr ssaVar = prover.mkVariable(ie.getDefVariables() + "__" + ie.getIncarnation(),
-						lookupProverType(ie.getType()));
-				ssaVariableMap.get(ie.getVariable()).put(ie.getIncarnation(), ssaVar);
-			}
-			if (ie.getVariable().isUnique()) {
-				// If this is a unique variable, remember it and add axioms
-				// later that ensure that
-				// all unique variables are different.
-				usedUniqueVariables.add(ssaVariableMap.get(ie.getVariable()).get(ie.getIncarnation()));
-			}
-			return ssaVariableMap.get(ie.getVariable()).get(ie.getIncarnation());
-		} else if (e instanceof InstanceOfExpression) {
-			return prover.mkVariable("$randomBool" + UUID.randomUUID().toString(), prover.getBooleanType());
-		} else if (e instanceof IntegerLiteral) {
-			return prover.mkLiteral(BigInteger.valueOf(((IntegerLiteral) e).getValue()));
-		} else if (e instanceof IteExpression) {
-			IteExpression ie = (IteExpression) e;
-			return prover.mkIte(expressionToProverExpr(ie.getCondition()), expressionToProverExpr(ie.getThenExpr()),
-					expressionToProverExpr(ie.getElseExpr()));
-		} else if (e instanceof UnaryExpression) {
-			UnaryExpression ue = (UnaryExpression) e;
-			ProverExpr expr = expressionToProverExpr(ue.getExpression());
-
-			if (ue.getOp() == UnaryOperator.LNot) {
-				return prover.mkNot(expr);
-			} else {
-				assert (ue.getOp() == UnaryOperator.Neg);
-				return prover.mkMult(prover.mkLiteral(-1), expr);
-			}
-		} else {
-			throw new RuntimeException("unexpected expression type: " + e);
-		}
-	}
-
-	private ProverType lookupProverType(Type t) {
-		if (t == BoolType.instance()) {
-			return prover.getBooleanType();
-		}
-		return prover.getIntType();
-	}
 
 }

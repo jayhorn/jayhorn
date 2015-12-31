@@ -54,6 +54,20 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		methodName = uniqueName;
 	}
 
+	public Method createMethodFromSubgraph(DirectedGraph<CfgBlock, CfgEdge> subgraph, String newMethodName) {
+		Preconditions.checkArgument(vertexSet().containsAll(subgraph.vertexSet()), "Method does not contain all nodes from subgraph.");
+		Method subgraphMethod = new Method(newMethodName);
+		
+		for (CfgBlock v : subgraph.vertexSet()) {
+			subgraphMethod.addVertex(v);
+		}
+		for (CfgEdge e : subgraph.edgeSet()) {
+			subgraphMethod.addEdge(subgraph.getEdgeSource(e), subgraph.getEdgeTarget(e));
+		}
+		subgraphMethod.initialize(thisVariable, returnVariable, parameterList, locals, source, isProgramEntry);
+		return subgraphMethod;
+	}
+	
 	public String getMethodName() {
 		return this.methodName;
 	}
