@@ -1,6 +1,7 @@
-package jayhorn.old_inconsistency_check;
+package jayhorn.old_inconsistency_check.faultlocalization;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -31,33 +32,36 @@ import soottocfg.util.Pair;
 
 public class InconsistencyLocalization {
 
-	private final Prover prover;	
+	private final Prover prover;
 	private final Map<ProverExpr, Statement> peToStatement;
 	private final Map<ProverExpr, VertexPair<CfgBlock>> nestedDiamondMap;
-	
+
 	public InconsistencyLocalization(Prover p) {
 		prover = p;
 		peToStatement = new HashMap<ProverExpr, Statement>();
-		nestedDiamondMap = new HashMap<ProverExpr, VertexPair<CfgBlock>> ();
+		nestedDiamondMap = new HashMap<ProverExpr, VertexPair<CfgBlock>>();
 	}
 
-	public List<Statement> foo(SimplCfgToProver s2p, Method graph, CfgBlock source, CfgBlock joinAfterSink, Optional<ProverExpr> precondition, Optional<ProverExpr> postcondition) {
-		List<Statement> result = new LinkedList<Statement>();
-		if (source.equals(graph.getSource()) && joinAfterSink==null) {
-			//this is the original graph and we can use it immediately.
+	public Set<Statement> computeRelevantStatements(SimplCfgToProver s2p, Method graph, CfgBlock source,
+			CfgBlock joinAfterSink, Optional<ProverExpr> precondition, Optional<ProverExpr> postcondition) {
+		Set<Statement> result = new LinkedHashSet<Statement>();
+		if (source.equals(graph.getSource()) && joinAfterSink == null) {
+			// this is the original graph and we can use it immediately.
 		} else {
-			//extract the subgraph from 'source' to 'joinAfterSink'.
-			//Where we have to remove all statements from 'joinAfterSink'.
-			DirectedGraph<CfgBlock, CfgEdge> subgraph = new DefaultDirectedGraph<CfgBlock, CfgEdge>(graph.getEdgeFactory());			
+			// extract the subgraph from 'source' to 'joinAfterSink'.
+			// Where we have to remove all statements from 'joinAfterSink'.
+			DirectedGraph<CfgBlock, CfgEdge> subgraph = new DefaultDirectedGraph<CfgBlock, CfgEdge>(
+					graph.getEdgeFactory());
 			for (CfgBlock v : GraphUtil.getVerticesBetween(graph, source, joinAfterSink)) {
 				subgraph.addVertex(v);
 			}
 			for (CfgEdge e : graph.edgeSet()) {
-				if (subgraph.vertexSet().contains(graph.getEdgeSource(e)) && subgraph.vertexSet().contains(graph.getEdgeTarget(e))) {
+				if (subgraph.vertexSet().contains(graph.getEdgeSource(e))
+						&& subgraph.vertexSet().contains(graph.getEdgeTarget(e))) {
 					subgraph.addEdge(graph.getEdgeSource(e), graph.getEdgeTarget(e));
 				}
-			}			
-			graph = graph.createMethodFromSubgraph(subgraph , graph.getMethodName()+"__nested");
+			}
+			graph = graph.createMethodFromSubgraph(subgraph, graph.getMethodName() + "__nested");
 			CfgBlock newSink = new CfgBlock(graph);
 			for (CfgBlock pre : Graphs.predecessorListOf(graph, joinAfterSink)) {
 				graph.removeEdge(pre, joinAfterSink);
@@ -65,38 +69,52 @@ public class InconsistencyLocalization {
 			}
 			graph.removeVertex(joinAfterSink);
 		}
-		List<ProverExpr> proofObligations = generatProofObligations(s2p, graph);		
-		ProverExpr[] interpolants = computeInterpolants(proofObligations, s2p.generatedAxioms(), precondition, postcondition);
-		
+		List<ProverExpr> proofObligations = generatProofObligations(s2p, graph);
+		ProverExpr[] interpolants = computeInterpolants(proofObligations, s2p.generatedAxioms(), precondition,
+				postcondition);
 		List<Integer> changePositions = findPositionsWhereInterpolantChanges(interpolants);
-		Verify.verify(!changePositions.isEmpty());
+		if (changePositions.isEmpty()) {
+			System.err.println("Nothing changed for " + graph);
+			System.err.println("Pre " + precondition);
+			System.err.println("Post " + postcondition);
+			for (int i = 0; i < interpolants.length; i++) {
+				System.err.println("Interpolant " + i + ": " + interpolants[i]);
+			}
+		} 
 		for (Integer i : changePositions) {
-			Verify.verify(proofObligations.size()>i);
+			Verify.verify(proofObligations.size() > i);
 			ProverExpr pe = proofObligations.get(i);
 			if (peToStatement.containsKey(pe)) {
 				result.add(peToStatement.get(pe));
 			} else {
-				System.err.println("RECURSION NEEDED");
 				VertexPair<CfgBlock> diamond = nestedDiamondMap.get(pe);
-				Optional<ProverExpr> interpolantBefore = Optional.fromNullable((i>0)?interpolants[i-1]:null);
-				
-				List<ProverExpr> newPostCondition = proofObligations.subList(i, proofObligations.size());
+				List<ProverExpr> newPreCondition = proofObligations.subList(0, i);
+				if (postcondition.isPresent()) {
+					newPreCondition.add(0, postcondition.get());
+				}
+				Optional<ProverExpr> interpolantBefore = Optional
+						.fromNullable(prover.mkAnd(newPreCondition.toArray(new ProverExpr[newPreCondition.size()])));
+
+				List<ProverExpr> newPostCondition = proofObligations.subList(i+1, proofObligations.size());
 				if (postcondition.isPresent()) {
 					newPostCondition.add(postcondition.get());
 				}
-				Optional<ProverExpr> interpolantAfter = Optional.fromNullable(prover.mkAnd(newPostCondition.toArray(new ProverExpr[newPostCondition.size()])));
+				Optional<ProverExpr> interpolantAfter = Optional
+						.fromNullable(prover.mkAnd(newPostCondition.toArray(new ProverExpr[newPostCondition.size()])));
 				for (CfgBlock suc : Graphs.successorListOf(graph, diamond.getFirst())) {
 					InconsistencyLocalization nestedLoc = new InconsistencyLocalization(prover);
-					result.addAll(nestedLoc.foo(s2p, graph, suc, diamond.getSecond(), interpolantBefore, interpolantAfter));
+					result.addAll(nestedLoc.computeRelevantStatements(s2p, graph, suc, diamond.getSecond(),
+							interpolantBefore, interpolantAfter));
 				}
 			}
 		}
 		return result;
 	}
-	
-	private ProverExpr[] computeInterpolants(List<ProverExpr> proofObligations, List<ProverExpr> axioms, Optional<ProverExpr> precondition, Optional<ProverExpr> postcondition) {
+
+	private ProverExpr[] computeInterpolants(List<ProverExpr> proofObligations, List<ProverExpr> axioms,
+			Optional<ProverExpr> precondition, Optional<ProverExpr> postcondition) {
 		prover.push();
-		
+
 		int partition = 0;
 		prover.setPartitionNumber(partition++);
 		if (precondition.isPresent()) {
@@ -104,7 +122,7 @@ public class InconsistencyLocalization {
 		} else {
 			prover.addAssertion(prover.mkLiteral(true));
 		}
-		
+
 		for (ProverExpr pe : proofObligations) {
 			prover.setPartitionNumber(partition++);
 			prover.addAssertion(pe);
@@ -127,34 +145,38 @@ public class InconsistencyLocalization {
 		int[][] ordering = new int[partition][1];
 		for (int i = 0; i < partition; i++) {
 			ordering[i][0] = i;
-		}		
-		ProverExpr[] interpolants = prover.interpolate(ordering);			
+		}
+		ProverExpr[] interpolants = prover.interpolate(ordering);
 		prover.pop();
 		return interpolants;
 	}
 
 	/**
-	 * Traverses 'interpolants' from left to right and returns the list of all 
-	 * indices 'i' where !interpolantsAreEqual(interpolants[i-1], interpolants[i]).
+	 * Traverses 'interpolants' from left to right and returns the list of all
+	 * indices 'i' where !interpolantsAreEqual(interpolants[i-1],
+	 * interpolants[i]).
+	 * 
 	 * @param interpolants
 	 * @return
 	 */
 	private List<Integer> findPositionsWhereInterpolantChanges(ProverExpr[] interpolants) {
-		Preconditions.checkArgument(interpolants!=null && interpolants.length>0);
+		Preconditions.checkArgument(interpolants != null && interpolants.length > 0);
 		List<Integer> result = new LinkedList<Integer>();
 		ProverExpr current = interpolants[0];
-		for (int i = 1; i<interpolants.length; i++) {
+		for (int i = 1; i < interpolants.length; i++) {
 			if (!interpolantsAreEqual(current, interpolants[i])) {
-				result.add(i-1); //subtract 1 because we do not want to include the
-				                 //precondition
+				result.add(i - 1); // subtract 1 because we do not want to
+									// include the
+									// precondition
 				current = interpolants[i];
 			}
-		}	
-		return result;		
+		}
+		return result;
 	}
-	
+
 	/**
 	 * Checks if two ProverExpr are equal.
+	 * 
 	 * @param i1
 	 * @param i2
 	 * @return
@@ -162,9 +184,9 @@ public class InconsistencyLocalization {
 	private boolean interpolantsAreEqual(ProverExpr i1, ProverExpr i2) {
 		Preconditions.checkNotNull(i1);
 		Preconditions.checkNotNull(i2);
-		return i1.toString().equals(i2.toString()); //TODO
+		return i1.toString().equals(i2.toString()); // TODO
 	}
-		
+
 	/**
 	 * Creates a sequence of prover expressions between which we interpolate
 	 * for the fault localization. One proof obligation is either the

@@ -22,6 +22,7 @@ import java.util.concurrent.TimeoutException;
 import com.google.common.base.Preconditions;
 
 import jayhorn.Options;
+import jayhorn.old_inconsistency_check.faultlocalization.LocalizationThread;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
@@ -46,26 +47,29 @@ public class InconsistencyChecker {
 	public InconsistencyChecker(ProverFactory f) {
 		factory = f;
 	}
-	
+
 	// statistics counters
 	int normal = 0, timeouts = 0, interrupt = 0, execException = 0, outOfMemory = 0, other = 0;
 	Map<String, Set<CfgBlock>> result = new HashMap<String, Set<CfgBlock>>();
-	
-	
+
 	public Map<String, Set<CfgBlock>> checkProgram(Program program) {
+		Map<Inconsistency, Set<Statement>> localizedInconsistencies = new HashMap<Inconsistency, Set<Statement>>();
 		ExecutorService executor = null;
 		try {
 			executor = Executors.newSingleThreadExecutor();
 			for (Method method : program.getMethods()) {
-//				if (!method.getMethodName().equals("<jayhorn.Main: void main(java.lang.String[])>")) continue;
-				
+				// if (!method.getMethodName().equals("<jayhorn.Main: void
+				// main(java.lang.String[])>")) continue;
+
 				Set<Inconsistency> inconsistencies = checkMethod(executor, program, method);
-				
+
 				// if we found inconsistencies, do the fault localization.
-				if (!(factory instanceof PrincessProverFactory)) continue; //TODO: update z3
+				if (!(factory instanceof PrincessProverFactory))
+					continue; // TODO: update z3
 				if (!inconsistencies.isEmpty()) {
 					for (Inconsistency inconsistency : inconsistencies) {
-						localizeInconsistency(executor, program, inconsistency);
+						localizedInconsistencies.put(inconsistency,
+								localizeInconsistency(executor, program, inconsistency));
 					}
 				}
 			}
@@ -90,6 +94,8 @@ public class InconsistencyChecker {
 		System.out.println(sb.toString());
 
 		printResults(result);
+
+		System.out.println(printLocalizedInconsistencies(localizedInconsistencies));
 
 		return result;
 	}
@@ -117,7 +123,7 @@ public class InconsistencyChecker {
 			}
 			normal++;
 			inconsistencies.addAll(getInconsistencies(method, thread.getInconsistentBlocks()));
-			
+
 			inconsistentBlocks.addAll(thread.getInconsistentBlocks());
 			if (!inconsistentBlocks.isEmpty()) {
 				result.put(method.getMethodName(), inconsistentBlocks);
@@ -146,11 +152,13 @@ public class InconsistencyChecker {
 			if (future != null && !future.isDone() && !future.cancel(true)) {
 				throw new RuntimeException("Could not cancel broken thread!");
 			}
-		}		
+		}
 		return inconsistencies;
 	}
-	
-	private void localizeInconsistency(ExecutorService executor, Program program, Inconsistency inconsistency) {
+
+	private Set<Statement> localizeInconsistency(ExecutorService executor, Program program,
+			Inconsistency inconsistency) {
+		Set<Statement> relevantStmts = new HashSet<Statement>();
 		Prover prover = factory.spawn();
 		Preconditions.checkArgument(prover != null, "Failed to initialize prover.");
 		prover.setHornLogic(false);
@@ -162,6 +170,7 @@ public class InconsistencyChecker {
 			} else {
 				inconsistencyFuture.get(Options.v().getTimeout(), TimeUnit.SECONDS);
 			}
+			relevantStmts.addAll(localizationThread.getRelevantStatements());
 		} catch (TimeoutException e) {
 			if (!inconsistencyFuture.cancel(true)) {
 				System.err.println("failed to cancel after timeout");
@@ -169,7 +178,7 @@ public class InconsistencyChecker {
 			System.err.println("Localization timeout for " + inconsistency.getMethod().getMethodName());
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		} catch (ExecutionException e) {							
+		} catch (ExecutionException e) {
 			throw new RuntimeException(e);
 		} catch (OutOfMemoryError e) {
 			e.printStackTrace();
@@ -181,12 +190,11 @@ public class InconsistencyChecker {
 			if (inconsistencyFuture != null && !inconsistencyFuture.isDone() && !inconsistencyFuture.cancel(true)) {
 				throw new RuntimeException("Could not cancel broken thread!");
 			}
-		}	
+		}
+		return relevantStmts;
 	}
-	
-	
-	
-	private Set<Inconsistency> getInconsistencies(Method method, Set<CfgBlock> inconsistentBlocks) {		
+
+	private Set<Inconsistency> getInconsistencies(Method method, Set<CfgBlock> inconsistentBlocks) {
 		Set<Inconsistency> inconsistencies = new HashSet<Inconsistency>();
 		if (inconsistentBlocks != null && !inconsistentBlocks.isEmpty()) {
 			Dominators<CfgBlock> dom = new Dominators<CfgBlock>(method, method.getSource());
@@ -199,19 +207,69 @@ public class InconsistencyChecker {
 		return inconsistencies;
 	}
 
-	Map<String, Set<Integer>> bla = new HashMap<String, Set<Integer>>();
+	Map<String, Set<Integer>> lineNumbersWithDuplicates = new HashMap<String, Set<Integer>>();
 
 	public void setDuplicatedSourceLocations(Set<SourceLocation> duplicates) {
 		for (SourceLocation loc : duplicates) {
 			if (loc.getSourceFileName() != null) {
-				if (!bla.containsKey(loc.getSourceFileName())) {
-					bla.put(loc.getSourceFileName(), new HashSet<Integer>());
+				if (!lineNumbersWithDuplicates.containsKey(loc.getSourceFileName())) {
+					lineNumbersWithDuplicates.put(loc.getSourceFileName(), new HashSet<Integer>());
 				}
 				if (loc.getLineNumber() > 0) {
-					bla.get(loc.getSourceFileName()).add(loc.getLineNumber());
+					lineNumbersWithDuplicates.get(loc.getSourceFileName()).add(loc.getLineNumber());
 				}
 			}
 		}
+	}
+
+	/**
+	 * This is just awful hacking to print sth to stdout. Will be replaced
+	 * by proper reporting some day in the future. 
+	 * @param localizedInconsistencies
+	 */
+	private String printLocalizedInconsistencies(Map<Inconsistency, Set<Statement>> localizedInconsistencies) {
+		Set<String> methodNames = new HashSet<String>();
+		for (Entry<Inconsistency, Set<Statement>> entry : localizedInconsistencies.entrySet()) {
+			methodNames.add(entry.getKey().getMethod().getMethodName());
+		}
+		StringBuilder sb = new StringBuilder();
+		for (String methodName : methodNames) {
+			sb.append("Method: ");
+			sb.append(methodName);
+			sb.append(System.getProperty("line.separator"));
+			for (Entry<Inconsistency, Set<Statement>> entry : localizedInconsistencies.entrySet()) {
+				if (entry.getKey().getMethod().getMethodName().equals(methodName)) {
+					Set<Integer> lineNumberSet = new HashSet<Integer>();
+					boolean hasClonedLine = false;
+					for (Statement s : entry.getValue()) {
+						SourceLocation loc = s.getSourceLocation();
+						if (loc==null) {
+							System.err.println("please add source location for "+s);
+						} else {
+							if (lineNumbersWithDuplicates.containsKey(methodName) &&
+									lineNumbersWithDuplicates.get(methodName).contains(loc.getLineNumber())) {
+								hasClonedLine = true;
+							}
+							lineNumberSet.add(loc.getLineNumber());
+						}
+					}
+					List<Integer> sortedLineNumbers = new LinkedList<Integer>(lineNumberSet);
+					Collections.sort(sortedLineNumbers);
+					sb.append("\t");
+					if (hasClonedLine) {
+						sb.append("(false positive)");
+					}
+					String comma = "";
+					for (Integer i : sortedLineNumbers) {
+						sb.append(comma); 
+						comma = ", ";
+						sb.append(i);
+					}
+					sb.append(System.getProperty("line.separator"));
+				}
+			}
+		}
+		return sb.toString();
 	}
 
 	private void printResults(Map<String, Set<CfgBlock>> result) {
@@ -226,7 +284,8 @@ public class InconsistencyChecker {
 						if (loc.getSourceFileName() != null) {
 							sourceFileName = loc.getSourceFileName();
 						}
-						if (bla.containsKey(entry.getKey()) && bla.get(entry.getKey()).contains(loc.getLineNumber())) {
+						if (lineNumbersWithDuplicates.containsKey(entry.getKey())
+								&& lineNumbersWithDuplicates.get(entry.getKey()).contains(loc.getLineNumber())) {
 							// ditch that warning because it contians a
 							// duplicated block
 							System.err.println("Suppressed lines");

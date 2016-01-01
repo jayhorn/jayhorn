@@ -7,6 +7,13 @@ package faultlocalization;
 //@SuppressWarnings("unused")
 public class TruePositives01 {
 	
+	public void f1() {
+		int i = 0;
+		while (i < 9)
+			i = i + 1;
+		assert (i == 10);
+	}
+
 	public boolean stringCompare() {
 		String s = "hallo";
 		if (s == "wurstsalat") return false;
