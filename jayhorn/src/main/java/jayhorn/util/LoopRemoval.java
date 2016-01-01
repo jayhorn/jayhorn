@@ -42,6 +42,16 @@ public class LoopRemoval {
 		method = m;
 	}
 
+	/**
+	 * Removes all loops in the current method as follows:
+	 * - Identify all variables modified in the loop body and
+	 *   add a non-deterministic assignment to them to the entry
+	 *   of the loop. 
+	 * - Create a copy X of the loop header and remove all outgoing
+	 *   edges of X that lead into the loop body. 
+	 * - Redirect all back-edges of a loop to the copy of the loop
+	 *   header. 
+	 */
 	public void removeLoops() {
 		Dominators<CfgBlock> dom = new Dominators<CfgBlock>(method, method.getSource());
 		LoopFinder<CfgBlock> loopFinder = new LoopFinder<CfgBlock>(dom);
@@ -97,6 +107,13 @@ public class LoopRemoval {
 		}
 	}
 
+	/**
+	 * Update the 'loops' map by adding the block 'newBlock' to all loops that
+	 * contain 'header'.
+	 * @param header
+	 * @param newBlock
+	 * @param loops
+	 */
 	private void addBlockToLoops(CfgBlock header, CfgBlock newBlock, Map<CfgBlock, Set<CfgBlock>> loops) {
 		for (Entry<CfgBlock, Set<CfgBlock>> entry : loops.entrySet()) {
 			if (entry.getValue().contains(header)) {
@@ -133,6 +150,10 @@ public class LoopRemoval {
 		}
 	}
 
+	/**
+	 * Debug method to ensure that the loop elimination actually removed all loops.
+	 * Throws a VerifyException if the current method still has loops.
+	 */
 	public void verifyLoopFree() {
 		Dominators<CfgBlock> dom = new Dominators<CfgBlock>(method, method.getSource());
 		LoopFinder<CfgBlock> loopFinder = new LoopFinder<CfgBlock>(dom);		
@@ -140,8 +161,6 @@ public class LoopRemoval {
 		
 		CycleDetector<CfgBlock, CfgEdge> cycles = new CycleDetector<CfgBlock, CfgEdge>(method);
 		Verify.verify(cycles.findCycles().isEmpty());
-
-		
 	}
 
 }

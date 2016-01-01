@@ -4,6 +4,7 @@
 package jayhorn.old_inconsistency_check;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -50,10 +51,29 @@ public class InconsistencyChecker {
 
 	// statistics counters
 	int normal = 0, timeouts = 0, interrupt = 0, execException = 0, outOfMemory = 0, other = 0;
-	Map<String, Set<CfgBlock>> result = new HashMap<String, Set<CfgBlock>>();
+	private final Map<String, Set<CfgBlock>> inconsistentBlocksPerMethod = new HashMap<String, Set<CfgBlock>>();
+	private final Map<Inconsistency, Set<Statement>> localizedInconsistencies = new HashMap<Inconsistency, Set<Statement>>();
 
-	public Map<String, Set<CfgBlock>> checkProgram(Program program) {
-		Map<Inconsistency, Set<Statement>> localizedInconsistencies = new HashMap<Inconsistency, Set<Statement>>();
+	public Map<String, Set<CfgBlock>> getInconsistentBlocksPerMethod() {
+		return inconsistentBlocksPerMethod;
+	}
+
+	public Map<Inconsistency, Set<Statement>> getLocalizedInconsistencies() {
+		return localizedInconsistencies;
+	}
+
+	/**
+	 * Main method to check for inconsistencies. Takes a program as input
+	 * and checks for each procedure if it contains inconsistent CfgBlocks.
+	 * If so, it adds an entry to 'inconsistentBlocksPerMethod' (which can
+	 * be retrieved using 'getInconsistentBlocksPerMethod()'), and applies
+	 * fault localization to obtain the list of relevant statements which gets
+	 * stored in 'localizedInconsistencies' (which can be retrieved using
+	 * getLocalizedInconsistencies()).
+	 * 
+	 * @param program
+	 */
+	public void checkProgram(Program program) {
 		ExecutorService executor = null;
 		try {
 			executor = Executors.newSingleThreadExecutor();
@@ -61,7 +81,7 @@ public class InconsistencyChecker {
 				// if (!method.getMethodName().equals("<jayhorn.Main: void
 				// main(java.lang.String[])>")) continue;
 
-				Set<Inconsistency> inconsistencies = checkMethod(executor, program, method);
+				Set<Inconsistency> inconsistencies = findInconsistenciesInMethod(executor, program, method);
 
 				// if we found inconsistencies, do the fault localization.
 				if (!(factory instanceof PrincessProverFactory))
@@ -84,7 +104,7 @@ public class InconsistencyChecker {
 		sb.append("Statistics:");
 		sb.append(String.format("%n  Analyzed procedure: %d", program.getMethods().length));
 		sb.append(String.format("%n  Analysis terminated normally for: %d", normal));
-		sb.append(String.format("%n\t With inconsistencies: %d", result.size()));
+		sb.append(String.format("%n\t With inconsistencies: %d", inconsistentBlocksPerMethod.size()));
 		sb.append(String.format("%n  Analysis terminated with timeout after %d sec: %d", Options.v().getTimeout(),
 				timeouts));
 		sb.append(String.format("%n  Analysis terminated with intterupt exception: %d", interrupt));
@@ -93,14 +113,28 @@ public class InconsistencyChecker {
 		sb.append(String.format("%n  Analysis terminated with other exception: %d", other));
 		System.out.println(sb.toString());
 
-		printResults(result);
+		printResults(inconsistentBlocksPerMethod);
 
 		System.out.println(printLocalizedInconsistencies(localizedInconsistencies));
-
-		return result;
 	}
 
-	private Set<Inconsistency> checkMethod(ExecutorService executor, Program program, Method method) {
+	/**
+	 * Finds inconsistencies in a given 'method' and returns a set of 
+	 * inconsistencies that is "minimal" in the sense that no block given 
+	 * by the Inconsistency is dominated by a block that is also inconsistent.
+	 * 
+	 * This starts a new thread (with optional timeout given by 
+	 * Options.v().getTimeout()).
+	 * 
+	 * WARNING: This method DOES modify the program. It unwinds loops and
+	 * adds additional blocks during SSA transformation!
+	 * 
+	 * @param executor ExecutorService used to start the thread.
+	 * @param program The current program.
+	 * @param method A method from 'program' that we want to analyze. 
+	 * @return Set of inconsistencies.
+	 */
+	private Set<Inconsistency> findInconsistenciesInMethod(ExecutorService executor, Program program, Method method) {
 		Set<Inconsistency> inconsistencies = new HashSet<Inconsistency>();
 		if (method.vertexSet().isEmpty()) {
 			// ignore empty methods
@@ -126,7 +160,7 @@ public class InconsistencyChecker {
 
 			inconsistentBlocks.addAll(thread.getInconsistentBlocks());
 			if (!inconsistentBlocks.isEmpty()) {
-				result.put(method.getMethodName(), inconsistentBlocks);
+				inconsistentBlocksPerMethod.put(method.getMethodName(), inconsistentBlocks);
 			}
 		} catch (TimeoutException e) {
 			if (!future.cancel(true)) {
@@ -156,13 +190,26 @@ public class InconsistencyChecker {
 		return inconsistencies;
 	}
 
+	/**
+	 * Uses the algorithm form "Explaining Inconsistent Code" (FSE'13) to find a
+	 * small set of statements that is sufficient to explain the inconsistency.
+	 * 
+	 * This starts a new thread (with optional timeout given by 
+	 * Options.v().getTimeout()).
+	 * 
+	 * Note that this algorithm does not modify the program.
+	 * @param executor ExecutorService used to start the thread.
+	 * @param inconsistency The inconsistency which we want to localize
+	 * @return A (not necessarily minimal) subset of statements needed to
+	 *         understand the inconsistency. 
+	 */
 	private Set<Statement> localizeInconsistency(ExecutorService executor, Program program,
 			Inconsistency inconsistency) {
 		Set<Statement> relevantStmts = new HashSet<Statement>();
 		Prover prover = factory.spawn();
 		Preconditions.checkArgument(prover != null, "Failed to initialize prover.");
 		prover.setHornLogic(false);
-		LocalizationThread localizationThread = new LocalizationThread(program, inconsistency, prover);
+		LocalizationThread localizationThread = new LocalizationThread(inconsistency, prover);
 		final Future<?> inconsistencyFuture = executor.submit(localizationThread);
 		try {
 			if (Options.v().getTimeout() <= 0) {
@@ -194,6 +241,16 @@ public class InconsistencyChecker {
 		return relevantStmts;
 	}
 
+	/**
+	 * Gets the set of inconsistent blocks in a 'method' and returns a
+	 * set of inconsistencies that is minimal in the sense that no inconsistent
+	 * block in an inconsistency in this set is dominated by another inconsistent
+	 * block. Inconsistent blocks that are dominated by other inconsistent blocks
+	 * are dropped. 
+	 * @param method Method with inconsistencies.
+	 * @param inconsistentBlocks Set of blocks that are inconsistent in 'method'.
+	 * @return Minimal set of inconsistencies.
+	 */
 	private Set<Inconsistency> getInconsistencies(Method method, Set<CfgBlock> inconsistentBlocks) {
 		Set<Inconsistency> inconsistencies = new HashSet<Inconsistency>();
 		if (inconsistentBlocks != null && !inconsistentBlocks.isEmpty()) {
@@ -224,7 +281,8 @@ public class InconsistencyChecker {
 
 	/**
 	 * This is just awful hacking to print sth to stdout. Will be replaced
-	 * by proper reporting some day in the future. 
+	 * by proper reporting some day in the future.
+	 * 
 	 * @param localizedInconsistencies
 	 */
 	private String printLocalizedInconsistencies(Map<Inconsistency, Set<Statement>> localizedInconsistencies) {
@@ -243,11 +301,11 @@ public class InconsistencyChecker {
 					boolean hasClonedLine = false;
 					for (Statement s : entry.getValue()) {
 						SourceLocation loc = s.getSourceLocation();
-						if (loc==null) {
-							System.err.println("please add source location for "+s);
+						if (loc == null) {
+							System.err.println("please add source location for " + s);
 						} else {
-							if (lineNumbersWithDuplicates.containsKey(methodName) &&
-									lineNumbersWithDuplicates.get(methodName).contains(loc.getLineNumber())) {
+							if (lineNumbersWithDuplicates.containsKey(methodName)
+									&& lineNumbersWithDuplicates.get(methodName).contains(loc.getLineNumber())) {
 								hasClonedLine = true;
 							}
 							lineNumberSet.add(loc.getLineNumber());
@@ -255,17 +313,34 @@ public class InconsistencyChecker {
 					}
 					List<Integer> sortedLineNumbers = new LinkedList<Integer>(lineNumberSet);
 					Collections.sort(sortedLineNumbers);
-					sb.append("\t");
+					sb.append("  Line numbers:");
 					if (hasClonedLine) {
 						sb.append("(false positive)");
 					}
 					String comma = "";
 					for (Integer i : sortedLineNumbers) {
-						sb.append(comma); 
+						sb.append(comma);
 						comma = ", ";
 						sb.append(i);
 					}
 					sb.append(System.getProperty("line.separator"));
+					List<Statement> sortedStmts = new LinkedList<Statement>(entry.getValue()); 
+					Collections.sort(sortedStmts, new Comparator<Statement>(){
+					    public int compare(Statement s1, Statement s2) {
+					        return Integer.compare(s1.getJavaSourceLine(), s2.getJavaSourceLine());
+					    }
+					});
+					for (Statement s : sortedStmts) {
+						sb.append("\t");
+						if (s.getSourceLocation()!=null) {
+							sb.append(s.getSourceLocation().getLineNumber());
+						} else {
+							sb.append("??");
+						}
+						sb.append(": ");
+						sb.append(s);
+						sb.append(System.getProperty("line.separator"));
+					}
 				}
 			}
 		}

@@ -5,7 +5,7 @@ package faultlocalization;
  *
  */
 //@SuppressWarnings("unused")
-public class TruePositives01 {
+public class FaultLocalization01 {
 	
 	public void f1() {
 		int i = 0;

@@ -19,6 +19,7 @@ import soot.Unit;
 import soot.Value;
 import soot.VoidType;
 import soot.jimple.IntConstant;
+import soot.jimple.InvokeStmt;
 import soot.jimple.Jimple;
 import soot.jimple.NullConstant;
 import soot.jimple.Stmt;
@@ -107,10 +108,12 @@ public enum SootTranslationHelpers {
 		return Jimple.v().newStaticFieldRef(getExceptionGlobal().makeRef());
 	}
 
-	public Unit makeAssertion(Value cond) {
+	public Unit makeAssertion(Value cond, Host createdFrom) {
 		List<Value> args = new LinkedList<Value>();
 		args.add(cond);
-		return Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(getAssertMethod().makeRef(), args));
+		InvokeStmt stmt = Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(getAssertMethod().makeRef(), args));
+		stmt.addAllTagsOf(createdFrom);
+		return stmt;
 	}
 
 	public SourceLocation getSourceLocation(Unit u) {

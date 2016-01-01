@@ -39,6 +39,21 @@ public class SsaTransformer {
 	private final Program program;
 	private Dominators<CfgBlock> dom;
 
+	/**
+	 * Takes a method and performs the SSA algorithm from
+	 * 'Modern Compiler Implementation in Java, Second Edition' page 407.
+	 * 
+	 * It assumes that all conditionals on edges have already been 
+	 * turned into assume statements.
+	 * First, it adds blocks if predecessors of blocks that need phi
+	 * statements dominate each other.
+	 * Then it inserts phi statements and updates the incarnations of
+	 * all IdentifierExpressions. 
+	 * WARNING: This modifies the method 'm' by adding 
+	 * blocks and statements.
+	 * @param prog
+	 * @param m
+	 */
 	public SsaTransformer(Program prog, Method m) {
 		program = prog;
 		method = m;
@@ -50,6 +65,11 @@ public class SsaTransformer {
 		}
 	}
 
+	/**
+	 * Eliminates all phi statements in the current method and adds
+	 * the necessary updates to the SSA'ed IdentifierExpressions to
+	 * the predecessor blocks of the block containing the phi statement.
+	 */
 	public void eliminatePhiStatements() {
 		// TODO assert loop-freeness
 		for (CfgBlock b : method.vertexSet()) {
@@ -59,11 +79,11 @@ public class SsaTransformer {
 					PhiStatement phi = (PhiStatement) s;
 					toRemove.add(phi);
 					int inc = phi.getLeft().getIncarnation();
-					Variable v = phi.getLeft().getVariable();
-					SourceLocation loc = null;
+					Variable v = phi.getLeft().getVariable();					
 					for (Entry<CfgBlock, Integer> entry : phi.getPredecessorIncarnations().entrySet()) {
 						CfgBlock pred = entry.getKey();
 						Verify.verify(pred != b);
+						SourceLocation loc = SourceLocationUtil.findNearestLocationBackwards(method, pred);
 						AssignStatement asgn = new AssignStatement(loc, new IdentifierExpression(loc, v, inc),
 								new IdentifierExpression(loc, v, entry.getValue()));
 						pred.getStatements().add(asgn);
@@ -158,6 +178,12 @@ public class SsaTransformer {
 		}
 	}
 
+	/**
+	 * Creates a phi statement for variable 'v' and adds it to
+	 * block 'b'.
+	 * @param b
+	 * @param v
+	 */
 	private void createPhiFunction(CfgBlock b, Variable v) {
 		IdentifierExpression left = new IdentifierExpression(null, v);
 		PhiStatement phi = new PhiStatement(left, b);
@@ -251,14 +277,30 @@ public class SsaTransformer {
 			this.left = left;
 		}
 
+		/**
+		 * Gets the left-hand side of the assignment
+		 * v := phi(...)
+		 * @return
+		 */
 		public IdentifierExpression getLeft() {
 			return left;
 		}
 
+		/**
+		 * Sets the highest 'incarnation' for the predecessor 'pred' of 'createdFrom'. 
+		 * @param pred
+		 * @param incarnation
+		 */
 		public void setPredecessorIncarnation(CfgBlock pred, Integer incarnation) {
+			//TODO assert that pred is a predecessor of 'createdFrom'
 			predecessorIncarnations.put(pred, incarnation);
 		}
 
+		/**
+		 * Gets the mapping from predecessors to the highest incarnation of the
+		 * variable in the this phi statement. 
+		 * @return
+		 */
 		public Map<CfgBlock, Integer> getPredecessorIncarnations() {
 			return predecessorIncarnations;
 		}

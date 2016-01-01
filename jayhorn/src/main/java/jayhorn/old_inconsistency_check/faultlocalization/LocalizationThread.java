@@ -13,7 +13,6 @@ import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.util.ConvertToDiamondShape;
 import jayhorn.util.SimplCfgToProver;
-import soottocfg.cfg.Program;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
@@ -30,7 +29,7 @@ public class LocalizationThread implements Runnable {
 	private final Prover prover;
 	private final Set<Statement> relevantStatements;
 	
-	public LocalizationThread(Program prog, Inconsistency ic, Prover p) {
+	public LocalizationThread(Inconsistency ic, Prover p) {
 		// program = prog;
 		inconsistency = ic;
 		prover = p;

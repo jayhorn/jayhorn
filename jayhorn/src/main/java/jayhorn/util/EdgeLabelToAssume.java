@@ -37,14 +37,6 @@ public class EdgeLabelToAssume {
 				CfgBlock src = method.getEdgeSource(edge);
 				CfgBlock tgt = method.getEdgeTarget(edge);
 				SourceLocation loc = edge.getLabel().get().getSourceLocation();
-				if (!tgt.getStatements().isEmpty()) {
-					loc = tgt.getStatements().iterator().next().getSourceLocation();
-				} else if (!src.getStatements().isEmpty()) {
-					loc = src.getStatements().get(src.getStatements().size() - 1).getSourceLocation();
-				} else {
-//					System.err.println(
-//							"ERROR: these labeled edges without location tags will cause problems later. @Martin, fix that!");
-				}
 				Statement assume = new AssumeStatement(loc, edge.getLabel().get());
 				method.removeEdge(edge);
 				CfgBlock between = new CfgBlock(method);

@@ -225,8 +225,10 @@ public enum AssertionReconstruction {
 		// generated from the assertions.
 		for (Entry<Unit, Value> entry : assertionsToInsert.entrySet()) {
 			List<Unit> unitsToInsert = new LinkedList<Unit>();
-			unitsToInsert.add(Jimple.v().newAssignStmt(assertionLocal, entry.getValue()));
-			unitsToInsert.add(SootTranslationHelpers.v().makeAssertion(assertionLocal));
+			Stmt stmt = Jimple.v().newAssignStmt(assertionLocal, entry.getValue());
+			stmt.addAllTagsOf(entry.getKey());
+			unitsToInsert.add(stmt);
+			unitsToInsert.add(SootTranslationHelpers.v().makeAssertion(assertionLocal, entry.getKey()));
 
 			body.getUnits().insertBefore(unitsToInsert, entry.getKey());
 			unitsToRemove.add(entry.getKey());

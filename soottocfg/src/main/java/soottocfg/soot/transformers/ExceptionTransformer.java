@@ -497,9 +497,9 @@ public class ExceptionTransformer extends AbstractTransformer {
 
 			for (Pair<Value, List<Unit>> pair : guards) {
 				List<Unit> toInsert = new LinkedList<Unit>();
-				toInsert.addAll(pair.getSecond());
-				toInsert.add(Jimple.v().newAssignStmt(assertionLocal, pair.getFirst()));
-				toInsert.add(SootTranslationHelpers.v().makeAssertion(assertionLocal));
+				toInsert.addAll(pair.getSecond());				
+				toInsert.add(assignStmtFor(assertionLocal, pair.getFirst(), u));
+				toInsert.add(SootTranslationHelpers.v().makeAssertion(assertionLocal, u));
 				body.getUnits().insertBefore(toInsert, u);
 			}
 		}
