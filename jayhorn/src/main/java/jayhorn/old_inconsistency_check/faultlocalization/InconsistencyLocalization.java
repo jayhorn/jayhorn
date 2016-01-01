@@ -80,7 +80,12 @@ public class InconsistencyLocalization {
 			for (int i = 0; i < interpolants.length; i++) {
 				System.err.println("Interpolant " + i + ": " + interpolants[i]);
 			}
-		} 
+		}
+		System.err.println("ProofObl : " + proofObligations.size() + ", Interp "+interpolants.length);
+		for (int i = 0; i < interpolants.length; i++) {
+			System.err.println("Interpolant " + i + ": " + interpolants[i]);
+		}
+
 		for (Integer i : changePositions) {
 			Verify.verify(proofObligations.size() > i);
 			ProverExpr pe = proofObligations.get(i);
@@ -139,7 +144,7 @@ public class InconsistencyLocalization {
 
 		ProverResult proverResult = prover.checkSat(true);
 		if (proverResult != ProverResult.Unsat) {
-			throw new RuntimeException("Fault localization failed because slice is not UNSAT");
+			throw new RuntimeException("Fault localization failed because is "+proverResult+" and not UNSAT");
 		}
 
 		int[][] ordering = new int[partition][1];

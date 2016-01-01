@@ -84,8 +84,8 @@ public class InconsistencyChecker {
 				Set<Inconsistency> inconsistencies = findInconsistenciesInMethod(executor, program, method);
 
 				// if we found inconsistencies, do the fault localization.
-				if (!(factory instanceof PrincessProverFactory))
-					continue; // TODO: update z3
+//				if (!(factory instanceof PrincessProverFactory))
+//					continue; // TODO: update z3
 				if (!inconsistencies.isEmpty()) {
 					for (Inconsistency inconsistency : inconsistencies) {
 						localizedInconsistencies.put(inconsistency,

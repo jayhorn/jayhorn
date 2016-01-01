@@ -458,8 +458,11 @@ public class Z3Prover implements Prover {
 	@Override
 	public void pop() {
 		this.solver.pop();
+		interpolationPattern.clear(); //TODO make this a bit smarter.
+		interpolationPartition = -1;
 	}
 
+	
 	private SortedMap<Integer, List<BoolExpr>> interpolationPattern = new TreeMap<Integer, List<BoolExpr>>();
 	private int interpolationPartition = -1;
 
@@ -497,7 +500,8 @@ public class Z3Prover implements Prover {
 				asrt =  ctx.mkImplies(body, head);
 			}
 			this.solver.add(asrt);
-		} else if (assertion instanceof Z3BoolExpr) {
+		} else if (assertion instanceof Z3BoolExpr
+				|| assertion instanceof Z3TermExpr) {
 			BoolExpr asrt = (BoolExpr) unpack(assertion);
 			this.solver.add(asrt);
 
@@ -511,6 +515,8 @@ public class Z3Prover implements Prover {
 				this.interpolationPattern.get(this.interpolationPartition).add(
 						asrt);
 			}
+		} else {
+			throw new RuntimeException("Cannot add " +assertion + " of type "+assertion.getClass());
 		}
 	}
 
@@ -648,9 +654,6 @@ public class Z3Prover implements Prover {
 			throw new RuntimeException("call setConstructProofs(true) first");
 		}
 		InterpolationContext ictx = (InterpolationContext) ctx;
-		// BoolExpr iA = ictx.MkInterpolant(A);
-		// BoolExpr AB = ictx.mkAnd(A, B);
-		// BoolExpr pat = ictx.mkAnd(iA, B);
 
 		List<BoolExpr> patternList = new LinkedList<BoolExpr>();
 		for (Entry<Integer, List<BoolExpr>> entry : this.interpolationPattern
@@ -660,14 +663,17 @@ public class Z3Prover implements Prover {
 			patternList.add(ictx.MkInterpolant(conj));
 		}
 		patternList.add(ictx.mkTrue());
-
+		
 		BoolExpr pat = ictx.mkAnd(patternList.toArray(new BoolExpr[patternList
 				.size()]));
 		Params params = ictx.mkParams();
 		Expr proof = this.solver.getProof();
 		Expr[] interps = ictx.GetInterpolant(proof, pat, params);
+	
 		List<Z3BoolExpr> result = new LinkedList<Z3BoolExpr>();
-		for (int i = 0; i < interps.length; i++) {
+		//TODO check if the bounds makes sense.
+//		for (int i = 0; i < interps.length; i++) {
+		for (int i = 0; i < partitionSeq.length-1; i++) {
 			result.add(new Z3BoolExpr((BoolExpr) interps[i]));
 		}
 		return result.toArray(new ProverExpr[result.size()]);
