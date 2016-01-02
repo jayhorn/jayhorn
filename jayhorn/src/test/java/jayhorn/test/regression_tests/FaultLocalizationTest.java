@@ -76,6 +76,17 @@ public class FaultLocalizationTest {
 
 	
 	protected void oldAlgorithm(ProverFactory factory) {
+		/**
+		 * TODO: for now, this just ensures that the interpolation
+		 * does not crash during the fault localization. 
+		 * Right now, the results of the interpolation from Z3 and
+		 * Princess are too different, so it does not make sense to
+		 * compare their output directly.
+		 * 
+		 * What we need is a better way to propagate interpolants.
+		 * Then we could ensure that the result by both solvers is
+		 * sort of minimal.
+		 */
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {

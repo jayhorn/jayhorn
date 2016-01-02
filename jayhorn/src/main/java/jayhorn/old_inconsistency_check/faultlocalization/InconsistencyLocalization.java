@@ -81,11 +81,6 @@ public class InconsistencyLocalization {
 				System.err.println("Interpolant " + i + ": " + interpolants[i]);
 			}
 		}
-		System.err.println("ProofObl : " + proofObligations.size() + ", Interp "+interpolants.length);
-		for (int i = 0; i < interpolants.length; i++) {
-			System.err.println("Interpolant " + i + ": " + interpolants[i]);
-		}
-
 		for (Integer i : changePositions) {
 			Verify.verify(proofObligations.size() > i);
 			ProverExpr pe = proofObligations.get(i);

@@ -34,12 +34,7 @@ import soottocfg.soot.util.SootTranslationHelpers;
  * @author schaef
  *
  */
-public enum AssertionReconstruction {
-	INSTANCE;
-
-	public static AssertionReconstruction v() {
-		return INSTANCE;
-	}
+public class AssertionReconstruction extends AbstractTransformer {
 
 	/*
 	 * Code to handle Java Assertions.
@@ -47,6 +42,13 @@ public enum AssertionReconstruction {
 	private static final String javaAssertionType = "java.lang.AssertionError";
 	private static final String javaAssertionFlag = "$assertionsDisabled";
 
+	@Override
+	protected void internalTransform(Body body, String arg1, Map<String, String> arg2) {		
+		removeAssertionRelatedNonsense(body); //TODO: is it sufficient to do this
+		                                      //for constructors?
+		reconstructJavaAssertions(body);
+	}
+	
 	/**
 	 * removes useless statements that are generated when java assertions are
 	 * translated into bytecode.
@@ -157,14 +159,22 @@ public enum AssertionReconstruction {
 	public void reconstructJavaAssertions(Body body) {
 		Set<Unit> unitsToRemove = new HashSet<Unit>();
 		Map<Unit, Value> assertionsToInsert = new HashMap<Unit, Value>();
-
+		
+		//This is a hack to ensure that the generated assertions
+		//have a nice line number. The actual assertion in the byte code
+		//is always off by one.
+		Map<Unit, Unit> assertionToLineNumberUnit = new HashMap<Unit, Unit>();
+		
 		// body.getUnits().insertAfter(toInsert, point);
 		Iterator<Unit> iterator = body.getUnits().iterator();
 		while (iterator.hasNext()) {
 			Unit u = iterator.next();
 			if (isSootAssertionFlag(u)) {
 				// u := $z0 = <Assert: boolean $assertionsDisabled>;
+				//This has also the line number tag that we want for the assert
+				//statement! Anything after that is off by one.
 				unitsToRemove.add(u);
+				Unit unitWithInterestingLineNumber = u;
 				// u := if $z0 != 0 goto label1;
 				u = iterator.next();
 				if (!(u instanceof IfStmt)) {
@@ -186,6 +196,7 @@ public enum AssertionReconstruction {
 							if (previousUnit == null) {
 								// then this is an assert(false) statement.
 								assertionsToInsert.put(u, IntConstant.v(0));
+								assertionToLineNumberUnit.put(u, unitWithInterestingLineNumber);
 							} else {
 								throw new RuntimeException("Assertion reconstruction broken");
 							}
@@ -193,6 +204,7 @@ public enum AssertionReconstruction {
 							unitsToRemove.add(previousUnit);
 							IfStmt ite = (IfStmt) previousUnit;
 							assertionsToInsert.put(u, ite.getCondition());
+							assertionToLineNumberUnit.put(u, unitWithInterestingLineNumber);
 						}
 						break;
 					}
@@ -225,10 +237,8 @@ public enum AssertionReconstruction {
 		// generated from the assertions.
 		for (Entry<Unit, Value> entry : assertionsToInsert.entrySet()) {
 			List<Unit> unitsToInsert = new LinkedList<Unit>();
-			Stmt stmt = Jimple.v().newAssignStmt(assertionLocal, entry.getValue());
-			stmt.addAllTagsOf(entry.getKey());
-			unitsToInsert.add(stmt);
-			unitsToInsert.add(SootTranslationHelpers.v().makeAssertion(assertionLocal, entry.getKey()));
+			unitsToInsert.add(this.assignStmtFor(assertionLocal, entry.getValue(), assertionToLineNumberUnit.get(entry.getKey())));
+			unitsToInsert.add(SootTranslationHelpers.v().makeAssertion(assertionLocal, assertionToLineNumberUnit.get(entry.getKey())));
 
 			body.getUnits().insertBefore(unitsToInsert, entry.getKey());
 			unitsToRemove.add(entry.getKey());

@@ -26,7 +26,6 @@ import jayhorn.Options;
 import jayhorn.old_inconsistency_check.faultlocalization.LocalizationThread;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverFactory;
-import jayhorn.solver.princess.PrincessProverFactory;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.method.CfgBlock;
@@ -84,8 +83,6 @@ public class InconsistencyChecker {
 				Set<Inconsistency> inconsistencies = findInconsistenciesInMethod(executor, program, method);
 
 				// if we found inconsistencies, do the fault localization.
-//				if (!(factory instanceof PrincessProverFactory))
-//					continue; // TODO: update z3
 				if (!inconsistencies.isEmpty()) {
 					for (Inconsistency inconsistency : inconsistencies) {
 						localizedInconsistencies.put(inconsistency,

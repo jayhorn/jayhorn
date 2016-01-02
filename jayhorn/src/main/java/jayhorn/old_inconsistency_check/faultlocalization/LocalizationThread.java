@@ -59,9 +59,6 @@ public class LocalizationThread implements Runnable {
 		Optional<ProverExpr> post = Optional.absent();
 		Set<Statement> res = il.computeRelevantStatements(s2p, subgraph, subgraph.getSource(), null, pre, post);
 		relevantStatements.addAll(res);
-		for (Statement s : res) { 
-			System.err.println("relevant stmt "+s);
-		}	
 	}
 		
 	/**

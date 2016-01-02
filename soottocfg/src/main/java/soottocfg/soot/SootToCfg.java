@@ -168,7 +168,16 @@ public class SootToCfg {
 	}
 
 	private void processMethodBody(Body body) {
-//		System.err.println(body);
+
+//		StringBuilder sb = new StringBuilder();
+//		for (Unit u : body.getUnits()) {
+//			sb.append(u.getJavaSourceStartLineNumber());
+//			sb.append(": ");
+//			sb.append(u);
+//			sb.append("\n");
+//		}
+//		System.err.println(sb.toString());
+		
 		preProcessBody(body);
 
 		// generate the CFG structures on the processed body.
@@ -202,8 +211,8 @@ public class SootToCfg {
 		}
 
 		// first reconstruct the assertions.
-		AssertionReconstruction.v().removeAssertionRelatedNonsense(body);
-		AssertionReconstruction.v().reconstructJavaAssertions(body);
+		AssertionReconstruction ar = new AssertionReconstruction();
+		ar.transform(body);;
 
 		// UnreachableFinallyCodeRemover ufcr = new
 		// UnreachableFinallyCodeRemover(new NullnessAnalysis(new
