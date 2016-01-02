@@ -272,6 +272,7 @@ public class InconsistencyLocalization {
 					if (join == null) {
 						join = sub.getFirst();
 					} else {
+						//this is enforced by ConvertToDiamondShape
 						Verify.verify(sub.getFirst() == join);
 					}
 					if (!sub.getSecond().isEmpty()) {

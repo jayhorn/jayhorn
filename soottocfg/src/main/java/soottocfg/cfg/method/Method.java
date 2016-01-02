@@ -232,6 +232,25 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		}
 	}
 
+	public void toSimpleDot(File dotFile) {
+		try (FileOutputStream fileStream = new FileOutputStream(dotFile);
+				OutputStreamWriter writer = new OutputStreamWriter(fileStream, "UTF-8");) {
+			DOTExporter<CfgBlock, CfgEdge> dot = new DOTExporter<CfgBlock, CfgEdge>(new StringNameProvider<CfgBlock>() {
+				@Override
+				public String getVertexName(CfgBlock vertex) {
+					StringBuilder sb = new StringBuilder();
+					sb.append("\"");
+					sb.append(vertex.getLabel());
+					sb.append("\"");
+					return sb.toString();
+				}
+			}, null, null);
+			dot.export(writer, this);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

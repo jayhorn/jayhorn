@@ -140,8 +140,7 @@ public class BinaryExpression extends Expression {
 		}
 
 		default: {
-			// throw new RuntimeException("Not implemented for " + op);
-			System.err.println("Not tested for " + op);
+			//TODO: more testing here?
 			return left.getType();
 		}
 		}

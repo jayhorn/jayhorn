@@ -2,6 +2,7 @@ package soottocfg.cfg.util;
 
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
@@ -9,6 +10,7 @@ import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultDirectedGraph;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 
 
@@ -119,20 +121,68 @@ public class GraphUtil {
 	 * @param to
 	 * @return
 	 */	
-	public static <V> Set<V> getVerticesBetween(DirectedGraph<V, ?> graph, V current, V to) {
+	public static <V> Set<V> getVerticesBetween(DirectedGraph<V, ?> graph, V from, V to) {
 		Set<V> res = new HashSet<V>();
-		if (current.equals(to)) {
-			res.add(current);
+		if (from.equals(to)) {
+			res.add(from);
 			return res;
 		} else {
-			for (V suc : Graphs.successorListOf(graph, current)) {
-				if (res.contains(suc)) continue; // already been there. 
-				res.addAll(getVerticesBetween(graph, suc, to));
-			}
-			if (!res.isEmpty()) {
-				res.add(current);
-			}
+			res.addAll(getForwardReachableVertices(graph, from));
+			res.retainAll(getBackwardReachableVertices(graph, to));
 		}
 		return res;
+	}
+	
+	public static <V> Set<V> getForwardReachableVertices(DirectedGraph<V, ?> graph, V from) {
+		BfsIterator<V> iter = new BfsIterator<V>(graph, from);
+		return new HashSet<V>(iter.getElements());
+	}
+	
+	public static <V> Set<V> getBackwardReachableVertices(DirectedGraph<V, ?> graph, V from) {
+		Queue<V> todo = new LinkedList<V>();
+		Set<V> visited = new HashSet<V>();
+		todo.add(from);
+		while (!todo.isEmpty()) {
+			V current = todo.poll();
+			visited.add(current);
+			for (V suc : Graphs.predecessorListOf(graph, current)) {
+				if (!todo.contains(suc) && !visited.contains(suc)) {
+					todo.add(suc);
+				}
+			}
+		}
+		return visited;
+	}
+	
+	
+	/**
+	 * TODO can be done more efficiently
+	 * @param graph
+	 * @param from
+	 * @param to
+	 * @return
+	 */
+	public static <V> boolean pathExists(DirectedGraph<V, ?> graph, V from, V to) {
+		Preconditions.checkArgument(graph.containsVertex(from));
+		Preconditions.checkArgument(graph.containsVertex(to));
+		BfsIterator<V> iter = new BfsIterator<V>(graph, from);
+		while (iter.hasNext()) {
+			if (iter.next().equals(to)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static <V> V findCommonSuccessor(DirectedGraph<V, ?> graph, V a, V b) {
+		BfsIterator<V> aIter = new BfsIterator<V>(graph, a);
+		List<V> bReachable = (new BfsIterator<V>(graph, b)).getElements();
+		while (aIter.hasNext()) {
+			V current = aIter.next();
+			if (bReachable.contains(current)) {
+				return current;
+			}
+		}
+		return null;
 	}
 }

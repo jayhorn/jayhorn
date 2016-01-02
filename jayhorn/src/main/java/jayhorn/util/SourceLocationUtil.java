@@ -15,6 +15,7 @@ import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.util.BfsIterator;
 
 /**
  * @author schaef
@@ -66,22 +67,14 @@ public class SourceLocationUtil {
 	 * @return
 	 */
 	public static SourceLocation findNearestLocationForward(Method m, CfgBlock b) {
-		Queue<CfgBlock> todo = new LinkedList<CfgBlock>();
-		Set<CfgBlock> done = new HashSet<CfgBlock>();
-		todo.add(b);
-		while (!todo.isEmpty()) {
-			CfgBlock current = todo.poll();
-			done.add(current);
-			ListIterator<Statement> iter = current.getStatements().listIterator();
-			while (iter.hasNext()) {
-				Statement s = iter.next();
+		BfsIterator<CfgBlock> iter = new BfsIterator<CfgBlock>(m, b); 
+		while (iter.hasNext()) {
+			CfgBlock current = iter.next();
+			ListIterator<Statement> stmtIter = current.getStatements().listIterator();
+			while (stmtIter.hasNext()) {
+				Statement s = stmtIter.next();
 				if (s.getSourceLocation() != null) {
 					return s.getSourceLocation();
-				}
-			}
-			for (CfgBlock suc : Graphs.successorListOf(m, current)) {
-				if (!todo.contains(suc) && !done.contains(suc)) {
-					todo.add(suc);
 				}
 			}
 		}

@@ -5,15 +5,16 @@ package jayhorn.util;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.CycleDetector;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Verify;
 
 import soottocfg.cfg.SourceLocation;
@@ -57,7 +58,6 @@ public class LoopRemoval {
 		LoopFinder<CfgBlock> loopFinder = new LoopFinder<CfgBlock>(dom);
 		TreeSet<CfgBlock> lnt = loopFinder.getLoopNestTreeSet();
 		Map<CfgBlock, Set<CfgBlock>> loops = loopFinder.getLoops();
-		
 		while (!lnt.isEmpty()) {
 			CfgBlock header = lnt.pollFirst();
 			removeLoop(header, loops.get(header), loops);
@@ -78,35 +78,98 @@ public class LoopRemoval {
 		Set<CfgBlock> successorsOfHeader = new HashSet<CfgBlock>(Graphs.successorListOf(method, header));
 		Set<CfgBlock> entryBlocks = new HashSet<CfgBlock>(successorsOfHeader);
 		entryBlocks.retainAll(body);
+				
+		Verify.verify(!entryBlocks.isEmpty());
 		addNonDetAssignmentsToBody(header, body, entryBlocks);
 		// find the successor of the header that does not enter the loop.
 		// assert that there is at most one such block.
+				
 		Set<CfgBlock> headerExitBlocks = new HashSet<CfgBlock>(successorsOfHeader);
-		headerExitBlocks.removeAll(entryBlocks);
+		headerExitBlocks.removeAll(entryBlocks);		
 		Verify.verify(headerExitBlocks.size() <= 1,
-				"Bad loop: header has more than one successor that does not enter the loop.");
-		Optional<CfgBlock> headerExitBlock = Optional.absent();
+				"Bad loop: header has more than one successor that does not enter the loop.");		
 		if (headerExitBlocks.size()==1) {
-			headerExitBlock = Optional.of(headerExitBlocks.iterator().next());
-		}
-		
-		CfgBlock headerClone = null;
-		
+			removeLoopWithExitNode(loops, header, body, headerExitBlocks.iterator().next());
+		} else {
+			//This case is very rare and probably needs more testing.
+			removeLoopWithoutExitNode(loops, header, body);
+		}		
+	}
+
+	/**
+	 * This is the normal case for a loop: The loop header has some successor
+	 * that is not in the loop body. We duplicate this successor and redirect
+	 * all back edges to this duplicate.
+	 * @param loops
+	 * @param header
+	 * @param body
+	 * @param headerExitBlock
+	 */
+	private void removeLoopWithExitNode(Map<CfgBlock, Set<CfgBlock>> loops, CfgBlock header, Set<CfgBlock> body, CfgBlock headerExitBlock) {
+		CfgBlock headerClone = null;		
 		for (CfgBlock b : new HashSet<CfgBlock>(body)) {
 			if (method.containsEdge(b, header)) {
 				method.removeEdge(method.getEdge(b, header));
-				if (headerExitBlock.isPresent()) {
 					if (headerClone==null) {
 						headerClone = header.deepCopy();
 						addBlockToLoops(header, headerClone, loops);
-						method.addEdge(headerClone, headerExitBlock.get());
-					}
+						method.addEdge(headerClone, headerExitBlock);
+					} 
 					method.addEdge(b, headerClone);
+			}
+		}	
+	}
+	
+	/**
+	 * Sometimes we have loops where all successors of the header are in the body.
+	 * (usually when the graph is irreducible?)
+	 * For these cases, we identify those blocks in the body that must reach the
+	 * header (i.e., cannot exit the loop) and remove them. 
+	 * @param loops
+	 * @param header
+	 * @param body
+	 */
+	private void removeLoopWithoutExitNode(Map<CfgBlock, Set<CfgBlock>> loops, CfgBlock header, Set<CfgBlock> body) {
+		Set<CfgBlock> sourcesOfBackedges = new HashSet<CfgBlock>(Graphs.predecessorListOf(method, header));
+		sourcesOfBackedges.retainAll(body);		
+		//first, find all blocks that can exit the body
+		Set<CfgBlock> exits = new HashSet<CfgBlock>();
+		for (CfgBlock b : body) {
+			if (!body.containsAll(Graphs.successorListOf(method, b))) {
+				exits.add(b);
+			}
+		}
+		//assert that the loop can actually be left.
+		Verify.verify(!exits.isEmpty());
+		//now find all blocks that can reach a block that can
+		//exit the body.
+		Set<CfgBlock> canLeave = new HashSet<CfgBlock>();
+		Queue<CfgBlock> todo = new LinkedList<CfgBlock>(exits);		
+		while (!todo.isEmpty()) {
+			CfgBlock current = todo.poll();
+			canLeave.add(current);
+			if (!current.equals(header)) {
+				for (CfgBlock pre : Graphs.predecessorListOf(method, current)) {
+					if (!todo.contains(pre) && !canLeave.contains(pre)) {
+						todo.add(pre);
+					}
 				}
 			}
 		}
-	}
+		//now compute the nodes that cannot leave the loop (without 
+		//going again through header)
+		Set<CfgBlock> canNotLeave = new HashSet<CfgBlock>(body);
+		canNotLeave.removeAll(canLeave);
+		//and remove those from the graph.
+		for (CfgBlock b : canNotLeave) {
+			method.removeAllEdges(new HashSet<CfgEdge>(method.outgoingEdgesOf(b)));
+			method.removeAllEdges(new HashSet<CfgEdge>(method.incomingEdgesOf(b)));
+			method.removeVertex(b);
+			removeBlockFromLoops(header, b, loops);			
+		}
 
+	}
+		
 	/**
 	 * Update the 'loops' map by adding the block 'newBlock' to all loops that
 	 * contain 'header'.
@@ -121,6 +184,22 @@ public class LoopRemoval {
 			}
 		}
 	}
+
+	/**
+	 * Update the 'loops' map by removing the block 'toRemove' from all loops that
+	 * contain 'header'.
+	 * @param header
+	 * @param toRemove
+	 * @param loops
+	 */
+	private void removeBlockFromLoops(CfgBlock header, CfgBlock toRemove, Map<CfgBlock, Set<CfgBlock>> loops) {
+		for (Entry<CfgBlock, Set<CfgBlock>> entry : loops.entrySet()) {
+			if (entry.getValue().contains(header)) {
+				entry.getValue().remove(toRemove);
+			}
+		}
+	}
+
 	
 	/**
 	 * For each loop entry, add statements that assign a fresh local to all variables

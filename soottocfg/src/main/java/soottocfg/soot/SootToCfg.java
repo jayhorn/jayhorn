@@ -153,11 +153,10 @@ public class SootToCfg {
 		if (sm.isConcrete()) {
 			// System.out.println("Processing method: " + sm);
 
-			// if
-			// (!sm.getSignature().equals("<jayhorn.test.regression_tests.ProverTest:
-			// void test()>")) {
-			// return;
-			// }
+//			 if
+//			 (!sm.getSignature().equals("<org.apache.tools.bzip2.CBZip2InputStream: void getAndMoveToFrontDecode()>")) {
+//			 return;
+//			 }
 			// System.err.println(sm.getSignature());
 
 			SootTranslationHelpers.v().setCurrentMethod(sm);

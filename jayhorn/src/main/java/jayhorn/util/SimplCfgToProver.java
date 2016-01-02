@@ -18,6 +18,7 @@ import jayhorn.solver.ProverType;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.ArrayLengthExpression;
 import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
@@ -139,10 +140,6 @@ public class SimplCfgToProver implements ICfgToProver {
 				return prover.mkMinus(left, right);
 			case Mul:
 				return prover.mkMult(left, right);
-			case Div:
-				return prover.mkTDiv(left, right);
-			case Mod:
-				return prover.mkTMod(left, right);
 
 			case Eq:
 				return prover.mkEq(left, right);
@@ -156,8 +153,17 @@ public class SimplCfgToProver implements ICfgToProver {
 				return prover.mkLt(left, right);
 			case Le:
 				return prover.mkLeq(left, right);
+			
+			case And:
+				return prover.mkAnd(left, right);
+			case Or:
+				return prover.mkOr(left, right);
+			case Implies:
+				return prover.mkImplies(left, right);				
 			default: {
-				throw new RuntimeException("Not implemented for " + be.getOp());
+//				Div("/"), Mod("%"),  Xor("^"),Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&");
+				return uninterpretedBinOpToProverExpr(be.getOp(), left, right);
+//				throw new RuntimeException("Not implemented for " + be.getOp());
 			}
 			}
 		} else if (e instanceof BooleanLiteral) {
@@ -204,6 +210,25 @@ public class SimplCfgToProver implements ICfgToProver {
 		}
 	}
 
+	/**
+	 * This is a simple hack to abstract binops that we do not care about,
+	 * such as bit operations. Currently, we ignore
+	 * Div("/"), Mod("%"),  Xor("^"),Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&")
+	 * We translate these binops into applications of the uninterpreted function
+	 * 'uninterpretedBinOpToProverExpr' which takes three arguments:
+	 * The first argument is an integer constant to represent the operand (for
+	 * simplicity, we just use the hashcode of the enum), the second and third
+	 * argument are the operands of the binop.
+	 * @param op
+	 * @param left
+	 * @param right
+	 * @return
+	 */
+	private ProverExpr uninterpretedBinOpToProverExpr(BinaryOperator op, ProverExpr left, ProverExpr right) {		
+		return uninterpretedBinOp
+				.mkExpr(new ProverExpr[] { prover.mkLiteral(op.hashCode()), left, right });
+	}
+	
 	private ProverType lookupProverType(Type t) {
 		if (t == BoolType.instance()) {
 			return prover.getBooleanType();
@@ -211,12 +236,21 @@ public class SimplCfgToProver implements ICfgToProver {
 		return prover.getIntType();
 	}
 	
-	ProverFun arrayLength;
+	ProverFun arrayLength, uninterpretedBinOp;
 
 	private void createHelperFunctions() {
 		// TODO: change the type of this
 		arrayLength = prover.mkUnintFunction("$arrayLength", new ProverType[] { prover.getIntType() },
 				prover.getIntType());
+		
+		/**
+		 * this is used for bit operations, etc. the first argument
+		 * is a number to distinguish the operators, the other two 
+		 * are the operands from the binop.
+		 */
+		uninterpretedBinOp = prover.mkUnintFunction("$uninterpreted", new ProverType[] { prover.getIntType(), prover.getIntType(), prover.getIntType() },
+				prover.getIntType());
+		
 	}
 
 }

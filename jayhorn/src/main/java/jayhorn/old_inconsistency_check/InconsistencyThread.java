@@ -27,6 +27,7 @@ import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.util.GraphUtil;
 import soottocfg.cfg.util.UnreachableNodeRemover;
 
 /**
@@ -82,12 +83,13 @@ public class InconsistencyThread implements Runnable {
 		
 		EdgeLabelToAssume etoa = new EdgeLabelToAssume(method);
 		etoa.turnLabeledEdgesIntoAssumes();
-
+		
 		LoopRemoval lr = new LoopRemoval(method);
 		lr.removeLoops();
-		
 		lr.verifyLoopFree();// TODO: run only in debug mode.
 
+		GraphUtil.getSink(method);
+		
 		SsaTransformer ssa = new SsaTransformer(program, method);
 		ssa.eliminatePhiStatements();
 
@@ -169,7 +171,7 @@ public class InconsistencyThread implements Runnable {
 
 
 	private void createVerificationCondition() {
-		System.err.println("Creating transition relation");
+		
 		ICfgToProver cfg2prover = new SimplCfgToProver(prover);
 		
 		// first create a boolean variable for each block.
@@ -220,7 +222,7 @@ public class InconsistencyThread implements Runnable {
 		for (ProverExpr axiom : cfg2prover.generatedAxioms()) {
 			prover.addAssertion(axiom);
 		}
-		System.err.println("done");
+		
 	}
 
 

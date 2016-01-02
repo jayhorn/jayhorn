@@ -86,18 +86,16 @@ public class ConvertToDiamondShape {
 						join = subGraphJoin;
 					} else {
 						if (subGraphJoin != join) {
-							/*
-							 * This is the case where we have to do something:
-							 * There is a join that is not from a diamond. We
-							 * have to check which of the two possible joins
-							 * dominates the other and create a new path TODO
-							 */
-							Verify.verifyNotNull(subGraphJoin);
-							if (effSet.getPostDominators().isDominatedBy(subGraphJoin, join)) {
+							Verify.verifyNotNull(subGraphJoin);							
+							if (GraphUtil.pathExists(graph, join, subGraphJoin)) {
+								duplicatePathsBetween(effSet, graph, block, subGraphJoin, join);
+							} else if (GraphUtil.pathExists(graph, subGraphJoin, join)) {																
 								duplicatePathsBetween(effSet, graph, block, join, subGraphJoin);
 							} else {
-								Verify.verify(effSet.getPostDominators().isDominatedBy(join, subGraphJoin));
-								duplicatePathsBetween(effSet, graph, block, subGraphJoin, join);
+								//TODO: this needs more testing!
+								CfgBlock commonSuc = GraphUtil.findCommonSuccessor(graph, join, subGraphJoin);
+								duplicatePathsBetween(effSet, graph, block, commonSuc, join);
+								duplicatePathsBetween(effSet, graph, block, commonSuc, subGraphJoin);
 							}
 							throw new GraphDirtyException();
 						}
@@ -155,8 +153,6 @@ public class ConvertToDiamondShape {
 	 */
 	private void duplicatePathsBetween(EffectualSet<CfgBlock> effSet, Method graph, CfgBlock from, CfgBlock to,
 			CfgBlock through) {
-
-
 		// copy the vertices between 'through' and 'to'
 		Set<CfgBlock> toCopy = GraphUtil.getVerticesBetween(graph, through, to);
 

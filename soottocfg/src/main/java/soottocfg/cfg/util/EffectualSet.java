@@ -137,21 +137,13 @@ public class EffectualSet<A> {
 	 * @return
 	 */
 	public Set<A> findInLattice(A b) {
-		Queue<Set<A>> todo = new LinkedList<Set<A>>();
-		todo.add(GraphUtil.getSource(lattice));
-		Set<Set<A>> done = new HashSet<Set<A>>();
-		while (!todo.isEmpty()) {
-			Set<A> current = todo.poll();
+		BfsIterator<Set<A>> iter = new BfsIterator<Set<A>>(lattice);
+		while (iter.hasNext()) {
+			Set<A> current = iter.next();
 			if (current.contains(b)) {
 				return current;
 			}
-			done.add(current);
-			for (Set<A> next : Graphs.successorListOf(lattice, current)) {
-				if (!todo.contains(next) && !done.contains(next)) {
-					todo.add(next);
-				}
-			}
-		}
+		}	
 		throw new RuntimeException("Not found!");
 	}
 
