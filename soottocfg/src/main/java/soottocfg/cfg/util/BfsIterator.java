@@ -67,6 +67,9 @@ public class BfsIterator<V> implements Iterator<V> {
 		return listIterator.next();
 	}
 
-	
+	@Override
+    public void remove() {
+        throw new UnsupportedOperationException("remove");
+    }
 	
 }
