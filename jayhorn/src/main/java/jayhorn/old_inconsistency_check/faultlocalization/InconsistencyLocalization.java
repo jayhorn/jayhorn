@@ -46,7 +46,7 @@ public class InconsistencyLocalization {
 			CfgBlock joinAfterSink, Optional<ProverExpr> precondition, Optional<ProverExpr> postcondition) {
 		Set<Statement> result = new LinkedHashSet<Statement>();
 		if (source.equals(graph.getSource()) && joinAfterSink == null) {
-			// this is the original graph and we can use it immediately.
+			// this is the original graph and we can use it immediately.			
 		} else {
 			// extract the subgraph from 'source' to 'joinAfterSink'.
 			// Where we have to remove all statements from 'joinAfterSink'.
@@ -62,13 +62,14 @@ public class InconsistencyLocalization {
 				}
 			}
 			graph = graph.createMethodFromSubgraph(subgraph, graph.getMethodName() + "__nested");
-			CfgBlock newSink = new CfgBlock(graph);
-			for (CfgBlock pre : Graphs.predecessorListOf(graph, joinAfterSink)) {
+			CfgBlock newSink = new CfgBlock(graph, joinAfterSink.getLabel()+"_stub");			
+			for (CfgBlock pre : Graphs.predecessorListOf(graph, joinAfterSink)) {				
 				graph.removeEdge(pre, joinAfterSink);
 				graph.addEdge(pre, newSink);
-			}
+			}	
 			graph.removeVertex(joinAfterSink);
 		}
+
 		List<ProverExpr> proofObligations = generatProofObligations(s2p, graph);
 		ProverExpr[] interpolants = computeInterpolants(proofObligations, s2p.generatedAxioms(), precondition,
 				postcondition);
@@ -87,24 +88,30 @@ public class InconsistencyLocalization {
 			if (peToStatement.containsKey(pe)) {
 				result.add(peToStatement.get(pe));
 			} else {
-				VertexPair<CfgBlock> diamond = nestedDiamondMap.get(pe);
-				List<ProverExpr> newPreCondition = proofObligations.subList(0, i);
+				VertexPair<CfgBlock> diamond = nestedDiamondMap.get(pe);				
+				List<ProverExpr> newPreCondition = new LinkedList<ProverExpr>(proofObligations.subList(0, i));
 				if (postcondition.isPresent()) {
 					newPreCondition.add(0, postcondition.get());
-				}
+				}				
 				Optional<ProverExpr> interpolantBefore = Optional
 						.fromNullable(prover.mkAnd(newPreCondition.toArray(new ProverExpr[newPreCondition.size()])));
 
-				List<ProverExpr> newPostCondition = proofObligations.subList(i+1, proofObligations.size());
+				List<ProverExpr> newPostCondition = new LinkedList<ProverExpr>(proofObligations.subList(i+1, proofObligations.size()));
 				if (postcondition.isPresent()) {
 					newPostCondition.add(postcondition.get());
 				}
+				
 				Optional<ProverExpr> interpolantAfter = Optional
 						.fromNullable(prover.mkAnd(newPostCondition.toArray(new ProverExpr[newPostCondition.size()])));
 				for (CfgBlock suc : Graphs.successorListOf(graph, diamond.getFirst())) {
+					try {
 					InconsistencyLocalization nestedLoc = new InconsistencyLocalization(prover);
 					result.addAll(nestedLoc.computeRelevantStatements(s2p, graph, suc, diamond.getSecond(),
 							interpolantBefore, interpolantAfter));
+					} catch (FaultLocalizationException e) {
+						System.err.println("Bug in fault localization :( fix that");
+						//TODO
+					}
 				}
 			}
 		}
@@ -139,7 +146,7 @@ public class InconsistencyLocalization {
 
 		ProverResult proverResult = prover.checkSat(true);
 		if (proverResult != ProverResult.Unsat) {
-			throw new RuntimeException("Fault localization failed because is "+proverResult+" and not UNSAT");
+			throw new FaultLocalizationException("Fault localization failed because is "+proverResult+" and not UNSAT");
 		}
 
 		int[][] ordering = new int[partition][1];
@@ -151,6 +158,13 @@ public class InconsistencyLocalization {
 		return interpolants;
 	}
 
+	private static class FaultLocalizationException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
+		public FaultLocalizationException(String msg) {
+			super(msg);
+		}
+	}
+ 	
 	/**
 	 * Traverses 'interpolants' from left to right and returns the list of all
 	 * indices 'i' where !interpolantsAreEqual(interpolants[i-1],
@@ -243,7 +257,7 @@ public class InconsistencyLocalization {
 	 * @return
 	 */
 	private Pair<CfgBlock, List<ProverExpr>> generateProofObligations(SimplCfgToProver s2p,
-			DirectedGraph<CfgBlock, CfgEdge> graph, CfgBlock block, EffectualSet<CfgBlock> effSet) {
+			Method graph, CfgBlock block, EffectualSet<CfgBlock> effSet) {
 		List<ProverExpr> conj = new LinkedList<ProverExpr>();
 		Set<CfgBlock> latticeElement = effSet.findInLattice(block);
 		while (latticeElement.contains(block)) {

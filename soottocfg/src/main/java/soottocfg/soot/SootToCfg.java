@@ -154,7 +154,7 @@ public class SootToCfg {
 			// System.out.println("Processing method: " + sm);
 
 //			 if
-//			 (!sm.getSignature().equals("<org.apache.tools.bzip2.CBZip2InputStream: void getAndMoveToFrontDecode()>")) {
+//			 (!sm.getSignature().equals("<org.apache.tools.ant.taskdefs.email.EmailAddress: java.lang.String trim(java.lang.String,boolean)>")) {
 //			 return;
 //			 }
 			// System.err.println(sm.getSignature());

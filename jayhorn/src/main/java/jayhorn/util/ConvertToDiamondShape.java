@@ -86,13 +86,13 @@ public class ConvertToDiamondShape {
 						join = subGraphJoin;
 					} else {
 						if (subGraphJoin != join) {
-							Verify.verifyNotNull(subGraphJoin);							
+							Verify.verifyNotNull(subGraphJoin);
 							if (GraphUtil.pathExists(graph, join, subGraphJoin)) {
 								duplicatePathsBetween(effSet, graph, block, subGraphJoin, join);
-							} else if (GraphUtil.pathExists(graph, subGraphJoin, join)) {																
+							} else if (GraphUtil.pathExists(graph, subGraphJoin, join)) {
 								duplicatePathsBetween(effSet, graph, block, join, subGraphJoin);
 							} else {
-								//TODO: this needs more testing!
+								// TODO: this needs more testing!
 								CfgBlock commonSuc = GraphUtil.findCommonSuccessor(graph, join, subGraphJoin);
 								duplicatePathsBetween(effSet, graph, block, commonSuc, join);
 								duplicatePathsBetween(effSet, graph, block, commonSuc, subGraphJoin);
@@ -159,7 +159,8 @@ public class ConvertToDiamondShape {
 		toCopy.remove(to);
 		Map<CfgBlock, CfgBlock> copies = new HashMap<CfgBlock, CfgBlock>();
 		for (CfgBlock orig : toCopy) {
-			CfgBlock cpy = new CfgBlock(graph);
+			String label = findNewNameForCopy(graph, orig);
+			CfgBlock cpy = new CfgBlock(graph, label);
 			cpy.setStatements(orig.getStatements());
 			copies.put(orig, cpy);
 		}
@@ -181,6 +182,23 @@ public class ConvertToDiamondShape {
 		}
 	}
 
+	private String findNewNameForCopy(Method graph, CfgBlock b) {
+		StringBuilder newname = new StringBuilder();
+		newname.append(b.getLabel());
+		boolean nameChanged;
+		do {
+			nameChanged = false;
+			for (CfgBlock v : graph.vertexSet()) {
+				if (v.getLabel().equals(newname.toString())) {
+					newname.append("_cpy");
+					nameChanged = true;
+					break;
+				}
+			}
+		} while (nameChanged);
+		return newname.toString();
+	}
+	
 	private static class GraphDirtyException extends RuntimeException {
 		private static final long serialVersionUID = 1L;
 	}

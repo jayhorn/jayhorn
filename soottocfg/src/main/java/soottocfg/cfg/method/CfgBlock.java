@@ -43,6 +43,19 @@ public class CfgBlock implements Node, Serializable {
 		this.method.addVertex(this);
 	}
 
+	/**
+	 * Try not to use this one, only if you clone blocks.
+	 * @param m
+	 * @param label
+	 */
+	public CfgBlock(Method m, String label) {
+		this.label = label;
+		this.statements = new LinkedList<Statement>();
+		this.method = m;
+		this.method.addVertex(this);		
+	}
+
+	
 	public Method getMethod() {
 		return method;
 	}

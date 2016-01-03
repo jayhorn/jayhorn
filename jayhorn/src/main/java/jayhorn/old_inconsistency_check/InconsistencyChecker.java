@@ -84,6 +84,7 @@ public class InconsistencyChecker {
 
 				// if we found inconsistencies, do the fault localization.
 				if (!inconsistencies.isEmpty()) {
+					System.out.println("Running fault localization.");
 					for (Inconsistency inconsistency : inconsistencies) {
 						localizedInconsistencies.put(inconsistency,
 								localizeInconsistency(executor, program, inconsistency));

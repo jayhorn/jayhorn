@@ -3,7 +3,6 @@
  */
 package jayhorn.old_inconsistency_check.faultlocalization;
 
-import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -50,10 +49,8 @@ public class LocalizationThread implements Runnable {
 		//first generate a subgraph of the method that only contains
 		//paths through the inconsistent block and where all branching
 		//has diamond shape.
-		inconsistency.getMethod().toSimpleDot(new File("__before.dot"));
 		Method subgraph = createDiamondShapedSliceForFaultLocalization(inconsistency.getMethod(),
 				inconsistency.getRootOfInconsistency());
-
 		//now run the fault localization on 'subgraph'. For this to work,
 		//we have to be sure that subgraph has no feasible path.
 		InconsistencyLocalization il = new InconsistencyLocalization(prover);
