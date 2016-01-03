@@ -1,7 +1,12 @@
 package translation_tests;
 
 public class TranslationTest01 {
-
+	
+	public void assertions(Object partitioner) {
+        // A compact table should always have a clustering
+        assert partitioner!=null : String.format("For table %s.", partitioner);
+	}
+	
 	// public int noExceptions(int i) {
 	// if (i == 0) {
 	// return 1;

@@ -386,8 +386,8 @@ public class SootStmtSwitch implements StmtSwitch {
 		} else if (call instanceof StaticInvokeExpr) {
 			// no need to handle the base.
 		} else if (call instanceof DynamicInvokeExpr) {
-			DynamicInvokeExpr divk = (DynamicInvokeExpr) call;
-			throw new RuntimeException("Ignoring dynamic invoke: " + divk.toString());
+//			DynamicInvokeExpr divk = (DynamicInvokeExpr) call;
+			System.err.println("Dynamic invoke translation is only a stub. Will be unsound!");
 		} else {
 			throw new RuntimeException("Cannot compute instance for " + call.getClass().toString());
 		}

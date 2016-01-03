@@ -160,8 +160,14 @@ public class SootToCfg {
 			// System.err.println(sm.getSignature());
 
 			SootTranslationHelpers.v().setCurrentMethod(sm);
-
-			Body body = sm.retrieveActiveBody();
+			
+			Body body = null;
+			try {
+				body = sm.retrieveActiveBody();
+			} catch (RuntimeException e) {
+				System.err.println("Soot failed to parse " +sm.getSignature());
+				return;
+			}
 			processMethodBody(body);
 		}
 	}

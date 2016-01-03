@@ -22,6 +22,7 @@ import java.util.concurrent.TimeoutException;
 
 import com.google.common.base.Preconditions;
 
+import jayhorn.Log;
 import jayhorn.Options;
 import jayhorn.old_inconsistency_check.faultlocalization.LocalizationThread;
 import jayhorn.solver.Prover;
@@ -109,11 +110,11 @@ public class InconsistencyChecker {
 		sb.append(String.format("%n  Analysis terminated with execException exception: %d", execException));
 		sb.append(String.format("%n  Analysis terminated with outOfMemory exception: %d", outOfMemory));
 		sb.append(String.format("%n  Analysis terminated with other exception: %d", other));
-		System.out.println(sb.toString());
+		Log.info(sb.toString());
 
 		printResults(inconsistentBlocksPerMethod);
 
-		System.out.println(printLocalizedInconsistencies(localizedInconsistencies));
+		Log.info(printLocalizedInconsistencies(localizedInconsistencies));
 	}
 
 	/**
@@ -220,7 +221,7 @@ public class InconsistencyChecker {
 			if (!inconsistencyFuture.cancel(true)) {
 				System.err.println("failed to cancel after timeout");
 			}
-			System.err.println("Localization timeout for " + inconsistency.getMethod().getMethodName());
+			Log.error("Localization timeout for " + inconsistency.getMethod().getMethodName());
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} catch (ExecutionException e) {
@@ -361,7 +362,7 @@ public class InconsistencyChecker {
 								&& lineNumbersWithDuplicates.get(entry.getKey()).contains(loc.getLineNumber())) {
 							// ditch that warning because it contians a
 							// duplicated block
-							System.err.println("Suppressed lines");
+							Log.error("Suppressed lines");
 							lines.clear();
 							break;
 						}
@@ -370,7 +371,7 @@ public class InconsistencyChecker {
 				}
 			}
 			if (lines.isEmpty()) {
-				System.err.println("Inconsistency without lines in " + sourceFileName);
+				Log.error("Inconsistency without lines in " + sourceFileName);
 				continue;
 			}
 			List<Integer> sortedLines = new LinkedList<Integer>(lines);
@@ -403,6 +404,6 @@ public class InconsistencyChecker {
 			sb.append(System.getProperty("line.separator"));
 			sb.append(System.getProperty("line.separator"));
 		}
-		System.err.println(sb.toString());
+		Log.info(sb.toString());
 	}
 }

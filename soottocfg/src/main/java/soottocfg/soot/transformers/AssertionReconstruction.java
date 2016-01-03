@@ -141,17 +141,23 @@ public class AssertionReconstruction extends AbstractTransformer {
 		}
 	}
 
-	/**
+	/** @formatter:off
 	 * Look for parts of the body that have been created from Java assert
 	 * statements. These are always of the form:
 	 * 
-	 * $z0 = <Assert: boolean $assertionsDisabled>; if $z0 != 0 goto label1;
-	 * [[some statements]] if [[some condition]] goto label1; $r1 = new
-	 * java.lang.AssertionError; specialinvoke $r1.<java.lang.AssertionError:
-	 * void <init>()>(); throw $r1;
+	 * $z0 = <Assert: boolean $assertionsDisabled>; 
+	 * if $z0 != 0 goto label1;
+	 * [[some statements]] 
+	 * if [[some condition]] goto label1; 
+	 * $r1 = new java.lang.AssertionError; 
+	 * specialinvoke $r1.<java.lang.AssertionError:
+	 * void <init>()>(); 
+	 * throw $r1;
 	 * 
-	 * and replace those blocks by: [[some statements]] $assert_condition =
-	 * [[some condition]]; staticinvoke <JayHornAssertions: void
+	 * and replace those blocks by: 
+	 * [[some statements]] 
+	 * $assert_condition = [[some condition]]; 
+	 * staticinvoke <JayHornAssertions: void
 	 * super_crazy_assertion(boolean[])>($assert_condition);
 	 * 
 	 * @param body
@@ -211,10 +217,16 @@ public class AssertionReconstruction extends AbstractTransformer {
 					previousUnit = u;
 				}
 				// u := specialinvoke $r1.<java.lang.AssertionError: void
-				// <init>()>();
+				// <init>()>(); 
+				//but there might be some initialization code in between that
+				//we have to skip.
 				u = iterator.next();
-				if (!(u instanceof InvokeStmt)) {
-					throw new RuntimeException(u.toString());
+				while (!(u instanceof InvokeStmt) || 
+						!((InvokeStmt)u).getInvokeExpr().getMethod().getSignature().contains("java.lang.AssertionError: void <init>")) {
+					if (!iterator.hasNext()) {
+						throw new RuntimeException("Assertion reconstruction failed");
+					}
+					u = iterator.next();
 				}
 				unitsToRemove.add(u);
 
