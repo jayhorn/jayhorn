@@ -14,6 +14,8 @@ import java.util.Set;
 
 import org.jgrapht.Graphs;
 
+import com.google.common.base.VerifyException;
+
 import jayhorn.Log;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
@@ -75,13 +77,6 @@ public class InconsistencyThread implements Runnable {
 			System.out.println("Analyzing " + method.getMethodName());
 		}		
 		
-		if (GraphUtil.isIrreducibleGraphAndHasLoops(method, method.getSource())) {
-			Log.error(method.getMethodName() + " has an irreducible CFG with loops and cannot be checked."); //TODO
-			return;
-		}
-		
-//		System.out.println(method);
-		
 		UnreachableNodeRemover<CfgBlock, CfgEdge> unr = new UnreachableNodeRemover<CfgBlock, CfgEdge>(method, method.getSource(), method.getSink());
 		if (unr.pruneUnreachableNodes()) {
 			System.err.println("removed unreachable nodes for "+method.getMethodName());
@@ -90,10 +85,20 @@ public class InconsistencyThread implements Runnable {
 		EdgeLabelToAssume etoa = new EdgeLabelToAssume(method);
 		etoa.turnLabeledEdgesIntoAssumes();
 		
-		LoopRemoval lr = new LoopRemoval(method);
-		lr.removeLoops();
-		lr.verifyLoopFree();// TODO: run only in debug mode.
-
+		try {
+			LoopRemoval lr = new LoopRemoval(method);
+			lr.removeLoops();
+			lr.verifyLoopFree();// TODO: run only in debug mode.
+		} catch (VerifyException e) {
+			if (!GraphUtil.isReducibleGraph(method, method.getSource())) {
+				Log.error(method.getMethodName() + " has an irreducible CFG with loops and cannot be checked."); 
+				//TODO dont give up ... make the thing reducible instead.
+				return;
+			} else {
+				throw new RuntimeException(e);
+			}
+		}
+		
 		GraphUtil.getSink(method);
 		
 		SsaTransformer ssa = new SsaTransformer(program, method);
@@ -153,24 +158,6 @@ public class InconsistencyThread implements Runnable {
 		notCovered.removeAll(covered);
 
 		inconsistentBlocks.addAll(notCovered);
-
-//		if (!inconsistentBlocks.isEmpty()) {
-//			System.err.println("*** REPORT ***");
-//			StringBuilder sb = new StringBuilder();
-//			sb.append("Not covered ");
-//			for (CfgBlock b : inconsistentBlocks) {
-//				sb.append(b.getLabel());
-//				sb.append("\n");
-////				for (Statement s : b.getStatements()) {
-////					sb.append("\t");
-////					sb.append(s);
-////					sb.append("\n");
-////				}
-//			}
-//			
-//			System.err.println(sb.toString());
-//			System.err.println("**************");
-//		}
 
 		return;
 	}
