@@ -185,4 +185,16 @@ public class GraphUtil {
 		}
 		return null;
 	}
+	
+	public static <V,E> boolean isReducibleGraph(DirectedGraph<V, E> graph, V source) {
+		CategorizeEdges<V, E> ce = new CategorizeEdges<V, E>(graph, source); 
+		return ce.getCrossEdges().isEmpty();
+	}
+	
+	public static <V,E> boolean isIrreducibleGraphAndHasLoops(DirectedGraph<V, E> graph, V source) {
+		CategorizeEdges<V, E> ce = new CategorizeEdges<V, E>(graph, source); 
+		return !ce.getCrossEdges().isEmpty() && !ce.getBackwardEdges().isEmpty();
+	}
+
+	
 }

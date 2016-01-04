@@ -5,6 +5,7 @@ package soottocfg.soot.util;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,6 +22,7 @@ import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.method.CfgBlock;
+import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.type.Type;
 
@@ -110,6 +112,18 @@ public class MethodInfo {
 		CfgBlock uniqueSink = m.findOrCreateUniqueSink();
 		if (sink != uniqueSink) {
 			System.err.println("Something strange with the CFG. More than one sink found for " + m.getMethodName());
+		}
+		if (m.inDegreeOf(sink)==0) {
+			System.err.println("Mehtod "+sootMethod.getSignature() + " has no sink! Ignoring.");
+			for (CfgEdge e : new HashSet<CfgEdge>(m.edgeSet())) {
+				m.removeEdge(e);
+			}
+			for (CfgBlock b : new HashSet<CfgBlock>(m.vertexSet())) {
+				if (!b.equals(sink) && !b.equals(source)) {
+					m.removeVertex(b);
+				}
+			}
+			m.addEdge(source, sink);
 		}
 		sink = uniqueSink;
 	}

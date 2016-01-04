@@ -14,6 +14,7 @@ import java.util.Set;
 
 import org.jgrapht.Graphs;
 
+import jayhorn.Log;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverResult;
@@ -73,6 +74,11 @@ public class InconsistencyThread implements Runnable {
 		} else {
 			System.out.println("Analyzing " + method.getMethodName());
 		}		
+		
+		if (GraphUtil.isIrreducibleGraphAndHasLoops(method, method.getSource())) {
+			Log.error(method.getMethodName() + " has an irreducible CFG with loops and cannot be checked."); //TODO
+			return;
+		}
 		
 //		System.out.println(method);
 		

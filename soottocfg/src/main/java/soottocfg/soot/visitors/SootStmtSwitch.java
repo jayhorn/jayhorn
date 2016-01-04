@@ -164,12 +164,13 @@ public class SootStmtSwitch implements StmtSwitch {
 	}
 
 	private void connectBlocks(CfgBlock from, CfgBlock to) {
+		Preconditions.checkArgument(!methodInfo.getMethod().containsEdge(from, to));
 		this.methodInfo.getMethod().addEdge(from, to);
 	}
 
 	private void connectBlocks(CfgBlock from, CfgBlock to, Expression label) {
-		this.methodInfo.getMethod().addEdge(from, to).setLabel(label);
-		;
+		Preconditions.checkArgument(!methodInfo.getMethod().containsEdge(from, to));
+		this.methodInfo.getMethod().addEdge(from, to).setLabel(label);		
 	}	
 	
 	private void precheck(Stmt st) {

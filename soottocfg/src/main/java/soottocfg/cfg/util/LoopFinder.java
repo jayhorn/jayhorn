@@ -81,6 +81,7 @@ public class LoopFinder<V> {
 		for (V node : dom.getGraph().vertexSet()) {
 			for (V succ : Graphs.successorListOf(dom.getGraph(), node)) {
 				if (dom.isDominatedBy(node, succ)) {
+					System.err.println("Back edge " + node + " "+succ);
 					backEdges.add(new VertexPair<V>(node, succ));					
 				}
 			}

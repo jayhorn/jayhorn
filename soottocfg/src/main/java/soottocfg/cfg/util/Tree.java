@@ -49,6 +49,29 @@ public class Tree<V> {
 		return pred.get(0);
 	}
 	
+	public boolean isAncestor(V node, V ancestor) {
+		if (node.equals(ancestor)) {
+			return true;
+		}
+		V parent = getParentOf(node);
+		if (parent==null) {
+			return false;
+		}
+		return isAncestor(parent, ancestor);
+	}
+	
+	public boolean isDescendant(V node, V descendant) {
+		if (node.equals(descendant)) {
+			return true;
+		}
+		for (V c: getChildrenOf(node)) {
+			if (isDescendant(c, descendant)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public List<V> getChildrenOf(V node) {
 		return Graphs.successorListOf(tree, node);
 	}

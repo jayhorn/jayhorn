@@ -33,6 +33,7 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.util.GraphUtil;
 import soottocfg.cfg.util.UnreachableNodeRemover;
 import soottocfg.soot.SootToCfg;
 import soottocfg.soot.SootToCfg.MemModel;
@@ -52,7 +53,7 @@ public class LoopRemoverTest {
 	@Parameterized.Parameters(name = "{index}: check ({1})")
 	public static Collection<Object[]> data() {
 		List<Object[]> filenames = new LinkedList<Object[]>();
-		final File source_dir = new File(testRoot + "ssa/");
+		final File source_dir = new File(testRoot + "loopremoval/");
 		File[] directoryListing = source_dir.listFiles();
 		if (directoryListing != null) {
 			for (File child : directoryListing) {
@@ -92,7 +93,8 @@ public class LoopRemoverTest {
 			for (Method m : prog.getMethods()) {
 				if (m.vertexSet().isEmpty()) continue;
 				System.out.println("For method "+ m.getMethodName());
-				System.out.println(m);
+				System.out.println(m);		
+				
 				//now remove the loops and do ssa again.
 				UnreachableNodeRemover<CfgBlock, CfgEdge> unr = new UnreachableNodeRemover<CfgBlock, CfgEdge>(m, m.getSource(), m.getSink());
 				if (unr.pruneUnreachableNodes()) {
@@ -100,10 +102,17 @@ public class LoopRemoverTest {
 				}				
 				EdgeLabelToAssume etoa = new EdgeLabelToAssume(m);
 				etoa.turnLabeledEdgesIntoAssumes();
-
+				
+				if (!GraphUtil.isReducibleGraph(m, m.getSource())) {
+					System.err.println("Skipping irreducible cfg");
+					//TODO: dont skip, be awesome instead!
+					continue;
+				}
+				
 				LoopRemoval lr = new LoopRemoval(m);
 				lr.removeLoops();				
 				lr.verifyLoopFree();
+				
 				SsaTransformer ssa = new SsaTransformer(prog, m);
 				Assert.assertTrue("Variable is written more than once.", validateSsa(m));
 				ssa.eliminatePhiStatements();

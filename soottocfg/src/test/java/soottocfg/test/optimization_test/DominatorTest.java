@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import soottocfg.cfg.util.DominanceFrontier;
 import soottocfg.cfg.util.Dominators;
+import soottocfg.cfg.util.GraphUtil;
 import soottocfg.cfg.util.Tree;
 
 /**
@@ -26,6 +27,33 @@ public class DominatorTest {
 		// TODO Auto-generated constructor stub
 	}
 
+	@Test
+	public void irreducibleTest() {
+		DirectedGraph<String, DefaultEdge> directedGraph = new DefaultDirectedGraph<String, DefaultEdge>(
+				DefaultEdge.class);		
+		directedGraph.addVertex("1");// src
+		directedGraph.addVertex("2"); 
+		directedGraph.addVertex("3"); 
+		directedGraph.addVertex("4");
+		directedGraph.addVertex("5"); 
+		directedGraph.addVertex("6"); //sink
+
+		directedGraph.addEdge("1", "2");//makes it irreducible
+		directedGraph.addEdge("1", "3");
+		directedGraph.addEdge("2", "4");
+		directedGraph.addEdge("3", "4");
+		directedGraph.addEdge("4", "5");
+
+		directedGraph.addEdge("5", "2");
+		
+		directedGraph.addEdge("3", "6");
+		
+		Assert.assertFalse(GraphUtil.isReducibleGraph(directedGraph, "1"));
+		directedGraph.removeEdge("1", "2");
+		Assert.assertTrue(GraphUtil.isReducibleGraph(directedGraph, "1"));
+	}
+	
+	
 	@Test
 	public void testTextbookExample() {
 		// create a graph with two diamonds.
