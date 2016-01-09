@@ -87,6 +87,12 @@ public class Checker {
     private Map<Method, MethodContract> methodContracts =
         new LinkedHashMap<Method, MethodContract>();
 
+    private int varNum = 0;
+
+    private int newVarNum() {
+        return varNum++;
+    }
+
     ////////////////////////////////////////////////////////////////////////////
 
     private class MethodEncoder {
@@ -100,12 +106,18 @@ public class Checker {
             new LinkedList<ProverHornClause>();
 
 	private final List<Variable> methodPreVariables;
+	private final List<ProverExpr> methodPreExprs;
 
         public MethodEncoder(Prover p, Method method) {
             this.p = p;
             this.method = method;
             this.methodContract = methodContracts.get(method);
 	    this.methodPreVariables = methodContract.precondition.variables;
+
+            this.methodPreExprs = new ArrayList<ProverExpr> ();
+            for (Variable v : methodPreVariables)
+                methodPreExprs.add(p.mkHornVariable(v.getName() + "_" + newVarNum(),
+                                                    getProverType(v.getType())));
         }
         
         public void encode() {
@@ -128,10 +140,16 @@ public class Checker {
 		final List<ProverExpr> preVars = new ArrayList<ProverExpr>();
 		createVarMap(methodPreVariables, preVars, varMap);
 
-		final ProverExpr entryAtom =
-		    entryPred.predicate.mkExpr(entryVars.toArray(new ProverExpr[0]));
 		final ProverExpr preAtom =
 		    methodContract.precondition.predicate.mkExpr(preVars.toArray(new ProverExpr[0]));
+
+                final List<ProverExpr> allEntryArgs =
+                    new ArrayList<ProverExpr>();
+                allEntryArgs.addAll(preVars);
+                allEntryArgs.addAll(entryVars);
+                
+		final ProverExpr entryAtom =
+		    entryPred.predicate.mkExpr(allEntryArgs.toArray(new ProverExpr[0]));
             
 		clauses.add(p.mkHornClause(entryAtom,
 					   new ProverExpr[] { preAtom },
@@ -151,9 +169,6 @@ public class Checker {
 		final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
 		createVarMap(exitPred.variables, exitVars, varMap);
                     
-		final ProverExpr exitAtom =
-		    exitPred.predicate.mkExpr(exitVars.toArray(new ProverExpr[0]));
-
                 if (method.outgoingEdgesOf(current).isEmpty()) {
 		    // block ends with a return
 
@@ -163,12 +178,22 @@ public class Checker {
 		    final ProverExpr postAtom =
 			methodContract.postcondition.predicate.mkExpr(postVars.toArray(new ProverExpr[0]));
 
+                    final List<ProverExpr> allExitArgs =
+                        new ArrayList<ProverExpr>();
+                    allExitArgs.addAll(postVars.subList(0, methodPreVariables.size()));
+                    allExitArgs.addAll(exitVars);
+
+                    final ProverExpr exitAtom =
+			exitPred.predicate.mkExpr(allExitArgs.toArray(new ProverExpr[0]));
+
 		    clauses.add(p.mkHornClause(postAtom,
 					       new ProverExpr[] { exitAtom },
 					       p.mkLiteral(true)));
 		    
 		} else {
 		    // link to the successor blocks
+                    
+                    final ProverExpr exitAtom = instPredicate(exitPred, exitVars);
 
                     for (CfgEdge edge : method.outgoingEdgesOf(current)) {
                         CfgBlock succ = method.getEdgeTarget(edge);
@@ -185,8 +210,7 @@ public class Checker {
                         final List<ProverExpr> entryVars = new ArrayList<ProverExpr>();
                         createVarMap(entryPred.variables, entryVars, varMap);
                     
-                        final ProverExpr entryAtom =
-                            entryPred.predicate.mkExpr(entryVars.toArray(new ProverExpr[0]));
+                        final ProverExpr entryAtom = instPredicate(entryPred, entryVars);
 
                         clauses.add(p.mkHornClause(entryAtom,
                                                    new ProverExpr[] { exitAtom },
@@ -205,47 +229,38 @@ public class Checker {
 	 */
         private void makeBlockPredicates(LiveVars<CfgBlock> liveVariables) {
             for (Entry<CfgBlock, Set<Variable>> entry : liveVariables.liveIn.entrySet()) {
-		// method arguments are always considered as live,
-		// since we need them for the post-conditions
 		Set<Variable> allLive = new HashSet<Variable>();
 		allLive.addAll(entry.getValue());
-		allLive.addAll(methodPreVariables);
                 // sort the list of variables by name to make access
                 // and reading easier.
                 List<Variable> sortedVars = setToSortedList(allLive);
                 String name = entry.getKey().getLabel();
                 ProverFun pred = freshHornPredicate(name, sortedVars);
-                blockPredicates.put(entry.getKey(), new HornPredicate(name, sortedVars, pred));
+                blockPredicates.put(entry.getKey(),
+                                    new HornPredicate(name, sortedVars, pred));
             }
+        }
+
+        private ProverExpr instPredicate(HornPredicate pred,
+                                         List<ProverExpr> args) {
+            List<ProverExpr> allArgs = new ArrayList<ProverExpr> ();
+            allArgs.addAll(methodPreExprs);
+            allArgs.addAll(args);
+            return pred.predicate.mkExpr(allArgs.toArray(new ProverExpr[0]));
         }
 
         private ProverFun freshHornPredicate(String name,
                                              List<Variable> sortedVars) {
-            return Checker.this.freshHornPredicate(p, name, sortedVars);
+            final List<Variable> allArgs = new LinkedList<Variable>();
+            // add types for the method arguments, which
+            // are later needed for the post-conditions
+            allArgs.addAll(methodPreVariables);
+            allArgs.addAll(sortedVars);
+            return genHornPredicate(p, name, allArgs);
         }
 
-	/**
-	 * Creates a ProverType from a Type.
-	 * TODO: not fully implemented.
-	 * @param p
-	 * @param t
-	 * @return
-	 */
 	private ProverType getProverType(Type t) {
-            if (t == IntType.instance()) {
-                return p.getIntType();
-            }
-            if (t == BoolType.instance()) {
-                return p.getBooleanType();
-            }
-            if (t instanceof ReferenceType) {
-                return p.getIntType();
-            }
-            if (t instanceof MapType) {
-                System.err.println("Warning: translating " + t + " as prover type int");
-                return p.getIntType();
-            }
-            throw new IllegalArgumentException("don't know what to do with " + t);
+            return Checker.this.getProverType(p, t);
 	}
 
         private HornPredicate blockToHorn(CfgBlock block,
@@ -299,7 +314,15 @@ public class Checker {
         private void createVarMap(List<Variable> cfgVars,
 				  List<ProverExpr> proverVars,
                                   Map<Variable, ProverExpr> varMap) {
-            Checker.this.createVarMap(p, cfgVars, proverVars, varMap);
+            for (Variable v : cfgVars) {
+                ProverExpr e = varMap.get(v);
+                if (e == null) {
+                    e = p.mkHornVariable(v.getName() + "_" + newVarNum(),
+                                         getProverType(v.getType()));
+                    varMap.put(v, e);
+                }
+                proverVars.add(e);
+            }
         }
 	
         private void statementToClause(Statement s,
@@ -313,8 +336,7 @@ public class Checker {
             final List<ProverExpr> postVars = new ArrayList<ProverExpr>();
             createVarMap(postPred.variables, postVars, varMap);
         
-            final ProverExpr preAtom =
-                prePred.predicate.mkExpr(preVars.toArray(new ProverExpr[0]));
+            final ProverExpr preAtom = instPredicate(prePred, preVars);
 
             if (s instanceof AssertStatement) {
 
@@ -325,8 +347,7 @@ public class Checker {
                                            new ProverExpr[] { preAtom },
                                            p.mkNot(cond)));
 
-                final ProverExpr postAtom =
-                    postPred.predicate.mkExpr(postVars.toArray(new ProverExpr[0]));
+                final ProverExpr postAtom = instPredicate(postPred, postVars);
             
                 clauses.add(p.mkHornClause(postAtom,
                                            new ProverExpr[] { preAtom },
@@ -351,8 +372,7 @@ public class Checker {
                         ("only assignments to variables are supported, not to " + lhs);
                 }
 
-                final ProverExpr postAtom =
-                    postPred.predicate.mkExpr(postVars.toArray(new ProverExpr[0]));
+                final ProverExpr postAtom = instPredicate(postPred, postVars);
             
                 clauses.add(p.mkHornClause(postAtom,
                                            new ProverExpr[] { preAtom },
@@ -369,13 +389,10 @@ public class Checker {
 					       calledMethod.getMethodName() +
 					       " is unknown");
 
-		System.out.println(calledMethod.getInParams());
-		System.out.println(cs.getReceiver());
-		System.out.println(cs.getArguments());
-
 		assert(calledMethod.getInParams().size() ==
 		       cs.getArguments().size());
-		assert(calledMethod.getOutParams().size() == ((cs.getReceiver().isPresent())?1:0));
+		assert(calledMethod.getOutParams().size() ==
+                       ((cs.getReceiver().isPresent())?1:0));
 
 		final List<Variable> receiverVars = new ArrayList<Variable>();
 		if (cs.getReceiver().isPresent())
@@ -399,7 +416,22 @@ public class Checker {
 		}
 
 		if (cs.getReceiver().isPresent()) {
-		    actualPostParams[cnt++] = exprToProverExpr(cs.getReceiver().get(), varMap);
+                    final Expression lhs = cs.getReceiver().get();
+
+                    final ProverExpr callRes = 
+                        p.mkHornVariable("callRes_" + newVarNum(),
+                                         getProverType(lhs.getType()));
+		    actualPostParams[cnt++] = callRes;
+
+                    if (lhs instanceof IdentifierExpression) {
+                        final IdentifierExpression idLhs = (IdentifierExpression)lhs;
+                        final int lhsIndex = postPred.variables.indexOf(idLhs.getVariable());
+                        if (lhsIndex >= 0)
+                            postVars.set(lhsIndex, callRes);
+                    } else {
+                        throw new RuntimeException
+                            ("only assignments to variables are supported, not to " + lhs);
+                    }
 		}
 
 		final ProverExpr preCondAtom =
@@ -411,8 +443,7 @@ public class Checker {
 		final ProverExpr postCondAtom =
 		    contract.postcondition.predicate.mkExpr(actualPostParams);
 
-                final ProverExpr postAtom =
-                    postPred.predicate.mkExpr(postVars.toArray(new ProverExpr[0]));
+                final ProverExpr postAtom = instPredicate(postPred, postVars);
 
                 clauses.add(p.mkHornClause(postAtom,
                                            new ProverExpr[] { preAtom, postCondAtom },
@@ -514,8 +545,10 @@ public class Checker {
                     freshHornPredicate(p, method.getMethodName() + "_pre", inParams);
                 final ProverFun postPred =
                     freshHornPredicate(p, method.getMethodName() + "_post", postParams);
-		Log.info("pre: " + inParams);
-		Log.info("post: " + postParams);
+
+                //		Log.info("pre: " + inParams);
+                //		Log.info("post: " + postParams);
+
                 final HornPredicate pre =
                     new HornPredicate (method.getMethodName() + "_pre", inParams, prePred);
                 final HornPredicate post =
@@ -576,176 +609,42 @@ public class Checker {
         return true;
     }
 
-    private void checkEntryPoint(Prover p, Program program, Method method) {
-        Log.info("\tVerification from entry " + method.getMethodName());
-        p.push();
-        LiveVars<CfgBlock> liveVariables = method.computeBlockLiveVariables();
-
-        makeBlockPredicates(p, liveVariables);
-
-        List<CfgBlock> todo = new LinkedList<CfgBlock>();
-        todo.add(method.getSource());
-        Set<CfgBlock> done = new HashSet<CfgBlock>();
-        List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
-
-        {
-            // add an entry clause
-            final HornPredicate entryPred = blockPredicates.get(method.getSource());
-            final List<ProverExpr> entryVars = new ArrayList<ProverExpr>();
-            final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
-            createVarMap(p, entryPred.variables, entryVars, varMap);
-            
-            final ProverExpr entryAtom =
-                entryPred.predicate.mkExpr(entryVars.toArray(new ProverExpr[0]));
-            
-            clauses.add(p.mkHornClause(entryAtom,
-                                       new ProverExpr[0],
-                                       p.mkLiteral(true)));
-        }
-
-        // translate reachable blocks
-        while (!todo.isEmpty()) {
-            CfgBlock current = todo.remove(0);
-            done.add(current);
-            final HornPredicate exitPred = blockToHorn(p, current, clauses, liveVariables);
-            
-            // take care of successors
-            if (!method.outgoingEdgesOf(current).isEmpty()) {
-                final List<ProverExpr> exitVars = new ArrayList<ProverExpr>();
-                final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
-                createVarMap(p, exitPred.variables, exitVars, varMap);
-
-                final ProverExpr exitAtom =
-                    exitPred.predicate.mkExpr(exitVars.toArray(new ProverExpr[0]));
-
-                for (CfgEdge edge : method.outgoingEdgesOf(current)) {
-                    CfgBlock succ = method.getEdgeTarget(edge);
-                    if (!todo.contains(succ) && !done.contains(succ))
-                        todo.add(succ);
-
-                    final ProverExpr exitCondExpr;
-                    if (edge.getLabel().isPresent())
-                        exitCondExpr = exprToProverExpr(p, edge.getLabel().get(), varMap);
-                    else
-                        exitCondExpr = p.mkLiteral(true);
-
-                    final HornPredicate entryPred = blockPredicates.get(succ);
-                    final List<ProverExpr> entryVars = new ArrayList<ProverExpr>();
-                    createVarMap(p, entryPred.variables, entryVars, varMap);
-                    
-                    final ProverExpr entryAtom =
-                        entryPred.predicate.mkExpr(entryVars.toArray(new ProverExpr[0]));
-
-                    clauses.add(p.mkHornClause(entryAtom,
-                                               new ProverExpr[] { exitAtom },
-                                               exitCondExpr));
-                }
-            }
-        }
-
-        // for the time being, just check whether all clauses together are satisfiable
-        Log.info("\tNumber of clauses:  " + clauses.size());
-
-        for (ProverHornClause clause : clauses) {
-            Log.info("\t\t" + clause);
-            p.addAssertion(clause);
-        }
-
-        Log.info("\tResult:  " + p.checkSat(true));
-
-        p.pop();
-    }
-
-	/**
-	 * Creates one HornPredicate for each block. The predicate contains the list of live variables
-	 * for that block sorted by names and a predicate over the types of these variables that has
-	 * the same name as the block.
-	 * @param p
-	 * @param method
-	 */
-    private void makeBlockPredicates(Prover p, LiveVars<CfgBlock> liveVariables) {
-        for (Entry<CfgBlock, Set<Variable>> entry : liveVariables.liveIn.entrySet()) {
-            // First sort the list of variables by name to make access and
-            // reading easier.
-            List<Variable> sortedVars = setToSortedList(entry.getValue());
-            String name = entry.getKey().getLabel();
-            ProverFun pred = freshHornPredicate(p, name, sortedVars);
-            blockPredicates.put(entry.getKey(), new HornPredicate(name, sortedVars, pred));
-        }
-    }
-
-    private ProverFun freshHornPredicate(Prover p,
-                                         String name,
+    private ProverFun freshHornPredicate(Prover p, String name,
                                          List<Variable> sortedVars) {
+        return genHornPredicate(p, name, sortedVars);
+    }
+
+    private ProverFun genHornPredicate(Prover p, String name,
+                                       List<Variable> sortedVars) {
         final List<ProverType> types = new LinkedList<ProverType>();
         for (Variable v : sortedVars)
             types.add(getProverType(p, v.getType()));
         return p.mkHornPredicate(name,
                                  types.toArray(new ProverType[types.size()]));
     }
-
-	/**
-	 * Creates a ProverType from a Type.
-	 * TODO: not fully implemented.
-	 * @param p
-	 * @param t
-	 * @return
-	 */
-	private ProverType getProverType(Prover p, Type t) {
-		if (t == IntType.instance()) {
-			return p.getIntType();
-		}
-		if (t == BoolType.instance()) {
-			return p.getBooleanType();
-		}
-                if (t instanceof ReferenceType) {
-                    return p.getIntType();
-                }
-                if (t instanceof MapType) {
-                    System.err.println("Warning: translating " + t + " as prover type int");
-                    return p.getIntType();
-                }
-                throw new IllegalArgumentException("don't know what to do with " + t);
-	}
-
-    private HornPredicate blockToHorn(Prover p, CfgBlock block,
-                                      List<ProverHornClause> clauseBuffer,
-                                      LiveVars<CfgBlock> liveVariables) {
-        //        System.out.println("to horn: " + block);
-
-        final HornPredicate initPred = blockPredicates.get(block);
-
-        if (block.getStatements().isEmpty())
-            return initPred;
-            
-        final Set<Variable> liveOutVars = liveVariables.liveOut.get(block);
-
-        final Set<Variable>[] interVars = new Set[block.getStatements().size()];
-        interVars[interVars.length - 1] = liveOutVars;
-
-        for (int i = interVars.length - 1; i > 0; --i) {
-            final Statement s = block.getStatements().get(i);
-            interVars[i - 1] = new HashSet<Variable> ();
-            interVars[i - 1].addAll(interVars[i]);
-            interVars[i - 1].removeAll(s.getDefVariables());
-            interVars[i - 1].addAll(s.getUseVariables());
+    
+    /**
+     * Creates a ProverType from a Type.
+     * TODO: not fully implemented.
+     * @param p
+     * @param t
+     * @return
+     */
+    private ProverType getProverType(Prover p, Type t) {
+        if (t == IntType.instance()) {
+            return p.getIntType();
         }
-
-        final String initName = initPred.name;
-        HornPredicate prePred = initPred;
-        int counter = 0;
-
-        for (Statement s : block.getStatements()) {
-            final String postName = initName + "_" + (++counter);
-            final HornPredicate postPred =
-                new HornPredicate(postName,
-                                  initPred.variables,
-                                  freshHornPredicate(p, postName, initPred.variables));
-            statementToClause(p, s, prePred, postPred, clauseBuffer);
-            prePred = postPred;
+        if (t == BoolType.instance()) {
+            return p.getBooleanType();
         }
-
-        return prePred;
+        if (t instanceof ReferenceType) {
+            return p.getIntType();
+        }
+        if (t instanceof MapType) {
+            System.err.println("Warning: translating " + t + " as prover type int");
+            return p.getIntType();
+        }
+        throw new IllegalArgumentException("don't know what to do with " + t);
     }
 
     private void createVarMap(Prover p,
@@ -755,141 +654,14 @@ public class Checker {
         for (Variable v : cfgVars) {
             ProverExpr e = varMap.get(v);
             if (e == null) {
-                e = p.mkHornVariable(v.getName(), getProverType(p, v.getType()));
+                e = p.mkHornVariable(v.getName() + "_" + newVarNum(),
+                                     getProverType(p, v.getType()));
                 varMap.put(v, e);
             }
             proverVars.add(e);
         }
     }
 	
-    private void statementToClause(Prover p, Statement s,
-                                   HornPredicate prePred,
-                                   HornPredicate postPred,
-                                   List<ProverHornClause> clauseBuffer) {
-        final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
-
-        final List<ProverExpr> preVars = new ArrayList<ProverExpr>();
-        createVarMap(p, prePred.variables, preVars, varMap);
-
-        final List<ProverExpr> postVars = new ArrayList<ProverExpr>();
-        createVarMap(p, postPred.variables, postVars, varMap);
-        
-        final ProverExpr preAtom =
-            prePred.predicate.mkExpr(preVars.toArray(new ProverExpr[0]));
-
-        if (s instanceof AssertStatement) {
-            final AssertStatement as = (AssertStatement)s;
-            final ProverExpr cond = exprToProverExpr(p, as.getExpression(), varMap);
-
-            clauseBuffer.add(p.mkHornClause(p.mkLiteral(false),
-                                            new ProverExpr[] { preAtom },
-                                            p.mkNot(cond)));
-
-            final ProverExpr postAtom =
-                postPred.predicate.mkExpr(postVars.toArray(new ProverExpr[0]));
-            
-            clauseBuffer.add(p.mkHornClause(postAtom,
-                                            new ProverExpr[] { preAtom },
-                                            p.mkLiteral(true)));
-        } else if (s instanceof AssumeStatement) {
-            throw new RuntimeException("Statement type " + s + " not implemented!");
-        } else if (s instanceof AssignStatement) {
-            final AssignStatement as = (AssignStatement)s;
-            final Expression lhs = as.getLeft();
-            final int lhsIndex;
-
-            if (lhs instanceof IdentifierExpression) {
-                final IdentifierExpression idLhs = (IdentifierExpression)lhs;
-                lhsIndex = postPred.variables.indexOf(idLhs.getVariable());
-                if (lhsIndex < 0)
-                    throw new RuntimeException
-                        ("left-hand side " + lhs + " could not be resolved");
-            } else {
-                throw new RuntimeException
-                    ("only assignments to variables are supported, not to " + lhs);
-            }
-
-            postVars.set(lhsIndex, exprToProverExpr(p, as.getRight(), varMap));
-
-            final ProverExpr postAtom =
-                postPred.predicate.mkExpr(postVars.toArray(new ProverExpr[0]));
-            
-            clauseBuffer.add(p.mkHornClause(postAtom,
-                                            new ProverExpr[] { preAtom },
-                                            p.mkLiteral(true)));
-        } else if (s instanceof CallStatement) {
-            throw new RuntimeException("Statement type " + s + " not implemented!");
-        } else {
-            throw new RuntimeException("Statement type " + s + " not implemented!");
-        }
-    }
-	
-    private ProverExpr exprToProverExpr(Prover p, Expression e,
-                                        Map<Variable, ProverExpr> varMap) {
-        if (e instanceof IdentifierExpression) {
-            return varMap.get(((IdentifierExpression)e).getVariable());
-        } else if (e instanceof IntegerLiteral) {
-            return p.mkLiteral(BigInteger.valueOf(((IntegerLiteral)e).getValue()));
-        } else if (e instanceof BinaryExpression) {
-            final BinaryExpression be = (BinaryExpression)e;
-            final ProverExpr left = exprToProverExpr(p, be.getLeft(), varMap);
-            final ProverExpr right = exprToProverExpr(p, be.getRight(), varMap);
-
-            // TODO: the following choices encode Java semantics of various
-            // operators; need a good schema to choose how precise the encoding
-            // should be (probably configurable)
-            switch (be.getOp()) {
-            case Plus:
-                return p.mkPlus(left, right);
-            case Minus:
-                return p.mkMinus(left, right);
-            case Mul:
-                return p.mkMult(left, right);
-            case Div:
-                return p.mkTDiv(left, right);
-            case Mod:
-                return p.mkTMod(left, right);
-
-            case Eq:
-                return p.mkEq(left, right);
-            case Ne:
-                return p.mkNot(p.mkEq(left, right));
-            case Gt:
-                return p.mkGt(left, right);
-            case Ge:
-                return p.mkGeq(left, right);
-            case Lt:
-                return p.mkLt(left, right);
-            case Le:
-                return p.mkLeq(left, right);
-                
-            default: {
-                throw new RuntimeException("Not implemented for " + be.getOp());
-            }
-            }
-        } else if (e instanceof UnaryExpression) {
-            final UnaryExpression ue = (UnaryExpression)e;
-            final ProverExpr subExpr = exprToProverExpr(p, ue.getExpression(), varMap);
-
-            // TODO: the following choices encode Java semantics of various
-            // operators; need a good schema to choose how precise the encoding
-            // should be (probably configurable)
-            switch (ue.getOp()) {
-            case Neg:
-                return p.mkNeg(subExpr);
-            case LNot:
-                return p.mkNot(subExpr);
-            }
-        } else if (e instanceof IteExpression) {
-            final IteExpression ie = (IteExpression)e;
-            final ProverExpr condExpr = exprToProverExpr(p, ie.getCondition(), varMap);
-            final ProverExpr thenExpr = exprToProverExpr(p, ie.getThenExpr(), varMap);
-            final ProverExpr elseExpr = exprToProverExpr(p, ie.getElseExpr(), varMap);
-            return p.mkIte(condExpr, thenExpr, elseExpr);
-        }
-        throw new RuntimeException("Expression type " + e + " not implemented!");
-    }
-    
 
     private List<Variable> setToSortedList(Set<Variable> set) {
         List<Variable> res = new LinkedList<Variable>(set);
