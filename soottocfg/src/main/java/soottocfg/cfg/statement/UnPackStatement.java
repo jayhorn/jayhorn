@@ -10,6 +10,7 @@ import java.util.Set;
 
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.type.ClassSignature;
 
 /**
@@ -42,6 +43,14 @@ public class UnPackStatement extends Statement {
 		return left;
 	}
 	
+    public ClassSignature getClassSignature() {
+        return classConstant;
+    }
+
+    public Expression getObject() {
+        return object;
+    }
+
 	@Override
 	public Set<IdentifierExpression> getUseIdentifierExpressions() {
 		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();

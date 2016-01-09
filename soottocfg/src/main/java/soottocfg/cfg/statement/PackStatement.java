@@ -35,12 +35,25 @@ public class PackStatement extends Statement {
 		assert (c.getAssociatedFields().length == right.size());
 	}
 
+    public ClassSignature getClassSignature() {
+        return classConstant;
+    }
+
+    public Expression getObject() {
+        return object;
+    }
+
+    public List<Expression> getRight() {
+        return right;
+    }
+
 	@Override
 	public Set<IdentifierExpression> getUseIdentifierExpressions() {
 		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
 		for (Expression e : right) {
 			used.addAll(e.getUseIdentifierExpressions());	
-		}		
+		}
+                used.add(object);
 		return used;
 	}
 

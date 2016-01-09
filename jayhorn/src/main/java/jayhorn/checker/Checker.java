@@ -34,6 +34,7 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
+import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
@@ -42,11 +43,14 @@ import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.statement.PackStatement;
+import soottocfg.cfg.statement.UnPackStatement;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.MapType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.type.ClassSignature;
 
 /**
  * @author schaef
@@ -86,6 +90,31 @@ public class Checker {
         new LinkedHashMap<CfgBlock, HornPredicate>();
     private Map<Method, MethodContract> methodContracts =
         new LinkedHashMap<Method, MethodContract>();
+
+    ////////////////////////////////////////////////////////////////////////////
+
+    private Map<ClassSignature, ProverFun> classInvariants =
+        new LinkedHashMap<ClassSignature, ProverFun>();
+
+    private ProverFun getClassInvariant(Prover p, ClassSignature sig) {
+        ProverFun inv = classInvariants.get(sig);
+
+        if (inv == null) {
+            List<Variable> args = new ArrayList<Variable>();
+
+            args.add(new Variable("ref", new ReferenceType(sig)));
+            for (Variable v : sig.getAssociatedFields())
+                args.add(v);
+
+            inv = genHornPredicate(p, "inv_" + sig.getName(), args);
+
+            classInvariants.put(sig, inv);
+        }
+
+        return inv;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
 
     private int varNum = 0;
 
@@ -282,7 +311,6 @@ public class Checker {
 		if (edge.getLabel().isPresent())
 		    interVars[interVars.length - 1]
 			.addAll(edge.getLabel().get().getUseVariables());
-	    interVars[interVars.length - 1].addAll(methodPreVariables);
 
             for (int i = interVars.length - 1; i > 0; --i) {
                 final Statement s = block.getStatements().get(i);
@@ -341,7 +369,8 @@ public class Checker {
             if (s instanceof AssertStatement) {
 
                 final AssertStatement as = (AssertStatement)s;
-                final ProverExpr cond = exprToProverExpr(as.getExpression(), varMap);
+                final ProverExpr cond =
+                    exprToProverExpr(as.getExpression(), varMap);
 
                 clauses.add(p.mkHornClause(p.mkLiteral(false),
                                            new ProverExpr[] { preAtom },
@@ -355,7 +384,15 @@ public class Checker {
 
             } else if (s instanceof AssumeStatement) {
 
-                throw new RuntimeException("Statement type " + s + " not implemented!");
+                final AssumeStatement as = (AssumeStatement)s;
+                final ProverExpr cond =
+                    exprToProverExpr(as.getExpression(), varMap);
+                
+                final ProverExpr postAtom = instPredicate(postPred, postVars);
+
+                clauses.add(p.mkHornClause(postAtom,
+                                           new ProverExpr[] { preAtom },
+                                           cond));
 
             } else if (s instanceof AssignStatement) {
 
@@ -424,13 +461,16 @@ public class Checker {
 		    actualPostParams[cnt++] = callRes;
 
                     if (lhs instanceof IdentifierExpression) {
-                        final IdentifierExpression idLhs = (IdentifierExpression)lhs;
-                        final int lhsIndex = postPred.variables.indexOf(idLhs.getVariable());
+                        final IdentifierExpression idLhs =
+                            (IdentifierExpression)lhs;
+                        final int lhsIndex =
+                            postPred.variables.indexOf(idLhs.getVariable());
                         if (lhsIndex >= 0)
                             postVars.set(lhsIndex, callRes);
                     } else {
                         throw new RuntimeException
-                            ("only assignments to variables are supported, not to " + lhs);
+                            ("only assignments to variables are supported, " +
+                             "not to " + lhs);
                     }
 		}
 
@@ -446,28 +486,96 @@ public class Checker {
                 final ProverExpr postAtom = instPredicate(postPred, postVars);
 
                 clauses.add(p.mkHornClause(postAtom,
-                                           new ProverExpr[] { preAtom, postCondAtom },
+                                           new ProverExpr[] { preAtom,
+                                                              postCondAtom },
+                                           p.mkLiteral(true)));
+
+            } else if (s instanceof UnPackStatement) {
+
+                final UnPackStatement us = (UnPackStatement)s;
+                final ClassSignature sig = us.getClassSignature();
+                final List<IdentifierExpression> lhss = us.getLeft();
+                final ProverFun inv = getClassInvariant(p, sig);
+                
+		final ProverExpr[] invArgs = new ProverExpr[1 + lhss.size()];
+                int cnt = 0;
+                invArgs[cnt++] = exprToProverExpr(us.getObject(), varMap);
+                
+                for (IdentifierExpression lhs : lhss) {
+                    final ProverExpr lhsExpr = 
+                        p.mkHornVariable("unpackRes_" + lhs + "_" + newVarNum(),
+                                         getProverType(lhs.getType()));
+		    invArgs[cnt++] = lhsExpr;
+
+                    final int lhsIndex =
+                        postPred.variables.indexOf(lhs.getVariable());
+                    if (lhsIndex >= 0)
+                        postVars.set(lhsIndex, lhsExpr);
+                }
+
+		final ProverExpr invAtom = inv.mkExpr(invArgs);
+                final ProverExpr postAtom = instPredicate(postPred, postVars);
+                
+                clauses.add(p.mkHornClause(postAtom,
+                                           new ProverExpr[] { preAtom,
+                                                              invAtom },
+                                           p.mkLiteral(true)));
+
+            } else if (s instanceof PackStatement) {
+
+                final PackStatement ps = (PackStatement)s;
+                final ClassSignature sig = ps.getClassSignature();
+                final List<Expression> rhss = ps.getRight();
+                final ProverFun inv = getClassInvariant(p, sig);
+
+		final ProverExpr[] invArgs = new ProverExpr[1 + rhss.size()];
+                int cnt = 0;
+                invArgs[cnt++] = exprToProverExpr(ps.getObject(), varMap);
+                
+                for (Expression rhs : rhss)
+		    invArgs[cnt++] = exprToProverExpr(rhs, varMap);
+
+		final ProverExpr invAtom = inv.mkExpr(invArgs);
+
+                clauses.add(p.mkHornClause(invAtom,
+                                           new ProverExpr[] { preAtom },
+                                           p.mkLiteral(true)));
+
+                final ProverExpr postAtom = instPredicate(postPred, postVars);
+                
+                clauses.add(p.mkHornClause(postAtom,
+                                           new ProverExpr[] { preAtom },
                                            p.mkLiteral(true)));
 
             } else {
-                throw new RuntimeException("Statement type " + s + " not implemented!");
+                throw new RuntimeException("Statement type " + s +
+                                           " not implemented!");
             }
         }
 	
         private ProverExpr exprToProverExpr(Expression e,
                                             Map<Variable, ProverExpr> varMap) {
             if (e instanceof IdentifierExpression) {
-                return varMap.get(((IdentifierExpression)e).getVariable());
+                ProverExpr res =
+                    varMap.get(((IdentifierExpression)e).getVariable());
+                if (res == null)
+                    throw new RuntimeException("Could not resolve variable " +
+                                               e);
+                return res;
             } else if (e instanceof IntegerLiteral) {
-                return p.mkLiteral(BigInteger.valueOf(((IntegerLiteral)e).getValue()));
+                return p.mkLiteral(BigInteger.valueOf(((IntegerLiteral)e)
+                                                      .getValue()));
             } else if (e instanceof BinaryExpression) {
                 final BinaryExpression be = (BinaryExpression)e;
-                final ProverExpr left = exprToProverExpr(be.getLeft(), varMap);
-                final ProverExpr right = exprToProverExpr(be.getRight(), varMap);
+                final ProverExpr left =
+                    exprToProverExpr(be.getLeft(), varMap);
+                final ProverExpr right =
+                    exprToProverExpr(be.getRight(), varMap);
 
-                // TODO: the following choices encode Java semantics of various
-                // operators; need a good schema to choose how precise the encoding
-                // should be (probably configurable)
+                // TODO: the following choices encode Java semantics
+                // of various operators; need a good schema to choose
+                // how precise the encoding should be (probably
+                // configurable)
                 switch (be.getOp()) {
                 case Plus:
                     return p.mkPlus(left, right);
@@ -494,16 +602,19 @@ public class Checker {
                     return p.mkLeq(left, right);
                 
                 default: {
-                    throw new RuntimeException("Not implemented for " + be.getOp());
+                    throw new RuntimeException("Not implemented for " +
+                                               be.getOp());
                 }
                 }
             } else if (e instanceof UnaryExpression) {
                 final UnaryExpression ue = (UnaryExpression)e;
-                final ProverExpr subExpr = exprToProverExpr(ue.getExpression(), varMap);
+                final ProverExpr subExpr =
+                    exprToProverExpr(ue.getExpression(), varMap);
 
-                // TODO: the following choices encode Java semantics of various
-                // operators; need a good schema to choose how precise the encoding
-                // should be (probably configurable)
+                // TODO: the following choices encode Java semantics
+                // of various operators; need a good schema to choose
+                // how precise the encoding should be (probably
+                // configurable)
                 switch (ue.getOp()) {
                 case Neg:
                     return p.mkNeg(subExpr);
@@ -512,14 +623,22 @@ public class Checker {
                 }
             } else if (e instanceof IteExpression) {
                 final IteExpression ie = (IteExpression)e;
-                final ProverExpr condExpr = exprToProverExpr(ie.getCondition(), varMap);
-                final ProverExpr thenExpr = exprToProverExpr(ie.getThenExpr(), varMap);
-                final ProverExpr elseExpr = exprToProverExpr(ie.getElseExpr(), varMap);
+                final ProverExpr condExpr =
+                    exprToProverExpr(ie.getCondition(), varMap);
+                final ProverExpr thenExpr =
+                    exprToProverExpr(ie.getThenExpr(), varMap);
+                final ProverExpr elseExpr =
+                    exprToProverExpr(ie.getElseExpr(), varMap);
                 return p.mkIte(condExpr, thenExpr, elseExpr);
             } else if (e instanceof BooleanLiteral) {
                 return p.mkLiteral(((BooleanLiteral)e).getValue());
-	    }
-	    throw new RuntimeException("Expression type " + e + " not implemented!");
+	    } else if (e instanceof InstanceOfExpression) {
+                System.err.println("Warning: ignoring instanceof expression");
+                return p.mkHornVariable("instanceof_result",
+                                        p.getBooleanType());
+            }
+	    throw new RuntimeException("Expression type " + e +
+                                       " not implemented!");
         }
     }
 
@@ -564,8 +683,8 @@ public class Checker {
             for (Method method : program.getMethods()) {
 		
 		// hack
-		if (method.getMethodName().contains("init"))
-		    continue;
+                //		if (method.getMethodName().contains("init"))
+                //		    continue;
 
 		final MethodEncoder encoder = new MethodEncoder(p, method);
 		encoder.encode();
@@ -641,7 +760,8 @@ public class Checker {
             return p.getIntType();
         }
         if (t instanceof MapType) {
-            System.err.println("Warning: translating " + t + " as prover type int");
+            System.err.println("Warning: translating " + t +
+                               " as prover type int");
             return p.getIntType();
         }
         throw new IllegalArgumentException("don't know what to do with " + t);
