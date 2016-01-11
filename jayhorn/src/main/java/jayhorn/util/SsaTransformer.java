@@ -73,7 +73,7 @@ public class SsaTransformer {
 	public void eliminatePhiStatements() {
 		// TODO assert loop-freeness
 		for (CfgBlock b : method.vertexSet()) {
-			Set<PhiStatement> toRemove = new HashSet<PhiStatement>();
+			Set<Statement> toRemove = new HashSet<Statement>();
 			for (Statement s : b.getStatements()) {
 				if (s instanceof PhiStatement) {
 					PhiStatement phi = (PhiStatement) s;
@@ -86,11 +86,11 @@ public class SsaTransformer {
 						SourceLocation loc = SourceLocationUtil.findNearestLocationBackwards(method, pred);
 						AssignStatement asgn = new AssignStatement(loc, new IdentifierExpression(loc, v, inc),
 								new IdentifierExpression(loc, v, entry.getValue()));
-						pred.getStatements().add(asgn);
+						pred.addStatement(asgn);
 					}
 				}
 			}
-			b.getStatements().removeAll(toRemove);
+			b.removeStatements(toRemove);
 		}
 	}
 
@@ -187,7 +187,7 @@ public class SsaTransformer {
 	private void createPhiFunction(CfgBlock b, Variable v) {
 		IdentifierExpression left = new IdentifierExpression(null, v);
 		PhiStatement phi = new PhiStatement(left, b);
-		b.getStatements().add(0, phi);
+		b.addStatement(0, phi);
 	}
 
 	/**

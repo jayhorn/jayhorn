@@ -92,6 +92,9 @@ public class InconsistencyChecker {
 					}
 				}
 			}
+		} catch (Throwable e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
 		} finally {
 			if (executor != null) {
 				executor.shutdown();

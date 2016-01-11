@@ -224,7 +224,7 @@ public class LoopRemoval {
 			for (Variable v : modifiedVariables) {
 				AssignStatement asgn = new AssignStatement(loc, new IdentifierExpression(loc, v),
 						new IdentifierExpression(loc, havocVariables.get(v)));
-				b.getStatements().add(0, asgn);
+				b.addStatement(0, asgn);
 			}
 		}
 	}

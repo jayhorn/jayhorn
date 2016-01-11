@@ -154,7 +154,7 @@ public class SootToCfg {
 			// System.out.println("Processing method: " + sm);
 
 //			 if
-//			 (!sm.getSignature().equals("<org.apache.tools.ant.taskdefs.email.EmailAddress: java.lang.String trim(java.lang.String,boolean)>")) {
+//			 (!sm.getSignature().equals("<org.apache.cassandra.cql3.functions.ScriptBasedUDFunction: java.nio.ByteBuffer executeUserDefined(int,java.util.List)>")) {
 //			 return;
 //			 }
 			// System.err.println(sm.getSignature());

@@ -71,6 +71,7 @@ public class InconsistencyLocalization {
 		}
 
 		List<ProverExpr> proofObligations = generatProofObligations(s2p, graph);
+
 		ProverExpr[] interpolants = computeInterpolants(proofObligations, s2p.generatedAxioms(), precondition,
 				postcondition);
 		List<Integer> changePositions = findPositionsWhereInterpolantChanges(interpolants);
@@ -95,7 +96,7 @@ public class InconsistencyLocalization {
 				}				
 				Optional<ProverExpr> interpolantBefore = Optional
 						.fromNullable(prover.mkAnd(newPreCondition.toArray(new ProverExpr[newPreCondition.size()])));
-
+				
 				List<ProverExpr> newPostCondition = new LinkedList<ProverExpr>(proofObligations.subList(i+1, proofObligations.size()));
 				if (postcondition.isPresent()) {
 					newPostCondition.add(postcondition.get());

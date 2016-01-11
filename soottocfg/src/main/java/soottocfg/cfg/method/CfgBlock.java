@@ -4,6 +4,8 @@
 package soottocfg.cfg.method;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -64,16 +66,46 @@ public class CfgBlock implements Node, Serializable {
 		return this.label;
 	}
 
+	/**
+	 * Adds a {@link Statement} to the end of the block.
+	 * @param s Statement to be added.
+	 */
 	public void addStatement(Statement s) {
 		this.statements.add(s);
 	}
 
+	/**
+	 * Adds a {@link Statement} at a given {@code position} to the block.
+	 * Does not check if {@code position} is a valid position within the
+	 * block.
+	 * @param s
+	 * @param position
+	 * @exception IndexOutOfBoundsException If position is not a valid index in the body.
+	 */
+	public void addStatement(int position, Statement s) {
+		Preconditions.checkNotNull(s);
+		this.statements.add(position, s);
+	}
+	
+	/**
+	 * Get an unmodifiable view of the {@link Statement} list of this block.
+	 * @return Unmodifiable view of the {@link Statement} list
+	 */
 	public List<Statement> getStatements() {
-		return this.statements;
+		return Collections.unmodifiableList(this.statements);
+	}
+	
+	public void removeStatements(Set<Statement> toRemove) {
+		this.statements.removeAll(toRemove);
 	}
 
-	public void setStatements(List<Statement> statements) {
-		this.statements = statements;
+	/**
+	 * Replaces the statements inside the block by the statements in 
+	 * {@param statements}.
+	 * @param statements Collection of {@link Statement}s to be added to the block.
+	 */
+	public void setStatements(Collection<Statement> statements) {
+		this.statements = new LinkedList<Statement>(statements);
 	}
 
 	@Override
@@ -189,7 +221,8 @@ public class CfgBlock implements Node, Serializable {
 	 * Returns a new block with a deep copy of the statements of this
 	 * block.
 	 * The new block has a different label from this block.
-	 * @return
+	 * @return A deep copy of this block where all statements have been
+	 *         copied as well.
 	 */
 	public CfgBlock deepCopy() {
 		CfgBlock copy = new CfgBlock(method);

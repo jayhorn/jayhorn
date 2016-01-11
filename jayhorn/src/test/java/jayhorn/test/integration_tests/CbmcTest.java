@@ -8,21 +8,27 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import jayhorn.checker.Checker;
 import soottocfg.soot.SootToCfg;
 
+@RunWith(Parameterized.class)
 public class CbmcTest {
 
 	private static final String userDir = System.getProperty("user.dir") + "/";
 	private static final String testRoot = userDir + "src/test/resources/";
-
-	@Test
-	public void test() {
+	
+	@Parameterized.Parameters(name = "{index}: check ({1})")
+	public static Collection<Object[]> data() {
+		List<Object[]> fileAndResult = new LinkedList<Object[]>();		
 		final File source_dir = new File(testRoot + "cbmc-java/");
-
 		File[] directoryListing = source_dir.listFiles();
 		if (directoryListing != null) {
 			for (File child : directoryListing) {
@@ -32,7 +38,7 @@ public class CbmcTest {
 					//states the desired outcome.
 					for (File f : child.listFiles()) {
 						if (f.isFile() && f.getName().endsWith(".desc")) {
-							runCbmcTest(child, parseOutcomeFromDescFile(f));
+							fileAndResult.add(new Object[] { child, child.getName(), parseOutcomeFromDescFile(f)});
 							break;
 						}
 					}
@@ -40,19 +46,32 @@ public class CbmcTest {
 			}
 		} else {
 			throw new RuntimeException("Test directory "+source_dir+" not found.");
-		}
+		}		
+		return fileAndResult;
 	}
 	
-	private void runCbmcTest(File dir, boolean expectedResult) {
-		System.out.println("Checking "+ dir);
+	private final File classDir;
+	private final boolean expectedResult;
+	private final String description;
+	
+	public CbmcTest(File classDir, String name, boolean expected) {
+		this.classDir = classDir;
+		this.expectedResult = expected;
+		this.description = name;
+	}
+
+	
+	@Test
+	public void test() {
+		System.out.println("Running test: "+this.description);
 		System.out.println("\texpected result: "+ expectedResult);
 
 		SootToCfg soot2cfg = new SootToCfg();
-		soot2cfg.run(dir.getAbsolutePath(), dir.getAbsolutePath());		
+		soot2cfg.run(classDir.getAbsolutePath(), classDir.getAbsolutePath());		
 		Checker checker = new Checker();
 		boolean result = checker.checkProgram(soot2cfg.getProgram());
 		
-		org.junit.Assert.assertTrue("Unexpected result for "+dir, expectedResult==result);		
+		org.junit.Assert.assertTrue("Unexpected result for "+description, expectedResult==result);		
 	}
 	
 	/**
@@ -61,7 +80,7 @@ public class CbmcTest {
 	 * @param descFile
 	 * @return True, if the file contains ^VERIFICATION SUCCESSFUL$, and False otherwise.
 	 */
-	private boolean parseOutcomeFromDescFile(File descFile) {
+	private static boolean parseOutcomeFromDescFile(File descFile) {
 		Charset charset = Charset.forName("UTF8");
 		CharsetDecoder decoder = charset.newDecoder();
 		

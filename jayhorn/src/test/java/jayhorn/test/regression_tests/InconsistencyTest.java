@@ -81,7 +81,7 @@ public class InconsistencyTest {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
-			classDir = Util.compileJavaFile(this.sourceFile);
+			classDir = Util.compileJavaFile(this.sourceFile);			
 			SootToCfg soot2cfg = new SootToCfg(false, true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			InconsistencyChecker checker = new InconsistencyChecker(factory);

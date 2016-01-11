@@ -721,6 +721,7 @@ public class Checker {
             }
         } catch (Throwable t) {
             t.printStackTrace();
+            throw new RuntimeException(t);
         } finally {
             p.shutdown();
         }
