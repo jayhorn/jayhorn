@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -27,8 +28,12 @@ import com.google.common.base.Verify;
 
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Node;
+import soottocfg.cfg.Program;
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.util.SetOperations;
 
 /**
@@ -43,20 +48,29 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 
 	private final String methodName;
 	private Variable thisVariable, returnVariable;
-	private List<Variable> parameterList = new LinkedList<Variable>();
+	private final List<Variable> parameterList;
 	private Collection<Variable> locals;
 	private Collection<Variable> modifiedGlobals;
 	private CfgBlock source, sink;
 	private boolean isProgramEntry = false;
 
-	public Method(String uniqueName) {
+	
+	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params) {
+		Preconditions.checkArgument(p.loopupMethod(uniqueName)==null, "Method with name "+uniqueName + " already exists");
+		Method m = new Method(uniqueName, params);
+		p.addMethod(m);
+		return m;
+	}
+	
+	private Method(String uniqueName, List<Variable> params) {
 		super(new ClassBasedEdgeFactory<CfgBlock, CfgEdge>(CfgEdge.class), true, true);
 		methodName = uniqueName;
+		this.parameterList = Collections.unmodifiableList(params);
 	}
 
 	public Method createMethodFromSubgraph(DirectedGraph<CfgBlock, CfgEdge> subgraph, String newMethodName) {
 		Preconditions.checkArgument(vertexSet().containsAll(subgraph.vertexSet()), "Method does not contain all nodes from subgraph.");
-		Method subgraphMethod = new Method(newMethodName);
+		Method subgraphMethod = new Method(newMethodName, this.parameterList);
 		
 		for (CfgBlock v : subgraph.vertexSet()) {
 			subgraphMethod.addVertex(v);
@@ -64,7 +78,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		for (CfgEdge e : subgraph.edgeSet()) {
 			subgraphMethod.addEdge(subgraph.getEdgeSource(e), subgraph.getEdgeTarget(e));
 		}
-		subgraphMethod.initialize(thisVariable, returnVariable, parameterList, locals, source, isProgramEntry);
+		subgraphMethod.initialize(thisVariable, returnVariable, locals, source, isProgramEntry);
 		return subgraphMethod;
 	}
 	
@@ -72,15 +86,14 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		return this.methodName;
 	}
 
-	public void initialize(Variable thisVariable, Variable returnVariable, List<Variable> parameterList,
+	public void initialize(Variable thisVariable, Variable returnVariable,
 			Collection<Variable> locals, CfgBlock source, boolean isEntryPoint) {
 		Preconditions.checkNotNull(parameterList, "Parameter list must not be null");
-//		Preconditions.checkArgument(inDegreeOf(source)==0, "Source is not a source!");
+		Preconditions.checkNotNull(source);
 		
 		this.thisVariable = thisVariable;
 		this.returnVariable = returnVariable;
-		this.parameterList = parameterList;
-		this.locals = locals;
+		this.locals = new LinkedList<Variable>(locals);
 		this.source = source;
 		this.isProgramEntry = isEntryPoint;
 		
@@ -92,7 +105,18 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		this.modifiedGlobals.removeAll(parameterList);
 		this.modifiedGlobals.remove(returnVariable);
 		this.modifiedGlobals.remove(thisVariable);
-				
+		
+		if (this.thisVariable!=null) {
+			//then the first parameter must be the reference to the current instance
+			//and we have to add an assignment to the source block.
+			Verify.verify(!this.parameterList.isEmpty());
+			Verify.verifyNotNull(this.source);
+			SourceLocation loc = null;
+			AssignStatement thisAssign = new AssignStatement(loc, new IdentifierExpression(loc, this.thisVariable), new IdentifierExpression(loc, this.parameterList.get(0)));
+			this.source.addStatement(0, thisAssign);
+		}
+		
+		
 	}
 	
 	
@@ -196,16 +220,15 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		return ret;
 	}
 
-	public Collection<Variable> getInParams() {
-		final List<Variable> rtr = new ArrayList<Variable>();
-		if (thisVariable != null) {
-			rtr.add(thisVariable);
-		}
-		rtr.addAll(parameterList);
-		return rtr;
+	public Variable getInParam(int pos) {
+		return this.parameterList.get(pos);
+	}
+	
+	public List<Variable> getInParams() {
+		return Collections.unmodifiableList(this.parameterList);
 	}
 
-	public Collection<Variable> getOutParams() {
+	public List<Variable> getOutParams() {
 		final List<Variable> rtr = new ArrayList<Variable>();
 		if (returnVariable != null) {
 			rtr.add(returnVariable);

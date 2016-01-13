@@ -1,3 +1,3 @@
 #!/bin/sh
 
-java -ea -cp jayhorn/lib/jgrapht-ext-0.9.1.jar:jayhorn/lib/jgrapht-core-0.9.1.jar:jayhorn/lib/com.microsoft.z3.jar:jayhorn/lib/lazabs.jar:jayhorn/lib/princess.jar:jayhorn/lib/args4j-2.0.18.jar:jayhorn/lib/log4j-1.2.8.jar:jayhorn/lib/scala-library.jar:jayhorn/lib/scala-actors-2.11.0.jar:soottocfg/lib/soot-trunk.jar:jayhorn/build/classes/main:soottocfg/build/classes/main jayhorn.Main "$@"
+java -ea -cp jayhorn/build/lib/jgrapht-ext-0.9.1.jar:jayhorn/build/lib/jgrapht-core-0.9.1.jar:jayhorn/build/lib/com.microsoft.z3.jar:jayhorn/build/lib/lazabs.jar:jayhorn/build/lib/princess.jar:jayhorn/build/lib/args4j-2.32.jar:jayhorn/build/lib/log4j-1.2.17.jar:jayhorn/build/lib/scala-library-2.11.7.jar:jayhorn/build/lib/scala-actors-2.11.7.jar:soottocfg/lib/soot-trunk.jar:jayhorn/build/classes/main:soottocfg/build/classes/main jayhorn.Main "$@"

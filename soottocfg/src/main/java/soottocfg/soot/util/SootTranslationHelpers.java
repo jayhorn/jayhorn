@@ -30,6 +30,7 @@ import soot.tagkit.Tag;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
+import soottocfg.cfg.method.Method;
 import soottocfg.soot.SootRunner;
 import soottocfg.soot.SootToCfg.MemModel;
 import soottocfg.soot.memory_model.MemoryModel;
@@ -47,6 +48,7 @@ public enum SootTranslationHelpers {
 		return INSTANCE;
 	}
 
+	private static final String parameterPrefix = "$in_";
 	private final Map<soot.Type, Variable> typeVariables = new HashMap<soot.Type, Variable>();
 
 	private transient SootMethod currentMethod;
@@ -67,6 +69,24 @@ public enum SootTranslationHelpers {
 		program = null;
 	}
 
+	
+	public Method lookupOrCreateMethod(SootMethod m) {
+		if (this.program.loopupMethod(m.getSignature())!=null) {
+			return this.program.loopupMethod(m.getSignature());
+		}
+		int parameterCount = 0;
+		final List<Variable> parameterList = new LinkedList<Variable>();
+		if (!m.isStatic()) {
+			parameterList.add(new Variable(parameterPrefix + (parameterCount++),
+					getMemoryModel().lookupType(m.getDeclaringClass().getType())));
+		}
+		for (int i=0; i < m.getParameterCount(); i++) {
+			parameterList.add(new Variable(parameterPrefix + (parameterCount++),
+					getMemoryModel().lookupType(m.getParameterType(i))));
+		}
+		return Method.createMethodInProgram(program, m.getSignature(), parameterList);
+	}
+	
 	public Stmt getDefaultReturnStatement(Type returnType, Host createdFrom) {
 		Stmt stmt;
 		if (returnType instanceof VoidType) {

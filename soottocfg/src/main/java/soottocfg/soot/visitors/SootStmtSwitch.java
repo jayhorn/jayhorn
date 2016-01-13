@@ -373,7 +373,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			call.getArg(i).apply(valueSwitch);
 			args.add(valueSwitch.popExpression());
 		}
-
+		
 		Expression baseExpression = null;
 		// List of possible virtual methods that can be called at this point.
 		// Order matters here.
@@ -399,11 +399,13 @@ public class SootStmtSwitch implements StmtSwitch {
 			receiver = Optional.of(valueSwitch.popExpression());
 		}
 
-		Method method = program.loopupMethod(call.getMethod().getSignature());
+		Method method = SootTranslationHelpers.v().lookupOrCreateMethod(call.getMethod());
 		CallStatement stmt = new CallStatement(SootTranslationHelpers.v().getSourceLocation(u), method, args, receiver);
 		this.currentBlock.addStatement(stmt);
 	}
 
+	
+	
 	/**
 	 * Check if the call is a special case such as System.exit. If so, translate
 	 * it and return true. Otherwise, ignore it and return false.

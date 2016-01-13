@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BinaryExpression;
@@ -29,7 +30,8 @@ public class OptimizationExample {
 	public Method getMethod1() {
 		SootTranslationHelpers.v().reset();
 
-		final Method m = new Method("testM");
+		final Program p = new Program();				
+		final Method m = Method.createMethodInProgram(p, "testM", new LinkedList<Variable>()); 
 		final SourceLocation fakeSl = new SourceLocation("fake", 0);
 
 		final Collection<Variable> localVars = new HashSet<Variable>();
@@ -65,7 +67,7 @@ public class OptimizationExample {
 		m.addEdge(b1, b2).setLabel(b);
 		m.addEdge(b1, b3).setLabel(notB);
 
-		m.initialize(null, rval, new LinkedList<Variable>(), localVars, b1, true);
+		m.initialize(null, rval, localVars, b1, true);
 		return m;
 	}
 
@@ -73,7 +75,8 @@ public class OptimizationExample {
 	// dominators
 	public Method getMethod2() {
 		SootTranslationHelpers.v().reset();
-		final Method m = new Method("testM2");
+		final Program p = new Program();				
+		final Method m = Method.createMethodInProgram(p, "testM", new LinkedList<Variable>()); 
 
 		/*
 		 * Create a dummy block to increase the counter for the block label.
@@ -120,7 +123,7 @@ public class OptimizationExample {
 		m.addEdge(b9, b1);
 		m.addEdge(b10, b7);
 
-		m.initialize(null, null, new LinkedList<Variable>(), new HashSet<Variable>(), b1, true);
+		m.initialize(null, null, new HashSet<Variable>(), b1, true);
 		return m;
 	}
 

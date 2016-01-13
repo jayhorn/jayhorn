@@ -428,7 +428,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseParameterRef(ParameterRef arg0) {
-		this.expressionStack.add(methodInfo.lookupParameterRef(arg0));
+		this.expressionStack.add(methodInfo.lookupParameterRef(arg0) );
 	}
 
 	@Override

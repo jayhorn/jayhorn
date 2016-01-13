@@ -89,3 +89,9 @@ task integration_test(type: Test) {
 	include '**/regression_tests/**'
 	include '**/integration_tests/**'
 }
+
+//for philipps run script
+task copyDeps(type: Copy) {
+  from configurations.runtime
+  into 'build/lib'
+}

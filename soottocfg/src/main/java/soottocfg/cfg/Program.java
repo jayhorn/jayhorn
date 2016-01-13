@@ -51,11 +51,11 @@ public class Program {
 	}
 
 	public Method loopupMethod(String methodSignature) {
-		if (!methods.containsKey(methodSignature)) {
-			Method method = new Method(methodSignature);
-			methods.put(methodSignature, method);
-		}
 		return methods.get(methodSignature);
+	}
+	
+	public void addMethod(Method m) {
+		this.methods.put(m.getMethodName(), m);
 	}
 
 	public void addEntryPoint(Method entry) {

@@ -110,8 +110,10 @@ public class SootToCfg {
 		// now set the entry points.
 		for (SootMethod entryPoint : Scene.v().getEntryPoints()) {
 			if (entryPoint.getDeclaringClass().isApplicationClass()) {
-				// TODO: maybe we want to add all Main methods instead.
-				program.addEntryPoint(program.loopupMethod(entryPoint.getSignature()));
+				Method m = program.loopupMethod(entryPoint.getSignature());
+				if (m != null) {
+					program.addEntryPoint(m);
+				}
 			}
 		}
 
@@ -153,19 +155,20 @@ public class SootToCfg {
 		if (sm.isConcrete()) {
 			// System.out.println("Processing method: " + sm);
 
-//			 if
-//			 (!sm.getSignature().equals("<org.apache.cassandra.cql3.functions.ScriptBasedUDFunction: java.nio.ByteBuffer executeUserDefined(int,java.util.List)>")) {
-//			 return;
-//			 }
+			// if
+			// (!sm.getSignature().equals("<org.apache.cassandra.cql3.functions.ScriptBasedUDFunction:
+			// java.nio.ByteBuffer executeUserDefined(int,java.util.List)>")) {
+			// return;
+			// }
 			// System.err.println(sm.getSignature());
 
 			SootTranslationHelpers.v().setCurrentMethod(sm);
-			
+
 			Body body = null;
 			try {
 				body = sm.retrieveActiveBody();
 			} catch (RuntimeException e) {
-				System.err.println("Soot failed to parse " +sm.getSignature());
+				System.err.println("Soot failed to parse " + sm.getSignature());
 				return;
 			}
 			processMethodBody(body);
@@ -174,15 +177,15 @@ public class SootToCfg {
 
 	private void processMethodBody(Body body) {
 
-//		StringBuilder sb = new StringBuilder();
-//		for (Unit u : body.getUnits()) {
-//			sb.append(u.getJavaSourceStartLineNumber());
-//			sb.append(": ");
-//			sb.append(u);
-//			sb.append("\n");
-//		}
-//		System.err.println(sb.toString());
-		
+		// StringBuilder sb = new StringBuilder();
+		// for (Unit u : body.getUnits()) {
+		// sb.append(u.getJavaSourceStartLineNumber());
+		// sb.append(": ");
+		// sb.append(u);
+		// sb.append("\n");
+		// }
+		// System.err.println(sb.toString());
+
 		preProcessBody(body);
 
 		// generate the CFG structures on the processed body.
@@ -217,7 +220,8 @@ public class SootToCfg {
 
 		// first reconstruct the assertions.
 		AssertionReconstruction ar = new AssertionReconstruction();
-		ar.transform(body);;
+		ar.transform(body);
+		;
 
 		// UnreachableFinallyCodeRemover ufcr = new
 		// UnreachableFinallyCodeRemover(new NullnessAnalysis(new
