@@ -154,6 +154,30 @@ public class Checker {
             LiveVars<CfgBlock> liveVariables = method.computeBlockLiveVariables();
             makeBlockPredicates(liveVariables);
             
+            if (method.getSource() == null) {
+                System.err.println("Warning: no implementation available for " +
+                                   method.getMethodName());
+
+		final List<ProverExpr> entryVars = new ArrayList<ProverExpr>();
+		final List<ProverExpr> exitVars = new ArrayList<ProverExpr>();
+		final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
+		createVarMap(methodContract.precondition.variables, entryVars, varMap);
+		createVarMap(methodContract.postcondition.variables, exitVars, varMap);
+
+		final ProverExpr entryAtom =
+		    methodContract.precondition.predicate.mkExpr
+                    (entryVars.toArray(new ProverExpr[0]));
+		final ProverExpr exitAtom =
+		    methodContract.postcondition.predicate.mkExpr
+                    (exitVars.toArray(new ProverExpr[0]));
+                
+		clauses.add(p.mkHornClause(exitAtom,
+					   new ProverExpr[] { entryAtom },
+					   p.mkLiteral(true)));
+
+                return;
+            }
+
             List<CfgBlock> todo = new LinkedList<CfgBlock>();
             todo.add(method.getSource());
             Set<CfgBlock> done = new HashSet<CfgBlock>();
