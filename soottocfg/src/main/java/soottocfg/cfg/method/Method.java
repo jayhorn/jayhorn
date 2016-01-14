@@ -7,12 +7,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,6 +21,7 @@ import org.jgrapht.ext.StringNameProvider;
 import org.jgrapht.graph.AbstractBaseGraph;
 import org.jgrapht.graph.ClassBasedEdgeFactory;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 
@@ -49,8 +48,8 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	private final String methodName;
 	private Variable thisVariable, returnVariable;
 	private final List<Variable> parameterList;
-	private Collection<Variable> locals;
-	private Collection<Variable> modifiedGlobals;
+	private Set<Variable> locals;
+	private Set<Variable> modifiedGlobals;
 	private CfgBlock source, sink;
 	private boolean isProgramEntry = false;
 
@@ -93,7 +92,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		
 		this.thisVariable = thisVariable;
 		this.returnVariable = returnVariable;
-		this.locals = new LinkedList<Variable>(locals);
+		this.locals = new HashSet<Variable>(locals);
 		this.source = source;
 		this.isProgramEntry = isEntryPoint;
 		
@@ -220,28 +219,55 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		return ret;
 	}
 
+	/**
+	 * Returns the in parameter at position {@literal pos}. Throws
+	 * an exception it {@literal pos} is not a legal index.
+	 * @param pos 
+	 * @return The parameter at position pos.
+	 * @throws IndexOutOfBoundsException
+	 */
 	public Variable getInParam(int pos) {
 		return this.parameterList.get(pos);
 	}
 	
+	/**
+	 * Returns immutable view of the list of parameters.  
+	 * @return immutable view of the list of parameters.
+	 */
 	public List<Variable> getInParams() {
 		return Collections.unmodifiableList(this.parameterList);
 	}
 
-	public List<Variable> getOutParams() {
-		final List<Variable> rtr = new ArrayList<Variable>();
-		if (returnVariable != null) {
-			rtr.add(returnVariable);
-		}
-		return rtr;
+	/**
+	 * Returns an {@link Optional} Variable of the return variable of the
+	 * current Method. 
+	 * @return Optional return variable.
+	 */
+	public Optional<Variable> getOutParam() {
+		Optional<Variable> ret = Optional.fromNullable(returnVariable);
+		return ret;
 	}
 
 	public Collection<Variable> getModifiedGlobals() {
 		return modifiedGlobals;
 	}
 
+	/** TODO:
+	 * Add a local variable. This method should not be used. Its only
+	 * use is in the SSA computation to create a non-deterministic assignment.
+	 * Hopefully we find a better way todo this.
+	 * @param local
+	 */
+	public void addLocalVariable(Variable local) {
+		locals.add(local);
+	}
+	
+	/**
+	 * Returns an immutable view of the set of local variables.
+	 * @return immutable view of the set of local variables.
+	 */
 	public Collection<Variable> getLocals() {
-		return locals;
+		return Collections.unmodifiableSet(locals);
 	}
 
 	public void toDot(File dotFile) {

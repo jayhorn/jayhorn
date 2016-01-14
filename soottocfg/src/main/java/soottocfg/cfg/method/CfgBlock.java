@@ -208,7 +208,9 @@ public class CfgBlock implements Node, Serializable {
 		// Exit blocks have all globals and all out params live at exit
 		if (isExit()) {
 			out.addAll(getMethod().getModifiedGlobals());
-			out.addAll(getMethod().getOutParams());
+			if (getMethod().getOutParam().isPresent()) {
+				out.add(getMethod().getOutParam().get());
+			}
 		} else {
 			for (CfgEdge edge : this.method.outgoingEdgesOf(this)) {
 				out.addAll(in.get(method.getEdgeTarget(edge)));

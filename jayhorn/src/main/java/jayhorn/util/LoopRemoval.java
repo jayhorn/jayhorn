@@ -217,7 +217,7 @@ public class LoopRemoval {
 		for (Variable v : modifiedVariables) {
 			Variable havocVar = new Variable("$havoc" + (havocCounter++), v.getType());
 			havocVariables.put(v, havocVar);
-			method.getLocals().add(havocVar);
+			method.addLocalVariable(havocVar);
 		}
 		SourceLocation loc = null;
 		for (CfgBlock b : entryBlocks) {

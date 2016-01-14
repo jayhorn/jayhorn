@@ -31,10 +31,10 @@ import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
-import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
@@ -42,15 +42,15 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
-import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.statement.PackStatement;
+import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.statement.UnPackStatement;
 import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.type.ClassSignature;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.MapType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
-import soottocfg.cfg.type.ClassSignature;
 
 /**
  * @author schaef
@@ -160,7 +160,6 @@ public class Checker {
 
 	    {
 		// add an entry clause connecting with the precondition
-
 		final HornPredicate entryPred = blockPredicates.get(method.getSource());
 		final List<ProverExpr> entryVars = new ArrayList<ProverExpr>();
 		final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
@@ -428,8 +427,8 @@ public class Checker {
 
 		assert(calledMethod.getInParams().size() ==
 		       cs.getArguments().size());
-		assert(calledMethod.getOutParams().size() ==
-                       ((cs.getReceiver().isPresent())?1:0));
+		assert(calledMethod.getOutParam().isPresent() ==
+                       ((cs.getReceiver().isPresent())));
 
 		final List<Variable> receiverVars = new ArrayList<Variable>();
 		if (cs.getReceiver().isPresent())
@@ -442,7 +441,7 @@ public class Checker {
 		    new ProverExpr[calledMethod.getInParams().size()];
 		final ProverExpr[] actualPostParams =
 		    new ProverExpr[calledMethod.getInParams().size() +
-				   calledMethod.getOutParams().size()];
+				   (calledMethod.getOutParam().isPresent()?1:0)];
 
 		int cnt = 0;
 		for (Expression e : cs.getArguments()) {
@@ -657,8 +656,10 @@ public class Checker {
                 final List<Variable> inParams = new ArrayList<Variable>();
                 inParams.addAll(method.getInParams());
                 final List<Variable> postParams = new ArrayList<Variable>();
-                postParams.addAll(method.getInParams());
-                postParams.addAll(method.getOutParams());
+                postParams.addAll(method.getInParams());                
+                if (method.getOutParam().isPresent()) {
+                	postParams.add(method.getOutParam().get());
+                }
                 
                 final ProverFun prePred =
                     freshHornPredicate(p, method.getMethodName() + "_pre", inParams);
