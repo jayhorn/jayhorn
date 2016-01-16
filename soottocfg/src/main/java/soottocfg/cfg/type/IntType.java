@@ -7,7 +7,7 @@ package soottocfg.cfg.type;
  * @author schaef
  *
  */
-public class IntType extends Type {
+public class IntType extends PrimitiveType {
 
 	/**
 	 * 

@@ -10,11 +10,8 @@ import java.util.List;
  * @author schaef
  *
  */
-public class MapType extends Type {
+public class MapType extends ReferenceLikeType  {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 3060597489570467332L;
 	private final List<Type> indices;
 	private final Type valueType;

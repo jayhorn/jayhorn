@@ -64,7 +64,7 @@ public class VirtualCallResolver extends AbstractTransformer {
 	@Override
 	protected void internalTransform(Body body, String arg1, Map<String, String> arg2) {
 
-		ltf = new LocalTypeFinder(new CompleteUnitGraph(body));
+		ltf = new LocalTypeFinder(new CompleteUnitGraph(body),body);
 
 		Map<Unit, Pair<InstanceInvokeExpr, List<SootMethod>>> callsToResolve = new HashMap<Unit, Pair<InstanceInvokeExpr, List<SootMethod>>>();
 

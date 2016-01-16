@@ -23,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import soot.Local;
+import soot.Scene;
+import soot.SootClass;
 import soot.jimple.AddExpr;
 import soot.jimple.AndExpr;
 import soot.jimple.ArrayRef;
@@ -71,6 +73,7 @@ import soot.jimple.ThisRef;
 import soot.jimple.UshrExpr;
 import soot.jimple.VirtualInvokeExpr;
 import soot.jimple.XorExpr;
+import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.ArrayLengthExpression;
 import soottocfg.cfg.expression.BinaryExpression;
@@ -82,6 +85,8 @@ import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
+import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.type.Type;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -110,7 +115,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 		return this.expressionStack.remove(this.expressionStack.size() - 1);
 	}
 
-	protected void translateBinOp(BinopExpr arg0) {		
+	protected void translateBinOp(BinopExpr arg0) {
 		// this.isLeftHandSide = false;
 		arg0.getOp1().apply(this);
 		Expression lhs = popExpression();
@@ -119,66 +124,86 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 		String op = arg0.getSymbol().trim();
 		if (op.compareTo("+") == 0) {
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Plus, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Plus, lhs, rhs));
 			return;
 		} else if (op.compareTo("-") == 0) {
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Minus, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Minus, lhs, rhs));
 			return;
 		} else if (op.compareTo("*") == 0) {
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Mul, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Mul, lhs, rhs));
 			return;
 		} else if (op.compareTo("/") == 0) {
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Div, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Div, lhs, rhs));
 			return;
 		} else if (op.compareTo("%") == 0) {
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Mod, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Mod, lhs, rhs));
 			return;
 		} else if (op.compareTo("cmp") == 0 || op.compareTo("cmpl") == 0 || op.compareTo("cmpg") == 0) {
 			/*
 			 * Returns 0 if lhs==rhs -1 if lhs <rhs 1 if lhs >rhs We model that
 			 * using ITE expressions as: (lhs<=rhs)?((lhs==rhs)?0:-1):1
 			 */
-			Expression ite = new IteExpression(statementSwitch.getCurrentLoc(), new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Le, lhs, rhs),
-					new IteExpression(statementSwitch.getCurrentLoc(), new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Eq, lhs, rhs), IntegerLiteral.zero(),
-							new UnaryExpression(statementSwitch.getCurrentLoc(), UnaryOperator.Neg, IntegerLiteral.one())),
+			Expression ite = new IteExpression(statementSwitch.getCurrentLoc(),
+					new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Le, lhs, rhs),
+					new IteExpression(statementSwitch.getCurrentLoc(),
+							new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Eq, lhs, rhs),
+							IntegerLiteral.zero(), new UnaryExpression(statementSwitch.getCurrentLoc(),
+									UnaryOperator.Neg, IntegerLiteral.one())),
 					IntegerLiteral.one());
 			this.expressionStack.add(ite);
 			return;
 		} else if (op.compareTo("==") == 0) {
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Eq, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Eq, lhs, rhs));
 			return;
 		} else if (op.compareTo("<") == 0) {
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Lt, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Lt, lhs, rhs));
 			return;
 		} else if (op.compareTo(">") == 0) {
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Gt, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Gt, lhs, rhs));
 			return;
 		} else if (op.compareTo("<=") == 0) {
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Le, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Le, lhs, rhs));
 			return;
 		} else if (op.compareTo(">=") == 0) {
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Ge, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Ge, lhs, rhs));
 			return;
 		} else if (op.compareTo("!=") == 0) {
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Ne, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Ne, lhs, rhs));
 			return;
 		} else if (op.compareTo("&") == 0) { // bit-and
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.BAnd, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.BAnd, lhs, rhs));
 			return;
 		} else if (op.compareTo("|") == 0) { // bit-or
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.BOr, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.BOr, lhs, rhs));
 			return;
 		} else if (op.compareTo("<<") == 0) { // Shiftl
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Shl, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Shl, lhs, rhs));
 			return;
 		} else if (op.compareTo(">>") == 0) { // Shiftr
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Shr, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Shr, lhs, rhs));
 			return;
 		} else if (op.compareTo(">>>") == 0) { // UShiftr
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Ushr, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Ushr, lhs, rhs));
 			return;
 		} else if (op.compareTo("^") == 0) { // XOR
-			this.expressionStack.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Xor, lhs, rhs));
+			this.expressionStack
+					.add(new BinaryExpression(statementSwitch.getCurrentLoc(), BinaryOperator.Xor, lhs, rhs));
 			return;
 		} else {
 			throw new RuntimeException("UNKNOWN Jimple operator " + op);
@@ -188,7 +213,19 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseClassConstant(ClassConstant arg0) {
-		this.expressionStack.add(this.memoryModel.lookupClassConstant(arg0));
+		if (Scene.v().containsClass(arg0.getValue())) {
+			SootClass c = Scene.v().getSootClass(arg0.getValue());
+			ClassVariable cv = this.memoryModel.lookupClassVariable(c.getType());
+			this.expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(), cv));
+			return;
+		} else {
+			Variable global = SootTranslationHelpers.v().getProgram()
+					.lookupGlobalVariable("$classConst" + arg0.getValue(), new ReferenceType(null), true, true);
+			this.expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(), global));
+			// System.err.println(this.statementSwitch.getCurrentStmt());
+			// System.err.println(this.statementSwitch.getCurrentStmt().getClass());
+			return;
+		}
 	}
 
 	@Override
@@ -299,9 +336,8 @@ public class SootValueSwitch implements JimpleValueSwitch {
 	public void caseInstanceOfExpr(InstanceOfExpr arg0) {
 		arg0.getOp().apply(this);
 		Expression exp = this.popExpression();
-		arg0.getCheckType();
-		Variable v = SootTranslationHelpers.v().lookupTypeVariable(arg0.getCheckType()); // TODO
-		this.expressionStack.add(new InstanceOfExpression(statementSwitch.getCurrentLoc(), exp, v));
+		Type rt = memoryModel.lookupType(arg0.getCheckType());
+		this.expressionStack.add(new InstanceOfExpression(statementSwitch.getCurrentLoc(), exp, rt));
 	}
 
 	@Override
@@ -340,7 +376,8 @@ public class SootValueSwitch implements JimpleValueSwitch {
 	public void caseNegExpr(NegExpr arg0) {
 		arg0.getOp().apply(this);
 		Expression expr = popExpression();
-		this.expressionStack.add(new UnaryExpression(statementSwitch.getCurrentLoc(), UnaryOperator.Neg /* LNot */, expr));
+		this.expressionStack
+				.add(new UnaryExpression(statementSwitch.getCurrentLoc(), UnaryOperator.Neg /* LNot */, expr));
 	}
 
 	@Override
@@ -417,8 +454,8 @@ public class SootValueSwitch implements JimpleValueSwitch {
 	public void caseCaughtExceptionRef(CaughtExceptionRef arg0) {
 		// This should have been eliminated by the exception translation.
 		System.err.println("CaughtExceptionRef should have been eliminated earlier! This is a bug!");
-		expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(), SootTranslationHelpers.v().getProgram()
-				.createFreshGlobal("$caughtref_", memoryModel.lookupType(arg0.getType()))));
+		expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(), SootTranslationHelpers.v()
+				.getProgram().createFreshGlobal("$caughtref_", memoryModel.lookupType(arg0.getType()))));
 	}
 
 	@Override
@@ -428,7 +465,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseParameterRef(ParameterRef arg0) {
-		this.expressionStack.add(methodInfo.lookupParameterRef(arg0) );
+		this.expressionStack.add(methodInfo.lookupParameterRef(arg0));
 	}
 
 	@Override

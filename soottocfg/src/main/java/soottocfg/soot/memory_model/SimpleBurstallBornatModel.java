@@ -38,7 +38,7 @@ public class SimpleBurstallBornatModel extends BasicMemoryModel {
 		ids.add(Type.instance());
 		ids.add(Type.instance());
 		heapType = new MapType(ids, Type.instance());
-		this.heapVariable = this.program.loopupGlobalVariable("$heap", heapType);
+		this.heapVariable = this.program.lookupGlobalVariable("$heap", heapType);
 
 	}
 

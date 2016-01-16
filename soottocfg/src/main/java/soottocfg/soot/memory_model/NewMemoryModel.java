@@ -11,6 +11,7 @@ import soot.Value;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.StaticFieldRef;
+import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
@@ -18,7 +19,6 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.PackStatement;
 import soottocfg.cfg.statement.UnPackStatement;
-import soottocfg.cfg.type.ClassSignature;
 import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
@@ -42,7 +42,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			Expression value = valueSwitch.popExpression();
 
 			// ------------- unpack ---------------
-			ClassSignature c = lookupClassSignature(field.getField().getDeclaringClass());
+			ClassVariable c = lookupClassVariable(field.getField().getDeclaringClass().getType());
 			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			Variable[] vars = c.getAssociatedFields();
 			for (int i = 0; i < vars.length; i++) {
@@ -82,7 +82,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			IdentifierExpression base = (IdentifierExpression) valueSwitch.popExpression();
 
 			// ------------- unpack ---------------
-			ClassSignature c = lookupClassSignature(field.getField().getDeclaringClass());
+			ClassVariable c = lookupClassVariable(field.getField().getDeclaringClass().getType());
 			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			Variable[] vars = c.getAssociatedFields();
 			for (int i = 0; i < vars.length; i++) {

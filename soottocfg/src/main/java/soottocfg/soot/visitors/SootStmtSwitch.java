@@ -55,7 +55,6 @@ import soot.jimple.StmtSwitch;
 import soot.jimple.TableSwitchStmt;
 import soot.jimple.ThrowStmt;
 import soot.toolkits.graph.CompleteUnitGraph;
-import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.UnaryExpression;
@@ -87,7 +86,6 @@ public class SootStmtSwitch implements StmtSwitch {
 	private boolean insideMonitor = false;
 
 	private Stmt currentStmt;
-	private final Program program;
 
 	protected SourceLocation loc; 
 	
@@ -95,8 +93,6 @@ public class SootStmtSwitch implements StmtSwitch {
 		this.methodInfo = mi;
 		this.sootBody = body;
 		this.sootMethod = sootBody.getMethod();
-
-		this.program = SootTranslationHelpers.v().getProgram();
 
 		this.valueSwitch = new SootValueSwitch(this);
 

@@ -94,7 +94,7 @@ public class SootToCfg {
 
 		// TODO, hacky way to get the exceptionGlobal into the program.
 		Variable exceptionGlobal = this.program
-				.loopupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
+				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
 						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
 		program.setExceptionGlobal(exceptionGlobal);
 
@@ -155,11 +155,10 @@ public class SootToCfg {
 		if (sm.isConcrete()) {
 			// System.out.println("Processing method: " + sm);
 
-			// if
-			// (!sm.getSignature().equals("<org.apache.cassandra.cql3.functions.ScriptBasedUDFunction:
-			// java.nio.ByteBuffer executeUserDefined(int,java.util.List)>")) {
-			// return;
-			// }
+//			 if
+//			 (!sm.getSignature().equals("<org.apache.tools.ant.taskdefs.optional.pvcs.Pvcs: void execute()>")) {
+//			 return;
+//			 }
 			// System.err.println(sm.getSignature());
 
 			SootTranslationHelpers.v().setCurrentMethod(sm);

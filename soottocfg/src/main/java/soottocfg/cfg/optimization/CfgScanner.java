@@ -2,7 +2,6 @@ package soottocfg.cfg.optimization;
 
 import java.util.List;
 
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
@@ -19,6 +18,7 @@ import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.type.Type;
 
 //DSN should this be an abstract class
 //The scanner visits all nodes, but does not modify them.
@@ -121,7 +121,7 @@ public class CfgScanner extends CfgVisitor {
 	@Override
 	protected Expression processExpression(InstanceOfExpression e) {
 		Expression exp = processExpression(e.getExpression());
-		Variable t = e.getTypeVariable();
+		Type t = e.getCheckedType();
 		return new InstanceOfExpression(e.getSourceLocation(), exp, t);
 	}
 

@@ -3,30 +3,29 @@
  */
 package soottocfg.cfg.type;
 
+import soottocfg.cfg.ClassVariable;
+
 /**
  * @author schaef
  *
  */
-public class ReferenceType extends Type {
+public class ReferenceType extends ReferenceLikeType {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 4056715121602313972L;
-	private final ClassSignature classConstant;
+	private final ClassVariable classVariable;
 
 	/**
 	 * 
 	 */
-	public ReferenceType(ClassSignature cc) {
-		classConstant = cc;
+	public ReferenceType(ClassVariable var) {
+		classVariable = var;
 	}
 
 	public String toString() {
-		if (classConstant == null) {
+		if (classVariable == null) {
 			return "Null";
 		} else {
-			return "ref(" + classConstant.getName() + ")";
+			return "ref(" + classVariable.getName() + ")";
 		}
 	}
 

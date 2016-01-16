@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.google.common.base.Optional;
 
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
@@ -24,6 +23,7 @@ import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.type.Type;
 
 //DSN should this be an abstract class
 //DSN There might be value in tracking whether an expression actually changed.  Possible optimization
@@ -156,7 +156,7 @@ public class CfgUpdater extends CfgVisitor {
 	@Override
 	protected Expression processExpression(InstanceOfExpression e) {
 		Expression exp = processExpression(e.getExpression());
-		Variable t = e.getTypeVariable();
+		Type t = e.getCheckedType();
 		return new InstanceOfExpression(e.getSourceLocation(), exp, t);
 	}
 

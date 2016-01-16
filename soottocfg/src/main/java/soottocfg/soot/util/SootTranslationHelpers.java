@@ -3,13 +3,10 @@
  */
 package soottocfg.soot.util;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import soot.PrimType;
-import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
@@ -48,8 +45,7 @@ public enum SootTranslationHelpers {
 		return INSTANCE;
 	}
 
-	private static final String parameterPrefix = "$in_";
-	private final Map<soot.Type, Variable> typeVariables = new HashMap<soot.Type, Variable>();
+	private static final String parameterPrefix = "$in_";	
 
 	private transient SootMethod currentMethod;
 	private transient SootClass currentClass;
@@ -60,8 +56,7 @@ public enum SootTranslationHelpers {
 	
 	private transient Program program;
 
-	public void reset() {
-		typeVariables.clear();
+	public void reset() {		
 		currentMethod = null;
 		currentClass = null;
 		currentSourceFileName = null;
@@ -171,28 +166,8 @@ public enum SootTranslationHelpers {
 			}
 		}
 		return this.memoryModel;
-	}
-
-	public Variable lookupTypeVariable(soot.Type t) {
-		if (!typeVariables.containsKey(t)) {
-			Variable var = new Variable(createTypeName(t), this.memoryModel.lookupType(t));
-			typeVariables.put(t, var);
-		}
-		return typeVariables.get(t);
-	}
-
-	private String createTypeName(soot.Type t) {
-		if (t instanceof RefType) {
-			RefType rt = (RefType) t;
-			return rt.getClassName();
-		} else {
-			return "HansWurst";
-			// TODO: handle this case ...
-			// throw new UnsupportedOperationException(
-			// "Did not expect type to be " + (null == t ? "null" :
-			// t.getClass().getSimpleName()));
-		}
-	}
+	}	
+	
 
 	public SootClass getCurrentClass() {
 		return currentClass;

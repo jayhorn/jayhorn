@@ -24,6 +24,7 @@ import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverType;
 import jayhorn.solver.princess.PrincessProverFactory;
+import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.Variable;
@@ -46,7 +47,6 @@ import soottocfg.cfg.statement.PackStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.statement.UnPackStatement;
 import soottocfg.cfg.type.BoolType;
-import soottocfg.cfg.type.ClassSignature;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.MapType;
 import soottocfg.cfg.type.ReferenceType;
@@ -93,10 +93,10 @@ public class Checker {
 
     ////////////////////////////////////////////////////////////////////////////
 
-    private Map<ClassSignature, ProverFun> classInvariants =
-        new LinkedHashMap<ClassSignature, ProverFun>();
+    private Map<ClassVariable, ProverFun> classInvariants =
+        new LinkedHashMap<ClassVariable, ProverFun>();
 
-    private ProverFun getClassInvariant(Prover p, ClassSignature sig) {
+    private ProverFun getClassInvariant(Prover p, ClassVariable sig) {
         ProverFun inv = classInvariants.get(sig);
 
         if (inv == null) {
@@ -516,7 +516,7 @@ public class Checker {
             } else if (s instanceof UnPackStatement) {
 
                 final UnPackStatement us = (UnPackStatement)s;
-                final ClassSignature sig = us.getClassSignature();
+                final ClassVariable sig = us.getClassSignature();
                 final List<IdentifierExpression> lhss = us.getLeft();
                 final ProverFun inv = getClassInvariant(p, sig);
                 
@@ -547,7 +547,7 @@ public class Checker {
             } else if (s instanceof PackStatement) {
 
                 final PackStatement ps = (PackStatement)s;
-                final ClassSignature sig = ps.getClassSignature();
+                final ClassVariable sig = ps.getClassSignature();
                 final List<Expression> rhss = ps.getRight();
                 final ProverFun inv = getClassInvariant(p, sig);
 

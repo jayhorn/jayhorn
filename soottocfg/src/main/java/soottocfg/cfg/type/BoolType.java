@@ -7,7 +7,7 @@ package soottocfg.cfg.type;
  * @author schaef
  *
  */
-public class BoolType extends Type {
+public class BoolType extends PrimitiveType {
 
 	/**
 	 * 

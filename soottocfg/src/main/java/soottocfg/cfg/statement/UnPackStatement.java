@@ -8,10 +8,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.type.ClassSignature;
 
 /**
  * @author schaef
@@ -23,14 +23,14 @@ public class UnPackStatement extends Statement {
 	 * 
 	 */
 	private static final long serialVersionUID = 9221818898828469398L;
-	private final ClassSignature classConstant;
+	private final ClassVariable classConstant;
 	private final IdentifierExpression object;
 	private final List<IdentifierExpression> left;
 
 	/**
 	 * @param loc
 	 */
-	public UnPackStatement(SourceLocation loc, ClassSignature c, IdentifierExpression obj,
+	public UnPackStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj,
 			List<IdentifierExpression> lhs) {
 		super(loc);
 		classConstant = c;
@@ -43,7 +43,7 @@ public class UnPackStatement extends Statement {
 		return left;
 	}
 	
-    public ClassSignature getClassSignature() {
+    public ClassVariable getClassSignature() {
         return classConstant;
     }
 

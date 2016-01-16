@@ -180,7 +180,7 @@ public class SsaPrinter {
 			sb.append("(");
 			printExpression(sb, e.getExpression());
 			sb.append(" <: ");
-			sb.append(e.getTypeVariable().getName());
+			sb.append(e.getCheckedType());
 			sb.append(")");			
 		} else if (expression instanceof IntegerLiteral) {
 			IntegerLiteral e = (IntegerLiteral) expression;

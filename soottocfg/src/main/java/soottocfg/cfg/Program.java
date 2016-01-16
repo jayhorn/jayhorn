@@ -4,14 +4,24 @@
 package soottocfg.cfg;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+
+import org.jgrapht.DirectedGraph;
+import org.jgrapht.Graphs;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 
+import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.Type;
 
 /**
@@ -27,6 +37,9 @@ public class Program {
 
 	private Variable exceptionGlobal;
 	
+	private DirectedGraph<Method, DefaultEdge> callGraph;
+	private Map<Method, Set<Variable>> modifiedGlobals;
+	
 	public Variable[] getGlobalVariables() {
 		return this.globalVariables.values().toArray(new Variable[this.globalVariables.size()]);
 	}
@@ -39,11 +52,11 @@ public class Program {
 		return v;
 	}
 
-	public Variable loopupGlobalVariable(String varName, Type t) {
-		return loopupGlobalVariable(varName, t, false, false);
+	public Variable lookupGlobalVariable(String varName, Type t) {
+		return lookupGlobalVariable(varName, t, false, false);
 	}
 
-	public Variable loopupGlobalVariable(String varName, Type t, boolean constant, boolean unique) {
+	public Variable lookupGlobalVariable(String varName, Type t, boolean constant, boolean unique) {
 		if (!this.globalVariables.containsKey(varName)) {
 			this.globalVariables.put(varName, new Variable(varName, t, constant, unique));
 		}
@@ -55,6 +68,9 @@ public class Program {
 	}
 	
 	public void addMethod(Method m) {
+		//set the callGraph to null because it has to be recomputed.
+		callGraph=null;
+		modifiedGlobals=null;
 		this.methods.put(m.getMethodName(), m);
 	}
 
@@ -78,5 +94,61 @@ public class Program {
 	public void setExceptionGlobal(Variable exGlobal) {
 		Verify.verify(exceptionGlobal==null, "Do not set this variable twice");
 		exceptionGlobal = exGlobal;
+	}
+	
+	public DirectedGraph<Method,DefaultEdge> getCallGraph() {
+		if (callGraph==null) {
+			computeCallGraph();
+		}
+		return callGraph;
+	}
+	
+	private void computeCallGraph() {
+		callGraph = new DefaultDirectedGraph<Method,DefaultEdge>(DefaultEdge.class);
+		for (Method m : methods.values()) {
+			callGraph.addVertex(m);
+		}
+		for (Method m : methods.values()) {
+			for (CfgBlock b : m.vertexSet()) {
+				for (Statement s : b.getStatements()) {
+					if (s instanceof CallStatement) {
+						Method callee = ((CallStatement)s).getCallTarget();
+						if (!callGraph.containsEdge(m, callee)) {
+							callGraph.addEdge(m, callee);
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * TODO:
+	 * Very brute-force implementation to get the set of modified globals.
+	 * @return
+	 */
+	public Map<Method, Set<Variable>> getModifiedGlobals() {
+		if (modifiedGlobals!=null) {
+			return modifiedGlobals;
+		}
+		DirectedGraph<Method,DefaultEdge> cg = getCallGraph();
+		modifiedGlobals = new HashMap<Method, Set<Variable>>();
+		for (Method m : cg.vertexSet()) {
+			Set<Variable> initialSet = m.getDefVariables(); 
+			initialSet.retainAll(this.globalVariables.values());
+			modifiedGlobals.put(m, initialSet);			
+		}
+		boolean change = true;
+		while (change) {
+			change = false;
+			for (Method m : cg.vertexSet()) {
+				for (Method suc : Graphs.successorListOf(cg, m)) {
+					if (modifiedGlobals.get(m).addAll(modifiedGlobals.get(suc))) {
+						change = true;
+					}
+				}
+			}
+		}
+		return modifiedGlobals;
 	}
 }

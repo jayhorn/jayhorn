@@ -20,9 +20,9 @@ public class Variable implements Serializable {
 	 */
 	private static final long serialVersionUID = -2599846473306218710L;
 
-	private final String variableName;
-	private final Type type;
-	private final boolean constant, unique;
+	protected final String variableName;
+	protected final Type type;
+	protected final boolean constant, unique;
 
 	public Variable(String name, Type t) {
 		this(name, t, false, false);

@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import soot.Body;
 import soot.Hierarchy;
 import soot.Local;
 import soot.RefType;
@@ -34,41 +35,35 @@ import soot.toolkits.scalar.ForwardFlowAnalysis;
  */
 public class LocalTypeFinder extends ForwardFlowAnalysis<Unit, Map<Local, Set<Type>>> {
 
-	public final Map<Unit, Map<Local, Set<Type>>> localTypes;
-
 	private final Hierarchy hierarchy;
+	private final Body body;
 
-	public LocalTypeFinder(DirectedGraph<Unit> graph) {
+	public LocalTypeFinder(DirectedGraph<Unit> graph, Body b) {
 		super(graph);
-		localTypes = new HashMap<Unit, Map<Local, Set<Type>>>();
+		this.body = b;
 		hierarchy = Scene.v().getActiveHierarchy();
 		this.doAnalysis();
 	}
 
 	public Set<Type> getLocalTypesBefore(Unit u, Local l) {
-		return localTypes.get(u).get(l);
+		Set<Type> ret = new HashSet<Type>(this.getFlowBefore(u).get(l));
+		if (ret.isEmpty()) {
+			//can only happen if l is not initialized.
+			ret.add(l.getType());
+		}
+		return ret;
 	}
 
 	@Override
 	protected void flowThrough(Map<Local, Set<Type>> in, Unit u, Map<Local, Set<Type>> out) {
-		if (!localTypes.containsKey(u)) {
-			localTypes.put(u, new HashMap<Local, Set<Type>>());
-		}
-		Map<Local, Set<Type>> current = localTypes.get(u);
-		for (Entry<Local, Set<Type>> entry : in.entrySet()) {
-			if (!current.containsKey(entry.getKey())) {
-				current.put(entry.getKey(), new HashSet<Type>(entry.getValue()));
-			} else {
-				current.get(entry.getKey()).addAll(entry.getValue());
-			}
-		}
-
 		copy(in, out);
+		
 		if (u instanceof DefinitionStmt) {
 			DefinitionStmt ds = (DefinitionStmt) u;
 			if (ds.getLeftOp() instanceof Local) {
 				Local l = (Local) ds.getLeftOp();
-				out.put(l, getPossibleRhsTypes(u, ds.getRightOp(), in));
+//				out.put(l, getPossibleRhsTypes(u, ds.getRightOp(), in));
+				out.get(l).addAll(getPossibleRhsTypes(u, ds.getRightOp(), in));
 			}
 		}
 	}
@@ -77,7 +72,11 @@ public class LocalTypeFinder extends ForwardFlowAnalysis<Unit, Map<Local, Set<Ty
 		Set<Type> res = new HashSet<Type>();
 		if (rhs instanceof Local) {
 			// just use the set of the other local.
-			res.addAll(in.get(rhs));
+			if (in.get(rhs).isEmpty()) {
+				res.add(rhs.getType());
+			} else {
+				res.addAll(in.get(rhs));
+			}
 		} else if (rhs instanceof AnyNewExpr) {
 			// only add the type of the NewExpr.
 			res.add(rhs.getType());
@@ -107,36 +106,40 @@ public class LocalTypeFinder extends ForwardFlowAnalysis<Unit, Map<Local, Set<Ty
 				res.add(rhs.getType());
 			}
 		} else {
-			// System.err.println("**** "+rhs.getClass());
 			res.add(rhs.getType());
 		}
 		return res;
 	}
 
 	@Override
-	protected void copy(Map<Local, Set<Type>> from, Map<Local, Set<Type>> to) {
-		to.clear();
-		for (Entry<Local, Set<Type>> entry : from.entrySet()) {
-			to.put(entry.getKey(), new HashSet<Type>(entry.getValue()));
+	protected void copy(Map<Local, Set<Type>> from, Map<Local, Set<Type>> to) {		
+		for (Entry<Local, Set<Type>> entry : from.entrySet()) {			
+			to.put(entry.getKey(), new HashSet<Type>(entry.getValue()));	
 		}
 	}
 
 	@Override
 	protected void merge(Map<Local, Set<Type>> in1, Map<Local, Set<Type>> in2, Map<Local, Set<Type>> out) {
 		out.clear();
-		out.putAll(in1);
+		for (Entry<Local, Set<Type>> entry : in1.entrySet()) {
+			out.put(entry.getKey(), new HashSet<Type>(entry.getValue()));
+		}		
 		for (Entry<Local, Set<Type>> entry : in2.entrySet()) {
 			if (out.containsKey(entry.getKey())) {
 				out.get(entry.getKey()).addAll(entry.getValue());
 			} else {
-				out.put(entry.getKey(), entry.getValue());
+				out.put(entry.getKey(), new HashSet<Type>(entry.getValue()));
 			}
 		}
 	}
 
 	@Override
-	protected Map<Local, Set<Type>> newInitialFlow() {
-		return new HashMap<Local, Set<Type>>();
+	protected Map<Local, Set<Type>> newInitialFlow() {		
+		Map<Local, Set<Type>> ret = new HashMap<Local, Set<Type>>();
+		for (Local l : body.getLocals()) {
+			ret.put(l, new HashSet<Type>());
+		}
+		return ret;
 	}
 
 }

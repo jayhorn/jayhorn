@@ -49,7 +49,6 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	private Variable thisVariable, returnVariable;
 	private final List<Variable> parameterList;
 	private Set<Variable> locals;
-	private Set<Variable> modifiedGlobals;
 	private CfgBlock source, sink;
 	private boolean isProgramEntry = false;
 
@@ -95,48 +94,19 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		this.locals = new HashSet<Variable>(locals);
 		this.source = source;
 		this.isProgramEntry = isEntryPoint;
-		
-		// compute the modifies clause.
-		// TODO: this has to be done transitive at some point!
-		this.modifiedGlobals = new HashSet<Variable>();
-		this.modifiedGlobals.addAll(this.getDefVariables());
-		this.modifiedGlobals.removeAll(locals);
-		this.modifiedGlobals.removeAll(parameterList);
-		this.modifiedGlobals.remove(returnVariable);
-		this.modifiedGlobals.remove(thisVariable);
-		
+			
 		if (this.thisVariable!=null) {
 			//then the first parameter must be the reference to the current instance
 			//and we have to add an assignment to the source block.
 			Verify.verify(!this.parameterList.isEmpty());
 			Verify.verifyNotNull(this.source);
-			SourceLocation loc = null;
+			SourceLocation loc = null; //TODO
 			AssignStatement thisAssign = new AssignStatement(loc, new IdentifierExpression(loc, this.thisVariable), new IdentifierExpression(loc, this.parameterList.get(0)));
 			this.source.addStatement(0, thisAssign);
-		}
-		
-		
+		}		
 	}
 	
-	
-//	private void createUnifiedExitIfNecessary() {		
-//		Set<CfgBlock> sinks = new HashSet<CfgBlock>();
-//		for (CfgBlock b : vertexSet()) {
-//			if (outDegreeOf(b)==0) {
-//				sinks.add(b);
-//			}
-//		}
-//		if (sinks.size()>1) {
-//			System.err.println("Warning: "+getMethodName()+ " has multiple exits. Creating unified exit.");
-//			//create a new unique source.
-//			CfgBlock newSink = new CfgBlock(this);
-//			for (CfgBlock pre : sinks) {
-//				addEdge(newSink, pre);
-//			}
-//			sink = newSink;
-//		}
-//		
-//	}
+
 
 	/**
 	 * Adds a guard expression as label to an edge. The label must not be null
@@ -248,10 +218,6 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		return ret;
 	}
 
-	public Collection<Variable> getModifiedGlobals() {
-		return modifiedGlobals;
-	}
-
 	/** TODO:
 	 * Add a local variable. This method should not be used. Its only
 	 * use is in the SSA computation to create a non-deterministic assignment.
@@ -321,15 +287,6 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		if (this.returnVariable != null) {
 			sb.append("\treturns: ");
 			sb.append(this.returnVariable.getName());
-			sb.append("\n");
-		}
-		if (this.modifiedGlobals != null && this.modifiedGlobals.size() > 0) {
-			sb.append("\tmodifies: ");
-			for (Variable v : this.modifiedGlobals) {
-				sb.append(comma);
-				sb.append(v.getName());
-				comma = ", ";
-			}
 			sb.append("\n");
 		}
 		comma = "";

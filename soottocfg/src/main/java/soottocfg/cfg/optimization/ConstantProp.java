@@ -1,6 +1,5 @@
 package soottocfg.cfg.optimization;
 
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
@@ -9,6 +8,7 @@ import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
+import soottocfg.cfg.type.Type;
 
 public class ConstantProp extends CfgUpdater {
 	// Records if anything changed in this run of the visitor.
@@ -25,8 +25,8 @@ public class ConstantProp extends CfgUpdater {
 	@Override
 	protected Expression processExpression(InstanceOfExpression e) {
 		Expression exp = processExpression(e.getExpression());
-		Variable t = e.getTypeVariable();
-		if (exp.getType().equals(t.getType())) {
+		Type t = e.getCheckedType();
+		if (exp.getType().equals(t)) {
 			return BooleanLiteral.trueLiteral();
 		} else {
 			return new InstanceOfExpression(e.getSourceLocation(), exp, t);

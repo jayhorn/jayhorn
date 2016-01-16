@@ -19,20 +19,20 @@ public class InstanceOfExpression extends Expression {
 
 	private static final long serialVersionUID = -3697139804431041726L;
 	private final Expression expression;
-	private final Variable typeVariable;
+	private final Type type;
 	
-	public InstanceOfExpression(SourceLocation loc, Expression expr, Variable typeVar) {
+	public InstanceOfExpression(SourceLocation loc, Expression expr, Type t) {
 		super(loc);
 		this.expression = expr;
-		this.typeVariable = typeVar;
+		this.type = t;
 	}
 
 	public Expression getExpression() {
 		return expression;
 	}
 
-	public Variable getTypeVariable() {
-		return typeVariable;
+	public Type getCheckedType() {
+		return type;
 	}
 
 
@@ -42,7 +42,7 @@ public class InstanceOfExpression extends Expression {
 		sb.append("(");
 		sb.append(this.expression);
 		sb.append(" instanceof ");
-		sb.append(this.typeVariable.getName());
+		sb.append(this.type);
 		sb.append(")");
 		return sb.toString();
 	}
@@ -66,6 +66,6 @@ public class InstanceOfExpression extends Expression {
 
 	@Override
 	public Expression deepCopy() {		
-		return new InstanceOfExpression(getSourceLocation(), expression.deepCopy(), typeVariable);
+		return new InstanceOfExpression(getSourceLocation(), expression.deepCopy(), type);
 	}
 }

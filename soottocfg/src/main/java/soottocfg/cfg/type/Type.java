@@ -11,9 +11,6 @@ import java.io.Serializable;
  */
 public class Type implements Serializable {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -5408794248925241891L;
 	private static final Type instance = new Type();
 

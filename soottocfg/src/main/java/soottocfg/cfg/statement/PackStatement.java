@@ -8,10 +8,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.type.ClassSignature;
 
 /**
  * @author schaef
@@ -20,14 +20,14 @@ import soottocfg.cfg.type.ClassSignature;
 public class PackStatement extends Statement {
 
 	private static final long serialVersionUID = 5776310555422969945L;
-	private final ClassSignature classConstant;
+	private final ClassVariable classConstant;
 	private final IdentifierExpression object;
 	private final List<Expression> right;
 
 	/**
 	 * @param loc
 	 */
-	public PackStatement(SourceLocation loc, ClassSignature c, IdentifierExpression obj, List<Expression> rhs) {
+	public PackStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj, List<Expression> rhs) {
 		super(loc);
 		classConstant = c;
 		object = obj;
@@ -35,7 +35,7 @@ public class PackStatement extends Statement {
 		assert (c.getAssociatedFields().length == right.size());
 	}
 
-    public ClassSignature getClassSignature() {
+    public ClassVariable getClassSignature() {
         return classConstant;
     }
 
