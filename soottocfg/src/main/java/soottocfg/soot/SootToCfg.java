@@ -11,8 +11,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import soot.Body;
+import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
+import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
@@ -23,6 +25,7 @@ import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.Method;
 import soottocfg.soot.transformers.AssertionReconstruction;
+import soottocfg.soot.transformers.DynamicTypeTransformer;
 import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.SwitchStatementRemover;
 import soottocfg.soot.transformers.VirtualCallResolver;
@@ -97,7 +100,12 @@ public class SootToCfg {
 				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
 						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
 		program.setExceptionGlobal(exceptionGlobal);
-
+		//TODO move this to a better location		
+		for (SootClass sc : new LinkedList<SootClass>(Scene.v().getClasses())) {			
+			sc.addField(new SootField(SootTranslationHelpers.typeFieldName, RefType.v(Scene.v().getSootClass("java.lang.Class")) ));			
+		}
+		
+		
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
 			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
@@ -199,7 +207,7 @@ public class SootToCfg {
 			// System.out.println("adding method: " + m.getMethodName());
 			getProgram().addEntryPoint(m);
 		}
-		// System.out.println(m.toString());
+		 System.out.println(m.toString());
 	}
 
 	private void preProcessBody(Body body) {
@@ -220,12 +228,6 @@ public class SootToCfg {
 		// first reconstruct the assertions.
 		AssertionReconstruction ar = new AssertionReconstruction();
 		ar.transform(body);
-		;
-
-		// UnreachableFinallyCodeRemover ufcr = new
-		// UnreachableFinallyCodeRemover(new NullnessAnalysis(new
-		// CompleteUnitGraph(body)), duplicatedFinallyUnits);
-		// ufcr.transform(body);
 
 		// make the exception handling explicit
 		ExceptionTransformer em = new ExceptionTransformer(new NullnessAnalysis(new CompleteUnitGraph(body)),
@@ -240,5 +242,9 @@ public class SootToCfg {
 			vc.transform(body);
 		}
 
+		// add assignments for dynamic type changes.
+		DynamicTypeTransformer dtt = new DynamicTypeTransformer();
+		dtt.transform(body);
+		
 	}
 }

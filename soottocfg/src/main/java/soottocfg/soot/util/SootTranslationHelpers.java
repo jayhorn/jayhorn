@@ -46,6 +46,7 @@ public enum SootTranslationHelpers {
 	}
 
 	private static final String parameterPrefix = "$in_";	
+	public static final String typeFieldName = "$dynamicType";
 
 	private transient SootMethod currentMethod;
 	private transient SootClass currentClass;

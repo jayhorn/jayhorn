@@ -32,7 +32,6 @@ import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
@@ -655,10 +654,6 @@ public class Checker {
                 return p.mkIte(condExpr, thenExpr, elseExpr);
             } else if (e instanceof BooleanLiteral) {
                 return p.mkLiteral(((BooleanLiteral)e).getValue());
-	    } else if (e instanceof InstanceOfExpression) {
-                System.err.println("Warning: ignoring instanceof expression");
-                return p.mkHornVariable("instanceof_result",
-                                        p.getBooleanType());
             }
 	    throw new RuntimeException("Expression type " + e +
                                        " not implemented!");

@@ -3,12 +3,10 @@ package soottocfg.cfg.optimization;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
-import soottocfg.cfg.type.Type;
 
 public class ConstantProp extends CfgUpdater {
 	// Records if anything changed in this run of the visitor.
@@ -20,17 +18,6 @@ public class ConstantProp extends CfgUpdater {
 	// Upgrade this at some point to also account for constant variables
 	protected Boolean isConstant(Expression e) {
 		return (e instanceof IntegerLiteral || e instanceof BooleanLiteral);
-	}
-
-	@Override
-	protected Expression processExpression(InstanceOfExpression e) {
-		Expression exp = processExpression(e.getExpression());
-		Type t = e.getCheckedType();
-		if (exp.getType().equals(t)) {
-			return BooleanLiteral.trueLiteral();
-		} else {
-			return new InstanceOfExpression(e.getSourceLocation(), exp, t);
-		}
 	}
 
 	@Override
@@ -149,7 +136,8 @@ public class ConstantProp extends CfgUpdater {
 
 			case And:
 			case Or:
-			case Implies: {
+			case Implies: 
+			case PoLeq: {
 				throw new RuntimeException("Type error on " + e);
 			}
 			case Ushr: {
@@ -177,7 +165,8 @@ public class ConstantProp extends CfgUpdater {
 			case Gt:
 			case Lt:
 			case Ge:
-			case Le: {
+			case Le: 
+			case PoLeq: {
 				throw new RuntimeException("Can't apply int operation to boolean: " + e);
 			}
 

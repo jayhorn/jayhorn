@@ -12,7 +12,6 @@ import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
@@ -175,13 +174,6 @@ public class SsaPrinter {
 			sb.append(e.getVariable().getName());
 			sb.append("__");
 			sb.append(e.getIncarnation());
-		} else if (expression instanceof InstanceOfExpression) {
-			InstanceOfExpression e = (InstanceOfExpression) expression;
-			sb.append("(");
-			printExpression(sb, e.getExpression());
-			sb.append(" <: ");
-			sb.append(e.getCheckedType());
-			sb.append(")");			
 		} else if (expression instanceof IntegerLiteral) {
 			IntegerLiteral e = (IntegerLiteral) expression;
 			sb.append(e);

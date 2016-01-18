@@ -27,7 +27,8 @@ public class BinaryExpression extends Expression {
 
 	public enum BinaryOperator {
 		Plus("+"), Minus("-"), Mul("*"), Div("/"), Mod("%"), And("&&"), Or("||"), Xor("^"), Implies("->"), Eq("=="), Ne(
-				"!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&");
+				"!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&"),
+		PoLeq("<:");
 
 		private final String name;
 
@@ -119,7 +120,8 @@ public class BinaryExpression extends Expression {
 		case Minus:
 		case Mul:
 		case Div:
-		case Mod: {
+		case Mod:
+		case PoLeq:{
 			assert (left.getType().equals(right.getType()));
 			return left.getType();
 		}

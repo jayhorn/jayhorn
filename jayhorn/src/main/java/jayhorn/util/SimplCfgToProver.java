@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.UUID;
 
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
@@ -22,7 +21,6 @@ import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
@@ -159,7 +157,9 @@ public class SimplCfgToProver implements ICfgToProver {
 			case Or:
 				return prover.mkOr(left, right);
 			case Implies:
-				return prover.mkImplies(left, right);				
+				return prover.mkImplies(left, right);	
+			case PoLeq:
+				throw new RuntimeException("Implement me :(");
 			default: {
 //				Div("/"), Mod("%"),  Xor("^"),Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&");
 				return uninterpretedBinOpToProverExpr(be.getOp(), left, right);
@@ -187,8 +187,6 @@ public class SimplCfgToProver implements ICfgToProver {
 				usedUniqueVariables.put(ssaVariableMap.get(ie.getVariable()).get(ie.getIncarnation()), usedUniqueVariables.size());
 			}
 			return ssaVariableMap.get(ie.getVariable()).get(ie.getIncarnation());
-		} else if (e instanceof InstanceOfExpression) {
-			return prover.mkVariable("$randomBool" + UUID.randomUUID().toString(), prover.getBooleanType());
 		} else if (e instanceof IntegerLiteral) {
 			return prover.mkLiteral(BigInteger.valueOf(((IntegerLiteral) e).getValue()));
 		} else if (e instanceof IteExpression) {
