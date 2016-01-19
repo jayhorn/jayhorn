@@ -182,7 +182,7 @@ public class SimplCfgToProver implements ICfgToProver {
 			return prover.mkEq(expressionToProverExpr(ar.getLeftValue()),
 					prover.mkVariable("dummy" + (dummyvarcounter++), lookupProverType(mt.getValueType())));
 		} else if (s instanceof ArrayStoreStatement) {
-			ArrayStoreStatement as = (ArrayStoreStatement) s;
+//			ArrayStoreStatement as = (ArrayStoreStatement) s;
 			// TODO HACK
 			// if
 			// (as.getIndices()[as.getIndices().length-1].toString().contains(SootTranslationHelpers.typeFieldName))

@@ -87,7 +87,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		Variable newLocal = mi.createFreshLocal("$new", newType, true, true);
 		// add: assume newLocal!=null
 		this.statementSwitch.push(
-				new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
+				new AssumeStatement(statementSwitch.getCurrentLoc(),
 						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
 								new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
 								this.mkNullConstant())));
@@ -95,7 +95,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 //		Expression instof = foo(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
 //				newType);
 //		this.statementSwitch.push(
-//				new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
+//				new AssumeStatement(statementSwitch.getCurrentLoc(),
 //						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne, instof,
 //								IntegerLiteral.zero())));
 
@@ -123,13 +123,13 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		Variable newLocal = mi.createFreshLocal("$newArr", newType, true, true);
 
 		this.statementSwitch.push(
-				new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
+				new AssumeStatement(statementSwitch.getCurrentLoc(),
 						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
 								new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
 								this.mkNullConstant())));
 
 		this.statementSwitch.push(
-				new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
+				new AssumeStatement(statementSwitch.getCurrentLoc(),
 						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Eq,
 								new ArrayLengthExpression(this.statementSwitch.getCurrentLoc(),
 										new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal)),
@@ -137,7 +137,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
 	}
-
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -148,6 +148,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkNewMultiArrayExpr(NewMultiArrayExpr arg0) {
 		// TODO Auto-generated method stub
+		System.err.println("New Multi-Array still not implemented");
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
 				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", lookupType(arg0.getType())));
 	}

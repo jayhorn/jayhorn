@@ -39,7 +39,7 @@ import soottocfg.cfg.util.UnreachableNodeRemover;
  */
 public class InconsistencyThread implements Runnable {
 
-	public boolean debugMode = true;
+	public boolean debugMode = false;
 
 	private final Method method;
 	private final Prover prover;
@@ -208,13 +208,11 @@ public class InconsistencyThread implements Runnable {
 			} else {
 				tr = prover.mkAnd(conj.toArray(new ProverExpr[conj.size()]));
 			}
-			ProverExpr blockTransitionFormula = prover.mkImplies(blockVars.get(b), tr);
-			System.err.println(blockTransitionFormula);
+			ProverExpr blockTransitionFormula = prover.mkImplies(blockVars.get(b), tr);			
 			prover.addAssertion(blockTransitionFormula);
 		}
 		
 		for (ProverExpr axiom : cfg2prover.generatedAxioms()) {
-			System.err.println("Axiom " + axiom.toString());
 			prover.addAssertion(axiom);
 		}
 		
