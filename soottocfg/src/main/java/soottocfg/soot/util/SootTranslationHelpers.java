@@ -6,6 +6,7 @@ package soottocfg.soot.util;
 import java.util.LinkedList;
 import java.util.List;
 
+import soot.ArrayType;
 import soot.PrimType;
 import soot.RefType;
 import soot.Scene;
@@ -71,7 +72,21 @@ public enum SootTranslationHelpers {
 	public ClassConstant getClassConstant(Type t) {
 		if (t instanceof RefType) {
 			final String className = ((RefType)t).getClassName().replace(".", "/");
-			return ClassConstant.v(className) ;
+			return ClassConstant.v(className);
+		} else if (t instanceof ArrayType) {
+			ArrayType at = (ArrayType)t;
+			ClassConstant baseClassConst = getClassConstant(at.baseType);
+			StringBuilder sb = new StringBuilder();
+			for (int i=0; i<at.numDimensions;i++) {
+				sb.append("[");
+			}
+			sb.append("L");
+			sb.append(baseClassConst.value);
+			final String className = sb.toString().replace(".", "/");
+			return ClassConstant.v(className);
+		} else if (t instanceof PrimType) {
+			final String className = ((PrimType)t).toString();
+			return ClassConstant.v(className);
 		}
 		throw new RuntimeException("Not implemented");
 	}

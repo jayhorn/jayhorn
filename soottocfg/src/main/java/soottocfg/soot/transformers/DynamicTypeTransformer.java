@@ -12,12 +12,13 @@ import java.util.Map.Entry;
 import soot.ArrayType;
 import soot.Body;
 import soot.RefType;
+import soot.Scene;
+import soot.SootClass;
 import soot.SootField;
 import soot.Unit;
 import soot.Value;
 import soot.jimple.AnyNewExpr;
 import soot.jimple.CastExpr;
-import soot.jimple.ClassConstant;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceOfExpr;
@@ -65,17 +66,23 @@ public class DynamicTypeTransformer  extends AbstractTransformer {
 	}
 	
 	private void handleCastExpr(DefinitionStmt ds, CastExpr ex) {
+		SootClass base = null;
 		if (ex.getCastType() instanceof RefType) {
 			RefType rt = (RefType)ex.getOp().getType();
-			SootField typeField = rt.getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
-			FieldRef fieldRef = Jimple.v().newInstanceFieldRef(ex.getOp(), typeField.makeRef());
-			Unit asgn = Jimple.v().newAssignStmt(fieldRef, SootTranslationHelpers.v().getClassConstant(ex.getCastType()) );
-			
-			insertBefore.put(ds, new LinkedList<Unit>());
-			insertBefore.get(ds).add(asgn);			
+			base = rt.getSootClass();
 		} else if (ex.getCastType() instanceof ArrayType) {
-			throw new RuntimeException("not implemented.");
-		} //else do nothing.	
+//			ArrayType at = (ArrayType)ex.getOp().getType();
+			//all arrays or of type object.
+			base = Scene.v().getSootClass("java.lang.Object");
+		} //else do nothing.
+		
+		SootField typeField = base.getFieldByName(SootTranslationHelpers.typeFieldName);
+		FieldRef fieldRef = Jimple.v().newInstanceFieldRef(ex.getOp(), typeField.makeRef());
+		Unit asgn = Jimple.v().newAssignStmt(fieldRef, SootTranslationHelpers.v().getClassConstant(ex.getCastType()) );
+		
+		insertBefore.put(ds, new LinkedList<Unit>());
+		insertBefore.get(ds).add(asgn);			
+
 	}
 	
 }
