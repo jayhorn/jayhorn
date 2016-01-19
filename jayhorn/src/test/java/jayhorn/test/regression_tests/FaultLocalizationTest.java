@@ -20,6 +20,7 @@ import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.solver.z3.Z3ProverFactory;
 import jayhorn.test.Util;
 import soottocfg.soot.SootToCfg;
+import soottocfg.soot.SootToCfg.MemModel;
 
 /**
  * @author schaef
@@ -91,7 +92,7 @@ public class FaultLocalizationTest {
 		File classDir = null;
 		try {
 			classDir = Util.compileJavaFile(this.sourceFile);
-			SootToCfg soot2cfg = new SootToCfg(false, true);
+			SootToCfg soot2cfg = new SootToCfg(false, true, MemModel.BurstallBornat);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			InconsistencyChecker checker = new InconsistencyChecker(factory);
 			checker.setDuplicatedSourceLocations(soot2cfg.getDuplicatedSourceLocations());

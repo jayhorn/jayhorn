@@ -19,6 +19,7 @@ import org.junit.runners.Parameterized;
 import jayhorn.old_inconsistency_check.InconsistencyChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
+import jayhorn.solver.z3.Z3ProverFactory;
 import jayhorn.test.Util;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.soot.SootToCfg;
@@ -29,7 +30,7 @@ import soottocfg.soot.SootToCfg.MemModel;
  *
  */
 @RunWith(Parameterized.class)
-public class InconsistencyTest {
+public class InstanceOfTest {
 
 	private static final String userDir = System.getProperty("user.dir") + "/";
 	private static final String testRoot = userDir + "src/test/resources/";
@@ -39,7 +40,7 @@ public class InconsistencyTest {
 	@Parameterized.Parameters(name = "{index}: check ({1})")
 	public static Collection<Object[]> data() {
 		List<Object[]> filenames = new LinkedList<Object[]>();
-		final File source_dir = new File(testRoot + "inconsistencies/");
+		final File source_dir = new File(testRoot + "local/");
 		File[] directoryListing = source_dir.listFiles();
 		if (directoryListing != null) {
 			for (File child : directoryListing) {
@@ -60,7 +61,7 @@ public class InconsistencyTest {
 		return filenames;
 	}
 
-	public InconsistencyTest(File source, String name) {
+	public InstanceOfTest(File source, String name) {
 		this.sourceFile = source;
 	}
 
@@ -72,10 +73,10 @@ public class InconsistencyTest {
 		oldAlgorithm(new PrincessProverFactory());
 	}
 
-//	@Test
-//	public void testOldAlgorithmWithZ3() {
-//		oldAlgorithm(new Z3ProverFactory());
-//	}
+	@Test
+	public void testOldAlgorithmWithZ3() {
+		oldAlgorithm(new Z3ProverFactory());
+	}
 
 	
 	protected void oldAlgorithm(ProverFactory factory) {
@@ -89,60 +90,9 @@ public class InconsistencyTest {
 			checker.setDuplicatedSourceLocations(soot2cfg.getDuplicatedSourceLocations());
 			checker.checkProgram(soot2cfg.getProgram());
 			Map<String, Set<CfgBlock>> result = checker.getInconsistentBlocksPerMethod();
+			System.err.println(result.size());
 			
-			int check;
-			String methodName;
-			int goal;
-			
-			check = 0; goal = 2;
-			methodName = "<inconsistencies.TruePositives01: int infeasible1(java.lang.Object)>";
-			for (CfgBlock b : result.get(methodName)) {
-				if ("Block4".equals(b.getLabel())) check++;
-				if ("Block2".equals(b.getLabel())) check++;
-			}
-			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
-			
-			check = 0; goal = 2;
-			methodName = "<inconsistencies.TruePositives01: int infeasible0(int[])>";
-			for (CfgBlock b :  result.get(methodName)) {
-				if ("Block0".equals(b.getLabel())) check++;
-				if ("Block1".equals(b.getLabel())) check++;				
-			}
-			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
 
-			check = 0; goal = 2;
-			methodName = "<inconsistencies.TruePositives01: boolean stringCompare()>";
-			for (CfgBlock b :  result.get(methodName)) {
-				if ("Block5".equals(b.getLabel())) check++;
-				if ("Block3".equals(b.getLabel())) check++;				
-			}			
-			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
-
-			check = 0; goal = 3;
-			methodName = "<inconsistencies.TruePositives01: void infeasible2(int[])>";
-			for (CfgBlock b :  result.get(methodName)) {
-				if ("Block4".equals(b.getLabel())) check++;
-				if ("Block6".equals(b.getLabel())) check++;
-				if ("Block7".equals(b.getLabel())) check++;
-			}			
-			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
-
-			check = 0; goal = 2;
-			methodName = "<inconsistencies.TruePositives01: boolean infeasible4(java.lang.Object)>";
-			for (CfgBlock b :  result.get(methodName)) {
-				if ("Block3".equals(b.getLabel())) check++;
-				if ("Block5".equals(b.getLabel())) check++;
-			}			
-			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
-
-			check = 0; goal = 1;
-			methodName = "<inconsistencies.TruePositives01: int infeasible6(int[])>";
-			for (CfgBlock b :  result.get(methodName)) {
-				if ("Block0".equals(b.getLabel())) check++;
-			}			
-			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
-
-			
 		} catch (IOException e) {
 			e.printStackTrace();
 			Assert.fail();

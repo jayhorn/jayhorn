@@ -209,10 +209,12 @@ public class InconsistencyThread implements Runnable {
 				tr = prover.mkAnd(conj.toArray(new ProverExpr[conj.size()]));
 			}
 			ProverExpr blockTransitionFormula = prover.mkImplies(blockVars.get(b), tr);
+			System.err.println(blockTransitionFormula);
 			prover.addAssertion(blockTransitionFormula);
 		}
 		
 		for (ProverExpr axiom : cfg2prover.generatedAxioms()) {
+			System.err.println("Axiom " + axiom.toString());
 			prover.addAssertion(axiom);
 		}
 		
