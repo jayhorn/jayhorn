@@ -330,7 +330,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 		} else if (t instanceof ArrayType) {			
 			typeField = Scene.v().getSootClass("java.lang.Object").getFieldByName(SootTranslationHelpers.typeFieldName);
 		} else {
-			throw new RuntimeException("Not implemented.");
+			throw new RuntimeException("Not implemented. "+ t + ", "+t.getClass());
 		}
 		final String localName = "$tmp"+this.statementSwitch.getMethod().getActiveBody().getLocals().size();
 		Local freshLocal = Jimple.v().newLocal(localName, typeField.getType());

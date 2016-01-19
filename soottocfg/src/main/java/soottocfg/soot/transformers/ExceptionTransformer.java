@@ -23,6 +23,7 @@ import soot.Immediate;
 import soot.IntType;
 import soot.Local;
 import soot.PatchingChain;
+import soot.PrimType;
 import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
@@ -117,7 +118,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 		// first remove all the monitor related exceptions
 		removeUnreachableTraps(body);
 		removeMonitorTraps(body);
-		
+
 		PatchingChain<Unit> units = body.getUnits();
 		for (Unit u : units) {
 			collectPossibleExceptions(u);
@@ -194,7 +195,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 		// System.err.println(body);
 		body.validate();
 	}
-	
+
 	private Set<Trap> handleRuntimeException() {
 		Set<Trap> usedTraps = new HashSet<Trap>();
 		// handle the runtime exceptions first.
@@ -421,7 +422,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 	 * @param t
 	 *            The trap that catches this exception
 	 */
-	protected void handleCaughtRuntimeException(Unit u, Value v, SootClass exception, Trap t) {		
+	protected void handleCaughtRuntimeException(Unit u, Value v, SootClass exception, Trap t) {
 		List<Pair<Value, List<Unit>>> guards = constructGuardExpression(v, exception, true, u);
 		Unit newTarget = createNewExceptionAndGoToTrap(u, exception, t);
 		for (Pair<Value, List<Unit>> pair : guards) {
@@ -446,7 +447,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 		body.getUnits().addAll(units);
 		return units.get(0);
 	}
-	
+
 	private Unit createNewExceptionAndGoToTrap(Unit u, SootClass exception, Trap t) {
 		// add a block that creates an exception object
 		// and assigns it to $exception.
@@ -491,13 +492,13 @@ public class ExceptionTransformer extends AbstractTransformer {
 			List<Pair<Value, List<Unit>>> guards = constructGuardExpression(v, exception, false, u);
 			Local assertionLocal = null;
 			if (!guards.isEmpty()) {
-				assertionLocal = Jimple.v().newLocal("$assert_"+(body.getLocals().size()), BooleanType.v());
+				assertionLocal = Jimple.v().newLocal("$assert_" + (body.getLocals().size()), BooleanType.v());
 				body.getLocals().add(assertionLocal);
 			}
 
 			for (Pair<Value, List<Unit>> pair : guards) {
 				List<Unit> toInsert = new LinkedList<Unit>();
-				toInsert.addAll(pair.getSecond());				
+				toInsert.addAll(pair.getSecond());
 				toInsert.add(assignStmtFor(assertionLocal, pair.getFirst(), u));
 				toInsert.add(SootTranslationHelpers.v().makeAssertion(assertionLocal, u));
 				body.getUnits().insertBefore(toInsert, u);
@@ -618,15 +619,20 @@ public class ExceptionTransformer extends AbstractTransformer {
 			 * Since instanceof cannot be part of a UnOp, we have to create a
 			 * helper local l and a statement l = e instanceof t first.
 			 */
-			List<Unit> helperStatements = new LinkedList<Unit>();
-			Local helperLocal = getFreshLocal(body, BooleanType.v());
-			Unit helperStmt = assignStmtFor(helperLocal, Jimple.v().newInstanceOfExpr(e.getOp(), e.getCastType()),
-					createdFrom);
-			helperStatements.add(helperStmt);
-			if (negated) {
-				result.add(new Pair<Value, List<Unit>>(jimpleEqZero(helperLocal), helperStatements));
+			if (!(e.getCastType() instanceof PrimType)) {
+				List<Unit> helperStatements = new LinkedList<Unit>();
+				Local helperLocal = getFreshLocal(body, BooleanType.v());
+				Unit helperStmt = assignStmtFor(helperLocal, Jimple.v().newInstanceOfExpr(e.getOp(), e.getCastType()),
+						createdFrom);
+				helperStatements.add(helperStmt);
+				if (negated) {
+					result.add(new Pair<Value, List<Unit>>(jimpleEqZero(helperLocal), helperStatements));
+				} else {
+					result.add(new Pair<Value, List<Unit>>(jimpleNeZero(helperLocal), helperStatements));
+				}
 			} else {
-				result.add(new Pair<Value, List<Unit>>(jimpleNeZero(helperLocal), helperStatements));
+				//TODO:
+				System.err.println("Not guarding cast from "+e.getOp().getType() + " to " + e.getCastType()+". This should be done by the compiler.");
 			}
 			return result;
 		}
@@ -728,13 +734,13 @@ public class ExceptionTransformer extends AbstractTransformer {
 
 	private boolean isAssertionMethod(SootMethod sm) {
 		if (sm.getSignature().equals(SootTranslationHelpers.v().getAssertMethod().getSignature())) {
-//			throw new RuntimeException("WORKS");
+			// throw new RuntimeException("WORKS");
 			return true;
 		}
-		//TODO: do that for others as well like guava Verify, or Junit Assert
+		// TODO: do that for others as well like guava Verify, or Junit Assert
 		return false;
 	}
-	
+
 	private void collectPossibleExceptions(Unit u, Value v) {
 		if (v instanceof BinopExpr) {
 			BinopExpr e = (BinopExpr) v;
@@ -744,11 +750,11 @@ public class ExceptionTransformer extends AbstractTransformer {
 		} else if (v instanceof UnopExpr) {
 			UnopExpr e = (UnopExpr) v;
 			collectPossibleExceptions(u, e.getOp());
-		} else if (v instanceof InvokeExpr) {			
+		} else if (v instanceof InvokeExpr) {
 			InvokeExpr ivk = (InvokeExpr) v;
 			if (isAssertionMethod(ivk.getMethod())) {
-				//do not tinker with assertion methods because
-				//they will be turned into assertions anyway.
+				// do not tinker with assertion methods because
+				// they will be turned into assertions anyway.
 				return;
 			}
 			if (ivk instanceof InstanceInvokeExpr) {
@@ -831,15 +837,15 @@ public class ExceptionTransformer extends AbstractTransformer {
 		}
 		return result;
 	}
-	
+
 	protected void removeUnreachableTraps(Body b) {
 		List<Trap> duplicates = new LinkedList<Trap>();
 		for (Trap t : b.getTraps()) {
 			Trap current = t;
-			while (b.getTraps().getPredOf(current)!=null) {
+			while (b.getTraps().getPredOf(current) != null) {
 				current = b.getTraps().getPredOf(current);
 				if (equalTraps(current, t)) {
-//					System.err.println("DUPLICATE "+t);
+					// System.err.println("DUPLICATE "+t);
 					duplicates.add(t);
 					break;
 				}
@@ -847,8 +853,9 @@ public class ExceptionTransformer extends AbstractTransformer {
 		}
 		b.getTraps().removeAll(duplicates);
 	}
-	
+
 	protected boolean equalTraps(Trap a, Trap b) {
-		return a.getBeginUnit()==b.getBeginUnit() && a.getEndUnit()==b.getEndUnit() && a.getException()==b.getException();
+		return a.getBeginUnit() == b.getBeginUnit() && a.getEndUnit() == b.getEndUnit()
+				&& a.getException() == b.getException();
 	}
 }
