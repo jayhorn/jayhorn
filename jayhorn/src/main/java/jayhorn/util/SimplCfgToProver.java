@@ -5,10 +5,12 @@ package jayhorn.util;
 
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
@@ -50,79 +52,104 @@ public class SimplCfgToProver implements ICfgToProver {
 	private Map<ProverExpr, Integer> usedUniqueVariables = new HashMap<ProverExpr, Integer>();
 
 	private Map<ClassVariable, ProverExpr> usedClassVariables = new HashMap<ClassVariable, ProverExpr>();
-	
+	private Set<ProverExpr> instantiatePoAxiomsFor = new HashSet<ProverExpr>();
+
 	public SimplCfgToProver(Prover p) {
 		prover = p;
 		createHelperFunctions();
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see jayhorn.util.ICfgToProver#finalize()
 	 */
 	@Override
 	public List<ProverExpr> generatedAxioms() {
 		List<ProverExpr> axioms = new LinkedList<ProverExpr>();
 		// now add assertions to ensure that all unique variables are different.
-		for (Entry<ProverExpr, Integer> entry : usedUniqueVariables.entrySet()) {			
+		for (Entry<ProverExpr, Integer> entry : usedUniqueVariables.entrySet()) {
 			axioms.add(prover.mkEq(entry.getKey(), prover.mkLiteral(entry.getValue())));
 		}
-		
-		//Make the partial order axioms.
-		List<Entry<ClassVariable, ProverExpr>> classVarList = new LinkedList<Entry<ClassVariable, ProverExpr>>(usedClassVariables.entrySet()); 
-		for (int i = 0; i<classVarList.size();i++) {
-			Entry<ClassVariable, ProverExpr> e1 = classVarList.get(i);
-			for (int j = i+1; j<classVarList.size();j++) {
-				Entry<ClassVariable, ProverExpr> e2 = classVarList.get(j);
-				if (isSubtypeOf(e1.getKey(), e2.getKey())) {
-					axioms.add(poCompare.mkExpr(new ProverExpr[]{e1.getValue(), e2.getValue()}));
-					//because we know they are not equal.
-					axioms.add(prover.mkNot(poCompare.mkExpr(new ProverExpr[]{e2.getValue(), e1.getValue()})));
-				} else if (isSubtypeOf(e1.getKey(), e2.getKey())) {
-					axioms.add(poCompare.mkExpr(new ProverExpr[]{e2.getValue(), e1.getValue()}));
-					//because we know they are not equal.
-					axioms.add(prover.mkNot(poCompare.mkExpr(new ProverExpr[]{e1.getValue(), e2.getValue()})));					
-				} else {
-					axioms.add(prover.mkEq(poCompare.mkExpr(new ProverExpr[]{e1.getValue(), e2.getValue()}), prover.mkLiteral(false)));
-					axioms.add(prover.mkEq(poCompare.mkExpr(new ProverExpr[]{e2.getValue(), e1.getValue()}), prover.mkLiteral(false)));					
+
+		// TODO: brutal brute force hack
+		// Make the partial order axioms.
+		List<Entry<ClassVariable, ProverExpr>> classVarList = new LinkedList<Entry<ClassVariable, ProverExpr>>(
+				usedClassVariables.entrySet());
+
+		for (ProverExpr pe : instantiatePoAxiomsFor) {
+			for (int i = 0; i < classVarList.size(); i++) {
+				Entry<ClassVariable, ProverExpr> e1 = classVarList.get(i);
+				for (int j = i + 1; j < classVarList.size(); j++) {
+					Entry<ClassVariable, ProverExpr> e2 = classVarList.get(j);
+					if (isSubtypeOf(e1.getKey(), e2.getKey())) {
+						axioms.add(prover.mkImplies(poCompare.mkExpr(new ProverExpr[] { pe, e1.getValue() }),
+								poCompare.mkExpr(new ProverExpr[] { pe, e2.getValue() })));
+
+						// because we know they are not equal.
+						axioms.add(prover.mkImplies(poCompare.mkExpr(new ProverExpr[] { pe, e1.getValue() }),
+								prover.mkNot(poCompare.mkExpr(new ProverExpr[] { pe, e2.getValue() }))));
+					} else if (isSubtypeOf(e1.getKey(), e2.getKey())) {
+						axioms.add(prover.mkImplies(poCompare.mkExpr(new ProverExpr[] { pe, e2.getValue() }),
+								poCompare.mkExpr(new ProverExpr[] { pe, e1.getValue() })));
+
+						// because we know they are not equal.
+						axioms.add(prover.mkImplies(poCompare.mkExpr(new ProverExpr[] { pe, e2.getValue() }),
+								prover.mkNot(poCompare.mkExpr(new ProverExpr[] { pe, e1.getValue() }))));
+					} else {						
+						axioms.add(prover.mkImplies(poCompare.mkExpr(new ProverExpr[] { pe, e1.getValue() }),
+								prover.mkNot(poCompare.mkExpr(new ProverExpr[] { pe, e2.getValue() }))));
+						axioms.add(prover.mkImplies(poCompare.mkExpr(new ProverExpr[] { pe, e2.getValue() }),
+								prover.mkNot(poCompare.mkExpr(new ProverExpr[] { pe, e1.getValue() }))));
+
+					}
 				}
 			}
 		}
 		return axioms;
 	}
-	
+
 	private boolean isSubtypeOf(ClassVariable sub, ClassVariable sup) {
 		if (sub.equals(sup)) {
 			return true;
 		}
 		for (ClassVariable parent : sub.getParents()) {
-			if (isSubtypeOf(parent, sup)) return true;
+			if (isSubtypeOf(parent, sup))
+				return true;
 		}
 		return false;
 	}
-	
 
-	/* (non-Javadoc)
-	 * @see jayhorn.util.ICfgToProver#statementToTransitionRelation(soottocfg.cfg.statement.Statement)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * jayhorn.util.ICfgToProver#statementToTransitionRelation(soottocfg.cfg.
+	 * statement.Statement)
 	 */
 	@Override
 	public ProverExpr statementListToTransitionRelation(List<Statement> stmts) {
 		if (stmts.isEmpty()) {
 			return prover.mkLiteral(true);
 		}
-		List<ProverExpr> conj = new LinkedList<ProverExpr>(); 
+		List<ProverExpr> conj = new LinkedList<ProverExpr>();
 		for (Statement s : stmts) {
 			ProverExpr pe = statementToTransitionRelation(s);
-			if (pe==null) {
-				//TODO: debug code
+			if (pe == null) {
+				// TODO: debug code
 				continue;
 			}
 			conj.add(pe);
 		}
 		return prover.mkAnd(conj.toArray(new ProverExpr[conj.size()]));
 	}
-	
-	/* (non-Javadoc)
-	 * @see jayhorn.util.ICfgToProver#statementToTransitionRelation(soottocfg.cfg.statement.Statement)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * jayhorn.util.ICfgToProver#statementToTransitionRelation(soottocfg.cfg.
+	 * statement.Statement)
 	 */
 	@Override
 	public ProverExpr statementToTransitionRelation(Statement s) {
@@ -136,42 +163,56 @@ public class SimplCfgToProver implements ICfgToProver {
 		} else if (s instanceof AssumeStatement) {
 			return expressionToProverExpr(((AssumeStatement) s).getExpression());
 		} else if (s instanceof CallStatement) {
-			CallStatement cs = (CallStatement)s;
+			CallStatement cs = (CallStatement) s;
 			if (cs.getReceiver().isPresent()) {
-				return prover.mkEq(expressionToProverExpr(cs.getReceiver().get()), prover.mkVariable("dummy"+(dummyvarcounter++), lookupProverType(cs.getReceiver().get().getType())));		
+				return prover.mkEq(expressionToProverExpr(cs.getReceiver().get()), prover
+						.mkVariable("dummy" + (dummyvarcounter++), lookupProverType(cs.getReceiver().get().getType())));
 			}
 			return null;
 		} else if (s instanceof ArrayReadStatement) {
-			ArrayReadStatement ar = (ArrayReadStatement)s;
-			//TODO HACK
-			if (ar.getIndices()[ar.getIndices().length-1].toString().contains(SootTranslationHelpers.typeFieldName)) {				
-				ProverExpr arrAccess = prover.mkSelect(dynamicTypeArray, new ProverExpr[]{expressionToProverExpr(ar.getIndices()[0])});
-				return prover.mkEq(expressionToProverExpr(ar.getLeftValue()),arrAccess);
-			}
-			
-			MapType mt = (MapType)ar.getBase().getType();			
-			return prover.mkEq(expressionToProverExpr(ar.getLeftValue()), prover.mkVariable("dummy"+(dummyvarcounter++), lookupProverType(mt.getValueType())));
-		} else if (s instanceof ArrayStoreStatement) {
-			ArrayStoreStatement as = (ArrayStoreStatement)s;
+			ArrayReadStatement ar = (ArrayReadStatement) s;
 			// TODO HACK
-			if (as.getIndices()[as.getIndices().length-1].toString().contains(SootTranslationHelpers.typeFieldName)) {
-				ProverExpr store = prover.mkStore(dynamicTypeArray, new ProverExpr[]{expressionToProverExpr(as.getIndices()[0])}, expressionToProverExpr(as.getValue()));
-				
-				ProverExpr hackityHack = prover.mkVariable("$dyntype"+(__hack_counter++), prover.getArrayType(new ProverType[]{prover.getIntType()}, prover.getIntType()));				
-				dynamicTypeArray = hackityHack;
-				return prover.mkEq(dynamicTypeArray, store);//TODO
+			if (ar.getIndices()[ar.getIndices().length - 1].toString().contains(SootTranslationHelpers.typeFieldName)) {
+				ProverExpr arrAccess = prover.mkSelect(dynamicTypeArray,
+						new ProverExpr[] { expressionToProverExpr(ar.getIndices()[0]) });
+				return prover.mkEq(expressionToProverExpr(ar.getLeftValue()), arrAccess);
 			}
-//			dynamicTypeArray
+
+			MapType mt = (MapType) ar.getBase().getType();
+			return prover.mkEq(expressionToProverExpr(ar.getLeftValue()),
+					prover.mkVariable("dummy" + (dummyvarcounter++), lookupProverType(mt.getValueType())));
+		} else if (s instanceof ArrayStoreStatement) {
+			ArrayStoreStatement as = (ArrayStoreStatement) s;
+			// TODO HACK
+			// if
+			// (as.getIndices()[as.getIndices().length-1].toString().contains(SootTranslationHelpers.typeFieldName))
+			// {
+			// ProverExpr store = prover.mkStore(dynamicTypeArray, new
+			// ProverExpr[]{expressionToProverExpr(as.getIndices()[0])},
+			// expressionToProverExpr(as.getValue()));
+			//
+			// ProverExpr hackityHack =
+			// prover.mkVariable("$dyntype"+(__hack_counter++),
+			// prover.getArrayType(new ProverType[]{prover.getIntType()},
+			// prover.getIntType()));
+			// dynamicTypeArray = hackityHack;
+			// return prover.mkEq(dynamicTypeArray, store);//TODO
+			// }
+			// dynamicTypeArray
 		} else {
 			// TODO ignore all other statements?
 		}
 		return null; // TODO: these are hacks. Later, this must not return null.
 	}
-	
+
 	int __hack_counter = 0;
 
-	/* (non-Javadoc)
-	 * @see jayhorn.util.ICfgToProver#expressionToProverExpr(soottocfg.cfg.expression.Expression)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * jayhorn.util.ICfgToProver#expressionToProverExpr(soottocfg.cfg.expression
+	 * .Expression)
 	 */
 	@Override
 	public ProverExpr expressionToProverExpr(Expression e) {
@@ -202,22 +243,33 @@ public class SimplCfgToProver implements ICfgToProver {
 				return prover.mkLt(left, right);
 			case Le:
 				return prover.mkLeq(left, right);
-			
+
 			case And:
 				return prover.mkAnd(left, right);
 			case Or:
 				return prover.mkOr(left, right);
 			case Implies:
-				return prover.mkImplies(left, right);	
+				return prover.mkImplies(left, right);
 			case PoLeq:
-//				throw new RuntimeException("Implement me :(");
-				return poCompare
-						.mkExpr(new ProverExpr[] { left, right });
+				// check we need to instantiate the po definition for the left
+				// or right.
+				if (be.getLeft() instanceof IdentifierExpression
+						&& !(((IdentifierExpression) be.getLeft()).getVariable() instanceof ClassVariable)) {
+					instantiatePoAxiomsFor.add(left);
+				}
+				if (be.getRight() instanceof IdentifierExpression
+						&& !(((IdentifierExpression) be.getRight()).getVariable() instanceof ClassVariable)) {
+					instantiatePoAxiomsFor.add(right);
+				}
+
+				return poCompare.mkExpr(new ProverExpr[] { left, right });
 
 			default: {
-//				Div("/"), Mod("%"),  Xor("^"),Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&");
+				// Div("/"), Mod("%"), Xor("^"),Shl("<<"), Shr(">>"),
+				// Ushr("u>>"), BOr("|"), BAnd("&");
 				return uninterpretedBinOpToProverExpr(be.getOp(), left, right);
-//				throw new RuntimeException("Not implemented for " + be.getOp());
+				// throw new RuntimeException("Not implemented for " +
+				// be.getOp());
 			}
 			}
 		} else if (e instanceof BooleanLiteral) {
@@ -239,10 +291,13 @@ public class SimplCfgToProver implements ICfgToProver {
 				// later that ensure that
 				// all unique variables are different.
 				if (ie.getVariable() instanceof ClassVariable) {
-					ClassVariable cv = (ClassVariable)ie.getVariable();
+					ClassVariable cv = (ClassVariable) ie.getVariable();
+					usedUniqueVariables.put(ssaVariableMap.get(ie.getVariable()).get(ie.getIncarnation()),
+							usedUniqueVariables.size());
 					usedClassVariables.put(cv, ssaVariableMap.get(ie.getVariable()).get(ie.getIncarnation()));
 				} else {
-					usedUniqueVariables.put(ssaVariableMap.get(ie.getVariable()).get(ie.getIncarnation()), usedUniqueVariables.size());
+					usedUniqueVariables.put(ssaVariableMap.get(ie.getVariable()).get(ie.getIncarnation()),
+							usedUniqueVariables.size());
 				}
 			}
 			return ssaVariableMap.get(ie.getVariable()).get(ie.getIncarnation());
@@ -270,29 +325,30 @@ public class SimplCfgToProver implements ICfgToProver {
 	/**
 	 * This is a simple hack to abstract binops that we do not care about,
 	 * such as bit operations. Currently, we ignore
-	 * Div("/"), Mod("%"),  Xor("^"),Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&")
+	 * Div("/"), Mod("%"), Xor("^"),Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"),
+	 * BAnd("&")
 	 * We translate these binops into applications of the uninterpreted function
 	 * 'uninterpretedBinOpToProverExpr' which takes three arguments:
 	 * The first argument is an integer constant to represent the operand (for
 	 * simplicity, we just use the hashcode of the enum), the second and third
 	 * argument are the operands of the binop.
+	 * 
 	 * @param op
 	 * @param left
 	 * @param right
 	 * @return
 	 */
-	private ProverExpr uninterpretedBinOpToProverExpr(BinaryOperator op, ProverExpr left, ProverExpr right) {		
-		return uninterpretedBinOp
-				.mkExpr(new ProverExpr[] { prover.mkLiteral(op.hashCode()), left, right });
+	private ProverExpr uninterpretedBinOpToProverExpr(BinaryOperator op, ProverExpr left, ProverExpr right) {
+		return uninterpretedBinOp.mkExpr(new ProverExpr[] { prover.mkLiteral(op.hashCode()), left, right });
 	}
-	
+
 	private ProverType lookupProverType(Type t) {
 		if (t == BoolType.instance()) {
 			return prover.getBooleanType();
 		}
 		return prover.getIntType();
 	}
-	
+
 	ProverFun arrayLength, uninterpretedBinOp, poCompare;
 	ProverExpr dynamicTypeArray;
 
@@ -300,21 +356,23 @@ public class SimplCfgToProver implements ICfgToProver {
 		// TODO: change the type of this
 		arrayLength = prover.mkUnintFunction("$arrayLength", new ProverType[] { prover.getIntType() },
 				prover.getIntType());
-		
+
 		/**
 		 * this is used for bit operations, etc. the first argument
-		 * is a number to distinguish the operators, the other two 
+		 * is a number to distinguish the operators, the other two
 		 * are the operands from the binop.
 		 */
-		uninterpretedBinOp = prover.mkUnintFunction("$uninterpreted", new ProverType[] { prover.getIntType(), prover.getIntType(), prover.getIntType() },
+		uninterpretedBinOp = prover.mkUnintFunction("$uninterpreted",
+				new ProverType[] { prover.getIntType(), prover.getIntType(), prover.getIntType() },
 				prover.getIntType());
 
-		//TODO: add axioms
+		// TODO: add axioms
 		poCompare = prover.mkUnintFunction("$poCompare", new ProverType[] { prover.getIntType(), prover.getIntType() },
 				prover.getBooleanType());
-		
-		dynamicTypeArray = prover.mkVariable("$dyntype", prover.getArrayType(new ProverType[]{prover.getIntType()}, prover.getIntType()));
-		
+
+		dynamicTypeArray = prover.mkVariable("$dyntype",
+				prover.getArrayType(new ProverType[] { prover.getIntType() }, prover.getIntType()));
+
 	}
 
 }

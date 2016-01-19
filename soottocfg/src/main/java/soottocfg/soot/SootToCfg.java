@@ -25,7 +25,6 @@ import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.Method;
 import soottocfg.soot.transformers.AssertionReconstruction;
-import soottocfg.soot.transformers.DynamicTypeTransformer;
 import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.SwitchStatementRemover;
 import soottocfg.soot.transformers.VirtualCallResolver;
@@ -241,10 +240,6 @@ public class SootToCfg {
 			VirtualCallResolver vc = new VirtualCallResolver();
 			vc.transform(body);
 		}
-
-		// add assignments for dynamic type changes.
-		DynamicTypeTransformer dtt = new DynamicTypeTransformer();
-		dtt.transform(body);
 		
 	}
 }

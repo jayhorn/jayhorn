@@ -491,7 +491,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 			List<Pair<Value, List<Unit>>> guards = constructGuardExpression(v, exception, false, u);
 			Local assertionLocal = null;
 			if (!guards.isEmpty()) {
-				assertionLocal = Jimple.v().newLocal("$assert_condition", BooleanType.v());
+				assertionLocal = Jimple.v().newLocal("$assert_"+(body.getLocals().size()), BooleanType.v());
 				body.getLocals().add(assertionLocal);
 			}
 

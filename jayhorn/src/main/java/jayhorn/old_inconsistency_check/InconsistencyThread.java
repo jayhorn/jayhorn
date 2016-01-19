@@ -39,7 +39,7 @@ import soottocfg.cfg.util.UnreachableNodeRemover;
  */
 public class InconsistencyThread implements Runnable {
 
-	public boolean debugMode = false;
+	public boolean debugMode = true;
 
 	private final Method method;
 	private final Prover prover;

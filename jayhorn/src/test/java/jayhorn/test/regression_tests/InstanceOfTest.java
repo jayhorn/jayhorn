@@ -19,7 +19,6 @@ import org.junit.runners.Parameterized;
 import jayhorn.old_inconsistency_check.InconsistencyChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
-import jayhorn.solver.z3.Z3ProverFactory;
 import jayhorn.test.Util;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.soot.SootToCfg;
@@ -40,7 +39,7 @@ public class InstanceOfTest {
 	@Parameterized.Parameters(name = "{index}: check ({1})")
 	public static Collection<Object[]> data() {
 		List<Object[]> filenames = new LinkedList<Object[]>();
-		final File source_dir = new File(testRoot + "local/");
+		final File source_dir = new File(testRoot + "instanceof_test/");
 		File[] directoryListing = source_dir.listFiles();
 		if (directoryListing != null) {
 			for (File child : directoryListing) {
@@ -73,10 +72,10 @@ public class InstanceOfTest {
 		oldAlgorithm(new PrincessProverFactory());
 	}
 
-	@Test
-	public void testOldAlgorithmWithZ3() {
-		oldAlgorithm(new Z3ProverFactory());
-	}
+//	@Test
+//	public void testOldAlgorithmWithZ3() {
+//		oldAlgorithm(new Z3ProverFactory());
+//	}
 
 	
 	protected void oldAlgorithm(ProverFactory factory) {

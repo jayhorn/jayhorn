@@ -242,7 +242,7 @@ public class AssertionReconstruction extends AbstractTransformer {
 		}
 		Local assertionLocal = null;
 		if (!assertionsToInsert.isEmpty()) {
-			assertionLocal = Jimple.v().newLocal("$assert_condition", BooleanType.v());
+			assertionLocal = Jimple.v().newLocal("$assert_"+(body.getLocals().size()), BooleanType.v());
 			body.getLocals().add(assertionLocal);
 		}
 		// remove all boilerplate statements
