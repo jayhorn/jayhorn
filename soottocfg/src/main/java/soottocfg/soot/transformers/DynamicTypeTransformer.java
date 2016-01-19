@@ -46,7 +46,7 @@ public class DynamicTypeTransformer  extends AbstractTransformer {
 				} else if (rhs instanceof AnyNewExpr) {
 					AnyNewExpr ex = (AnyNewExpr)rhs;
 				} else if (rhs instanceof CastExpr) {
-					handleCaseExpr(ds, (CastExpr)rhs);
+					handleCastExpr(ds, (CastExpr)rhs);
 				}					
 			}				
 		}	
@@ -64,13 +64,12 @@ public class DynamicTypeTransformer  extends AbstractTransformer {
 //		FieldRef fieldRef = Jimple.v().newInstanceFieldRef(left, typeField.makeRef());
 	}
 	
-	private void handleCaseExpr(DefinitionStmt ds, CastExpr ex) {
+	private void handleCastExpr(DefinitionStmt ds, CastExpr ex) {
 		if (ex.getCastType() instanceof RefType) {
 			RefType rt = (RefType)ex.getOp().getType();
 			SootField typeField = rt.getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
 			FieldRef fieldRef = Jimple.v().newInstanceFieldRef(ex.getOp(), typeField.makeRef());
-			final String className = ((RefType)ex.getCastType()).getClassName().replace(".", "/");
-			Unit asgn = Jimple.v().newAssignStmt(fieldRef, ClassConstant.v(className) );
+			Unit asgn = Jimple.v().newAssignStmt(fieldRef, SootTranslationHelpers.v().getClassConstant(ex.getCastType()) );
 			
 			insertBefore.put(ds, new LinkedList<Unit>());
 			insertBefore.get(ds).add(asgn);			

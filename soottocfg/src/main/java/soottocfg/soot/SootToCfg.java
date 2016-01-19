@@ -183,7 +183,7 @@ public class SootToCfg {
 	}
 
 	private void processMethodBody(Body body) {
-
+//		System.err.println(body);
 		// StringBuilder sb = new StringBuilder();
 		// for (Unit u : body.getUnits()) {
 		// sb.append(u.getJavaSourceStartLineNumber());
@@ -207,7 +207,7 @@ public class SootToCfg {
 			// System.out.println("adding method: " + m.getMethodName());
 			getProgram().addEntryPoint(m);
 		}
-		 System.out.println(m.toString());
+//		 System.out.println(m.toString());
 	}
 
 	private void preProcessBody(Body body) {

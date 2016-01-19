@@ -296,6 +296,8 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 			for (Variable v : this.locals) {
 				sb.append("\t\t");
 				sb.append(v.getName());
+				sb.append(":\t\t");
+				sb.append(v.getType());
 				sb.append("\n");
 			}
 		}

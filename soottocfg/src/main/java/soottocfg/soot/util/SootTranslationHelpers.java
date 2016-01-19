@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import soot.PrimType;
+import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
@@ -15,6 +16,7 @@ import soot.Type;
 import soot.Unit;
 import soot.Value;
 import soot.VoidType;
+import soot.jimple.ClassConstant;
 import soot.jimple.IntConstant;
 import soot.jimple.InvokeStmt;
 import soot.jimple.Jimple;
@@ -66,6 +68,14 @@ public enum SootTranslationHelpers {
 	}
 
 	
+	public ClassConstant getClassConstant(Type t) {
+		if (t instanceof RefType) {
+			final String className = ((RefType)t).getClassName().replace(".", "/");
+			return ClassConstant.v(className) ;
+		}
+		throw new RuntimeException("Not implemented");
+	}
+		
 	public Method lookupOrCreateMethod(SootMethod m) {
 		if (this.program.loopupMethod(m.getSignature())!=null) {
 			return this.program.loopupMethod(m.getSignature());

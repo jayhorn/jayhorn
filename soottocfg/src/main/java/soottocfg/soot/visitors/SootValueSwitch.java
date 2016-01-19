@@ -24,8 +24,6 @@ import java.util.List;
 
 import soot.Local;
 import soot.RefType;
-import soot.Scene;
-import soot.SootClass;
 import soot.SootField;
 import soot.Value;
 import soot.jimple.AddExpr;
@@ -80,7 +78,6 @@ import soot.jimple.VirtualInvokeExpr;
 import soot.jimple.XorExpr;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.ArrayLengthExpression;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
@@ -90,7 +87,6 @@ import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
-import soottocfg.cfg.type.ReferenceType;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -217,19 +213,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseClassConstant(ClassConstant arg0) {
-		if (Scene.v().containsClass(arg0.getValue())) {
-			SootClass c = Scene.v().getSootClass(arg0.getValue());
-			ClassVariable cv = this.memoryModel.lookupClassVariable(c.getType());
-			this.expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(), cv));
-			return;
-		} else {
-			Variable global = SootTranslationHelpers.v().getProgram()
-					.lookupGlobalVariable("$classConst" + arg0.getValue(), new ReferenceType(null), true, true);
-			this.expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(), global));
-			// System.err.println(this.statementSwitch.getCurrentStmt());
-			// System.err.println(this.statementSwitch.getCurrentStmt().getClass());
-			return;
-		}
+		this.expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(),this.memoryModel.lookupClassVariable(arg0)));
 	}
 
 	@Override
@@ -287,10 +271,9 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseCastExpr(CastExpr arg0) {
-		// TODO Implement this as an assume statement about the type field.
-		Variable fresh = SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO_CAST",
-				this.memoryModel.lookupType(arg0.getCastType()));
-		expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(), fresh));
+		// TODO this assumes that we have introduced explicit updates to the type field.
+		arg0.getOp().apply(this);
+//		expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(), fresh));
 	}
 
 	@Override
@@ -339,19 +322,21 @@ public class SootValueSwitch implements JimpleValueSwitch {
 		Value left = arg0.getOp();
 		soot.Type t = left.getType();
 		if (t instanceof RefType) {			
+			//first make a heap-read of the type filed.
 			SootField typeField = ((RefType)t).getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
 			final String localName = "$tmp"+this.statementSwitch.getMethod().getActiveBody().getLocals().size();
 			Local freshLocal = Jimple.v().newLocal(localName, typeField.getType());
 			this.statementSwitch.getMethod().getActiveBody().getLocals().add(freshLocal);
 			FieldRef fieldRef = Jimple.v().newInstanceFieldRef(left, typeField.makeRef());
-			memoryModel.mkHeapReadStatement(this.statementSwitch.getCurrentStmt(), fieldRef, freshLocal);
-			
+			memoryModel.mkHeapReadStatement(this.statementSwitch.getCurrentStmt(), fieldRef, freshLocal);			
 			freshLocal.apply(this);
 			Expression exp = this.popExpression();
-			ReferenceType rt = (ReferenceType)memoryModel.lookupType(arg0.getCheckType());
 			
-			BinaryExpression instof = new BinaryExpression(loc, BinaryOperator.PoLeq, exp, new IdentifierExpression(loc,rt.getClassVariable()));
+			//now make the bla <: blub expression			
+			ClassVariable cv = this.memoryModel.lookupClassVariable(SootTranslationHelpers.v().getClassConstant(arg0.getCheckType()));
+			BinaryExpression instof = new BinaryExpression(loc, BinaryOperator.PoLeq, exp, new IdentifierExpression(loc, cv));
 			this.expressionStack.add(instof);
+			return;
 		} else {
 			throw new RuntimeException("Not implemented.");
 		}

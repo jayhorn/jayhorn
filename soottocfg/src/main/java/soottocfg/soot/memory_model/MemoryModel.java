@@ -3,7 +3,6 @@
  */
 package soottocfg.soot.memory_model;
 
-import soot.RefType;
 import soot.Unit;
 import soot.Value;
 import soot.jimple.ArrayRef;
@@ -63,9 +62,7 @@ public abstract class MemoryModel {
 
 	public abstract Expression mkFloatConstant(FloatConstant arg0);
 
-	public abstract Expression lookupClassConstant(ClassConstant cc);
-	
-	public abstract ClassVariable lookupClassVariable(RefType t);
+	public abstract ClassVariable lookupClassVariable(ClassConstant t);
 
 	public abstract Type lookupType(soot.Type t);
 
