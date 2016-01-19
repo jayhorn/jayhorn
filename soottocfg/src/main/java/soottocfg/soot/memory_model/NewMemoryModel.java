@@ -42,7 +42,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			Expression value = valueSwitch.popExpression();
 
 			// ------------- unpack ---------------
-			ClassVariable c = lookupClassVariable(field.getField().getDeclaringClass().getType());
+			ClassVariable c = lookupClassVariable(SootTranslationHelpers.v().getClassConstant(field.getField().getDeclaringClass().getType()));
 			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			Variable[] vars = c.getAssociatedFields();
 			for (int i = 0; i < vars.length; i++) {
@@ -82,7 +82,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			IdentifierExpression base = (IdentifierExpression) valueSwitch.popExpression();
 
 			// ------------- unpack ---------------
-			ClassVariable c = lookupClassVariable(field.getField().getDeclaringClass().getType());
+			ClassVariable c = lookupClassVariable(SootTranslationHelpers.v().getClassConstant(field.getField().getDeclaringClass().getType()));
 			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			Variable[] vars = c.getAssociatedFields();
 			for (int i = 0; i < vars.length; i++) {

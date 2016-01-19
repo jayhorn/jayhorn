@@ -21,6 +21,10 @@ public class ReferenceType extends ReferenceLikeType {
 		classVariable = var;
 	}
 
+	public ClassVariable getClassVariable() {
+		return classVariable;
+	}
+	
 	public String toString() {
 		if (classVariable == null) {
 			return "Null";

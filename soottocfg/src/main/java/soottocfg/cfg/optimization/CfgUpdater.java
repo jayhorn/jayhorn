@@ -9,7 +9,6 @@ import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
@@ -23,7 +22,6 @@ import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.type.Type;
 
 //DSN should this be an abstract class
 //DSN There might be value in tracking whether an expression actually changed.  Possible optimization
@@ -151,13 +149,6 @@ public class CfgUpdater extends CfgVisitor {
 	@Override
 	protected Expression processExpression(IdentifierExpression e) {
 		return e;
-	}
-
-	@Override
-	protected Expression processExpression(InstanceOfExpression e) {
-		Expression exp = processExpression(e.getExpression());
-		Type t = e.getCheckedType();
-		return new InstanceOfExpression(e.getSourceLocation(), exp, t);
 	}
 
 	@Override

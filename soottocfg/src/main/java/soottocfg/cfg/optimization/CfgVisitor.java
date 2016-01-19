@@ -6,7 +6,6 @@ import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
@@ -95,8 +94,6 @@ public abstract class CfgVisitor {
 			return processExpression((BooleanLiteral) e);
 		} else if (e instanceof IdentifierExpression) {
 			return processExpression((IdentifierExpression) e);
-		} else if (e instanceof InstanceOfExpression) {
-			return processExpression((InstanceOfExpression) e);
 		} else if (e instanceof IntegerLiteral) {
 			return processExpression((IntegerLiteral) e);
 		} else if (e instanceof IteExpression) {
@@ -115,8 +112,6 @@ public abstract class CfgVisitor {
 	protected abstract Expression processExpression(BooleanLiteral e);
 
 	protected abstract Expression processExpression(IdentifierExpression e);
-
-	protected abstract Expression processExpression(InstanceOfExpression e);
 
 	protected abstract Expression processExpression(IntegerLiteral e);
 

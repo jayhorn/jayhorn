@@ -208,7 +208,7 @@ public class InconsistencyThread implements Runnable {
 			} else {
 				tr = prover.mkAnd(conj.toArray(new ProverExpr[conj.size()]));
 			}
-			ProverExpr blockTransitionFormula = prover.mkImplies(blockVars.get(b), tr);
+			ProverExpr blockTransitionFormula = prover.mkImplies(blockVars.get(b), tr);			
 			prover.addAssertion(blockTransitionFormula);
 		}
 		

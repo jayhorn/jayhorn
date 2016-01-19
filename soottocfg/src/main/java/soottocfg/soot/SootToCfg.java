@@ -11,8 +11,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import soot.Body;
+import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
+import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
@@ -97,7 +99,12 @@ public class SootToCfg {
 				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
 						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
 		program.setExceptionGlobal(exceptionGlobal);
-
+		//TODO move this to a better location		
+		for (SootClass sc : new LinkedList<SootClass>(Scene.v().getClasses())) {			
+			sc.addField(new SootField(SootTranslationHelpers.typeFieldName, RefType.v(Scene.v().getSootClass("java.lang.Class")) ));			
+		}
+		
+		
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
 			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
@@ -175,7 +182,7 @@ public class SootToCfg {
 	}
 
 	private void processMethodBody(Body body) {
-
+//		System.err.println(body);
 		// StringBuilder sb = new StringBuilder();
 		// for (Unit u : body.getUnits()) {
 		// sb.append(u.getJavaSourceStartLineNumber());
@@ -199,7 +206,7 @@ public class SootToCfg {
 			// System.out.println("adding method: " + m.getMethodName());
 			getProgram().addEntryPoint(m);
 		}
-		// System.out.println(m.toString());
+//		 System.out.println(m.toString());
 	}
 
 	private void preProcessBody(Body body) {
@@ -220,12 +227,6 @@ public class SootToCfg {
 		// first reconstruct the assertions.
 		AssertionReconstruction ar = new AssertionReconstruction();
 		ar.transform(body);
-		;
-
-		// UnreachableFinallyCodeRemover ufcr = new
-		// UnreachableFinallyCodeRemover(new NullnessAnalysis(new
-		// CompleteUnitGraph(body)), duplicatedFinallyUnits);
-		// ufcr.transform(body);
 
 		// make the exception handling explicit
 		ExceptionTransformer em = new ExceptionTransformer(new NullnessAnalysis(new CompleteUnitGraph(body)),
@@ -239,6 +240,6 @@ public class SootToCfg {
 			VirtualCallResolver vc = new VirtualCallResolver();
 			vc.transform(body);
 		}
-
+		
 	}
 }

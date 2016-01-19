@@ -6,7 +6,9 @@ package soottocfg.soot.util;
 import java.util.LinkedList;
 import java.util.List;
 
+import soot.ArrayType;
 import soot.PrimType;
+import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
@@ -15,6 +17,7 @@ import soot.Type;
 import soot.Unit;
 import soot.Value;
 import soot.VoidType;
+import soot.jimple.ClassConstant;
 import soot.jimple.IntConstant;
 import soot.jimple.InvokeStmt;
 import soot.jimple.Jimple;
@@ -46,6 +49,7 @@ public enum SootTranslationHelpers {
 	}
 
 	private static final String parameterPrefix = "$in_";	
+	public static final String typeFieldName = "$dynamicType";
 
 	private transient SootMethod currentMethod;
 	private transient SootClass currentClass;
@@ -65,6 +69,28 @@ public enum SootTranslationHelpers {
 	}
 
 	
+	public ClassConstant getClassConstant(Type t) {
+		if (t instanceof RefType) {
+			final String className = ((RefType)t).getClassName().replace(".", "/");
+			return ClassConstant.v(className);
+		} else if (t instanceof ArrayType) {
+			ArrayType at = (ArrayType)t;
+			ClassConstant baseClassConst = getClassConstant(at.baseType);
+			StringBuilder sb = new StringBuilder();
+			for (int i=0; i<at.numDimensions;i++) {
+				sb.append("[");
+			}
+			sb.append("L");
+			sb.append(baseClassConst.value);
+			final String className = sb.toString().replace(".", "/");
+			return ClassConstant.v(className);
+		} else if (t instanceof PrimType) {
+			final String className = ((PrimType)t).toString();
+			return ClassConstant.v(className);
+		}
+		throw new RuntimeException("Not implemented");
+	}
+		
 	public Method lookupOrCreateMethod(SootMethod m) {
 		if (this.program.loopupMethod(m.getSignature())!=null) {
 			return this.program.loopupMethod(m.getSignature());

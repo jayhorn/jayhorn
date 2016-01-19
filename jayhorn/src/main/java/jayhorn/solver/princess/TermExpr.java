@@ -21,25 +21,26 @@ class TermExpr extends PrincessProverExpr {
 		this.type = type;
 	}
 
+	@Override
 	public String toString() {
-            return SimpleAPI$.MODULE$.pp(term);
+		return SimpleAPI$.MODULE$.pp(term);
 	}
 
-    public ITerm toTerm() {
-        return term;
-    }
-    
-    public IFormula toFormula() {
-        return IExpression$.MODULE$.eqZero(term);
-    }
+	public ITerm toTerm() {
+		return term;
+	}
 
-    public IExpression toExpression() {
-        return term;
-    }
+	public IFormula toFormula() {
+		return IExpression$.MODULE$.eqZero(term);
+	}
 
-    public boolean isBoolean() {
-        return type == BoolType.INSTANCE;
-    }
+	public IExpression toExpression() {
+		return term;
+	}
+
+	public boolean isBoolean() {
+		return type == BoolType.INSTANCE;
+	}
 
 	public ProverType getType() {
 		return type;
@@ -55,23 +56,25 @@ class TermExpr extends PrincessProverExpr {
 		throw new RuntimeException();
 	}
 
-  public int hashCode() {
-    return term.hashCode();
-  }
+	@Override
+	public int hashCode() {
+		return term.hashCode();
+	}
 
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    TermExpr other = (TermExpr) obj;
-    if (term == null) {
-      if (other.term != null)
-        return false;
-    } else if (!term.equals(other.term))
-      return false;
-    return true;
-  }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TermExpr other = (TermExpr) obj;
+		if (term == null) {
+			if (other.term != null)
+				return false;
+		} else if (!term.equals(other.term))
+			return false;
+		return true;
+	}
 }

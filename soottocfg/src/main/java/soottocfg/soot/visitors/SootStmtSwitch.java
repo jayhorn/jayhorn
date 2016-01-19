@@ -26,11 +26,16 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 
+import soot.ArrayType;
 import soot.Body;
 import soot.PatchingChain;
+import soot.RefType;
+import soot.Scene;
+import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
+import soot.jimple.AnyNewExpr;
 import soot.jimple.AssignStmt;
 import soot.jimple.BreakpointStmt;
 import soot.jimple.DefinitionStmt;
@@ -44,6 +49,7 @@ import soot.jimple.IfStmt;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.InvokeStmt;
+import soot.jimple.Jimple;
 import soot.jimple.LookupSwitchStmt;
 import soot.jimple.NopStmt;
 import soot.jimple.RetStmt;
@@ -503,7 +509,7 @@ public class SootStmtSwitch implements StmtSwitch {
 
 		if (def.containsFieldRef()) {
 			// panic programming
-			assert (!(lhs instanceof FieldRef && rhs instanceof FieldRef));
+			Verify.verify(!(lhs instanceof FieldRef && rhs instanceof FieldRef));
 
 			if (lhs instanceof FieldRef) {
 				SootTranslationHelpers.v().getMemoryModel().mkHeapWriteStatement(def, def.getFieldRef(), rhs);
@@ -514,6 +520,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 		} else if (def.containsArrayRef()) {
 			// TODO:
+			System.err.println("TODO: translation for "+def + " is not yet implemented.");
 		} else {
 			// local to local assignment.
 			lhs.apply(valueSwitch);
@@ -523,6 +530,22 @@ public class SootStmtSwitch implements StmtSwitch {
 
 			currentBlock
 					.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(def), left, right));
+			
+			if (rhs instanceof AnyNewExpr) { //TODO: this should be implemented in the memory model.
+				AnyNewExpr anyNew = (AnyNewExpr)rhs;
+				soot.Type t = anyNew.getType();
+				SootField dynTypeField = null;
+				if (t instanceof RefType) {			
+					//first make a heap-read of the type filed.
+					dynTypeField = ((RefType)t).getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
+				} else if (t instanceof ArrayType) {			
+					dynTypeField = Scene.v().getSootClass("java.lang.Object").getFieldByName(SootTranslationHelpers.typeFieldName);
+				} else {
+					throw new RuntimeException("Not implemented. "+ t + ", "+t.getClass());
+				}
+				FieldRef fieldRef = Jimple.v().newInstanceFieldRef(lhs, dynTypeField.makeRef());			
+				SootTranslationHelpers.v().getMemoryModel().mkHeapWriteStatement(getCurrentStmt(), fieldRef, SootTranslationHelpers.v().getClassConstant(t));
+			}
 		}
 	}
 

@@ -22,9 +22,12 @@ package soottocfg.soot.visitors;
 import java.util.LinkedList;
 import java.util.List;
 
+import soot.ArrayType;
 import soot.Local;
+import soot.RefType;
 import soot.Scene;
-import soot.SootClass;
+import soot.SootField;
+import soot.Value;
 import soot.jimple.AddExpr;
 import soot.jimple.AndExpr;
 import soot.jimple.ArrayRef;
@@ -39,6 +42,7 @@ import soot.jimple.DivExpr;
 import soot.jimple.DoubleConstant;
 import soot.jimple.DynamicInvokeExpr;
 import soot.jimple.EqExpr;
+import soot.jimple.FieldRef;
 import soot.jimple.FloatConstant;
 import soot.jimple.GeExpr;
 import soot.jimple.GtExpr;
@@ -46,6 +50,7 @@ import soot.jimple.InstanceFieldRef;
 import soot.jimple.InstanceOfExpr;
 import soot.jimple.IntConstant;
 import soot.jimple.InterfaceInvokeExpr;
+import soot.jimple.Jimple;
 import soot.jimple.JimpleValueSwitch;
 import soot.jimple.LeExpr;
 import soot.jimple.LengthExpr;
@@ -74,19 +79,16 @@ import soot.jimple.UshrExpr;
 import soot.jimple.VirtualInvokeExpr;
 import soot.jimple.XorExpr;
 import soottocfg.cfg.ClassVariable;
-import soottocfg.cfg.Variable;
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.ArrayLengthExpression;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.InstanceOfExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
-import soottocfg.cfg.type.ReferenceType;
-import soottocfg.cfg.type.Type;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -213,19 +215,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseClassConstant(ClassConstant arg0) {
-		if (Scene.v().containsClass(arg0.getValue())) {
-			SootClass c = Scene.v().getSootClass(arg0.getValue());
-			ClassVariable cv = this.memoryModel.lookupClassVariable(c.getType());
-			this.expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(), cv));
-			return;
-		} else {
-			Variable global = SootTranslationHelpers.v().getProgram()
-					.lookupGlobalVariable("$classConst" + arg0.getValue(), new ReferenceType(null), true, true);
-			this.expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(), global));
-			// System.err.println(this.statementSwitch.getCurrentStmt());
-			// System.err.println(this.statementSwitch.getCurrentStmt().getClass());
-			return;
-		}
+		this.expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(),this.memoryModel.lookupClassVariable(arg0)));
 	}
 
 	@Override
@@ -283,13 +273,9 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseCastExpr(CastExpr arg0) {
-		// TODO Auto-generated method stub
-		// arg0.getOp().apply(this);
-		// Expression inner = popExpression();
-		// expressionStack.add(inner);
-		Variable fresh = SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO_CAST",
-				this.memoryModel.lookupType(arg0.getCastType()));
-		expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(), fresh));
+		// TODO this assumes that we have introduced explicit updates to the type field.
+		arg0.getOp().apply(this);
+//		expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(), fresh));
 	}
 
 	@Override
@@ -334,10 +320,31 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseInstanceOfExpr(InstanceOfExpr arg0) {
-		arg0.getOp().apply(this);
+		SourceLocation loc = this.statementSwitch.getCurrentLoc();		
+		Value left = arg0.getOp();
+		soot.Type t = left.getType();
+		SootField typeField = null;
+		if (t instanceof RefType) {			
+			//first make a heap-read of the type filed.
+			typeField = ((RefType)t).getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
+		} else if (t instanceof ArrayType) {			
+			typeField = Scene.v().getSootClass("java.lang.Object").getFieldByName(SootTranslationHelpers.typeFieldName);
+		} else {
+			throw new RuntimeException("Not implemented. "+ t + ", "+t.getClass());
+		}
+		final String localName = "$tmp"+this.statementSwitch.getMethod().getActiveBody().getLocals().size();
+		Local freshLocal = Jimple.v().newLocal(localName, typeField.getType());
+		this.statementSwitch.getMethod().getActiveBody().getLocals().add(freshLocal);
+		FieldRef fieldRef = Jimple.v().newInstanceFieldRef(left, typeField.makeRef());
+		memoryModel.mkHeapReadStatement(this.statementSwitch.getCurrentStmt(), fieldRef, freshLocal);			
+		freshLocal.apply(this);
 		Expression exp = this.popExpression();
-		Type rt = memoryModel.lookupType(arg0.getCheckType());
-		this.expressionStack.add(new InstanceOfExpression(statementSwitch.getCurrentLoc(), exp, rt));
+		
+		//now make the bla <: blub expression			
+		ClassVariable cv = this.memoryModel.lookupClassVariable(SootTranslationHelpers.v().getClassConstant(arg0.getCheckType()));
+		BinaryExpression instof = new BinaryExpression(loc, BinaryOperator.PoLeq, exp, new IdentifierExpression(loc, cv));
+		this.expressionStack.add(instof);
+
 	}
 
 	@Override
@@ -453,9 +460,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 	@Override
 	public void caseCaughtExceptionRef(CaughtExceptionRef arg0) {
 		// This should have been eliminated by the exception translation.
-		System.err.println("CaughtExceptionRef should have been eliminated earlier! This is a bug!");
-		expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(), SootTranslationHelpers.v()
-				.getProgram().createFreshGlobal("$caughtref_", memoryModel.lookupType(arg0.getType()))));
+		throw new UnsupportedOperationException("CaughtExceptionRef should have been eliminated earlier! This is a bug!");
 	}
 
 	@Override

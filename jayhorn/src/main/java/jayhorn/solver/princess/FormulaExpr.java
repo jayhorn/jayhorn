@@ -21,31 +21,30 @@ class FormulaExpr extends PrincessProverExpr {
 		this.formula = formula;
 	}
 
+	@Override
 	public String toString() {
-            return SimpleAPI$.MODULE$.pp(formula);
+		return SimpleAPI$.MODULE$.pp(formula);
 	}
 
 	public ProverType getType() {
 		return BoolType.INSTANCE;
 	}
 
-    public ITerm toTerm() {
-        return new ITermITE(formula,
-                            new IIntLit(IdealInt$.MODULE$.apply(0)),
-                            new IIntLit(IdealInt$.MODULE$.apply(1)));
-    }
-    
-    public IFormula toFormula() {
-        return formula;
-    }
+	public ITerm toTerm() {
+		return new ITermITE(formula, new IIntLit(IdealInt$.MODULE$.apply(0)), new IIntLit(IdealInt$.MODULE$.apply(1)));
+	}
 
-    public IExpression toExpression() {
-        return formula;
-    }
+	public IFormula toFormula() {
+		return formula;
+	}
 
-    public boolean isBoolean() {
-        return true;
-    }
+	public IExpression toExpression() {
+		return formula;
+	}
+
+	public boolean isBoolean() {
+		return true;
+	}
 
 	public BigInteger getIntLiteralValue() {
 		throw new RuntimeException();
@@ -57,23 +56,26 @@ class FormulaExpr extends PrincessProverExpr {
 		throw new RuntimeException();
 	}
 
-  public int hashCode() {
-    return formula.hashCode();
-  }
+	@Override
+	public int hashCode() {
+		return formula.hashCode();
+	}
 
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    FormulaExpr other = (FormulaExpr) obj;
-    if (formula == null) {
-      if (other.formula != null)
-        return false;
-    } else if (!formula.equals(other.formula))
-      return false;
-    return true;
-  }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		FormulaExpr other = (FormulaExpr) obj;
+		if (formula == null) {
+			if (other.formula != null)
+				return false;
+		} else if (!formula.equals(other.formula))
+			return false;
+		return true;
+	}
+
 }

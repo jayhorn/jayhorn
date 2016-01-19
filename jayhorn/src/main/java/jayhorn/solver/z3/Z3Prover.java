@@ -303,10 +303,12 @@ public class Z3Prover implements Prover {
 
 	@Override
 	public ProverExpr mkAnd(ProverExpr[] args) {
+		
 		BoolExpr[] bargs = new BoolExpr[args.length];
 		for (int i = 0; i < args.length; i++) {
 			bargs[i] = (BoolExpr) unpack(args[i]);
 		}
+		
 		return new Z3BoolExpr(ctx.mkAnd(bargs));
 	}
 

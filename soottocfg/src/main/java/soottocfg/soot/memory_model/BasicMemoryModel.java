@@ -17,6 +17,7 @@ import com.google.common.base.Verify;
 import soot.ArrayType;
 import soot.RefLikeType;
 import soot.RefType;
+import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
 import soot.Value;
@@ -37,8 +38,6 @@ import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.InstanceOfExpression;
-import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
@@ -61,9 +60,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	protected final Map<SootField, Variable> fieldGlobals = new HashMap<SootField, Variable>();
 
 	protected final Map<Constant, Variable> constantDictionary = new HashMap<Constant, Variable>();
-	private final Map<RefType, ClassVariable> classVariables = new HashMap<RefType, ClassVariable>();
-	
-	
+
 	protected final Type nullType;
 
 	public BasicMemoryModel() {
@@ -89,18 +86,26 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		MethodInfo mi = this.statementSwitch.getMethodInto();
 		Variable newLocal = mi.createFreshLocal("$new", newType, true, true);
 		// add: assume newLocal!=null
-		this.statementSwitch.push(new AssumeStatement(
-				SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
-				new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne, new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal), this.mkNullConstant())));
-		// add: assume newLocal instanceof newType
-		Expression instof = new InstanceOfExpression(this.statementSwitch.getCurrentLoc(), new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
-				lookupRefLikeType(arg0.getBaseType()));
 		this.statementSwitch.push(
-				new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
-						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne, instof, IntegerLiteral.zero())));
+				new AssumeStatement(statementSwitch.getCurrentLoc(),
+						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
+								new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
+								this.mkNullConstant())));
+		//TODO add: assume newLocal instanceof newType
+//		Expression instof = foo(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
+//				newType);
+//		this.statementSwitch.push(
+//				new AssumeStatement(statementSwitch.getCurrentLoc(),
+//						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne, instof,
+//								IntegerLiteral.zero())));
 
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
 	}
+
+
+	// new InstanceOfExpression(, new
+	// IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
+	// lookupRefLikeType(arg0.getBaseType()));
 
 	/*
 	 * (non-Javadoc)
@@ -117,18 +122,22 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		MethodInfo mi = this.statementSwitch.getMethodInto();
 		Variable newLocal = mi.createFreshLocal("$newArr", newType, true, true);
 
-		this.statementSwitch.push(new AssumeStatement(
-				SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
-				new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne, new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal), this.mkNullConstant())));
+		this.statementSwitch.push(
+				new AssumeStatement(statementSwitch.getCurrentLoc(),
+						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
+								new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
+								this.mkNullConstant())));
 
 		this.statementSwitch.push(
-				new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(this.statementSwitch.getCurrentStmt()),
+				new AssumeStatement(statementSwitch.getCurrentLoc(),
 						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Eq,
-								new ArrayLengthExpression(this.statementSwitch.getCurrentLoc(), new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal)), sizeExpression)));
+								new ArrayLengthExpression(this.statementSwitch.getCurrentLoc(),
+										new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal)),
+						sizeExpression)));
 
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
 	}
-
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -139,7 +148,8 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkNewMultiArrayExpr(NewMultiArrayExpr arg0) {
 		// TODO Auto-generated method stub
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), 
+		System.err.println("New Multi-Array still not implemented");
+		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
 				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", lookupType(arg0.getType())));
 	}
 
@@ -153,7 +163,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkArrayRefExpr(ArrayRef arg0) {
 		// TODO Auto-generated method stub
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), 
+		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
 				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));
 	}
 
@@ -165,7 +175,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkStringLengthExpr(Value arg0) {
 		// TODO Auto-generated method stub
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), 
+		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
 				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));
 	}
 
@@ -224,18 +234,18 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
 	}
 
-	@Override
-	public Expression lookupClassConstant(ClassConstant arg0) {
-		if (!constantDictionary.containsKey(arg0)) {
-			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
-					"$classconst" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
-		}
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
-	}
-
+//	@Override
+//	public Expression lookupClassConstant(ClassConstant arg0) {
+//		if (!constantDictionary.containsKey(arg0)) {
+//			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
+//					"$cc" + arg0.getValue(), lookupType(arg0.getType()), true, true));
+//		}
+//		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
+//	}
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see soottocfg.soot.memory_model.MemoryModel#lookupType(soot.Type)
 	 * TODO: check which types to use for Short, Lond, Double, and Float.
 	 */
@@ -245,7 +255,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 			Type type = null;
 			if (t instanceof soot.BooleanType) {
 				type = BoolType.instance();
-			} else if (t instanceof soot.ByteType) {				
+			} else if (t instanceof soot.ByteType) {
 				type = IntType.instance();
 			} else if (t instanceof soot.CharType) {
 				type = IntType.instance();
@@ -260,7 +270,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 			} else if (t instanceof soot.ShortType) {
 				type = IntType.instance();
 			} else if (t instanceof RefLikeType) {
-				type = lookupRefLikeType((RefLikeType)t);
+				type = lookupRefLikeType((RefLikeType) t);
 			} else {
 				throw new RuntimeException("Don't know what to do with type " + t);
 			}
@@ -269,10 +279,9 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		return types.get(t);
 	}
 
-
 	protected ReferenceLikeType lookupRefLikeType(RefLikeType t) {
 		if (t instanceof ArrayType) {
-			ArrayType at = (ArrayType)t;
+			ArrayType at = (ArrayType) t;
 			Type baseType = lookupType(at.baseType);
 			List<Type> ids = new LinkedList<Type>();
 			for (int i = 0; i < at.numDimensions; i++) {
@@ -280,42 +289,58 @@ public abstract class BasicMemoryModel extends MemoryModel {
 			}
 			return new MapType(ids, baseType);
 		} else if (t instanceof RefType) {
-			return new ReferenceType(lookupClassVariable((RefType)t));
+			return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)));
 		} else if (t instanceof NullType) {
-			return (ReferenceType)this.nullConstant.getType();
+			return (ReferenceType) this.nullConstant.getType();
 		}
-		throw new UnsupportedOperationException("Unsupported type "+t.getClass());
+		throw new UnsupportedOperationException("Unsupported type " + t.getClass());
 	}
 
 	
-	public ClassVariable lookupClassVariable(RefType t) {
-		if (!classVariables.containsKey(t)) {
-			SootClass c = t.getSootClass();
-			Collection<ClassVariable> parents = new HashSet<ClassVariable>();
-			
-			if (c.resolvingLevel() >= SootClass.HIERARCHY) {
-				if (c.hasSuperclass()) {
-					parents.add(lookupClassVariable(c.getSuperclass().getType()));
+	public ClassVariable lookupClassVariable(ClassConstant cc) {
+		if (!this.constantDictionary.containsKey(cc)) {
+			final String name = cc.getValue();
+			if (Scene.v().containsClass(cc.getValue())) {
+				SootClass c = Scene.v().getSootClass(cc.getValue());
+				Collection<ClassVariable> parents = new HashSet<ClassVariable>();
+				if (c.resolvingLevel() >= SootClass.HIERARCHY) {
+					if (c.hasSuperclass()) {
+						parents.add(lookupClassVariable(ClassConstant.v(c.getSuperclass().getJavaStyleName()) ));
+					}
 				}
-			} 
-			classVariables.put(t,  new ClassVariable(c.getJavaStyleName(), parents));
-			// add the fields after that to avoid endless loop.
-			if (c.resolvingLevel() >= SootClass.SIGNATURES) {
-				List<Variable> fields = new LinkedList<Variable>();
-				for (SootField f : c.getFields()) {
-					fields.add(lookupField(f));
-				}
-				classVariables.get(t).setAssociatedFields(fields);
+				this.constantDictionary.put(cc, new ClassVariable(name, parents));				
 			} else {
-				// TODO
+				this.constantDictionary.put(cc, new ClassVariable(name, new HashSet<ClassVariable>()));
 			}
-
 		}
-		return classVariables.get(t);
+		return (ClassVariable) this.constantDictionary.get(cc);
 	}
 	
-	
-	
+//	public ClassVariable lookupClassVariable(RefType t) {
+//		if (!classVariables.containsKey(t)) {			
+//			SootClass c = t.getSootClass();
+//			Collection<ClassVariable> parents = new HashSet<ClassVariable>();
+//			if (c.resolvingLevel() >= SootClass.HIERARCHY) {
+//				if (c.hasSuperclass()) {
+//					parents.add(lookupClassVariable(c.getSuperclass().getType()));
+//				}
+//			}
+//			classVariables.put(t, new ClassVariable(c.getJavaStyleName(), parents));
+//			// add the fields after that to avoid endless loop.
+//			if (c.resolvingLevel() >= SootClass.SIGNATURES) {
+//				List<Variable> fields = new LinkedList<Variable>();
+//				for (SootField f : c.getFields()) {
+//					fields.add(lookupField(f));
+//				}
+//				classVariables.get(t).setAssociatedFields(fields);
+//			} else {
+//				// TODO
+//			}
+//
+//		}
+//		return classVariables.get(t);
+//	}
+
 	protected Variable lookupField(SootField field) {
 		if (!this.fieldGlobals.containsKey(field)) {
 			final String fieldName = field.getDeclaringClass().getName() + "." + field.getName();
@@ -324,7 +349,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		}
 		return this.fieldGlobals.get(field);
 	}
-	
+
 	protected Variable lookupStaticField(SootField field) {
 		Verify.verify(false);
 		return this.program.lookupGlobalVariable(field.getName(), lookupType(field.getType()));

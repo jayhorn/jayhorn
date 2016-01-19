@@ -27,7 +27,8 @@ public class BinaryExpression extends Expression {
 
 	public enum BinaryOperator {
 		Plus("+"), Minus("-"), Mul("*"), Div("/"), Mod("%"), And("&&"), Or("||"), Xor("^"), Implies("->"), Eq("=="), Ne(
-				"!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&");
+				"!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&"),
+		PoLeq("<:");
 
 		private final String name;
 
@@ -61,13 +62,21 @@ public class BinaryExpression extends Expression {
 				} else {
 					throw new RuntimeException();
 				}
+			} else if (right.getType() == BoolType.instance() && left instanceof IntegerLiteral) {
+				if (((IntegerLiteral) left).getValue() == 0L) {
+					left = BooleanLiteral.falseLiteral();
+				} else if (((IntegerLiteral) left).getValue() == 1L) {
+					left = BooleanLiteral.trueLiteral();
+				} else {
+					throw new RuntimeException();
+				}				
 			}
 		}
 		Preconditions.checkArgument(
 				left.getType().getClass() == right.getType().getClass()
 						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(right)
 						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(left),
-				"Types don't match: " + left.getType() + " and " + right.getType());
+				"Types don't match: " + left.getType() + " and " + right.getType() + " for "+left.toString()+op+right.toString());
 		// TODO: more type checking depending on operator
 		this.left = left;
 		this.right = right;
@@ -139,6 +148,10 @@ public class BinaryExpression extends Expression {
 			return BoolType.instance();
 		}
 
+		case PoLeq: {
+			return BoolType.instance();
+		}
+		
 		default: {
 			//TODO: more testing here?
 			return left.getType();
