@@ -62,6 +62,8 @@ import soot.jimple.TableSwitchStmt;
 import soot.jimple.ThrowStmt;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.cfg.SourceLocation;
+import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
@@ -93,8 +95,8 @@ public class SootStmtSwitch implements StmtSwitch {
 
 	private Stmt currentStmt;
 
-	protected SourceLocation loc; 
-	
+	protected SourceLocation loc;
+
 	public SootStmtSwitch(Body body, MethodInfo mi) {
 		this.methodInfo = mi;
 		this.sootBody = body;
@@ -146,7 +148,7 @@ public class SootStmtSwitch implements StmtSwitch {
 	public Stmt getCurrentStmt() {
 		return this.currentStmt;
 	}
-	
+
 	public SourceLocation getCurrentLoc() {
 		return this.loc;
 	}
@@ -172,9 +174,9 @@ public class SootStmtSwitch implements StmtSwitch {
 
 	private void connectBlocks(CfgBlock from, CfgBlock to, Expression label) {
 		Preconditions.checkArgument(!methodInfo.getMethod().containsEdge(from, to));
-		this.methodInfo.getMethod().addEdge(from, to).setLabel(label);		
-	}	
-	
+		this.methodInfo.getMethod().addEdge(from, to).setLabel(label);
+	}
+
 	private void precheck(Stmt st) {
 		this.currentStmt = st;
 		loc = SootTranslationHelpers.v().getSourceLocation(currentStmt);
@@ -261,7 +263,8 @@ public class SootStmtSwitch implements StmtSwitch {
 		precheck(arg0);
 		arg0.getCondition().apply(valueSwitch);
 		Expression cond = valueSwitch.popExpression();
-		//apply the switch twice. Otherwise the conditional and its negation are aliased.
+		// apply the switch twice. Otherwise the conditional and its negation
+		// are aliased.
 		arg0.getCondition().apply(valueSwitch);
 		Expression negCond = new UnaryExpression(loc, UnaryOperator.LNot, valueSwitch.popExpression());
 
@@ -287,7 +290,7 @@ public class SootStmtSwitch implements StmtSwitch {
 		connectBlocks(currentBlock, thenBlock, cond);
 		if (next != null) {
 			CfgBlock elseBlock = methodInfo.lookupCfgBlock(next);
-			connectBlocks(currentBlock, elseBlock,negCond);
+			connectBlocks(currentBlock, elseBlock, negCond);
 			this.currentBlock = elseBlock;
 		} else {
 			connectBlocks(currentBlock, methodInfo.getSink(), negCond);
@@ -375,7 +378,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			call.getArg(i).apply(valueSwitch);
 			args.add(valueSwitch.popExpression());
 		}
-		
+
 		Expression baseExpression = null;
 		// List of possible virtual methods that can be called at this point.
 		// Order matters here.
@@ -389,7 +392,7 @@ public class SootStmtSwitch implements StmtSwitch {
 		} else if (call instanceof StaticInvokeExpr) {
 			// no need to handle the base.
 		} else if (call instanceof DynamicInvokeExpr) {
-//			DynamicInvokeExpr divk = (DynamicInvokeExpr) call;
+			// DynamicInvokeExpr divk = (DynamicInvokeExpr) call;
 			System.err.println("Dynamic invoke translation is only a stub. Will be unsound!");
 		} else {
 			throw new RuntimeException("Cannot compute instance for " + call.getClass().toString());
@@ -406,8 +409,6 @@ public class SootStmtSwitch implements StmtSwitch {
 		this.currentBlock.addStatement(stmt);
 	}
 
-	
-	
 	/**
 	 * Check if the call is a special case such as System.exit. If so, translate
 	 * it and return true. Otherwise, ignore it and return false.
@@ -446,41 +447,46 @@ public class SootStmtSwitch implements StmtSwitch {
 		}
 
 		if (call.getMethod().getDeclaringClass().getName().contains("org.junit.Assert")) {
-			//TODO: this should not be hard coded! 
-			if (call.getMethod().getName().equals("fail")) {				
-				Stmt ret = SootTranslationHelpers.v().getDefaultReturnStatement(sootMethod.getReturnType(), currentStmt);
+			// TODO: this should not be hard coded!
+			if (call.getMethod().getName().equals("fail")) {
+				Stmt ret = SootTranslationHelpers.v().getDefaultReturnStatement(sootMethod.getReturnType(),
+						currentStmt);
 				ret.apply(this);
 				return true;
 			}
-//			if (call.getMethod().getName().equals("assertTrue")) {
-//				Preconditions.checkArgument(optionalLhs == null);
-//				int idx = 0;
-//				if (call.getArgCount() > 1) {
-//					idx = 1;
-//				}
-//				call.getArg(idx).apply(valueSwitch);
-//				Expression guard = valueSwitch.popExpression();
-//				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u), guard));
-//				return true;
-//			}
-//			if (call.getMethod().getName().equals("assertEquals")) {
-//				int idx = 0;
-//				if (call.getArgCount() > 2) {
-//					idx = 1;
-//				}
-//
-//				Preconditions.checkArgument(optionalLhs == null);
-//				call.getArg(idx).apply(valueSwitch);
-//				Expression left = valueSwitch.popExpression();
-//				call.getArg(idx + 1).apply(valueSwitch);
-//				Expression right = valueSwitch.popExpression();
-//				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u),
-//						new BinaryExpression(loc, BinaryOperator.Eq, left, right)));
-//				return true;
-//			}
+			// if (call.getMethod().getName().equals("assertTrue")) {
+			// Preconditions.checkArgument(optionalLhs == null);
+			// int idx = 0;
+			// if (call.getArgCount() > 1) {
+			// idx = 1;
+			// }
+			// call.getArg(idx).apply(valueSwitch);
+			// Expression guard = valueSwitch.popExpression();
+			// currentBlock.addStatement(new
+			// AssertStatement(SootTranslationHelpers.v().getSourceLocation(u),
+			// guard));
+			// return true;
+			// }
+			// if (call.getMethod().getName().equals("assertEquals")) {
+			// int idx = 0;
+			// if (call.getArgCount() > 2) {
+			// idx = 1;
+			// }
+			//
+			// Preconditions.checkArgument(optionalLhs == null);
+			// call.getArg(idx).apply(valueSwitch);
+			// Expression left = valueSwitch.popExpression();
+			// call.getArg(idx + 1).apply(valueSwitch);
+			// Expression right = valueSwitch.popExpression();
+			// currentBlock.addStatement(new
+			// AssertStatement(SootTranslationHelpers.v().getSourceLocation(u),
+			// new BinaryExpression(loc, BinaryOperator.Eq, left, right)));
+			// return true;
+			// }
 
-//			System.err.println("We should hardcode JUnit stuff " + call.getMethod().getDeclaringClass().getName()
-//					+ "  method " + call.getMethod().getName());
+			// System.err.println("We should hardcode JUnit stuff " +
+			// call.getMethod().getDeclaringClass().getName()
+			// + " method " + call.getMethod().getName());
 		}
 
 		if (call.getMethod().getDeclaringClass().getName().contains("com.google.common.base.")) {
@@ -491,8 +497,101 @@ public class SootStmtSwitch implements StmtSwitch {
 				currentBlock.addStatement(new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u), guard));
 				return true;
 			}
-//			System.err.println("TODO: handle Guava properly: " + call.getMethod().getSignature());
+			// System.err.println("TODO: handle Guava properly: " +
+			// call.getMethod().getSignature());
 		}
+
+		if (call.getMethod().getSignature().equals("<java.lang.Class: boolean isAssignableFrom(java.lang.Class)>")) {
+			InstanceInvokeExpr iivk = (InstanceInvokeExpr) call;
+			Verify.verify(call.getArgCount() == 1);
+			if (optionalLhs != null) {
+				optionalLhs.apply(valueSwitch);
+				Expression lhs = valueSwitch.popExpression();
+				iivk.getBase().apply(valueSwitch);
+				Expression binOpRhs = valueSwitch.popExpression();
+				call.getArg(0).apply(valueSwitch);
+				Expression binOpLhs = valueSwitch.popExpression();
+				Expression instOf = new BinaryExpression(this.getCurrentLoc(), BinaryOperator.PoLeq, binOpLhs,
+						binOpRhs);
+				currentBlock.addStatement(
+						new AssignStatement(SootTranslationHelpers.v().getSourceLocation(u), lhs, instOf));
+				return true;
+			} // otherwise ignore.
+		} else if (call.getMethod().getSignature().equals("<java.lang.Object: java.lang.Class getClass()>")) {
+			InstanceInvokeExpr iivk = (InstanceInvokeExpr) call;
+			Verify.verify(call.getArgCount() == 0);
+			if (optionalLhs != null) {
+				Value objectToGetClassFrom = iivk.getBase();
+				soot.Type t = objectToGetClassFrom.getType();
+				SootField typeField = null;
+				if (t instanceof RefType) {
+					// first make a heap-read of the type filed.
+					typeField = ((RefType) t).getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
+				} else if (t instanceof ArrayType) {
+					typeField = Scene.v().getSootClass("java.lang.Object")
+							.getFieldByName(SootTranslationHelpers.typeFieldName);
+				} else {
+					throw new RuntimeException("Not implemented. " + t + ", " + t.getClass());
+				}
+				// now get the dynamic type
+				SootTranslationHelpers.v().getMemoryModel().mkHeapReadStatement(getCurrentStmt(),
+						Jimple.v().newInstanceFieldRef(objectToGetClassFrom, typeField.makeRef()), optionalLhs);
+				return true;
+			}
+		} else if (call.getMethod().getSignature().equals("<java.lang.Class: java.lang.Object cast(java.lang.Object)>")) {
+			//TODO: we have to check if we have to throw an exception or add			
+			// E.g, String.<java.lang.Class: java.lang.Object cast(java.lang.Object)>(x); means (String)x
+			InstanceInvokeExpr iivk = (InstanceInvokeExpr) call;
+			Verify.verify(call.getArgCount() == 1);
+			if (optionalLhs != null) {
+				//TODO
+				optionalLhs.apply(valueSwitch);
+				Expression lhs = valueSwitch.popExpression();
+				iivk.getBase().apply(valueSwitch);
+				Expression binOpRhs = valueSwitch.popExpression();
+				call.getArg(0).apply(valueSwitch);
+				Expression binOpLhs = valueSwitch.popExpression();
+
+				Expression instOf = new BinaryExpression(this.getCurrentLoc(), BinaryOperator.PoLeq, binOpLhs,
+						binOpRhs);
+				currentBlock.addStatement(
+						new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u), instOf));
+
+				call.getArg(0).apply(valueSwitch);
+				Expression asgnRhs = valueSwitch.popExpression();
+				
+				currentBlock.addStatement(
+						new AssignStatement(SootTranslationHelpers.v().getSourceLocation(u), lhs, asgnRhs));
+				return true;
+
+			}
+		} else if (call.getMethod().getSignature().equals("<java.lang.Class: boolean isInstance(java.lang.Object)>")) {
+			/* E.g, 
+			 *  $r2 = class "java/lang/String";
+			 *  $z0 = virtualinvoke $r2.<java.lang.Class: boolean isInstance(java.lang.Object)>(r1);
+			 *  checks if r1 instancof String
+			 */
+			InstanceInvokeExpr iivk = (InstanceInvokeExpr) call;
+			Verify.verify(call.getArgCount() == 1);
+			if (optionalLhs != null) {
+				//TODO
+				optionalLhs.apply(valueSwitch);
+				Expression lhs = valueSwitch.popExpression();
+				iivk.getBase().apply(valueSwitch);
+				Expression binOpRhs = valueSwitch.popExpression();
+				call.getArg(0).apply(valueSwitch);
+				Expression binOpLhs = valueSwitch.popExpression();
+
+				Expression instOf = new BinaryExpression(this.getCurrentLoc(), BinaryOperator.PoLeq, binOpLhs,
+						binOpRhs);
+				currentBlock.addStatement(
+						new AssignStatement(SootTranslationHelpers.v().getSourceLocation(u), lhs, instOf));
+				return true;
+
+			}
+
+		}
+			
 
 		return false;
 	}
@@ -520,7 +619,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 		} else if (def.containsArrayRef()) {
 			// TODO:
-			System.err.println("TODO: translation for "+def + " is not yet implemented.");
+			System.err.println("TODO: translation for " + def + " is not yet implemented.");
 		} else {
 			// local to local assignment.
 			lhs.apply(valueSwitch);
@@ -530,21 +629,24 @@ public class SootStmtSwitch implements StmtSwitch {
 
 			currentBlock
 					.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(def), left, right));
-			
-			if (rhs instanceof AnyNewExpr) { //TODO: this should be implemented in the memory model.
-				AnyNewExpr anyNew = (AnyNewExpr)rhs;
+
+			if (rhs instanceof AnyNewExpr) { // TODO: this should be implemented
+												// in the memory model.
+				AnyNewExpr anyNew = (AnyNewExpr) rhs;
 				soot.Type t = anyNew.getType();
 				SootField dynTypeField = null;
-				if (t instanceof RefType) {			
-					//first make a heap-read of the type filed.
-					dynTypeField = ((RefType)t).getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
-				} else if (t instanceof ArrayType) {			
-					dynTypeField = Scene.v().getSootClass("java.lang.Object").getFieldByName(SootTranslationHelpers.typeFieldName);
+				if (t instanceof RefType) {
+					// first make a heap-read of the type filed.
+					dynTypeField = ((RefType) t).getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
+				} else if (t instanceof ArrayType) {
+					dynTypeField = Scene.v().getSootClass("java.lang.Object")
+							.getFieldByName(SootTranslationHelpers.typeFieldName);
 				} else {
-					throw new RuntimeException("Not implemented. "+ t + ", "+t.getClass());
+					throw new RuntimeException("Not implemented. " + t + ", " + t.getClass());
 				}
-				FieldRef fieldRef = Jimple.v().newInstanceFieldRef(lhs, dynTypeField.makeRef());			
-				SootTranslationHelpers.v().getMemoryModel().mkHeapWriteStatement(getCurrentStmt(), fieldRef, SootTranslationHelpers.v().getClassConstant(t));
+				FieldRef fieldRef = Jimple.v().newInstanceFieldRef(lhs, dynTypeField.makeRef());
+				SootTranslationHelpers.v().getMemoryModel().mkHeapWriteStatement(getCurrentStmt(), fieldRef,
+						SootTranslationHelpers.v().getClassConstant(t));
 			}
 		}
 	}
