@@ -28,6 +28,7 @@ import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
+import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.ArrayReadStatement;
 import soottocfg.cfg.statement.ArrayStoreStatement;
 import soottocfg.cfg.statement.AssertStatement;
@@ -37,6 +38,7 @@ import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.MapType;
+import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.soot.util.SootTranslationHelpers;
 
@@ -85,7 +87,6 @@ public class SimplCfgToProver implements ICfgToProver {
 					if (isSubtypeOf(e1.getKey(), e2.getKey())) {
 						axioms.add(prover.mkImplies(poCompare.mkExpr(new ProverExpr[] { pe, e1.getValue() }),
 								poCompare.mkExpr(new ProverExpr[] { pe, e2.getValue() })));
-
 						// because we know they are not equal.
 						axioms.add(prover.mkImplies(poCompare.mkExpr(new ProverExpr[] { pe, e1.getValue() }),
 								prover.mkNot(poCompare.mkExpr(new ProverExpr[] { pe, e2.getValue() }))));
@@ -104,6 +105,18 @@ public class SimplCfgToProver implements ICfgToProver {
 
 					}
 				}
+			}
+		}
+		return axioms;
+	}
+
+	public List<ProverExpr> generateParamTypeAxioms(Method m) {
+		List<ProverExpr> axioms = new LinkedList<ProverExpr>();
+		for (Variable v : m.getInParams()) {
+			if (v.getType() instanceof ReferenceType) {
+				ClassVariable cv = ((ReferenceType)v.getType()).getClassVariable();
+				Expression typeGuard = new BinaryExpression(null, BinaryOperator.PoLeq, new IdentifierExpression(null, v, 0), new IdentifierExpression(null, cv));
+				axioms.add(expressionToProverExpr(typeGuard));
 			}
 		}
 		return axioms;
@@ -182,23 +195,7 @@ public class SimplCfgToProver implements ICfgToProver {
 			return prover.mkEq(expressionToProverExpr(ar.getLeftValue()),
 					prover.mkVariable("dummy" + (dummyvarcounter++), lookupProverType(mt.getValueType())));
 		} else if (s instanceof ArrayStoreStatement) {
-//			ArrayStoreStatement as = (ArrayStoreStatement) s;
-			// TODO HACK
-			// if
-			// (as.getIndices()[as.getIndices().length-1].toString().contains(SootTranslationHelpers.typeFieldName))
-			// {
-			// ProverExpr store = prover.mkStore(dynamicTypeArray, new
-			// ProverExpr[]{expressionToProverExpr(as.getIndices()[0])},
-			// expressionToProverExpr(as.getValue()));
-			//
-			// ProverExpr hackityHack =
-			// prover.mkVariable("$dyntype"+(__hack_counter++),
-			// prover.getArrayType(new ProverType[]{prover.getIntType()},
-			// prover.getIntType()));
-			// dynamicTypeArray = hackityHack;
-			// return prover.mkEq(dynamicTypeArray, store);//TODO
-			// }
-			// dynamicTypeArray
+			//TODO
 		} else {
 			// TODO ignore all other statements?
 		}

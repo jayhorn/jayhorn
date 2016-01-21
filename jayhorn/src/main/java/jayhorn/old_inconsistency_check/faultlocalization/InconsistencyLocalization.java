@@ -71,8 +71,12 @@ public class InconsistencyLocalization {
 		}
 
 		List<ProverExpr> proofObligations = generatProofObligations(s2p, graph);
-
-		ProverExpr[] interpolants = computeInterpolants(proofObligations, s2p.generatedAxioms(), precondition,
+		
+		//TODO hack.
+		List<ProverExpr> axioms = ((SimplCfgToProver)s2p).generateParamTypeAxioms(graph); 
+		axioms.addAll(s2p.generatedAxioms());
+		
+		ProverExpr[] interpolants = computeInterpolants(proofObligations, axioms, precondition,
 				postcondition);
 		List<Integer> changePositions = findPositionsWhereInterpolantChanges(interpolants);
 		if (changePositions.isEmpty()) {
