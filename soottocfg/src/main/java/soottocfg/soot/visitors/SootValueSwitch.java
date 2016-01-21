@@ -24,6 +24,8 @@ import java.util.List;
 
 import soot.ArrayType;
 import soot.Local;
+import soot.NullType;
+import soot.PrimType;
 import soot.RefType;
 import soot.Scene;
 import soot.SootField;
@@ -83,6 +85,7 @@ import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.ArrayLengthExpression;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
+import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
@@ -329,8 +332,20 @@ public class SootValueSwitch implements JimpleValueSwitch {
 			typeField = ((RefType)t).getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
 		} else if (t instanceof ArrayType) {			
 			typeField = Scene.v().getSootClass("java.lang.Object").getFieldByName(SootTranslationHelpers.typeFieldName);
-		} else {
-			throw new RuntimeException("Not implemented. "+ t + ", "+t.getClass());
+		} else if (t instanceof NullType) {
+			//TODO: Warn?
+			this.expressionStack.add(BooleanLiteral.falseLiteral());
+			return;
+		} else if (t instanceof PrimType) {
+			if (arg0.getCheckType() instanceof PrimType) {
+				throw new RuntimeException("Not implemented. "+ arg0 + ", "+t.getClass());
+			} else {
+				//TODO: Warn?
+				this.expressionStack.add(BooleanLiteral.falseLiteral());
+				return;				
+			}
+		} else {			
+			throw new RuntimeException("Not implemented. "+ arg0 + ", "+t.getClass());
 		}
 		final String localName = "$tmp"+this.statementSwitch.getMethod().getActiveBody().getLocals().size();
 		Local freshLocal = Jimple.v().newLocal(localName, typeField.getType());

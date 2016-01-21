@@ -215,7 +215,6 @@ public class InconsistencyThread implements Runnable {
 		//TODO: hack
 		for (ProverExpr axiom : ((SimplCfgToProver)cfg2prover).generateParamTypeAxioms(this.method)) {
 			prover.addAssertion(axiom);
-			System.err.println(axiom);
 		}
 		
 		for (ProverExpr axiom : cfg2prover.generatedAxioms()) {
