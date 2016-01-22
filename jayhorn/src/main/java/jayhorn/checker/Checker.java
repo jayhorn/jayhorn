@@ -67,6 +67,10 @@ public class Checker {
             variables = vars;
             predicate = pred;
         }
+
+        public String toString() {
+            return "" + predicate;
+        }
     }
 
     private static class MethodContract {
@@ -81,14 +85,18 @@ public class Checker {
             this.precondition = precondition;
             this.postcondition = postcondition;
         }
+
+        public String toString() {
+            return "<" + precondition + ", " + postcondition + ">";
+        }
     }
     
     private final ProverFactory factory = new PrincessProverFactory();
 
     private final Map<CfgBlock, HornPredicate> blockPredicates =
         new LinkedHashMap<CfgBlock, HornPredicate>();
-    private Map<Method, MethodContract> methodContracts =
-        new LinkedHashMap<Method, MethodContract>();
+    private Map<String, MethodContract> methodContracts =
+        new LinkedHashMap<String, MethodContract>();
 
     ////////////////////////////////////////////////////////////////////////////
 
@@ -139,7 +147,7 @@ public class Checker {
         public MethodEncoder(Prover p, Method method) {
             this.p = p;
             this.method = method;
-            this.methodContract = methodContracts.get(method);
+            this.methodContract = methodContracts.get(method.getMethodName());
 	    this.methodPreVariables = methodContract.precondition.variables;
 
             this.methodPreExprs = new ArrayList<ProverExpr> ();
@@ -441,7 +449,7 @@ public class Checker {
 
                 final CallStatement cs = (CallStatement)s;
 		final Method calledMethod = cs.getCallTarget();
-		final MethodContract contract = methodContracts.get(calledMethod);
+		final MethodContract contract = methodContracts.get(calledMethod.getMethodName());
 
 		if (contract == null)
 		    throw new RuntimeException("Invoked method " +
@@ -449,7 +457,9 @@ public class Checker {
 					       " is unknown");
 
 		assert(calledMethod.getInParams().size() ==
-		       cs.getArguments().size());
+		       cs.getArguments().size() &&
+                       calledMethod.getInParams().size() ==
+                       contract.precondition.variables.size());
 		assert(calledMethod.getOutParam().isPresent() ==
                        ((cs.getReceiver().isPresent())));
 
@@ -685,15 +695,17 @@ public class Checker {
                 final ProverFun postPred =
                     freshHornPredicate(p, method.getMethodName() + "_post", postParams);
 
-                //		Log.info("pre: " + inParams);
-                //		Log.info("post: " + postParams);
+                Log.debug("method: " + method.getMethodName());
+                Log.debug("pre: " + inParams);
+                Log.debug("post: " + postParams);
 
                 final HornPredicate pre =
                     new HornPredicate (method.getMethodName() + "_pre", inParams, prePred);
                 final HornPredicate post =
                     new HornPredicate (method.getMethodName() + "_post", postParams, postPred);
 
-                methodContracts.put(method, new MethodContract(method, pre, post));
+                methodContracts.put(method.getMethodName(),
+                                    new MethodContract(method, pre, post));
             }
         
             Log.info("Encoding methods as Horn clauses");

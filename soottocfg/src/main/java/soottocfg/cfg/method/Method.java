@@ -291,7 +291,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		}
 		comma = "";
 		sb.append("\n");
-		if (!this.locals.isEmpty()) {
+		if (this.locals != null && !this.locals.isEmpty()) {
 			sb.append("\tlocals:\n");
 			for (Variable v : this.locals) {
 				sb.append("\t\t");
