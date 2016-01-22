@@ -413,8 +413,9 @@ public class Checker {
 					throw new RuntimeException("Invoked method " + calledMethod.getMethodName() + " is unknown");
 
 				assert (calledMethod.getInParams().size() == cs.getArguments().size()
-						&& calledMethod.getInParams().size() == contract.precondition.variables.size());
-				assert (calledMethod.getOutParam().isPresent() == ((cs.getReceiver().isPresent())));
+                                        && calledMethod.getInParams().size() == contract.precondition.variables.size());
+				assert (!cs.getReceiver().isPresent() ||
+                                        calledMethod.getReturnType().isPresent());
 
 				final List<Variable> receiverVars = new ArrayList<Variable>();
 				if (cs.getReceiver().isPresent())
@@ -425,7 +426,7 @@ public class Checker {
 
 				final ProverExpr[] actualInParams = new ProverExpr[calledMethod.getInParams().size()];
 				final ProverExpr[] actualPostParams = new ProverExpr[calledMethod.getInParams().size()
-						+ (calledMethod.getOutParam().isPresent() ? 1 : 0)];
+						+ (calledMethod.getReturnType().isPresent() ? 1 : 0)];
 
 				int cnt = 0;
 				for (Expression e : cs.getArguments()) {
@@ -449,7 +450,12 @@ public class Checker {
 					} else {
 						throw new RuntimeException("only assignments to variables are supported, " + "not to " + lhs);
 					}
-				}
+				} else if (calledMethod.getReturnType().isPresent()) {
+                                    final ProverExpr callRes =
+                                        p.mkHornVariable("callRes_" + newVarNum(),
+                                                         getProverType(calledMethod.getReturnType().get()));
+                                    actualPostParams[cnt++] = callRes;
+                                }
 
 				final ProverExpr preCondAtom = contract.precondition.predicate.mkExpr(actualInParams);
 				clauses.add(p.mkHornClause(preCondAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
@@ -604,7 +610,9 @@ public class Checker {
 				final List<Variable> postParams = new ArrayList<Variable>();
 				postParams.addAll(method.getInParams());
 				if (method.getOutParam().isPresent()) {
-					postParams.add(method.getOutParam().get());
+                                    postParams.add(method.getOutParam().get());
+                                } else if (method.getReturnType().isPresent()) {
+                                    postParams.add(new Variable ("resultVar", method.getReturnType().get()));
 				}
 
 				final ProverFun prePred = freshHornPredicate(p, method.getMethodName() + "_pre", inParams);
