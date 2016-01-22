@@ -735,7 +735,7 @@ public class Checker {
 		    p.addAssertion(clause);
 
 		// add an entry clause from the preconditions
-		final HornPredicate entryPred = methodContracts.get(method).precondition;
+		final HornPredicate entryPred = methodContracts.get(method.getMethodName()).precondition;
 		final List<ProverExpr> entryVars = new ArrayList<ProverExpr>();
 		final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
 		createVarMap(p, entryPred.variables, entryVars, varMap);
