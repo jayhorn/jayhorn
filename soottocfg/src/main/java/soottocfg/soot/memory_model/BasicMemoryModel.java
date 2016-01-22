@@ -20,6 +20,7 @@ import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
+import soot.Unit;
 import soot.Value;
 import soot.jimple.ArrayRef;
 import soot.jimple.ClassConstant;
@@ -33,7 +34,6 @@ import soot.jimple.StringConstant;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.Variable;
-import soottocfg.cfg.expression.ArrayLengthExpression;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
@@ -75,6 +75,18 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		return (e instanceof IdentifierExpression && ((IdentifierExpression) e).getVariable() == nullConstant);
 	}
 
+	
+	@Override
+	public void mkArrayWriteStatement(Unit u, ArrayRef arrayRef, Value rhs) {
+		
+	}
+
+	@Override
+	public void mkArrayReadStatement(Unit u, ArrayRef arrayRef, Value lhs) {
+		
+	}
+
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -115,9 +127,6 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkNewArrayExpr(NewArrayExpr arg0) {
-		arg0.getSize().apply(valueSwitch);
-		Expression sizeExpression = valueSwitch.popExpression();
-
 		Type newType = this.lookupType(arg0.getType());
 		MethodInfo mi = this.statementSwitch.getMethodInto();
 		Variable newLocal = mi.createFreshLocal("$newArr", newType, true, true);
@@ -128,12 +137,15 @@ public abstract class BasicMemoryModel extends MemoryModel {
 								new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
 								this.mkNullConstant())));
 
-		this.statementSwitch.push(
-				new AssumeStatement(statementSwitch.getCurrentLoc(),
-						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Eq,
-								new ArrayLengthExpression(this.statementSwitch.getCurrentLoc(),
-										new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal)),
-						sizeExpression)));
+		//TODO
+//		arg0.getSize().apply(valueSwitch);
+//		Expression sizeExpression = valueSwitch.popExpression();
+//		this.statementSwitch.push(
+//				new AssumeStatement(statementSwitch.getCurrentLoc(),
+//						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Eq,
+//								new ArrayLengthExpression(this.statementSwitch.getCurrentLoc(),
+//										new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal)),
+//						sizeExpression)));
 
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
 	}
@@ -156,25 +168,10 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * jayhorn.soot.memory_model.MemoryModel#mkArrayRefExpr(soot.jimple.ArrayRef
-	 * )
-	 */
-	@Override
-	public Expression mkArrayRefExpr(ArrayRef arg0) {
-		// TODO Auto-generated method stub
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
-				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see jayhorn.soot.memory_model.MemoryModel#mkStringLengthExpr(soot.Value)
 	 */
 	@Override
 	public Expression mkStringLengthExpr(Value arg0) {
-		// TODO Auto-generated method stub
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
 				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));
 	}

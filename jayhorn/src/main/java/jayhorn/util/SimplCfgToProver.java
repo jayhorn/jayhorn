@@ -186,9 +186,14 @@ public class SimplCfgToProver implements ICfgToProver {
 			ArrayReadStatement ar = (ArrayReadStatement) s;
 			// TODO HACK
 			if (ar.getIndices()[ar.getIndices().length - 1].toString().contains(SootTranslationHelpers.typeFieldName)) {
+				//special handling for dynamic types
 				ProverExpr arrAccess = prover.mkSelect(dynamicTypeArray,
 						new ProverExpr[] { expressionToProverExpr(ar.getIndices()[0]) });
 				return prover.mkEq(expressionToProverExpr(ar.getLeftValue()), arrAccess);
+			}
+			if (ar.getIndices()[ar.getIndices().length - 1].toString().contains(SootTranslationHelpers.lengthFieldName)) {
+				return prover.mkEq(expressionToProverExpr(ar.getLeftValue()), arrayLength
+						.mkExpr(new ProverExpr[] { expressionToProverExpr(ar.getIndices()[ar.getIndices().length - 2] ) }));
 			}
 
 			MapType mt = (MapType) ar.getBase().getType();

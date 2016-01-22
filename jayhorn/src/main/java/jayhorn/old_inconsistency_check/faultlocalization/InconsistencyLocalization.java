@@ -80,13 +80,14 @@ public class InconsistencyLocalization {
 				postcondition);
 		List<Integer> changePositions = findPositionsWhereInterpolantChanges(interpolants);
 		if (changePositions.isEmpty()) {
-			System.err.println("Nothing changed for " + graph);
-			System.err.println("Pre " + precondition);
-			System.err.println("Post " + postcondition);
-			for (int i = 0; i < interpolants.length; i++) {
-				System.err.println("Interpolant " + i + ": " + interpolants[i]);
-			}
+//			System.err.println("Nothing changed for " + graph);
+//			System.err.println("Pre " + precondition);
+//			System.err.println("Post " + postcondition);
 		}
+//		for (int i = 0; i < interpolants.length; i++) {
+//			System.err.println("Interpolant " + i + ": " + interpolants[i]);
+//		}
+
 		for (Integer i : changePositions) {
 			Verify.verify(proofObligations.size() > i);
 			ProverExpr pe = proofObligations.get(i);

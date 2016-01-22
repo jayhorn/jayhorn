@@ -19,6 +19,7 @@ import org.junit.runners.Parameterized;
 import jayhorn.old_inconsistency_check.InconsistencyChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
+import jayhorn.solver.z3.Z3ProverFactory;
 import jayhorn.test.Util;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.soot.SootToCfg;
@@ -72,10 +73,10 @@ public class InconsistencyTest {
 		oldAlgorithm(new PrincessProverFactory());
 	}
 
-//	@Test
-//	public void testOldAlgorithmWithZ3() {
-//		oldAlgorithm(new Z3ProverFactory());
-//	}
+	@Test
+	public void testOldAlgorithmWithZ3() {
+		oldAlgorithm(new Z3ProverFactory());
+	}
 
 	
 	protected void oldAlgorithm(ProverFactory factory) {

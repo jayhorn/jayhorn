@@ -28,6 +28,8 @@ import com.google.common.base.Verify;
 
 import soot.ArrayType;
 import soot.Body;
+import soot.IntType;
+import soot.Local;
 import soot.PatchingChain;
 import soot.RefType;
 import soot.Scene;
@@ -36,6 +38,7 @@ import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
 import soot.jimple.AnyNewExpr;
+import soot.jimple.ArrayRef;
 import soot.jimple.AssignStmt;
 import soot.jimple.BreakpointStmt;
 import soot.jimple.DefinitionStmt;
@@ -50,7 +53,9 @@ import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.InvokeStmt;
 import soot.jimple.Jimple;
+import soot.jimple.LengthExpr;
 import soot.jimple.LookupSwitchStmt;
+import soot.jimple.NewArrayExpr;
 import soot.jimple.NopStmt;
 import soot.jimple.RetStmt;
 import soot.jimple.ReturnStmt;
@@ -71,6 +76,7 @@ import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
+import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.soot.util.MethodInfo;
@@ -618,8 +624,17 @@ public class SootStmtSwitch implements StmtSwitch {
 				throw new RuntimeException("what?");
 			}
 		} else if (def.containsArrayRef()) {
-			// TODO:
-			System.err.println("TODO: translation for " + def + " is not yet implemented.");
+			if (lhs instanceof ArrayRef) {
+				SootTranslationHelpers.v().getMemoryModel().mkArrayWriteStatement(def, (ArrayRef)lhs, rhs);
+			} else {
+				SootTranslationHelpers.v().getMemoryModel().mkArrayReadStatement(def, (ArrayRef)rhs, lhs);
+			}
+		} else if (rhs instanceof LengthExpr) {
+			LengthExpr le = (LengthExpr)rhs;
+			SootField lengthField = SootTranslationHelpers.v().getFakeArrayClass((ArrayType)le.getOp().getType())
+					.getFieldByName(SootTranslationHelpers.lengthFieldName);
+			FieldRef lengthFieldRef = Jimple.v().newInstanceFieldRef(le.getOp(), lengthField.makeRef());			
+			SootTranslationHelpers.v().getMemoryModel().mkHeapReadStatement(def, lengthFieldRef, lhs);
 		} else {
 			// local to local assignment.
 			lhs.apply(valueSwitch);
@@ -639,7 +654,7 @@ public class SootStmtSwitch implements StmtSwitch {
 					// first make a heap-read of the type filed.
 					dynTypeField = ((RefType) t).getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
 				} else if (t instanceof ArrayType) {
-					dynTypeField = Scene.v().getSootClass("java.lang.Object")
+					dynTypeField = SootTranslationHelpers.v().getFakeArrayClass((ArrayType)t)
 							.getFieldByName(SootTranslationHelpers.typeFieldName);
 				} else {
 					throw new RuntimeException("Not implemented. " + t + ", " + t.getClass());
@@ -647,6 +662,20 @@ public class SootStmtSwitch implements StmtSwitch {
 				FieldRef fieldRef = Jimple.v().newInstanceFieldRef(lhs, dynTypeField.makeRef());
 				SootTranslationHelpers.v().getMemoryModel().mkHeapWriteStatement(getCurrentStmt(), fieldRef,
 						SootTranslationHelpers.v().getClassConstant(t));
+								
+				if (rhs instanceof NewArrayExpr) {
+					//assert the length of the new array.
+					Local sizeLocal = Jimple.v().newLocal("$arrSizeLocal"+this.sootMethod.getActiveBody().getLocalCount(), IntType.v());
+					this.sootMethod.getActiveBody().getLocals().add(sizeLocal);
+					//create a temporary lengthof expression and translate it.
+					translateDefinitionStmt(Jimple.v().newAssignStmt(sizeLocal, Jimple.v().newLengthExpr(lhs)));
+					
+					((NewArrayExpr)rhs).getSize().apply(valueSwitch);
+					Expression arraySizeExpr = valueSwitch.popExpression();
+					sizeLocal.apply(valueSwitch);
+					Expression arraySizeLhs = valueSwitch.popExpression();
+					currentBlock.addStatement(new AssumeStatement(getCurrentLoc(), new BinaryExpression(getCurrentLoc(), BinaryOperator.Eq, arraySizeLhs, arraySizeExpr)));
+				}
 			}
 		}
 	}

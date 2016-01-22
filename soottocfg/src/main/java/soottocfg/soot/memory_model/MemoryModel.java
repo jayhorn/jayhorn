@@ -44,13 +44,15 @@ public abstract class MemoryModel {
 
 	public abstract void mkHeapReadStatement(Unit u, FieldRef field, Value lhs);
 
+	public abstract void mkArrayWriteStatement(Unit u, ArrayRef arrayRef, Value rhs);
+
+	public abstract void mkArrayReadStatement(Unit u, ArrayRef arrayRef, Value lhs);
+	
 	public abstract Expression mkNewExpr(NewExpr arg0);
 
 	public abstract Expression mkNewArrayExpr(NewArrayExpr arg0);
 
 	public abstract Expression mkNewMultiArrayExpr(NewMultiArrayExpr arg0);
-
-	public abstract Expression mkArrayRefExpr(ArrayRef arg0);
 
 	public abstract Expression mkStringLengthExpr(Value arg0);
 

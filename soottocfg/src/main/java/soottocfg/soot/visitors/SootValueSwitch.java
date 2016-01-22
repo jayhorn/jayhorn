@@ -374,6 +374,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseLengthExpr(LengthExpr arg0) {
+		//TODO: remove
 		arg0.getOp().apply(this);
 		Expression inner = this.popExpression();
 		this.expressionStack.add(new ArrayLengthExpression(statementSwitch.getCurrentLoc(), inner));
@@ -469,7 +470,8 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseArrayRef(ArrayRef arg0) {
-		this.expressionStack.add(this.memoryModel.mkArrayRefExpr(arg0));
+//		this.expressionStack.add(this.memoryModel.mkArrayRefExpr(arg0));
+		throw new RuntimeException("Should be handled in statement switch.");
 	}
 
 	@Override
