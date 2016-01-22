@@ -76,7 +76,7 @@ public enum SootTranslationHelpers {
 		arrayTypes.clear();
 	}
 
-	private Map<soot.ArrayType, SootClass> arrayTypes = new HashMap<soot.ArrayType, SootClass>();
+	private transient Map<soot.ArrayType, SootClass> arrayTypes = new HashMap<soot.ArrayType, SootClass>();
 
 	public SootClass getFakeArrayClass(soot.ArrayType t) {
 		if (!arrayTypes.containsKey(t)) {
