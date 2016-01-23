@@ -71,10 +71,10 @@ public class Command {
     this.console = nonNullBuilder.console;
 
     // checks if we maxed out the number of budgeted arguments
-    if (nonNullBuilder.maxArgsLength != -1) {
+    if (nonNullBuilder.maxCommandLength != -1) {
       final String string = toString();
-      if (string.length() > nonNullBuilder.maxArgsLength) {
-        throw new IllegalStateException("Maximum command length " + nonNullBuilder.maxArgsLength
+      if (string.length() > nonNullBuilder.maxCommandLength) {
+        throw new IllegalStateException("Maximum command length " + nonNullBuilder.maxCommandLength
           + " exceeded by: " + string);
       }
     }
@@ -192,7 +192,7 @@ public class Command {
     private File        workingDirectory;
     private boolean     permitNonZeroExitStatus;
     private PrintStream console;
-    private int         maxArgsLength;
+    private int         maxCommandLength;
 
 
     /**
@@ -207,7 +207,7 @@ public class Command {
       this.permitNonZeroExitStatus  = false;
 
       this.console = null;
-      this.maxArgsLength = Integer.MAX_VALUE;
+      this.maxCommandLength = Integer.MAX_VALUE;
 
       this.args = new ArrayList<>();
       this.env  = new LinkedHashMap<>();
@@ -250,8 +250,8 @@ public class Command {
       return this;
     }
 
-    public Builder maxArgsLength(int maxLength) {
-      this.maxArgsLength = maxLength;
+    public Builder maxCommandLength(int maxLength) {
+      this.maxCommandLength = maxLength;
       return this;
     }
 

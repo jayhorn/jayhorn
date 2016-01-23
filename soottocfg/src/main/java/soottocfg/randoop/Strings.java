@@ -1,6 +1,7 @@
 package soottocfg.randoop;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.StringJoiner;
 
 
@@ -14,12 +15,7 @@ public class Strings {
   }
 
   static <T> String joinCollection(String delimiter, Collection<T> entries){
-    StringJoiner joiner = new StringJoiner(delimiter);
-    for (T cs: entries) {
-      joiner.add(cs.toString());
-    }
-
-    return joiner.toString();
+    return java6LikeJoin(delimiter, entries);
   }
 
   public static String[] generateArrayOfStrings(Object[] objects) {
@@ -34,6 +30,21 @@ public class Strings {
 
   public static String[] generateArrayOfStrings(Collection<?> objects) {
     return generateArrayOfStrings(objects.toArray());
+  }
+
+  private static <T> String java6LikeJoin(String delimiter, Collection<T> data){
+    final Iterator<T> iterator = data.iterator();
+    final StringBuilder stringBuilder = new StringBuilder();
+
+    if (iterator.hasNext()) {
+      stringBuilder.append(iterator.next());
+
+      while (iterator.hasNext()) {
+        stringBuilder.append(delimiter).append(iterator.next());
+      }
+    }
+
+    return stringBuilder.toString();
   }
 
 }
