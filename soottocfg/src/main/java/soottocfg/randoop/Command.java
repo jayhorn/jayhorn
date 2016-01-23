@@ -136,27 +136,28 @@ public class Command {
       throw new IllegalStateException("Not started!");
     }
 
-    final BufferedReader bufferedReader = new BufferedReader(
+    try (BufferedReader bufferedReader = new BufferedReader(
       new InputStreamReader(getInputStream(), "UTF-8")
-    );
+    )) {
+      final List<String> outputLines = new ArrayList<>();
+      String outputLine;
+      while ((outputLine = bufferedReader.readLine()) != null) {
+        if (console != null) {
+          console.println(outputLine);
+        }
 
-    final List<String> outputLines = new ArrayList<>();
-    String outputLine;
-    while ((outputLine = bufferedReader.readLine()) != null) {
-      if (console != null) {
-        console.println(outputLine);
+        outputLines.add(outputLine);
       }
 
-      outputLines.add(outputLine);
+      int exitValue = process.waitFor();
+
+      if (exitValue != 0 && !permitNonZeroExitStatus) {
+        throw new CommandFailedException(args, outputLines);
+      }
+
+      return outputLines;
+
     }
-
-    int exitValue = process.waitFor();
-
-    if (exitValue != 0 && !permitNonZeroExitStatus) {
-      throw new CommandFailedException(args, outputLines);
-    }
-
-    return outputLines;
   }
 
 
@@ -219,9 +220,9 @@ public class Command {
     }
 
     public Builder arguments(List<?> args){
-      this.args.addAll(args.stream()
-        .map(Object::toString)
-        .collect(Collectors.toList()));
+      for (Object eachObject : args) {
+        this.args.add(eachObject.toString());
+      }
 
       return this;
     }

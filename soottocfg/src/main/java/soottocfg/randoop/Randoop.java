@@ -1,6 +1,7 @@
 package soottocfg.randoop;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -99,10 +100,10 @@ public class Randoop {
   }
 
   public RandoopBuilder classpath(String... path) {
-    final List<File> paths = Arrays.asList(path)
-      .stream()
-      .map(File::new)
-      .collect(Collectors.toList());
+    final List<File> paths = new ArrayList<>();
+    for(String eachPath : path){
+      paths.add(new File(eachPath));
+    }
 
     return classpath(paths);
   }

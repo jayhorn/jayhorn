@@ -62,7 +62,9 @@ public class Javac {
   }
 
   public void log(List<String> output){
-    output.forEach(javacLog::info);
+    for(String eachString : output){
+      javacLog.info(eachString);
+    }
   }
 
   public Javac sourcepath(Collection<File> path) {
