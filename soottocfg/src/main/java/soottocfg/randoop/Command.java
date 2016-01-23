@@ -177,7 +177,7 @@ public class Command {
 
   @Override public String toString() {
     String envString = !environment.isEmpty() ? (Strings.joinCollection(" ", environment.entrySet()) + " ") : "";
-    return envString + String.join(" ", args);
+    return envString + Strings.joinCollection(" ", args);
   }
 
 
