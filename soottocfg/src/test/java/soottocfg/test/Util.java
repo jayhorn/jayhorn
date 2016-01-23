@@ -5,8 +5,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
+import java.util.List;
 
 import com.google.common.io.Files;
+import soottocfg.randoop.Javac;
 
 public final class Util {
 
@@ -61,45 +63,48 @@ public final class Util {
 	 * Compiles a sourceFile into a temp folder and returns this folder or null
 	 * if compilation fails.
 	 * 
-	 * @param sourceFile
+	 * @param sourceFile the source file to compile
 	 * @return the folder that contains the class file(s) or null if compilation
 	 *         fails.
 	 * @throws IOException
 	 */
 	public static File compileJavaFile(File sourceFile) throws IOException {
 		final File tempDir = Files.createTempDir();
-		final String javac_command = String.format("javac -g %s -d %s", sourceFile.getAbsolutePath(),
-				tempDir.getAbsolutePath());
 
-		ProcessBuilder pb = new ProcessBuilder(javac_command.split(" "));
-		pb.redirectOutput(Redirect.INHERIT);
-		pb.redirectError(Redirect.INHERIT);
-		Process p = pb.start();
+		final Javac javac = new Javac()
+			.debug()
+			.destination(tempDir);
 
-		try {
-			p.waitFor();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			return null;
+		final List<String> output = javac.compile(sourceFile);
+
+		if(javac.inDebugMode()){
+			javac.log(output);
 		}
 
 		return tempDir;
 	}
 
 	protected static void printJavaCVersion() {
-		final String javac_command = "javac -version";
 
-		ProcessBuilder pb = new ProcessBuilder(javac_command.split(" "));
-		pb.redirectOutput(Redirect.INHERIT);
-		pb.redirectError(Redirect.INHERIT);
-		try {
-			Process p = pb.start();
-			p.waitFor();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+		final Javac javac = new Javac();
+		final List<String> output = javac.echoVersion();
+
+		if(!output.isEmpty()){
+			javac.log(output);
 		}
+
+
+//		final String javac_command = "javac -version";
+//
+//		ProcessBuilder pb = new ProcessBuilder(javac_command.split(" "));
+//		pb.redirectOutput(Redirect.INHERIT);
+//		pb.redirectError(Redirect.INHERIT);
+//		try {
+//			Process p = pb.start();
+//			p.waitFor();
+//		} catch (InterruptedException | IOException e) {
+//			e.printStackTrace();
+//		}
 
 	}
 
@@ -107,7 +112,7 @@ public final class Util {
 	 * Compiles a set of sourceFiles into a temp folder and returns this folder
 	 * or null if compilation fails.
 	 * 
-	 * @param sourceFile
+	 * @param sourceFiles the source files to compile
 	 * @return the folder that contains the class file(s) or null if compilation
 	 *         fails.
 	 * @throws IOException
