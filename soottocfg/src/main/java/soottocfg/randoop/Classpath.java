@@ -20,7 +20,7 @@ public class Classpath {
 
   public static Classpath of(Collection<File> files) {
     Classpath result = new Classpath();
-    result.elements.addAll(files);
+    result.addAll(files);
     return result;
   }
 
