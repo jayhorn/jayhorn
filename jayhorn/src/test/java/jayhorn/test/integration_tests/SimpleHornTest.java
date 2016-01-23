@@ -81,7 +81,7 @@ public class SimpleHornTest {
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg(false, true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
-			Checker checker = new Checker();
+			Checker checker = new Checker(factory);
 			boolean result = checker.checkProgram(soot2cfg.getProgram());
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);

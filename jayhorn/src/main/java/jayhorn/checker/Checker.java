@@ -90,7 +90,11 @@ public class Checker {
 		}
 	}
 
-	private final ProverFactory factory = new PrincessProverFactory();
+	private final ProverFactory factory;
+	
+	public Checker(ProverFactory fac) {
+		this.factory = fac;
+	}
 
 	private final Map<CfgBlock, HornPredicate> blockPredicates = new LinkedHashMap<CfgBlock, HornPredicate>();
 	private Map<String, MethodContract> methodContracts = new LinkedHashMap<String, MethodContract>();
