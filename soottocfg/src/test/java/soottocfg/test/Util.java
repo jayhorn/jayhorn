@@ -1,61 +1,34 @@
 package soottocfg.test;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.lang.ProcessBuilder.Redirect;
-import java.util.List;
-
 import com.google.common.io.Files;
 import soottocfg.randoop.Javac;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
+import java.nio.charset.Charset;
+import java.util.List;
 
 public final class Util {
 
 	@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "DM_DEFAULT_ENCODING")
 	public static String fileToString(File f) {
-		StringBuffer sb = new StringBuffer();
-		try (FileReader fileRead = new FileReader(f); BufferedReader reader = new BufferedReader(fileRead);) {
-			String line;
-			while (true) {
-				line = reader.readLine();
-				if (line == null)
-					break;
-				sb.append(line);
-				sb.append("\n");
-			}
-		} catch (Throwable e) {
-
+		try {
+			return Files.toString(f, Charset.defaultCharset());
+		} catch (IOException e) {
+			return ""; // nothing was read
 		}
-		return sb.toString();
 	}
 
 	@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "DM_DEFAULT_ENCODING")
 	public static boolean compareFiles(File out, File gold) {
-		try (FileReader fR1 = new FileReader(out);
-				FileReader fR2 = new FileReader(gold);
-				BufferedReader reader1 = new BufferedReader(fR1);
-				BufferedReader reader2 = new BufferedReader(fR2);) {
-			String line1, line2;
-			while (true) // Continue while there are equal lines
-			{
-				line1 = reader1.readLine();
-				line2 = reader2.readLine();
 
-				// End of file 1
-				if (line1 == null) {
-					// Equal only if file 2 also ended
-					return (line2 == null ? true : false);
-				}
-
-				// Different lines, or end of file 2
-				if (!line1.equalsIgnoreCase(line2)) {
-					return false;
-				}
-			}
+		try {
+			return Files.equal(out, gold);
 		} catch (IOException e) {
-			e.printStackTrace();
+			e.printStackTrace(System.err);
 		}
+
 		return false;
 	}
 
@@ -85,27 +58,8 @@ public final class Util {
 	}
 
 	protected static void printJavaCVersion() {
-
 		final Javac javac = new Javac();
-		final List<String> output = javac.echoVersion();
-
-		if(!output.isEmpty()){
-			javac.log(output);
-		}
-
-
-//		final String javac_command = "javac -version";
-//
-//		ProcessBuilder pb = new ProcessBuilder(javac_command.split(" "));
-//		pb.redirectOutput(Redirect.INHERIT);
-//		pb.redirectError(Redirect.INHERIT);
-//		try {
-//			Process p = pb.start();
-//			p.waitFor();
-//		} catch (InterruptedException | IOException e) {
-//			e.printStackTrace();
-//		}
-
+		javac.log(javac.version());
 	}
 
 	/**

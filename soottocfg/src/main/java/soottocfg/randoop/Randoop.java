@@ -1,7 +1,6 @@
 package soottocfg.randoop;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -21,7 +20,7 @@ public class Randoop {
   /**
    * Constructs a Randoop command.
    */
-  public Randoop(){
+  Randoop(){
    this(new BasicExecutionLog(System.out));
   }
 
@@ -32,8 +31,10 @@ public class Randoop {
    * @param java java command
    */
   Randoop(ExecutionLog log, String java){
-    this.builder = Command.of(log);
-    builder.args(java);
+    this.builder = Command.of(log)
+      .console(System.out);
+
+    builder.arguments(java);
   }
 
   /**
@@ -45,8 +46,55 @@ public class Randoop {
     this(log, "java");
   }
 
+  /**
+   * @return randoop.jar file.
+   */
+  public static File randoopJar(){
+    return Randoop.of(System.getProperty("user.dir") + "/soottocfg/lib/randoop-2.1.1.jar");
+  }
+
+  /**
+   * @return the location of dynamic tests
+   */
+  public static File defaultOutput(){
+    return Randoop.of(System.getProperty("user.dir") + "src/test/resources/");
+  }
+
+  /**
+   * Creates a File object for an object located at a given path,
+   * where object is either a single file or a directory.
+   *
+   * @param path the path of the object.
+   * @return new file object
+   */
+  public static File of(String path){
+    return new File(path);
+  }
+
+  /**
+   * Starts the randoop configuration process.
+   *
+   * @return a new RandoopBuilder object.
+   */
+  public static RandoopBuilder configure(){
+    return configure(Randoop.defaultOutput());
+  }
+
+  /**
+   * Starts the randoop configuration process.
+   *
+   * @param destination the destination where generated files will be placed.
+   * @return a new RandoopBuilder object.
+   */
+  public static RandoopBuilder configure(File destination){
+    return new Randoop()
+      .enableAssertions()
+      .classpath(Randoop.randoopJar())
+      .destination(destination);
+  }
+
   public Randoop enableAssertions(){
-    builder.args("-ea");
+    builder.arguments("-ea");
     return this;
   }
 
@@ -69,7 +117,7 @@ public class Randoop {
     final Classpath classpath = Classpath.of(paths);
 
     if(classpath.isEmpty()){
-      builder.args(
+      builder.arguments(
         "-classpath",
         TOOL, MAIN, GENERATE
       );
@@ -82,12 +130,12 @@ public class Randoop {
   }
 
   private Randoop classpath(Classpath classpath) {
-    builder.args("-classpath", classpath.toString());
+    builder.arguments("-classpath", classpath.toString());
     return this;
   }
 
   private Randoop extraArgs(List<String> extra) {
-    builder.args(extra);
+    builder.arguments(extra);
     return this;
   }
 
@@ -103,12 +151,12 @@ public class Randoop {
     }
 
     public RandoopBuilder testClass(String fullyQualifiedClassName){
-      builder.args("--testclass=" + Objects.requireNonNull(fullyQualifiedClassName));
+      builder.arguments("--testclass=" + Objects.requireNonNull(fullyQualifiedClassName));
       return this;
     }
 
     public RandoopBuilder classList(File classListFile){
-      builder.args(
+      builder.arguments(
         "--classlist=" +
         Classpath.of(
           Objects.requireNonNull(classListFile)
@@ -118,17 +166,17 @@ public class Randoop {
     }
 
     public RandoopBuilder destination(File directory) {
-      builder.args("--junit-output-dir=" + directory.toString());
+      builder.arguments("--junit-output-dir=" + directory.toString());
       return this;
     }
 
     public RandoopBuilder timeLimit(int seconds){
-      builder.args("--timelimit=" + seconds);
+      builder.arguments("--timelimit=" + seconds);
       return this;
     }
 
     public RandoopBuilder silentlyIgnoreBadClassNames(){
-      builder.args("--silently-ignore-bad-class-names=true");
+      builder.arguments("--silently-ignore-bad-class-names=true");
       return this;
     }
 
@@ -139,16 +187,12 @@ public class Randoop {
   }
 
   public static void main(String[] args) {
-    final File file = Paths.get(
-      System.getProperty("user.dir") + "/soottocfg/lib/randoop-2.1.0.jar"
-    ).toFile();
 
-    final Randoop randoop = new Randoop().enableAssertions();
-    randoop.classpath(file)
-      .destination(new File("/Users/hsanchez/dev/throwaway/garbage/"))
+    Randoop.configure(Randoop.of("/Users/hsanchez/dev/throwaway/garbage/"))
       .testClass("java.util.TreeSet")
       .silentlyIgnoreBadClassNames()
       .timeLimit(60)
       .execute();
+
   }
 }

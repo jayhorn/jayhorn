@@ -25,7 +25,7 @@ public class Javac {
 
   Javac(ExecutionLog log, String javac){
     this.builder = Command.of(log);
-    builder.args(javac);
+    builder.arguments(javac);
     this.debugMode = false;
     this.javacLog  = log;
   }
@@ -35,7 +35,7 @@ public class Javac {
   }
 
   public Javac bootClasspath(Classpath classpath) {
-    builder.args("-bootclasspath", classpath.toString());
+    builder.arguments("-bootclasspath", classpath.toString());
     return this;
   }
 
@@ -44,16 +44,16 @@ public class Javac {
   }
 
   public Javac classpath(Classpath classpath) {
-    builder.args("-classpath", classpath.toString());
+    builder.arguments("-classpath", classpath.toString());
     return this;
   }
 
-  public List<String> echoVersion(){
-    return builder.args("-version").execute();
+  public List<String> version(){
+    return builder.arguments("-version").execute();
   }
 
   public Javac sourcepath(File... path) {
-    builder.args("-sourcepath", Classpath.of(path).toString());
+    builder.arguments("-sourcepath", Classpath.of(path).toString());
     return this;
   }
 
@@ -66,17 +66,17 @@ public class Javac {
   }
 
   public Javac sourcepath(Collection<File> path) {
-    builder.args("-sourcepath", Classpath.of(path).toString());
+    builder.arguments("-sourcepath", Classpath.of(path).toString());
     return this;
   }
 
   public Javac destination(File directory) {
-    builder.args("-d", directory.toString());
+    builder.arguments("-d", directory.toString());
     return this;
   }
 
   public Javac debug() {
-    builder.args("-g");
+    builder.arguments("-g");
     debugMode = true;
     return this;
   }
@@ -86,12 +86,12 @@ public class Javac {
   }
 
   public Javac extraArgs(List<String> extra) {
-    builder.args(extra);
+    builder.arguments(extra);
     return this;
   }
 
   public List<String> compile(Collection<File> files) {
-    return builder.args((Object[]) Strings.generateArrayOfStrings(files)).execute();
+    return builder.arguments((Object[]) Strings.generateArrayOfStrings(files)).execute();
   }
 
   public List<String> compile(File... files) {
