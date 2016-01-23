@@ -17,6 +17,7 @@ import org.junit.runners.Parameterized;
 import jayhorn.checker.Checker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
+import jayhorn.solver.z3.Z3ProverFactory;
 import jayhorn.test.Util;
 import soottocfg.soot.SootToCfg;
 
@@ -67,10 +68,10 @@ public class SimpleHornTest {
 		oldAlgorithm(new PrincessProverFactory());
 	}
 
-//	@Test
-//	public void testOldAlgorithmWithZ3() {
-//		oldAlgorithm(new Z3ProverFactory());
-//	}
+	@Test
+	public void testOldAlgorithmWithZ3() {
+		oldAlgorithm(new Z3ProverFactory());
+	}
 
 	
 	protected void oldAlgorithm(ProverFactory factory) {
@@ -81,8 +82,9 @@ public class SimpleHornTest {
 			SootToCfg soot2cfg = new SootToCfg(false, true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			Checker checker = new Checker();
-			checker.checkProgram(soot2cfg.getProgram());
-			
+			boolean result = checker.checkProgram(soot2cfg.getProgram());
+			boolean expected = this.sourceFile.getName().startsWith("Sat");
+			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
 
 		} catch (IOException e) {
 			e.printStackTrace();
