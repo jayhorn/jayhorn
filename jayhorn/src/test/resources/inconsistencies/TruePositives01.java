@@ -76,7 +76,7 @@ public class TruePositives01 {
 //	
 	public int infeasible6(int[] arr) {
 		return arr[-1] + arr[arr.length]; // INFEASIBLE
-	}	
+	}
 	
 //	public void infeasible07(char[] temp) {
 //		int repos = -1;

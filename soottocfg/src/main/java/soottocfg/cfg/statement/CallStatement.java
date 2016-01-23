@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
@@ -31,6 +32,7 @@ public class CallStatement extends Statement {
 	 */
 	public CallStatement(SourceLocation loc, Method method, List<Expression> arguments, Optional<Expression> returnReceiver) {
 		super(loc);
+		Preconditions.checkArgument(method.getInParams().size()==arguments.size());
 		this.method = method;
 		this.arguments = arguments;
 		this.returnReceiver = returnReceiver;

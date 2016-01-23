@@ -3,10 +3,15 @@
  */
 package soottocfg.soot.util;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
+import com.google.common.base.Optional;
 
 import soot.ArrayType;
+import soot.Modifier;
 import soot.PrimType;
 import soot.RefType;
 import soot.Scene;
@@ -42,14 +47,18 @@ import soottocfg.soot.memory_model.SimpleBurstallBornatModel;
  *
  */
 public enum SootTranslationHelpers {
-	INSTANCE;	
-	
+	INSTANCE;
+
 	public static SootTranslationHelpers v() {
 		return INSTANCE;
 	}
 
-	private static final String parameterPrefix = "$in_";	
+	private static final String parameterPrefix = "$in_";
 	public static final String typeFieldName = "$dynamicType";
+
+	public static final String arrayElementTypeFieldName = "$elType";
+	public static final String lengthFieldName = "$length";
+	public static final String indexFieldNamePrefix = "$idx_";
 
 	private transient SootMethod currentMethod;
 	private transient SootClass currentClass;
@@ -57,42 +66,51 @@ public enum SootTranslationHelpers {
 
 	private transient MemoryModel memoryModel;
 	private MemModel memoryModelKind = MemModel.PackUnpack;
-	
+
 	private transient Program program;
 
-	public void reset() {		
+	public void reset() {
 		currentMethod = null;
 		currentClass = null;
 		currentSourceFileName = null;
 		memoryModel = null;
 		program = null;
+		arrayTypes.clear();
 	}
 
-	
+	private transient Map<soot.ArrayType, SootClass> arrayTypes = new HashMap<soot.ArrayType, SootClass>();
+
+	public SootClass getFakeArrayClass(soot.ArrayType t) {
+		if (!arrayTypes.containsKey(t)) {
+			SootClass arrayClass = new SootClass("JayHornArr" + arrayTypes.size(), Modifier.PUBLIC);
+			arrayClass.addField(new SootField(SootTranslationHelpers.lengthFieldName,
+					RefType.v(Scene.v().getSootClass("java.lang.Integer"))));
+			arrayClass.addField(new SootField(SootTranslationHelpers.arrayElementTypeFieldName,
+					RefType.v(Scene.v().getSootClass("java.lang.Class"))));
+			arrayClass.addField(new SootField(SootTranslationHelpers.typeFieldName,
+					RefType.v(Scene.v().getSootClass("java.lang.Class"))));
+			// TODO create some fields of t.getElementType()
+			arrayTypes.put(t, arrayClass);
+		}
+		return arrayTypes.get(t);
+	}
+
 	public ClassConstant getClassConstant(Type t) {
 		if (t instanceof RefType) {
-			final String className = ((RefType)t).getClassName().replace(".", "/");
+			final String className = ((RefType) t).getClassName().replace(".", "/");
 			return ClassConstant.v(className);
 		} else if (t instanceof ArrayType) {
-			ArrayType at = (ArrayType)t;
-			ClassConstant baseClassConst = getClassConstant(at.baseType);
-			StringBuilder sb = new StringBuilder();
-			for (int i=0; i<at.numDimensions;i++) {
-				sb.append("[");
-			}
-			sb.append("L");
-			sb.append(baseClassConst.value);
-			final String className = sb.toString().replace(".", "/");
+			final String className = getFakeArrayClass((ArrayType)t).getName().replace(".", "/");
 			return ClassConstant.v(className);
 		} else if (t instanceof PrimType) {
-			final String className = ((PrimType)t).toString();
+			final String className = ((PrimType) t).toString();
 			return ClassConstant.v(className);
 		}
 		throw new RuntimeException("Not implemented");
 	}
-		
+
 	public Method lookupOrCreateMethod(SootMethod m) {
-		if (this.program.loopupMethod(m.getSignature())!=null) {
+		if (this.program.loopupMethod(m.getSignature()) != null) {
 			return this.program.loopupMethod(m.getSignature());
 		}
 		int parameterCount = 0;
@@ -101,13 +119,18 @@ public enum SootTranslationHelpers {
 			parameterList.add(new Variable(parameterPrefix + (parameterCount++),
 					getMemoryModel().lookupType(m.getDeclaringClass().getType())));
 		}
-		for (int i=0; i < m.getParameterCount(); i++) {
+		for (int i = 0; i < m.getParameterCount(); i++) {
 			parameterList.add(new Variable(parameterPrefix + (parameterCount++),
 					getMemoryModel().lookupType(m.getParameterType(i))));
 		}
-		return Method.createMethodInProgram(program, m.getSignature(), parameterList);
+		
+		Optional<soottocfg.cfg.type.Type> optRetType = Optional.absent();
+		if (!m.getReturnType().equals(VoidType.v())) {
+			optRetType = Optional.of(memoryModel.lookupType(m.getReturnType()));
+		} 
+		return Method.createMethodInProgram(program, m.getSignature(), parameterList, optRetType);
 	}
-	
+
 	public Stmt getDefaultReturnStatement(Type returnType, Host createdFrom) {
 		Stmt stmt;
 		if (returnType instanceof VoidType) {
@@ -122,7 +145,7 @@ public enum SootTranslationHelpers {
 		stmt.addAllTagsOf(createdFrom);
 		return stmt;
 	}
-	
+
 	public void setProgram(Program p) {
 		this.program = p;
 	}
@@ -165,35 +188,34 @@ public enum SootTranslationHelpers {
 		}
 		return new SourceLocation(this.currentSourceFileName, lineNumber);
 	}
-	
+
 	public SourceLocation getSourceLocation(SootMethod sm) {
 		int lineNumber = sm.getJavaSourceStartLineNumber();
 
 		if (lineNumber < 0) {
 			lineNumber = SootTranslationHelpers.v().getJavaSourceLine(SootTranslationHelpers.v().getCurrentMethod());
 		}
-		
+
 		return new SourceLocation(this.currentSourceFileName, lineNumber);
 	}
 
 	public void setMemoryModelKind(MemModel kind) {
 		memoryModelKind = kind;
 	}
-	
+
 	public MemoryModel getMemoryModel() {
 		if (this.memoryModel == null) {
 			// TODO:
-			if (memoryModelKind==MemModel.PackUnpack) {
+			if (memoryModelKind == MemModel.PackUnpack) {
 				this.memoryModel = new NewMemoryModel();
-			} else if (memoryModelKind==MemModel.BurstallBornat) {
+			} else if (memoryModelKind == MemModel.BurstallBornat) {
 				this.memoryModel = new SimpleBurstallBornatModel();
 			} else {
 				throw new RuntimeException("Unknown memory model");
 			}
 		}
 		return this.memoryModel;
-	}	
-	
+	}
 
 	public SootClass getCurrentClass() {
 		return currentClass;
@@ -201,22 +223,22 @@ public enum SootTranslationHelpers {
 
 	public void setCurrentClass(SootClass currentClass) {
 		String fn = findFileName(currentClass.getTags());
-		if (fn !=null) {
+		if (fn != null) {
 			this.currentSourceFileName = fn;
 		}
 
 		this.currentClass = currentClass;
 	}
-	
+
 	private String findFileName(List<Tag> tags) {
 		String fileName = null;
 		for (Tag tag : tags) {
 			if (tag instanceof SourceFileTag) {
 				SourceFileTag t = (SourceFileTag) tag;
-				if (t.getAbsolutePath()!=null) {
+				if (t.getAbsolutePath() != null) {
 					fileName = t.getAbsolutePath();
 				} else {
-					if (t.getSourceFile()!=null) {
+					if (t.getSourceFile() != null) {
 						fileName = t.getSourceFile();
 					}
 				}
@@ -228,13 +250,13 @@ public enum SootTranslationHelpers {
 		return fileName;
 	}
 
-	public SootMethod getCurrentMethod() {		
+	public SootMethod getCurrentMethod() {
 		return currentMethod;
 	}
 
 	public void setCurrentMethod(SootMethod currentMethod) {
 		String fn = findFileName(currentMethod.getTags());
-		if (fn !=null) {
+		if (fn != null) {
 			this.currentSourceFileName = fn;
 		}
 		this.currentMethod = currentMethod;

@@ -3,7 +3,6 @@
  */
 package jayhorn.old_inconsistency_check.faultlocalization;
 
-import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -46,7 +45,6 @@ public class LocalizationThread implements Runnable {
 	
 		prover.setConstructProofs(true);
 		SimplCfgToProver s2p = new SimplCfgToProver(prover);
-		inconsistency.getMethod().toSimpleDot(new File("aaa.dot"));
 		//first generate a subgraph of the method that only contains
 		//paths through the inconsistent block and where all branching
 		//has diamond shape.

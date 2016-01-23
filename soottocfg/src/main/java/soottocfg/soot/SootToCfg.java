@@ -47,7 +47,7 @@ public class SootToCfg {
 		BurstallBornat, PackUnpack
 	}
 
-	private boolean debug = true;
+	private boolean debug = false;
 
 	private final boolean resolveVirtualCalls;
 	private final boolean createAssertionsForUncaughtExceptions;
@@ -99,9 +99,12 @@ public class SootToCfg {
 				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
 						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
 		program.setExceptionGlobal(exceptionGlobal);
+
+		
+
 		//TODO move this to a better location		
 		for (SootClass sc : new LinkedList<SootClass>(Scene.v().getClasses())) {			
-			sc.addField(new SootField(SootTranslationHelpers.typeFieldName, RefType.v(Scene.v().getSootClass("java.lang.Class")) ));			
+			sc.addField(new SootField(SootTranslationHelpers.typeFieldName, RefType.v(Scene.v().getSootClass("java.lang.Class")) ));
 		}
 		
 		
@@ -117,8 +120,13 @@ public class SootToCfg {
 		// now set the entry points.
 		for (SootMethod entryPoint : Scene.v().getEntryPoints()) {
 			if (entryPoint.getDeclaringClass().isApplicationClass()) {
+				if (entryPoint.isStaticInitializer()) {
+					//TODO hack? do not use static initializers as entry points.
+					continue;
+				}
 				Method m = program.loopupMethod(entryPoint.getSignature());
 				if (m != null) {
+					System.out.println("Adding entry point " + m.getMethodName());
 					program.addEntryPoint(m);
 				}
 			}
@@ -128,6 +136,7 @@ public class SootToCfg {
 		SootTranslationHelpers.v().reset();
 		// soot.G.reset();
 	}
+		
 
 	public Program getProgram() {
 		return program;
@@ -182,7 +191,7 @@ public class SootToCfg {
 	}
 
 	private void processMethodBody(Body body) {
-//		System.err.println(body);
+		System.err.println(body);
 		// StringBuilder sb = new StringBuilder();
 		// for (Unit u : body.getUnits()) {
 		// sb.append(u.getJavaSourceStartLineNumber());
@@ -206,7 +215,7 @@ public class SootToCfg {
 			// System.out.println("adding method: " + m.getMethodName());
 			getProgram().addEntryPoint(m);
 		}
-//		 System.out.println(m.toString());
+		 System.out.println(m.toString());
 	}
 
 	private void preProcessBody(Body body) {

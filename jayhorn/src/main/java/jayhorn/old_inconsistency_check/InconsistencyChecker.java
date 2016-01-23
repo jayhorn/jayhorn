@@ -77,10 +77,8 @@ public class InconsistencyChecker {
 		ExecutorService executor = null;
 		try {
 			executor = Executors.newSingleThreadExecutor();
-			for (Method method : program.getMethods()) {
-				// if (!method.getMethodName().equals("<jayhorn.Main: void
-				// main(java.lang.String[])>")) continue;
 
+			for (Method method : program.getMethods()) {
 				Set<Inconsistency> inconsistencies = findInconsistenciesInMethod(executor, program, method);
 
 				// if we found inconsistencies, do the fault localization.
@@ -92,12 +90,13 @@ public class InconsistencyChecker {
 					}
 				}
 			}
+
 		} catch (Throwable e) {
 			e.printStackTrace();
-			throw new RuntimeException(e);
+			// throw new RuntimeException(e);
 		} finally {
 			if (executor != null) {
-				executor.shutdown();
+				executor.shutdownNow();
 			}
 
 		}
@@ -121,19 +120,22 @@ public class InconsistencyChecker {
 	}
 
 	/**
-	 * Finds inconsistencies in a given 'method' and returns a set of 
-	 * inconsistencies that is "minimal" in the sense that no block given 
+	 * Finds inconsistencies in a given 'method' and returns a set of
+	 * inconsistencies that is "minimal" in the sense that no block given
 	 * by the Inconsistency is dominated by a block that is also inconsistent.
 	 * 
-	 * This starts a new thread (with optional timeout given by 
+	 * This starts a new thread (with optional timeout given by
 	 * Options.v().getTimeout()).
 	 * 
 	 * WARNING: This method DOES modify the program. It unwinds loops and
 	 * adds additional blocks during SSA transformation!
 	 * 
-	 * @param executor ExecutorService used to start the thread.
-	 * @param program The current program.
-	 * @param method A method from 'program' that we want to analyze. 
+	 * @param executor
+	 *            ExecutorService used to start the thread.
+	 * @param program
+	 *            The current program.
+	 * @param method
+	 *            A method from 'program' that we want to analyze.
 	 * @return Set of inconsistencies.
 	 */
 	private Set<Inconsistency> findInconsistenciesInMethod(ExecutorService executor, Program program, Method method) {
@@ -152,6 +154,7 @@ public class InconsistencyChecker {
 		InconsistencyThread thread = new InconsistencyThread(program, method, prover);
 		final Future<?> future = executor.submit(thread);
 		try {
+			 
 			if (Options.v().getTimeout() <= 0) {
 				future.get();
 			} else {
@@ -169,7 +172,7 @@ public class InconsistencyChecker {
 				System.err.println("failed to cancel after timeout");
 			}
 			timeouts++;
-			System.err.println("Timeout for " + method.getMethodName());
+			Log.error("Timeout for " + method.getMethodName());
 		} catch (InterruptedException e) {
 			interrupt++;
 			e.printStackTrace();
@@ -196,14 +199,17 @@ public class InconsistencyChecker {
 	 * Uses the algorithm form "Explaining Inconsistent Code" (FSE'13) to find a
 	 * small set of statements that is sufficient to explain the inconsistency.
 	 * 
-	 * This starts a new thread (with optional timeout given by 
+	 * This starts a new thread (with optional timeout given by
 	 * Options.v().getTimeout()).
 	 * 
 	 * Note that this algorithm does not modify the program.
-	 * @param executor ExecutorService used to start the thread.
-	 * @param inconsistency The inconsistency which we want to localize
+	 * 
+	 * @param executor
+	 *            ExecutorService used to start the thread.
+	 * @param inconsistency
+	 *            The inconsistency which we want to localize
 	 * @return A (not necessarily minimal) subset of statements needed to
-	 *         understand the inconsistency. 
+	 *         understand the inconsistency.
 	 */
 	private Set<Statement> localizeInconsistency(ExecutorService executor, Program program,
 			Inconsistency inconsistency) {
@@ -214,13 +220,14 @@ public class InconsistencyChecker {
 		LocalizationThread localizationThread = new LocalizationThread(inconsistency, prover);
 		final Future<?> inconsistencyFuture = executor.submit(localizationThread);
 		try {
+//			while (!inconsistencyFuture.isDone() || executor.awaitTermination(Options.v().getTimeout(), TimeUnit.SECONDS));
 			if (Options.v().getTimeout() <= 0) {
 				inconsistencyFuture.get();
 			} else {
 				inconsistencyFuture.get(Options.v().getTimeout(), TimeUnit.SECONDS);
 			}
 			relevantStmts.addAll(localizationThread.getRelevantStatements());
-		} catch (TimeoutException e) {
+		} catch (TimeoutException e) {			
 			if (!inconsistencyFuture.cancel(true)) {
 				System.err.println("failed to cancel after timeout");
 			}
@@ -246,11 +253,16 @@ public class InconsistencyChecker {
 	/**
 	 * Gets the set of inconsistent blocks in a 'method' and returns a
 	 * set of inconsistencies that is minimal in the sense that no inconsistent
-	 * block in an inconsistency in this set is dominated by another inconsistent
-	 * block. Inconsistent blocks that are dominated by other inconsistent blocks
-	 * are dropped. 
-	 * @param method Method with inconsistencies.
-	 * @param inconsistentBlocks Set of blocks that are inconsistent in 'method'.
+	 * block in an inconsistency in this set is dominated by another
+	 * inconsistent
+	 * block. Inconsistent blocks that are dominated by other inconsistent
+	 * blocks
+	 * are dropped.
+	 * 
+	 * @param method
+	 *            Method with inconsistencies.
+	 * @param inconsistentBlocks
+	 *            Set of blocks that are inconsistent in 'method'.
 	 * @return Minimal set of inconsistencies.
 	 */
 	private Set<Inconsistency> getInconsistencies(Method method, Set<CfgBlock> inconsistentBlocks) {
@@ -326,15 +338,15 @@ public class InconsistencyChecker {
 						sb.append(i);
 					}
 					sb.append(System.getProperty("line.separator"));
-					List<Statement> sortedStmts = new LinkedList<Statement>(entry.getValue()); 
-					Collections.sort(sortedStmts, new Comparator<Statement>(){
-					    public int compare(Statement s1, Statement s2) {
-					        return Integer.compare(s1.getJavaSourceLine(), s2.getJavaSourceLine());
-					    }
+					List<Statement> sortedStmts = new LinkedList<Statement>(entry.getValue());
+					Collections.sort(sortedStmts, new Comparator<Statement>() {
+						public int compare(Statement s1, Statement s2) {
+							return Integer.compare(s1.getJavaSourceLine(), s2.getJavaSourceLine());
+						}
 					});
 					for (Statement s : sortedStmts) {
 						sb.append("\t");
-						if (s.getSourceLocation()!=null) {
+						if (s.getSourceLocation() != null) {
 							sb.append(s.getSourceLocation().getLineNumber());
 						} else {
 							sb.append("??");
