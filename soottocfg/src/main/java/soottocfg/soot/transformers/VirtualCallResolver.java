@@ -185,7 +185,10 @@ public class VirtualCallResolver extends AbstractTransformer {
 		Collection<SootClass> possibleClasses = new HashSet<SootClass>();
 		for (Type t : ltf.getLocalTypesBefore(u, (Local) call.getBase())) {
 			if (t instanceof RefType) {
-				possibleClasses.add(((RefType) t).getSootClass());
+				SootClass subClass = ((RefType) t).getSootClass();
+				if (!subClass.isAbstract() && !subClass.isInterface()) {
+					possibleClasses.add(subClass);
+				}
 			}
 		}
 

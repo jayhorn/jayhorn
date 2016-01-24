@@ -75,12 +75,12 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	
 	@Override
 	public void mkArrayWriteStatement(Unit u, ArrayRef arrayRef, Value rhs) {		
-
+		throw new RuntimeException("This should have been removed by the array abstraction.");
 	}
 
 	@Override
 	public void mkArrayReadStatement(Unit u, ArrayRef arrayRef, Value lhs) {
-		
+		throw new RuntimeException("This should have been removed by the array abstraction.");
 	}
 
 	
