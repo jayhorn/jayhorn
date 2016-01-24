@@ -191,7 +191,7 @@ public class SootToCfg {
 	}
 
 	private void processMethodBody(Body body) {
-		System.err.println(body);
+//		System.err.println(body);
 		// StringBuilder sb = new StringBuilder();
 		// for (Unit u : body.getUnits()) {
 		// sb.append(u.getJavaSourceStartLineNumber());
@@ -215,7 +215,7 @@ public class SootToCfg {
 			// System.out.println("adding method: " + m.getMethodName());
 			getProgram().addEntryPoint(m);
 		}
-		 System.out.println(m.toString());
+//		 System.out.println(m.toString());
 	}
 
 	private void preProcessBody(Body body) {
@@ -241,6 +241,7 @@ public class SootToCfg {
 		ExceptionTransformer em = new ExceptionTransformer(new NullnessAnalysis(new CompleteUnitGraph(body)),
 				createAssertionsForUncaughtExceptions);
 		em.transform(body);
+		
 		// replace all switches by sets of IfStmt
 		SwitchStatementRemover so = new SwitchStatementRemover();
 		so.transform(body);

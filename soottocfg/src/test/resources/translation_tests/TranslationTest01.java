@@ -2,10 +2,10 @@ package translation_tests;
 
 public class TranslationTest01 {
 	
-	public void assertions(Object partitioner) {
-        // A compact table should always have a clustering
-        assert partitioner!=null : String.format("For table %s.", partitioner);
-	}
+//	public void assertions(Object partitioner) {
+//        // A compact table should always have a clustering
+//        assert partitioner!=null : String.format("For table %s.", partitioner);
+//	}
 	
 	// public int noExceptions(int i) {
 	// if (i == 0) {
@@ -31,17 +31,15 @@ public class TranslationTest01 {
 	// @Override
 	// public String toString() {return "";}
 
-	int x, y;
+//	int x, y;
+//
+//	public void foo() {
+//	}
 
-	public void foo() {
-	}
-
-	public int withException() {
+	public int withException(int a[]) {
 		int b;
 		try {
-			int a[] = new int[2];
 			b = a[3];
-			foo();
 		} catch (ArrayIndexOutOfBoundsException e) {
 			b = 20;
 		}

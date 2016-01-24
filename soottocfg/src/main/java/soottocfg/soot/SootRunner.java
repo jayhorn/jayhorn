@@ -157,7 +157,7 @@ public class SootRunner {
 			if (classPath != null) {
 				cp += File.pathSeparatorChar + classPath;
 			}
-
+			
 			// set soot-class-path
 			sootOpt.set_soot_classpath(cp);
 			sootOpt.set_src_prec(soot.options.Options.src_prec_class);
@@ -204,7 +204,7 @@ public class SootRunner {
 		Scene.v().addBasicClass("java.lang.ref.Finalizer", SootClass.SIGNATURES);
 
 		createAssertionClass();
-
+		
 		try {
 			// redirect soot output into a stream.
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();

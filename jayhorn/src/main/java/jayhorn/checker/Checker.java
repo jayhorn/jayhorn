@@ -24,7 +24,6 @@ import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverType;
-import jayhorn.solver.princess.PrincessProverFactory;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Program;

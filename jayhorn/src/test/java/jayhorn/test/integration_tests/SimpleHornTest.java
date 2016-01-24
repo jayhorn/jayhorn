@@ -64,17 +64,17 @@ public class SimpleHornTest {
 	}
 
 	@Test
-	public void testOldAlgorithmWithPrincess() {
-		oldAlgorithm(new PrincessProverFactory());
+	public void testWithPrincess() {
+		verifyAssertions(new PrincessProverFactory());
 	}
 
 	@Test
-	public void testOldAlgorithmWithZ3() {
-		oldAlgorithm(new Z3ProverFactory());
+	public void testWithZ3() {
+		verifyAssertions(new Z3ProverFactory());
 	}
 
 	
-	protected void oldAlgorithm(ProverFactory factory) {
+	protected void verifyAssertions(ProverFactory factory) {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
