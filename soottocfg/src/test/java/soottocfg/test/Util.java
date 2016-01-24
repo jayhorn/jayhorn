@@ -1,59 +1,34 @@
 package soottocfg.test;
 
-import java.io.BufferedReader;
+import com.google.common.io.Files;
+import soottocfg.randoop.Javac;
+
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
-
-import com.google.common.io.Files;
+import java.nio.charset.Charset;
+import java.util.List;
 
 public final class Util {
 
 	@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "DM_DEFAULT_ENCODING")
 	public static String fileToString(File f) {
-		StringBuffer sb = new StringBuffer();
-		try (FileReader fileRead = new FileReader(f); BufferedReader reader = new BufferedReader(fileRead);) {
-			String line;
-			while (true) {
-				line = reader.readLine();
-				if (line == null)
-					break;
-				sb.append(line);
-				sb.append("\n");
-			}
-		} catch (Throwable e) {
-
+		try {
+			return Files.toString(f, Charset.defaultCharset());
+		} catch (IOException e) {
+			return ""; // nothing was read
 		}
-		return sb.toString();
 	}
 
 	@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "DM_DEFAULT_ENCODING")
 	public static boolean compareFiles(File out, File gold) {
-		try (FileReader fR1 = new FileReader(out);
-				FileReader fR2 = new FileReader(gold);
-				BufferedReader reader1 = new BufferedReader(fR1);
-				BufferedReader reader2 = new BufferedReader(fR2);) {
-			String line1, line2;
-			while (true) // Continue while there are equal lines
-			{
-				line1 = reader1.readLine();
-				line2 = reader2.readLine();
 
-				// End of file 1
-				if (line1 == null) {
-					// Equal only if file 2 also ended
-					return (line2 == null ? true : false);
-				}
-
-				// Different lines, or end of file 2
-				if (!line1.equalsIgnoreCase(line2)) {
-					return false;
-				}
-			}
+		try {
+			return Files.equal(out, gold);
 		} catch (IOException e) {
-			e.printStackTrace();
+			e.printStackTrace(System.err);
 		}
+
 		return false;
 	}
 
@@ -61,53 +36,37 @@ public final class Util {
 	 * Compiles a sourceFile into a temp folder and returns this folder or null
 	 * if compilation fails.
 	 * 
-	 * @param sourceFile
+	 * @param sourceFile the source file to compile
 	 * @return the folder that contains the class file(s) or null if compilation
 	 *         fails.
 	 * @throws IOException
 	 */
 	public static File compileJavaFile(File sourceFile) throws IOException {
 		final File tempDir = Files.createTempDir();
-		final String javac_command = String.format("javac -g %s -d %s", sourceFile.getAbsolutePath(),
-				tempDir.getAbsolutePath());
 
-		ProcessBuilder pb = new ProcessBuilder(javac_command.split(" "));
-		pb.redirectOutput(Redirect.INHERIT);
-		pb.redirectError(Redirect.INHERIT);
-		Process p = pb.start();
+		final Javac javac = new Javac()
+			.debug()
+			.destination(tempDir);
 
-		try {
-			p.waitFor();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			return null;
+		final List<String> output = javac.compile(sourceFile);
+
+		if(javac.inDebugMode()){
+			javac.log(output);
 		}
 
 		return tempDir;
 	}
 
 	protected static void printJavaCVersion() {
-		final String javac_command = "javac -version";
-
-		ProcessBuilder pb = new ProcessBuilder(javac_command.split(" "));
-		pb.redirectOutput(Redirect.INHERIT);
-		pb.redirectError(Redirect.INHERIT);
-		try {
-			Process p = pb.start();
-			p.waitFor();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
+		final Javac javac = new Javac();
+		javac.log(javac.version());
 	}
 
 	/**
 	 * Compiles a set of sourceFiles into a temp folder and returns this folder
 	 * or null if compilation fails.
 	 * 
-	 * @param sourceFile
+	 * @param sourceFiles the source files to compile
 	 * @return the folder that contains the class file(s) or null if compilation
 	 *         fails.
 	 * @throws IOException

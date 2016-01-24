@@ -24,7 +24,7 @@ public class Main {
 			if ("safety".equals(Options.v().getChecker())) {
 				SootToCfg soot2cfg = new SootToCfg();
 				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());			
-				Checker checker = new Checker();
+				Checker checker = new Checker(new PrincessProverFactory());
 				boolean result = checker.checkProgram(soot2cfg.getProgram());
 				System.out.println("checker says "+ result);		
 			} else if ("inconsistency".equals(Options.v().getChecker())) {

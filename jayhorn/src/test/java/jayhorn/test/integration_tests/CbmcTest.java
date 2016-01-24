@@ -17,6 +17,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import jayhorn.checker.Checker;
+import jayhorn.solver.ProverFactory;
+import jayhorn.solver.princess.PrincessProverFactory;
+import jayhorn.solver.z3.Z3ProverFactory;
 import soottocfg.soot.SootToCfg;
 
 @RunWith(Parameterized.class)
@@ -62,16 +65,26 @@ public class CbmcTest {
 
 	
 	@Test
-	public void test() {
+	public void testWithPrincess() {
+		verifyAssertions(new PrincessProverFactory());
+	}
+
+	@Test
+	public void testWithZ3() {
+		verifyAssertions(new Z3ProverFactory());
+	}
+		
+		
+	private void verifyAssertions(ProverFactory factory) {
 		System.out.println("Running test: "+this.description);
 		System.out.println("\texpected result: "+ expectedResult);
 
 		SootToCfg soot2cfg = new SootToCfg();
 		soot2cfg.run(classDir.getAbsolutePath(), classDir.getAbsolutePath());		
-		Checker checker = new Checker();
+		Checker checker = new Checker(factory);
 		boolean result = checker.checkProgram(soot2cfg.getProgram());
 		
-		org.junit.Assert.assertTrue("Unexpected result for "+description, expectedResult==result);		
+		org.junit.Assert.assertTrue("Unexpected result for "+description+". Expected: "+expectedResult+" but got "+ result, expectedResult==result);		
 	}
 	
 	/**

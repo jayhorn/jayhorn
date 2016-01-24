@@ -33,6 +33,7 @@ import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.statement.AssignStatement;
+import soottocfg.cfg.type.Type;
 import soottocfg.util.SetOperations;
 
 /**
@@ -46,29 +47,32 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	private static final long serialVersionUID = 3367382274895641548L;
 
 	private final String methodName;
+	private final Optional<Type> returnType;
 	private Variable thisVariable, returnVariable;
 	private final List<Variable> parameterList;
 	private Set<Variable> locals;
 	private CfgBlock source, sink;
 	private boolean isProgramEntry = false;
+	
 
 	
-	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params) {
-		Preconditions.checkArgument(p.loopupMethod(uniqueName)==null, "Method with name "+uniqueName + " already exists");
-		Method m = new Method(uniqueName, params);
+	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, Optional<Type> retType) {
+		Preconditions.checkArgument(p.loopupMethod(uniqueName)==null, "Method with name "+uniqueName + " already exists");		
+		Method m = new Method(uniqueName, params, retType);
 		p.addMethod(m);
 		return m;
 	}
 	
-	private Method(String uniqueName, List<Variable> params) {
+	private Method(String uniqueName, List<Variable> params, Optional<Type> retType) {
 		super(new ClassBasedEdgeFactory<CfgBlock, CfgEdge>(CfgEdge.class), true, true);
 		methodName = uniqueName;
+		returnType = retType;
 		this.parameterList = Collections.unmodifiableList(params);
 	}
 
 	public Method createMethodFromSubgraph(DirectedGraph<CfgBlock, CfgEdge> subgraph, String newMethodName) {
 		Preconditions.checkArgument(vertexSet().containsAll(subgraph.vertexSet()), "Method does not contain all nodes from subgraph.");
-		Method subgraphMethod = new Method(newMethodName, this.parameterList);
+		Method subgraphMethod = new Method(newMethodName, this.parameterList, this.returnType);
 		
 		for (CfgBlock v : subgraph.vertexSet()) {
 			subgraphMethod.addVertex(v);
@@ -218,6 +222,16 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		return ret;
 	}
 
+	/**
+	 * Returns an {@link Optional} return type of the method.
+	 * I.e., either a type or None if the method returns void
+	 * @return Optional return type.
+	 */
+	public Optional<Type> getReturnType() {
+		return this.returnType;
+	}
+
+	
 	/** TODO:
 	 * Add a local variable. This method should not be used. Its only
 	 * use is in the SSA computation to create a non-deterministic assignment.

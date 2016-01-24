@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Optional;
+
 import soot.ArrayType;
 import soot.Modifier;
 import soot.PrimType;
@@ -76,7 +78,7 @@ public enum SootTranslationHelpers {
 		arrayTypes.clear();
 	}
 
-	private Map<soot.ArrayType, SootClass> arrayTypes = new HashMap<soot.ArrayType, SootClass>();
+	private transient Map<soot.ArrayType, SootClass> arrayTypes = new HashMap<soot.ArrayType, SootClass>();
 
 	public SootClass getFakeArrayClass(soot.ArrayType t) {
 		if (!arrayTypes.containsKey(t)) {
@@ -121,7 +123,12 @@ public enum SootTranslationHelpers {
 			parameterList.add(new Variable(parameterPrefix + (parameterCount++),
 					getMemoryModel().lookupType(m.getParameterType(i))));
 		}
-		return Method.createMethodInProgram(program, m.getSignature(), parameterList);
+		
+		Optional<soottocfg.cfg.type.Type> optRetType = Optional.absent();
+		if (!m.getReturnType().equals(VoidType.v())) {
+			optRetType = Optional.of(memoryModel.lookupType(m.getReturnType()));
+		} 
+		return Method.createMethodInProgram(program, m.getSignature(), parameterList, optRetType);
 	}
 
 	public Stmt getDefaultReturnStatement(Type returnType, Host createdFrom) {

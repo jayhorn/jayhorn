@@ -47,7 +47,7 @@ public class SootToCfg {
 		BurstallBornat, PackUnpack
 	}
 
-	private boolean debug = true;
+	private boolean debug = false;
 
 	private final boolean resolveVirtualCalls;
 	private final boolean createAssertionsForUncaughtExceptions;
@@ -120,8 +120,13 @@ public class SootToCfg {
 		// now set the entry points.
 		for (SootMethod entryPoint : Scene.v().getEntryPoints()) {
 			if (entryPoint.getDeclaringClass().isApplicationClass()) {
+				if (entryPoint.isStaticInitializer()) {
+					//TODO hack? do not use static initializers as entry points.
+					continue;
+				}
 				Method m = program.loopupMethod(entryPoint.getSignature());
 				if (m != null) {
+					System.out.println("Adding entry point " + m.getMethodName());
 					program.addEntryPoint(m);
 				}
 			}

@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.google.common.base.Optional;
+
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
@@ -30,8 +32,9 @@ public class OptimizationExample {
 	public Method getMethod1() {
 		SootTranslationHelpers.v().reset();
 
-		final Program p = new Program();				
-		final Method m = Method.createMethodInProgram(p, "testM", new LinkedList<Variable>()); 
+		final Program p = new Program();
+		final Optional<soottocfg.cfg.type.Type> rettype = Optional.absent();
+		final Method m = Method.createMethodInProgram(p, "testM", new LinkedList<Variable>(), rettype); 
 		final SourceLocation fakeSl = new SourceLocation("fake", 0);
 
 		final Collection<Variable> localVars = new HashSet<Variable>();
@@ -76,7 +79,8 @@ public class OptimizationExample {
 	public Method getMethod2() {
 		SootTranslationHelpers.v().reset();
 		final Program p = new Program();				
-		final Method m = Method.createMethodInProgram(p, "testM", new LinkedList<Variable>()); 
+		final Optional<soottocfg.cfg.type.Type> rettype = Optional.absent();
+		final Method m = Method.createMethodInProgram(p, "testM", new LinkedList<Variable>(), rettype); 
 
 		/*
 		 * Create a dummy block to increase the counter for the block label.

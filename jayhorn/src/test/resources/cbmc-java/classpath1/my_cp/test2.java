@@ -1,3 +1,5 @@
+package my_cp;
+
 class test2
 {
   int some_field;

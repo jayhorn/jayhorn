@@ -76,8 +76,9 @@ public class VirtualCallResolver extends AbstractTransformer {
 					List<SootMethod> callees = getPossibleCallees(body, s, (InstanceInvokeExpr) ie);
 					if (callees.isEmpty()) {
 						throw new RuntimeException("Failed to resolve virutal call " + ie);
-					} else if (callees.size() == 1) {
-						// nothing to do.
+					} else if (callees.size() == 1 && callees.get(0).equals(ie.getMethod())) {
+						// if the only callee is the method itself, we don't have to
+						// do anything.
 					} else {
 						callsToResolve.put(s,
 								new Pair<InstanceInvokeExpr, List<SootMethod>>((InstanceInvokeExpr) ie, callees));
