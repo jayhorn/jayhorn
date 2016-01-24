@@ -1,0 +1,2 @@
+target=store_load1
+ classpath=/Users/teme/Documents/GitHub/jayhorn/jayhorn/build/resources/test/cbmc-java/store_load1/

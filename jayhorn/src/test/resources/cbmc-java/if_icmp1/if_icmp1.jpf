@@ -1,0 +1,2 @@
+target=if_icmp1
+ classpath=/Users/teme/Documents/GitHub/jayhorn/jayhorn/build/resources/test/cbmc-java/if_icmp1/
