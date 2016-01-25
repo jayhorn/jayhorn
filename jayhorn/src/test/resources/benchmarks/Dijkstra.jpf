@@ -1,2 +1,0 @@
-target=benchmarks.Dijkstra
-classpath=${jayhorn}/build/resources/test/benchmarks/

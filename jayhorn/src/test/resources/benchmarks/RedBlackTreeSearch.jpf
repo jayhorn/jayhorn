@@ -1,2 +1,0 @@
-target=benchmarks.RedBlackTreeSearch
-classpath=${jayhorn}/build/resources/test/benchmarks/

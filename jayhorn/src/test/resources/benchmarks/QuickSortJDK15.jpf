@@ -1,2 +1,0 @@
-target=benchmarks.QuickSortJDK15
-classpath=${jayhorn}/build/resources/test/benchmarks/
