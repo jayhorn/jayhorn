@@ -6,6 +6,8 @@ package soottocfg.soot.memory_model;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.lang.model.type.NullType;
@@ -305,8 +307,17 @@ public abstract class BasicMemoryModel extends MemoryModel {
 						parents.add(lookupClassVariable(ClassConstant.v(c.getSuperclass().getJavaStyleName()) ));
 					}
 				}
-				this.constantDictionary.put(cc, new ClassVariable(name, parents));				
+				ClassVariable cv = new ClassVariable(name, parents);
+				
+				List<Variable> fields = new LinkedList<Variable>();
+				for (SootField f : c.getFields()) {
+					fields.add(lookupField(f));
+				}
+				cv.setAssociatedFields(fields);
+				
+				this.constantDictionary.put(cc, cv);				
 			} else {
+				System.err.println("Class not in scene: "+cc);
 				this.constantDictionary.put(cc, new ClassVariable(name, new HashSet<ClassVariable>()));
 			}
 		}
