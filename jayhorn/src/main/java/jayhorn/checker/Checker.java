@@ -97,6 +97,7 @@ public class Checker {
 
 	private final Map<CfgBlock, HornPredicate> blockPredicates = new LinkedHashMap<CfgBlock, HornPredicate>();
 	private Map<String, MethodContract> methodContracts = new LinkedHashMap<String, MethodContract>();
+        private Map<ClassVariable, Integer> typeIds = new LinkedHashMap<ClassVariable, Integer>();
 
 	////////////////////////////////////////////////////////////////////////////
 
@@ -605,6 +606,14 @@ public class Checker {
 		ProverResult result = ProverResult.Unknown;
 
 		try {
+			Log.info("Building type hierarchy");
+
+                        for (Variable v : program.getGlobalVariables())
+                            if (v instanceof ClassVariable) {
+                                Log.info("" + v + " -> " + typeIds.size());
+                                typeIds.put((ClassVariable)v, typeIds.size());
+                            }
+
 			Log.info("Generating method contracts");
 
 			for (Method method : program.getMethods()) {
