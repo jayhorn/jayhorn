@@ -1,9 +1,2 @@
 target=benchmarks.Dijkstra
-target.args=4
-
-classpath=${jpf-security}/build/examples
-sourcepath=${jpf-security}/src/examples
-
-symbolic.min_int=-100
-symbolic.max_int=100
-symbolic.dp=z3
+classpath=${jayhorn}/build/resources/test/benchmarks/

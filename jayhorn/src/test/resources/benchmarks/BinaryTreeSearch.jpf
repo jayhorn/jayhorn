@@ -1,3 +1,2 @@
 target=benchmarks.BinaryTreeSearch
-target=benchmarks.BellmanFord
 classpath=${jayhorn}/build/resources/test/benchmarks/
