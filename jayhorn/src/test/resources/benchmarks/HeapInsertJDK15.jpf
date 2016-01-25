@@ -1,0 +1,2 @@
+target=benchmarks.HeapInsertJDK15
+classpath=${jayhorn}/build/resources/test/benchmarks/

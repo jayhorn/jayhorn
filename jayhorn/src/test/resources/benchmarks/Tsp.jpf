@@ -1,0 +1,2 @@
+target=benchmarks.Tsp
+classpath=${jayhorn}/build/resources/test/benchmarks/

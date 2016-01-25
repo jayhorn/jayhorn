@@ -1,0 +1,2 @@
+target=benchmarks.SortedListInsert
+classpath=${jayhorn}/build/resources/test/benchmarks/
