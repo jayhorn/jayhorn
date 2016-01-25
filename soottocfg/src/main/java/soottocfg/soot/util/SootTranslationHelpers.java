@@ -3,6 +3,7 @@
  */
 package soottocfg.soot.util;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Map;
 import com.google.common.base.Optional;
 
 import soot.ArrayType;
+import soot.IntType;
 import soot.Modifier;
 import soot.PrimType;
 import soot.RefType;
@@ -83,6 +85,7 @@ public enum SootTranslationHelpers {
 	public SootClass getFakeArrayClass(soot.ArrayType t) {
 		if (!arrayTypes.containsKey(t)) {
 			SootClass arrayClass = new SootClass("JayHornArr" + arrayTypes.size(), Modifier.PUBLIC);
+			arrayClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
 			arrayClass.addField(new SootField(SootTranslationHelpers.lengthFieldName,
 					RefType.v(Scene.v().getSootClass("java.lang.Integer"))));
 			arrayClass.addField(new SootField(SootTranslationHelpers.arrayElementTypeFieldName,
@@ -90,6 +93,17 @@ public enum SootTranslationHelpers {
 			arrayClass.addField(new SootField(SootTranslationHelpers.typeFieldName,
 					RefType.v(Scene.v().getSootClass("java.lang.Class"))));
 			// TODO create some fields of t.getElementType()
+			SootMethod getElement = new SootMethod("get",                 
+				    Arrays.asList(new Type[] {IntType.v()}),
+				    t.getArrayElementType(), Modifier.PUBLIC);
+			arrayClass.addMethod(getElement);
+			//TODO: add body
+			SootMethod setElement = new SootMethod("set",                 
+				    Arrays.asList(new Type[] {t.getArrayElementType(), IntType.v()}),
+				    VoidType.v(), Modifier.PUBLIC);
+			arrayClass.addMethod(setElement);
+			
+			Scene.v().addClass(arrayClass);
 			arrayTypes.put(t, arrayClass);
 		}
 		return arrayTypes.get(t);

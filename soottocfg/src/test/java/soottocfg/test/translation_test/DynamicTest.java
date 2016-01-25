@@ -93,7 +93,7 @@ public class DynamicTest {
 
 		File transformedClassDir = Files.createTempDir();
 		SootToCfg soot2cfg = new SootToCfg();
-		soot2cfg.run(classDir.getAbsolutePath(), null);
+		soot2cfg.runPreservingTransformationOnly(classDir.getAbsolutePath(), null);
 
 		// write out the transformed classes
 		for (SootClass sc : Scene.v().getApplicationClasses()) {

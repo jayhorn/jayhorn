@@ -6,8 +6,6 @@ package soottocfg.soot.memory_model;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import javax.lang.model.type.NullType;
@@ -41,7 +39,6 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
-import soottocfg.cfg.type.MapType;
 import soottocfg.cfg.type.ReferenceLikeType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
@@ -77,13 +74,13 @@ public abstract class BasicMemoryModel extends MemoryModel {
 
 	
 	@Override
-	public void mkArrayWriteStatement(Unit u, ArrayRef arrayRef, Value rhs) {
-		
+	public void mkArrayWriteStatement(Unit u, ArrayRef arrayRef, Value rhs) {		
+		throw new RuntimeException("This should have been removed by the array abstraction.");
 	}
 
 	@Override
 	public void mkArrayReadStatement(Unit u, ArrayRef arrayRef, Value lhs) {
-		
+		throw new RuntimeException("This should have been removed by the array abstraction.");
 	}
 
 	
@@ -279,12 +276,15 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	protected ReferenceLikeType lookupRefLikeType(RefLikeType t) {
 		if (t instanceof ArrayType) {
 			ArrayType at = (ArrayType) t;
-			Type baseType = lookupType(at.baseType);
-			List<Type> ids = new LinkedList<Type>();
-			for (int i = 0; i < at.numDimensions; i++) {
-				ids.add(IntType.instance());
-			}
-			return new MapType(ids, baseType);
+//			Type baseType = lookupType(at.baseType);
+//			List<Type> ids = new LinkedList<Type>();
+//			for (int i = 0; i < at.numDimensions; i++) {
+//				ids.add(IntType.instance());
+//			}
+//			return new MapType(ids, baseType);
+			//TODO test!
+			SootClass fakeArrayClass = SootTranslationHelpers.v().getFakeArrayClass(at);
+			return lookupRefLikeType(RefType.v(fakeArrayClass));
 		} else if (t instanceof RefType) {
 			return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)));
 		} else if (t instanceof NullType) {
