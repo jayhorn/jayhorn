@@ -165,6 +165,15 @@ public class Randoop {
       return this;
     }
 
+    public RandoopBuilder omitmethods(String regex){
+
+      builder.arguments(
+        "--omitmethods=" + Objects.requireNonNull(regex)
+      );
+
+      return this;
+    }
+
     public RandoopBuilder destination(File directory) {
       builder.arguments("--junit-output-dir=" + directory.toString());
       return this;
@@ -191,6 +200,7 @@ public class Randoop {
     Randoop.configure(Randoop.of("/Users/hsanchez/dev/throwaway/garbage/"))
       .testClass("java.util.TreeSet")
       .silentlyIgnoreBadClassNames()
+      .omitmethods("subSet\\|addAll")
       .timeLimit(60)
       .execute();
 
