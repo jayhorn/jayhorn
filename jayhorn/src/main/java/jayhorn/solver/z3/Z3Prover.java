@@ -469,7 +469,7 @@ public class Z3Prover implements Prover {
 	private int interpolationPartition = -1;
 
 	@Override
-	public void addAssertion(ProverExpr assertion) {
+	public void addAssertion(ProverExpr assertion) {		
 		if (assertion instanceof Z3HornExpr) {
 			Z3HornExpr hc = (Z3HornExpr) assertion;
 			BoolExpr head = (BoolExpr) unpack(hc.getHead());
@@ -501,6 +501,14 @@ public class Z3Prover implements Prover {
 			} else {
 				asrt =  ctx.mkImplies(body, head);
 			}
+			StringBuilder sb = new StringBuilder();
+			sb.append("Prover Expression =======\n");
+			sb.append(assertion.toString());
+			sb.append("\nZ3 Expression ===========\n");
+			sb.append(asrt.toString());
+			sb.append("\n");
+			System.err.println(sb.toString());
+
 			this.solver.add(asrt);
 		} else if (assertion instanceof Z3BoolExpr
 				|| assertion instanceof Z3TermExpr) {
