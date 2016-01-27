@@ -92,15 +92,16 @@ public class Z3Prover implements Prover {
 		if (useHorn) {
 			this.solver = this.ctx.mkSolver();
 			Params params = this.ctx.mkParams();
-			params.add(":engine", "pdr");
-			params.add(":xform.slice", false);
-			params.add(":use_heavy_mev", true);
-			params.add(":reset_obligation_queue", true);
-			params.add(":pdr.flexible_trace", false);
-			params.add(":xform.inline-linear", false);
-			params.add(":xform.inline-eager", false);
-			params.add(":pdr.utvpi", false);
-			// this.solver.setParameters(params);
+//			params.add(":engine", "pdr");
+//			params.add(":xform.slice", false);
+//			params.add(":use_heavy_mev", true);
+//			params.add(":reset_obligation_queue", true);
+//			params.add(":pdr.flexible_trace", false);
+//			params.add(":xform.inline-linear", false);
+//			params.add(":xform.inline-eager", false);
+//			params.add(":pdr.utvpi", false);
+			params.add("timeout", 30000); //10 sec in millisecs
+			this.solver.setParameters(params);
 
 		} else {
 			this.solver = this.ctx.mkSolver();
