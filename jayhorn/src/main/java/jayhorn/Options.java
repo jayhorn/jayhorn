@@ -49,6 +49,12 @@ public class Options {
 		return checker;
 	}
 	
+	@Option(name = "-solver", usage = "Select a solver [princess or z3]", required = false)
+	private String solver = "princess";
+	public String getSolver() {
+		return solver;
+	}
+	
 	
 	/**
 	 * JAR file
@@ -58,18 +64,6 @@ public class Options {
 	
 	public String getJavaInput() {
 		return this.javaInput;
-	}
-
-	/**
-	 * Scope
-	 */
-	@Option(name = "--scope", usage = "Only analyze classes/methods that contain the scope string")
-	private String scope = null;
-	public String getScope() {
-		return scope;
-	}
-	public boolean hasScope() {
-		return scope == null || scope.isEmpty();
 	}
 
 	/**

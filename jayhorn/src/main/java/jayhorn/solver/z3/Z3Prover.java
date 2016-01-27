@@ -35,6 +35,7 @@ import com.microsoft.z3.Solver;
 import com.microsoft.z3.Sort;
 import com.microsoft.z3.Status;
 
+import jayhorn.Options;
 import jayhorn.solver.BoolType;
 import jayhorn.solver.IntType;
 import jayhorn.solver.Prover;
@@ -54,9 +55,9 @@ public class Z3Prover implements Prover {
 	private Context ctx;
 	private Solver solver;
 	private boolean useHornLogic = false;
-	
-	private Set<FuncDecl> userDeclaredFunctions = new HashSet<FuncDecl>(); //todo hack. 
 
+	private Set<FuncDecl> userDeclaredFunctions = new HashSet<FuncDecl>(); // todo
+																			// hack.
 
 	private HashMap<String, String> cfg = new HashMap<String, String>();
 
@@ -91,17 +92,19 @@ public class Z3Prover implements Prover {
 	private void createSolver(boolean useHorn) {
 		if (useHorn) {
 			this.solver = this.ctx.mkSolver();
-			Params params = this.ctx.mkParams();
-//			params.add(":engine", "pdr");
-//			params.add(":xform.slice", false);
-//			params.add(":use_heavy_mev", true);
-//			params.add(":reset_obligation_queue", true);
-//			params.add(":pdr.flexible_trace", false);
-//			params.add(":xform.inline-linear", false);
-//			params.add(":xform.inline-eager", false);
-//			params.add(":pdr.utvpi", false);
-			params.add("timeout", 30000); //10 sec in millisecs
-			this.solver.setParameters(params);
+			// params.add(":engine", "pdr");
+			// params.add(":xform.slice", false);
+			// params.add(":use_heavy_mev", true);
+			// params.add(":reset_obligation_queue", true);
+			// params.add(":pdr.flexible_trace", false);
+			// params.add(":xform.inline-linear", false);
+			// params.add(":xform.inline-eager", false);
+			// params.add(":pdr.utvpi", false);
+			if (Options.v().getTimeout() > 0) {
+				Params params = this.ctx.mkParams();
+				params.add("timeout", TimeUnit.SECONDS.toMillis(Options.v().getTimeout()));
+				this.solver.setParameters(params);
+			}
 
 		} else {
 			this.solver = this.ctx.mkSolver();
@@ -215,7 +218,7 @@ public class Z3Prover implements Prover {
 		}
 		return new Z3TermExpr(exp, type);
 	}
-	
+
 	@Override
 	public ProverFun mkUnintFunction(String name, ProverType[] argTypes, ProverType resType) {
 		Sort[] argSorts = new Sort[argTypes.length];
@@ -683,7 +686,7 @@ public class Z3Prover implements Prover {
 		List<Expr> result = new LinkedList<Expr>();
 		if (e.equals(ctx.mkTrue()) || e.equals(ctx.mkFalse()) || e.isNumeral()) {
 			// ignore
-		} else if (e.isConst() && e.getArgs().length==0) {
+		} else if (e.isConst() && e.getArgs().length == 0) {
 			if (userDeclaredFunctions.contains(e.getFuncDecl())) {
 				// do nothing.
 			} else {
@@ -697,7 +700,8 @@ public class Z3Prover implements Prover {
 		} else if (e.isApp()) {
 			for (Expr child : e.getArgs()) {
 				result.addAll(freeVariables(child));
-			}		} else {
+			}
+		} else {
 			throw new RuntimeException("not implemented " + e + " " + e.getClass().toString());
 		}
 
@@ -740,9 +744,10 @@ public class Z3Prover implements Prover {
 		return mkVariable(name, type);
 	}
 
-	private int count = 0; 
+	private int count = 0;
+
 	public ProverFun mkHornPredicate(String name, ProverType[] argTypes) {
-		return this.mkUnintFunction(name+(count++), argTypes, this.getBooleanType());
+		return this.mkUnintFunction(name + (count++), argTypes, this.getBooleanType());
 	}
 
 	/**
