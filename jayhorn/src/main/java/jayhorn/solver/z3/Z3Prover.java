@@ -102,7 +102,8 @@ public class Z3Prover implements Prover {
 			// params.add(":pdr.utvpi", false);
 			if (Options.v().getTimeout() > 0) {
 				Params params = this.ctx.mkParams();
-				params.add("timeout", TimeUnit.SECONDS.toMillis(Options.v().getTimeout()));
+				int timeoutInMsec = (int)TimeUnit.SECONDS.toMillis(Options.v().getTimeout());
+				params.add("timeout", timeoutInMsec);
 				this.solver.setParameters(params);
 			}
 
