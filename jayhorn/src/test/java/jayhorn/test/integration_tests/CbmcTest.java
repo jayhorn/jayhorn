@@ -69,11 +69,11 @@ public class CbmcTest {
 		verifyAssertions(new PrincessProverFactory());
 	}
 
-//	@Test
-//	public void testWithZ3() {
-//		verifyAssertions(new Z3ProverFactory());
-//	}
-//		
+	@Test
+	public void testWithZ3() {
+		verifyAssertions(new Z3ProverFactory());
+	}
+		
 		
 	private void verifyAssertions(ProverFactory factory) {
 		System.out.println("Running test: "+this.description);
