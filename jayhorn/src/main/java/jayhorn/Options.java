@@ -62,7 +62,7 @@ public class Options {
 	@Option(name = "-j", usage = "JAR file, class folder, or apk", required = false)
 	private String javaInput;
 	
-	public String getJavaInput() {
+	public String getJavaInput() {		
 		return this.javaInput;
 	}
 
