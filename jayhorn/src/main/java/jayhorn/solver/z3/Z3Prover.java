@@ -25,6 +25,7 @@ import com.microsoft.z3.ArraySort;
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
+import com.microsoft.z3.FuncDecl;
 import com.microsoft.z3.IntExpr;
 import com.microsoft.z3.InterpolationContext;
 import com.microsoft.z3.Model;
@@ -471,6 +472,7 @@ public class Z3Prover implements Prover {
 	@Override
 	public void addAssertion(ProverExpr assertion) {		
 		if (assertion instanceof Z3HornExpr) {
+			
 			Z3HornExpr hc = (Z3HornExpr) assertion;
 			BoolExpr head = (BoolExpr) unpack(hc.getHead());
 			BoolExpr body = (BoolExpr) unpack(hc.getConstraint());
@@ -495,20 +497,13 @@ public class Z3Prover implements Prover {
 			} 
 			//from Nikolajs example 			
 			BoolExpr asrt;
-			if (freeVars.size()>0) {				
-				asrt =  ctx.mkForall(freeVars.toArray(new Expr[freeVars.size()]), ctx.mkImplies(body, head), 1, null, null, null, null);				
-				this.solver.add(asrt);
+			
+			
+			if (freeVars.size()>0) {
+				asrt =  ctx.mkForall(freeVars.toArray(new Expr[freeVars.size()]), ctx.mkImplies(body, head), 1, null, null, null, null);
 			} else {
 				asrt =  ctx.mkImplies(body, head);
 			}
-			StringBuilder sb = new StringBuilder();
-			sb.append("Prover Expression =======\n");
-			sb.append(assertion.toString());
-			sb.append("\nZ3 Expression ===========\n");
-			sb.append(asrt.toString());
-			sb.append("\n");
-			System.err.println(sb.toString());
-
 			this.solver.add(asrt);
 		} else if (assertion instanceof Z3BoolExpr
 				|| assertion instanceof Z3TermExpr) {
@@ -536,6 +531,7 @@ public class Z3Prover implements Prover {
 
 	@Override
 	public ProverResult checkSat(boolean block) {
+		System.err.println(this.solver.toString());		
 		if (block) {
 			return translateResult(this.solver.check());
 		} else {
@@ -775,7 +771,7 @@ public class Z3Prover implements Prover {
 	// Horn clause interface
 
 	@Override
-	public ProverExpr mkHornVariable(String name, ProverType type) {
+	public ProverExpr mkHornVariable(String name, ProverType type) { 
             return mkVariable(name, type);
         }
 

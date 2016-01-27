@@ -38,6 +38,7 @@ public class Program {
 	private Variable exceptionGlobal;
 	
 	private DirectedGraph<Method, DefaultEdge> callGraph;
+	private final DirectedGraph<ClassVariable, DefaultEdge> typeGraph = new DefaultDirectedGraph<ClassVariable,DefaultEdge>(DefaultEdge.class);;
 	private Map<Method, Set<Variable>> modifiedGlobals;
 	
 	public Variable[] getGlobalVariables() {
@@ -52,6 +53,20 @@ public class Program {
 		return v;
 	}
 
+	public void addClassVariable(ClassVariable cv) {
+		if (!this.typeGraph.containsVertex(cv)) {
+			this.typeGraph.addVertex(cv);
+			for (ClassVariable parent : cv.getParents()) {
+				addClassVariable(parent);
+				this.typeGraph.addEdge(parent, cv);
+			}			
+		}
+	}
+	
+	public DirectedGraph<ClassVariable, DefaultEdge> getTypeGraph() {
+		return this.typeGraph;
+	}
+	
 	public Variable lookupGlobalVariable(String varName, Type t) {
 		return lookupGlobalVariable(varName, t, false, false);
 	}

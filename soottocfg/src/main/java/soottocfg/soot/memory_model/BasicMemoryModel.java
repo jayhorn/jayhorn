@@ -321,6 +321,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 				this.constantDictionary.put(cc, new ClassVariable(name, new HashSet<ClassVariable>()));
 			}
 		}
+		this.program.addClassVariable((ClassVariable) this.constantDictionary.get(cc));
 		return (ClassVariable) this.constantDictionary.get(cc);
 	}
 	
