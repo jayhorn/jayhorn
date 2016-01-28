@@ -1,4 +1,4 @@
-
+import java.util.Random;
 
 public class Ackermann01_true {
 
@@ -14,11 +14,12 @@ public class Ackermann01_true {
 		}
 	
 	public static void main(String[] args){
-		int m = Integer.parseInt(args[0]);
+		Random randomGenerator = new Random();
+		int m = randomGenerator.nextInt(10000);
 	    if (m < 0 || m > 3) {
 	        assert false;
 	    }
-	    int n = Integer.parseInt(args[1]);
+	    int n = randomGenerator.nextInt(10000);
 	    if (n < 0 || n > 23) {
 	        assert false;
 	    }
