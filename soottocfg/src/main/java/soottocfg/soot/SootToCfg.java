@@ -143,7 +143,7 @@ public class SootToCfg {
 
 							mi.finalizeAndAddToProgram();
 							Method m = mi.getMethod();
-
+System.err.println(m);
 							if (debug) {
 								// System.out.println("adding method: " + m.getMethodName());
 								getProgram().addEntryPoint(m);
