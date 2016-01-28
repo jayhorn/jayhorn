@@ -10,13 +10,27 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
+
 import soot.Body;
+import soot.PrimType;
 import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
+import soot.Value;
+import soot.ValueBox;
+import soot.jimple.DefinitionStmt;
+import soot.jimple.DoubleConstant;
+import soot.jimple.FloatConstant;
+import soot.jimple.InstanceFieldRef;
+import soot.jimple.IntConstant;
+import soot.jimple.Jimple;
+import soot.jimple.LongConstant;
+import soot.jimple.NullConstant;
+import soot.jimple.StaticFieldRef;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
 import soot.jimple.toolkits.scalar.UnreachableCodeEliminator;
 import soot.toolkits.graph.CompleteUnitGraph;
@@ -150,6 +164,7 @@ System.err.println(m);
 							}
 						} catch (RuntimeException e) {
 							System.err.println("Soot failed to parse " + sm.getSignature());
+							e.printStackTrace();
 							return;
 						}
 					}
@@ -167,6 +182,7 @@ System.err.println(m);
 				Method m = program.loopupMethod(entryPoint.getSignature());
 				if (m != null) {
 					System.out.println("Adding entry point " + m.getMethodName());
+					//TODO
 					program.addEntryPoint(m);
 				}
 			}
@@ -198,6 +214,8 @@ System.err.println(m);
 		}
 	}
 	
+	private Set<SootMethod> staticInitializers = new HashSet<SootMethod>();
+	
 	/**
 	 * Perform a sequence of behavior preserving transformations to the body
 	 * of each method:
@@ -226,6 +244,10 @@ System.err.println(m);
 				SootTranslationHelpers.v().setCurrentClass(sc);
 				for (SootMethod sm : sc.getMethods()) {
 					if (sm.isConcrete()) {
+						
+						initializeStaticFields(sm,sc); 
+						addDefaultInitializers(sm,sc);
+						
 						SootTranslationHelpers.v().setCurrentMethod(sm);
 						try {
 							Body body = sm.retrieveActiveBody();
@@ -269,4 +291,93 @@ System.err.println(m);
 		}
 	}
 
+	private void initializeStaticFields(SootMethod staticInit, SootClass containingClass) {		
+		if (staticInit.isStaticInitializer()) {
+			Preconditions.checkArgument(staticInit.getDeclaringClass().equals(containingClass));
+			staticInitializers.add(staticInit);
+			Set<SootField> staticFields = new HashSet<SootField>();
+			for (SootField f : containingClass.getFields()) {
+				if (f.isStatic() ) {
+					staticFields.add(f);
+				}
+			}
+			for (ValueBox vb : staticInit.retrieveActiveBody().getDefBoxes()) {
+				if (vb.getValue() instanceof StaticFieldRef) {
+					//remove the fields that are initialized anyways from our staticFields set.
+					staticFields.remove(((StaticFieldRef)vb.getValue()).getField());
+				}
+			}
+			for (SootField f : staticFields) {
+				Unit init = Jimple.v().newAssignStmt(Jimple.v().newStaticFieldRef(f.makeRef()), getDefaultValue(f.getType()));
+				staticInit.getActiveBody().getUnits().addFirst(init);
+			}
+		}
+	}
+	
+	private void addDefaultInitializers(SootMethod constructor, SootClass containingClass) {
+		if (constructor.isConstructor()) {
+			Preconditions.checkArgument(constructor.getDeclaringClass().equals(containingClass));
+			Set<SootField> instanceFields = new HashSet<SootField>();
+			for (SootField f : containingClass.getFields()) {
+				if (!f.isStatic()) {
+					instanceFields.add(f);
+				}
+			}
+			for (ValueBox vb : constructor.retrieveActiveBody().getDefBoxes()) {
+				if (vb.getValue() instanceof InstanceFieldRef) {
+					Value base = ((InstanceFieldRef)vb.getValue()).getBase();
+					soot.Type baseType = base.getType();
+					if (baseType instanceof RefType && ((RefType)baseType).getSootClass().equals(containingClass)) {
+						//remove the fields that are initialized anyways from our staticFields set.
+						instanceFields.remove(((InstanceFieldRef)vb.getValue()).getField());						
+					}
+				}				
+			}
+					
+			Unit insertPos = null;
+			for (Unit u : constructor.getActiveBody().getUnits()) {
+				if (u instanceof DefinitionStmt && ((DefinitionStmt)u).getLeftOp().equals(constructor.getActiveBody().getThisLocal())) {
+					insertPos = u; break;
+				}
+			}
+			for (SootField f : instanceFields) {
+				Unit init;
+				if (f.getName().contains(SootTranslationHelpers.typeFieldName)) {					
+					init = Jimple.v().newAssignStmt(Jimple.v().newInstanceFieldRef(constructor.getActiveBody().getThisLocal(),f.makeRef()), SootTranslationHelpers.v().getClassConstant(RefType.v(containingClass)));
+				} else {
+					init = Jimple.v().newAssignStmt(Jimple.v().newInstanceFieldRef(constructor.getActiveBody().getThisLocal(),f.makeRef()), getDefaultValue(f.getType()));
+				}				
+				constructor.getActiveBody().getUnits().insertAfter(init, insertPos);
+			}
+
+		}
+	}
+
+	private Value getDefaultValue(soot.Type t) {
+		Value rhs = null;
+		if (t instanceof PrimType) {
+			if (t instanceof soot.BooleanType) {
+				rhs = IntConstant.v(0);
+			} else if (t instanceof soot.ByteType) {
+				rhs = IntConstant.v(0);
+			} else if (t instanceof soot.CharType) {
+				rhs = IntConstant.v(0);
+			} else if (t instanceof soot.DoubleType) {
+				rhs = DoubleConstant.v(0);
+			} else if (t instanceof soot.FloatType) {
+				rhs = FloatConstant.v(0);
+			} else if (t instanceof soot.IntType) {
+				rhs = IntConstant.v(0);
+			} else if (t instanceof soot.LongType) {
+				rhs = LongConstant.v(0);
+			} else if (t instanceof soot.ShortType) {
+				rhs = IntConstant.v(0);
+			} else {
+				throw new RuntimeException("Unknown type " + t);
+			}
+		} else {
+			rhs = NullConstant.v();
+		}
+		return rhs;
+	}
 }

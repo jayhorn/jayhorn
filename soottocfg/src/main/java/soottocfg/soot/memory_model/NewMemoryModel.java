@@ -42,13 +42,21 @@ public class NewMemoryModel extends BasicMemoryModel {
 			IdentifierExpression base = (IdentifierExpression) valueSwitch.popExpression();
 			rhs.apply(valueSwitch);
 			Expression value = valueSwitch.popExpression();
-			
+
 			ClassVariable c = lookupClassVariable(
 					SootTranslationHelpers.v().getClassConstant(field.getField().getDeclaringClass().getType()));
 			Variable[] vars = c.getAssociatedFields();
-			
-			// ------------- unpack ---------------
+
 			boolean skipUnpack = false;
+			boolean skipPack = false;
+
+			// do not pack or unpack if we are in a constructor!
+			if (SootTranslationHelpers.v().getCurrentMethod().isConstructor() && ifr.getBase()
+					.equals(SootTranslationHelpers.v().getCurrentMethod().getActiveBody().getThisLocal())) {
+				skipUnpack = true;
+				skipPack = true;
+			}
+			// ------------- unpack ---------------
 			if (u instanceof DefinitionStmt && ((DefinitionStmt) u).getRightOp() instanceof AnyNewExpr
 					&& field.getField().getName().contains(SootTranslationHelpers.typeFieldName)) {
 				// TODO: Hacky way of suppressing the unpack after new.
@@ -66,11 +74,13 @@ public class NewMemoryModel extends BasicMemoryModel {
 			this.statementSwitch.push(new AssignStatement(loc,
 					new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar), value));
 			// ------------- pack -----------------
-			List<Expression> packedVars = new LinkedList<Expression>();
-			for (int i = 0; i < vars.length; i++) {
-				packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
+			if (!skipPack) {
+				List<Expression> packedVars = new LinkedList<Expression>();
+				for (int i = 0; i < vars.length; i++) {
+					packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
+				}
+				this.statementSwitch.push(new PackStatement(loc, c, base, packedVars));
 			}
-			this.statementSwitch.push(new PackStatement(loc, c, base, packedVars));
 			// ------------------------------------
 
 		} else if (field instanceof StaticFieldRef) {
