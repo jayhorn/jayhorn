@@ -14,6 +14,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
+
+import com.microsoft.z3.Params;
+
 import java.util.Set;
 
 import jayhorn.Log;
@@ -24,6 +28,7 @@ import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverType;
+import soot.options.Options;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Program;
@@ -705,7 +710,13 @@ public class Checker {
 
 				p.addAssertion(p.mkHornClause(entryAtom, new ProverExpr[0], p.mkLiteral(true)));
 
-				result = p.checkSat(true);
+				if (jayhorn.Options.v().getTimeout() > 0) {
+					int timeoutInMsec = (int)TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());
+					p.checkSat(false);
+					result = p.getResult(timeoutInMsec);
+				} else {
+					result = p.checkSat(true);	
+				}
 
 				p.pop();
 			}

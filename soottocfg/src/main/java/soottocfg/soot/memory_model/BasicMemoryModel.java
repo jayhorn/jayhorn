@@ -308,14 +308,13 @@ public abstract class BasicMemoryModel extends MemoryModel {
 					}
 				}
 				ClassVariable cv = new ClassVariable(name, parents);
+				this.constantDictionary.put(cc, cv);
 				
 				List<Variable> fields = new LinkedList<Variable>();
 				for (SootField f : c.getFields()) {
 					fields.add(lookupField(f));
 				}
 				cv.setAssociatedFields(fields);
-				
-				this.constantDictionary.put(cc, cv);				
 			} else {
 				System.err.println("Class not in scene: "+cc);
 				this.constantDictionary.put(cc, new ClassVariable(name, new HashSet<ClassVariable>()));

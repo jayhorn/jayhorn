@@ -111,6 +111,9 @@ public enum SootTranslationHelpers {
 
 	public ClassConstant getClassConstant(Type t) {
 		if (t instanceof RefType) {
+			
+			System.err.println(" xxxx " + ((RefType) t).getClassName());
+			
 			final String className = ((RefType) t).getClassName().replace(".", "/");
 			return ClassConstant.v(className);
 		} else if (t instanceof ArrayType) {
