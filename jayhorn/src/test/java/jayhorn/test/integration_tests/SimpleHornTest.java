@@ -75,6 +75,7 @@ public class SimpleHornTest {
 
 	
 	protected void verifyAssertions(ProverFactory factory) {
+		jayhorn.Options.v().setTimeout(15);
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {

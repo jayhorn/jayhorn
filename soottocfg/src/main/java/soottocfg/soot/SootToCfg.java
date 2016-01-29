@@ -27,6 +27,7 @@ import soot.VoidType;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.DoubleConstant;
 import soot.jimple.FloatConstant;
+import soot.jimple.IdentityStmt;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.IntConstant;
 import soot.jimple.Jimple;
@@ -154,6 +155,7 @@ public class SootToCfg {
 						SootTranslationHelpers.v().setCurrentMethod(sm);
 						try {
 							Body body = sm.retrieveActiveBody();
+							System.out.println(body);
 							MethodInfo mi = new MethodInfo(body.getMethod(),
 									SootTranslationHelpers.v().getCurrentSourceFileName());
 							SootStmtSwitch ss = new SootStmtSwitch(body, mi);
@@ -235,16 +237,18 @@ public class SootToCfg {
 						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
 		program.setExceptionGlobal(exceptionGlobal);
 		// add a field for the dynamic type of an object to each class.
-		for (SootClass sc : new LinkedList<SootClass>(Scene.v().getClasses())) {
+		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
+		for (SootClass sc : classes) {
 			sc.addField(new SootField(SootTranslationHelpers.typeFieldName,
 					RefType.v(Scene.v().getSootClass("java.lang.Class"))));
 		}
 
-		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
+		
 		for (SootClass sc : classes) {
 			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
 				continue; // no need to process this guy.
 			}
+						
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
 
 				initializeStaticFields(sc);
@@ -288,8 +292,8 @@ public class SootToCfg {
 								vc.transform(body);
 							}
 						} catch (RuntimeException e) {
-							System.err.println("Soot failed to parse " + sm.getSignature());
-							return;
+							e.printStackTrace();
+							throw new RuntimeException("Soot failed to parse " + sm.getSignature() + " " + e.toString());							
 						}
 					}
 				}
@@ -387,10 +391,10 @@ public class SootToCfg {
 
 			Unit insertPos = null;
 			for (Unit u : constructor.getActiveBody().getUnits()) {
-				if (u instanceof DefinitionStmt
-						&& ((DefinitionStmt) u).getLeftOp().equals(constructor.getActiveBody().getThisLocal())) {
+				if (u instanceof IdentityStmt) {
 					insertPos = u;
-					break;
+				} else {
+					break; //insert after the last IdentityStmt
 				}
 			}
 			for (SootField f : instanceFields) {
