@@ -8,6 +8,8 @@ import java.util.List;
 
 import soot.Unit;
 import soot.Value;
+import soot.jimple.AnyNewExpr;
+import soot.jimple.DefinitionStmt;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.StaticFieldRef;
@@ -41,24 +43,44 @@ public class NewMemoryModel extends BasicMemoryModel {
 			rhs.apply(valueSwitch);
 			Expression value = valueSwitch.popExpression();
 
-			// ------------- unpack ---------------
-
-			ClassVariable c = lookupClassVariable(SootTranslationHelpers.v().getClassConstant(field.getField().getDeclaringClass().getType()));
-			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
+			ClassVariable c = lookupClassVariable(
+					SootTranslationHelpers.v().getClassConstant(field.getField().getDeclaringClass().getType()));
 			Variable[] vars = c.getAssociatedFields();
-			
-			for (int i = 0; i < vars.length; i++) {
-				unpackedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
+
+			boolean skipUnpack = false;
+			boolean skipPack = false;
+
+			// do not pack or unpack if we are in a constructor!
+			if (SootTranslationHelpers.v().getCurrentMethod().isConstructor() && ifr.getBase()
+					.equals(SootTranslationHelpers.v().getCurrentMethod().getActiveBody().getThisLocal())) {
+				skipUnpack = true;
+				skipPack = true;
 			}
-			this.statementSwitch.push(new UnPackStatement(loc, c, base, unpackedVars));
+			// ------------- unpack ---------------
+			if (u instanceof DefinitionStmt && ((DefinitionStmt) u).getRightOp() instanceof AnyNewExpr
+					&& field.getField().getName().contains(SootTranslationHelpers.typeFieldName)) {
+				// TODO: Hacky way of suppressing the unpack after new.
+				skipUnpack = true;
+			}
+
+			if (!skipUnpack) {
+				List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
+				for (int i = 0; i < vars.length; i++) {
+					unpackedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
+				}
+				this.statementSwitch.push(new UnPackStatement(loc, c, base, unpackedVars));
+			}
 			// ------------------------------------
-			this.statementSwitch.push(new AssignStatement(loc, new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar), value));
+			this.statementSwitch.push(new AssignStatement(loc,
+					new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar), value));
 			// ------------- pack -----------------
-			List<Expression> packedVars = new LinkedList<Expression>();
-			for (int i = 0; i < vars.length; i++) {
-				packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
+			if (!skipPack) {
+				List<Expression> packedVars = new LinkedList<Expression>();
+				for (int i = 0; i < vars.length; i++) {
+					packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
+				}
+				this.statementSwitch.push(new PackStatement(loc, c, base, packedVars));
 			}
-			this.statementSwitch.push(new PackStatement(loc, c, base, packedVars));
 			// ------------------------------------
 
 		} else if (field instanceof StaticFieldRef) {
@@ -84,7 +106,8 @@ public class NewMemoryModel extends BasicMemoryModel {
 			IdentifierExpression base = (IdentifierExpression) valueSwitch.popExpression();
 
 			// ------------- unpack ---------------
-			ClassVariable c = lookupClassVariable(SootTranslationHelpers.v().getClassConstant(field.getField().getDeclaringClass().getType()));
+			ClassVariable c = lookupClassVariable(
+					SootTranslationHelpers.v().getClassConstant(field.getField().getDeclaringClass().getType()));
 			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			Variable[] vars = c.getAssociatedFields();
 			for (int i = 0; i < vars.length; i++) {
@@ -92,7 +115,8 @@ public class NewMemoryModel extends BasicMemoryModel {
 			}
 			this.statementSwitch.push(new UnPackStatement(loc, c, base, unpackedVars));
 			// ------------------------------------
-			this.statementSwitch.push(new AssignStatement(loc, left, new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar)));
+			this.statementSwitch.push(new AssignStatement(loc, left,
+					new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar)));
 			// ------------- pack -----------------
 			List<Expression> packedVars = new LinkedList<Expression>();
 			for (int i = 0; i < vars.length; i++) {

@@ -50,7 +50,7 @@ public class SwitchStatementRemover extends AbstractTransformer {
 			}
 		}
 		for (Entry<Unit, List<Unit>> entry : toReplace.entrySet()) {
-			units.insertAfter(entry.getValue(), entry.getKey());
+			units.insertBefore(entry.getValue(), entry.getKey());
 			units.remove(entry.getKey());
 		}
 		body.validate();
@@ -80,9 +80,9 @@ public class SwitchStatementRemover extends AbstractTransformer {
 				counter++;
 			}
 		} else {
-			LookupSwitchStmt arg0 = (LookupSwitchStmt) s;
+			LookupSwitchStmt arg0 = (LookupSwitchStmt) s;			
 			for (int i = 0; i < arg0.getTargetCount(); i++) {
-				cases.add(Jimple.v().newEqExpr(arg0.getKey(), IntConstant.v(i)));
+				cases.add(Jimple.v().newEqExpr(arg0.getKey(), IntConstant.v(arg0.getLookupValue(i))));
 				targets.add(arg0.getTarget(i));
 			}
 		}

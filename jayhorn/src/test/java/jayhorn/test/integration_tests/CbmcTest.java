@@ -20,6 +20,7 @@ import jayhorn.checker.Checker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.solver.z3.Z3ProverFactory;
+import soot.options.Options;
 import soottocfg.soot.SootToCfg;
 
 @RunWith(Parameterized.class)
@@ -69,13 +70,14 @@ public class CbmcTest {
 		verifyAssertions(new PrincessProverFactory());
 	}
 
-	@Test
-	public void testWithZ3() {
-		verifyAssertions(new Z3ProverFactory());
-	}
+//	@Test
+//	public void testWithZ3() {		
+//		verifyAssertions(new Z3ProverFactory());
+//	}
 		
 		
 	private void verifyAssertions(ProverFactory factory) {
+		jayhorn.Options.v().setTimeout(15);
 		System.out.println("Running test: "+this.description);
 		System.out.println("\texpected result: "+ expectedResult);
 

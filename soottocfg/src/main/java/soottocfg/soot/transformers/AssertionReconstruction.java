@@ -165,6 +165,7 @@ public class AssertionReconstruction extends AbstractTransformer {
 	public void reconstructJavaAssertions(Body body) {
 		Set<Unit> unitsToRemove = new HashSet<Unit>();
 		Map<Unit, Value> assertionsToInsert = new HashMap<Unit, Value>();
+		Map<Unit, Unit> postAssertionGotos = new HashMap<Unit, Unit>();
 		
 		//This is a hack to ensure that the generated assertions
 		//have a nice line number. The actual assertion in the byte code
@@ -186,35 +187,45 @@ public class AssertionReconstruction extends AbstractTransformer {
 				if (!(u instanceof IfStmt)) {
 					throw new RuntimeException("");
 				}
+				//remember where to go if the assertion holds.
+//				Unit postAssertionStatement = ((IfStmt)u).getTarget();
 				unitsToRemove.add(u);
 
 				// now search for the new java.lang.AssertionError
-				Unit previousUnit = null;
+//				Unit previousUnit = null;
+//				Unit lastAssertion = null;
 				while (iterator.hasNext()) {
 					u = iterator.next();
+					
+//					if (u instanceof IfStmt) {
+//						unitsToRemove.add(u);
+//						IfStmt ite = (IfStmt) u;
+//						if (ite.getTarget().equals(postAssertionStatement)) {							
+//							assertionsToInsert.put(u, ite.getCondition());
+//							assertionToLineNumberUnit.put(u, unitWithInterestingLineNumber);							
+//						} else {
+//							//this is a negated assertion.							
+//							assertionsToInsert.put(u, ConditionFlipper.flip((ConditionExpr) ite.getCondition())) ;
+//							assertionToLineNumberUnit.put(u, unitWithInterestingLineNumber);
+//							
+//						}
+//						lastAssertion = u;
+//					}
+					
 					if (isNewJavaAssertionError(u)) {
+						//make an assert false
 						// u := $r1 = new java.lang.AssertionError;
 						unitsToRemove.add(u);
-						// the statement before should be
-						// the expression from the java assertion
-						// previousUnit := if $i0 != 5 goto label1;
-						if (!(previousUnit instanceof IfStmt)) {
-							if (previousUnit == null) {
-								// then this is an assert(false) statement.
-								assertionsToInsert.put(u, IntConstant.v(0));
-								assertionToLineNumberUnit.put(u, unitWithInterestingLineNumber);
-							} else {
-								throw new RuntimeException("Assertion reconstruction broken");
-							}
-						} else {
-							unitsToRemove.add(previousUnit);
-							IfStmt ite = (IfStmt) previousUnit;
-							assertionsToInsert.put(u, ite.getCondition());
-							assertionToLineNumberUnit.put(u, unitWithInterestingLineNumber);
-						}
+						assertionsToInsert.put(u, IntConstant.v(0));
+						assertionToLineNumberUnit.put(u, unitWithInterestingLineNumber);
+//						lastAssertion = u;
+
+//						if (lastAssertion!=null) {
+//							postAssertionGotos.put(lastAssertion, postAssertionStatement);
+//						}
 						break;
 					}
-					previousUnit = u;
+//					previousUnit = u;
 				}
 				// u := specialinvoke $r1.<java.lang.AssertionError: void
 				// <init>()>(); 
@@ -251,12 +262,17 @@ public class AssertionReconstruction extends AbstractTransformer {
 			List<Unit> unitsToInsert = new LinkedList<Unit>();
 			unitsToInsert.add(this.assignStmtFor(assertionLocal, entry.getValue(), assertionToLineNumberUnit.get(entry.getKey())));
 			unitsToInsert.add(SootTranslationHelpers.v().makeAssertion(assertionLocal, assertionToLineNumberUnit.get(entry.getKey())));
-
+			if (postAssertionGotos.containsKey(entry.getKey())) {
+				//go to the proper successor if the assertion passes.
+				unitsToInsert.add(this.gotoStmtFor(postAssertionGotos.get(entry.getKey()), entry.getKey()));
+			}
+			
+			
 			body.getUnits().insertBefore(unitsToInsert, entry.getKey());
 			unitsToRemove.add(entry.getKey());
 		}
 
-		body.getUnits().removeAll(unitsToRemove);
+		body.getUnits().removeAll(unitsToRemove);		
 		body.validate();
 	}
 

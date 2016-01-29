@@ -217,7 +217,7 @@ public class SootRunner {
 			/*
 			 * TODO: apply some preprocessing stuff like:
 			 * soot.jimple.toolkits.base or maybe the optimize option from soot.
-			 */
+			 */			
 			for (SootClass sc : Scene.v().getClasses()) {
 				if (sc.resolvingLevel() < SootClass.SIGNATURES) {
 					sc.setResolvingLevel(SootClass.SIGNATURES);

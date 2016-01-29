@@ -78,6 +78,10 @@ public class Options {
 	public int getTimeout() {
 		return this.timeout;
 	}
+	
+	public void setTimeout(int seconds) {
+		this.timeout = seconds;
+	}
 
 
 	/**
