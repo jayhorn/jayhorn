@@ -68,14 +68,14 @@ public class SimpleHornTest {
 		verifyAssertions(new PrincessProverFactory());
 	}
 
-	@Test
-	public void testWithZ3() {
-		verifyAssertions(new Z3ProverFactory());
-	}
+//	@Test
+//	public void testWithZ3() {
+//		verifyAssertions(new Z3ProverFactory());
+//	}
 
 	
 	protected void verifyAssertions(ProverFactory factory) {
-		jayhorn.Options.v().setTimeout(15);
+		jayhorn.Options.v().setTimeout(60);
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
