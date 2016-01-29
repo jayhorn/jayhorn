@@ -1,6 +1,6 @@
 import java.util.Random;
 
-public class SatFibonacci01 {
+public class SatFibonacci02 {
 
 	static int fibonacci(int n) {
 		if (n < 1) {

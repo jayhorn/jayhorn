@@ -1,6 +1,6 @@
 import java.util.Random;
 
-public class UnsatAddition01 {
+public class UnsatAddition02 {
 	static int addition(int m, int n) {
 		if (n == 0) {
 			return m;
