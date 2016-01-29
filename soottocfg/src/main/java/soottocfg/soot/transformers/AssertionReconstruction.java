@@ -165,6 +165,7 @@ public class AssertionReconstruction extends AbstractTransformer {
 	public void reconstructJavaAssertions(Body body) {
 		Set<Unit> unitsToRemove = new HashSet<Unit>();
 		Map<Unit, Value> assertionsToInsert = new HashMap<Unit, Value>();
+		Map<Unit, Unit> postAssertionGotos = new HashMap<Unit, Unit>();
 		
 		//This is a hack to ensure that the generated assertions
 		//have a nice line number. The actual assertion in the byte code
@@ -186,6 +187,7 @@ public class AssertionReconstruction extends AbstractTransformer {
 				if (!(u instanceof IfStmt)) {
 					throw new RuntimeException("");
 				}
+				//remember where to go if the assertion holds.
 				unitsToRemove.add(u);
 
 				// now search for the new java.lang.AssertionError
@@ -211,6 +213,7 @@ public class AssertionReconstruction extends AbstractTransformer {
 							IfStmt ite = (IfStmt) previousUnit;
 							assertionsToInsert.put(u, ite.getCondition());
 							assertionToLineNumberUnit.put(u, unitWithInterestingLineNumber);
+							postAssertionGotos.put(u, ite.getTarget());
 						}
 						break;
 					}
@@ -251,7 +254,12 @@ public class AssertionReconstruction extends AbstractTransformer {
 			List<Unit> unitsToInsert = new LinkedList<Unit>();
 			unitsToInsert.add(this.assignStmtFor(assertionLocal, entry.getValue(), assertionToLineNumberUnit.get(entry.getKey())));
 			unitsToInsert.add(SootTranslationHelpers.v().makeAssertion(assertionLocal, assertionToLineNumberUnit.get(entry.getKey())));
-
+			if (postAssertionGotos.containsKey(entry.getKey())) {
+				//go to the proper successor if the assertion passes.
+				unitsToInsert.add(this.gotoStmtFor(postAssertionGotos.get(entry.getKey()), entry.getKey()));
+			}
+			
+			
 			body.getUnits().insertBefore(unitsToInsert, entry.getKey());
 			unitsToRemove.add(entry.getKey());
 		}

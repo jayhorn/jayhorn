@@ -274,6 +274,13 @@ public class SootStmtSwitch implements StmtSwitch {
 		arg0.getCondition().apply(valueSwitch);
 		Expression negCond = new UnaryExpression(loc, UnaryOperator.LNot, valueSwitch.popExpression());
 
+		//create a new (empty) block for the fan out 
+//		CfgBlock block = methodInfo.lookupCfgBlock(arg0);
+//		if (currentBlock!=null) {
+//			connectBlocks(currentBlock, block);
+//		}
+//		currentBlock = block;
+		
 		/*
 		 * In jimple, conditionals are of the form if (x) goto y; So we end the
 		 * current block and create two new blocks for then and else branch. The

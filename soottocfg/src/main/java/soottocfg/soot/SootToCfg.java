@@ -150,14 +150,14 @@ public class SootToCfg {
 					if (sm.isConcrete()) {
 						SootTranslationHelpers.v().setCurrentMethod(sm);
 						try {
-							Body body = sm.retrieveActiveBody();
+							Body body = sm.retrieveActiveBody();						
 							MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
 							SootStmtSwitch ss = new SootStmtSwitch(body, mi);
 							mi.setSource(ss.getEntryBlock());
 
 							mi.finalizeAndAddToProgram();
 							Method m = mi.getMethod();
-System.err.println(m);
+//System.err.println(m);
 							if (debug) {
 								// System.out.println("adding method: " + m.getMethodName());
 								getProgram().addEntryPoint(m);
@@ -250,7 +250,7 @@ System.err.println(m);
 						
 						SootTranslationHelpers.v().setCurrentMethod(sm);
 						try {
-							Body body = sm.retrieveActiveBody();
+							Body body = sm.retrieveActiveBody();	
 							UnreachableCodeEliminator.v().transform(body);
 							// detect duplicated finally blocks
 							DuplicatedCatchDetection duplicatedUnits = new DuplicatedCatchDetection();

@@ -1,23 +1,14 @@
-class A
-{
-  public static int i=17;
-  public static int j;
-  
-  int x,y;
-  public A() {
-	  x=3;
-  }
-  
-};
 
-class Unsat01
-{
-  public static void main(String[] args)
-  {
-    assert A.i == 0;
-    A.i = 999;
-    assert A.i == 999;
-    
-    A foo = new A();
-  }
+class Unsat01 {
+	public void main(String[] args) {
+		int i = 2, j = 1;
+		i = 3;
+		j = 4;
+
+		if (i >= 1 && i <= 11)
+			assert j == i + 1;
+		else
+			assert j == -1;
+	}
+
 }
