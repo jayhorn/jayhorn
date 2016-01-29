@@ -13,6 +13,7 @@ import java.util.Set;
 import com.google.common.base.Preconditions;
 
 import soot.Body;
+import soot.Modifier;
 import soot.PrimType;
 import soot.RefType;
 import soot.Scene;
@@ -22,12 +23,14 @@ import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
 import soot.ValueBox;
+import soot.VoidType;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.DoubleConstant;
 import soot.jimple.FloatConstant;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.IntConstant;
 import soot.jimple.Jimple;
+import soot.jimple.JimpleBody;
 import soot.jimple.LongConstant;
 import soot.jimple.NullConstant;
 import soot.jimple.StaticFieldRef;
@@ -109,16 +112,17 @@ public class SootToCfg {
 
 		performBehaviorPreservingTransformations();
 		performAbstractionTransformations();
-		
+
 		constructCfg();
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
 	}
-	
+
 	/**
 	 * Like run, but only performs the behavior preserving transformations
 	 * and does construct a CFG. This method is only needed to test the
 	 * soundness of the transformation with randoop.
+	 * 
 	 * @param input
 	 * @param classPath
 	 */
@@ -137,7 +141,6 @@ public class SootToCfg {
 		return locations;
 	}
 
-	
 	private void constructCfg() {
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
@@ -150,16 +153,18 @@ public class SootToCfg {
 					if (sm.isConcrete()) {
 						SootTranslationHelpers.v().setCurrentMethod(sm);
 						try {
-							Body body = sm.retrieveActiveBody();						
-							MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
+							Body body = sm.retrieveActiveBody();
+							MethodInfo mi = new MethodInfo(body.getMethod(),
+									SootTranslationHelpers.v().getCurrentSourceFileName());
 							SootStmtSwitch ss = new SootStmtSwitch(body, mi);
 							mi.setSource(ss.getEntryBlock());
 
 							mi.finalizeAndAddToProgram();
 							Method m = mi.getMethod();
-//System.err.println(m);
+							System.err.println(m);
 							if (debug) {
-								// System.out.println("adding method: " + m.getMethodName());
+								// System.out.println("adding method: " +
+								// m.getMethodName());
 								getProgram().addEntryPoint(m);
 							}
 						} catch (RuntimeException e) {
@@ -182,13 +187,13 @@ public class SootToCfg {
 				Method m = program.loopupMethod(entryPoint.getSignature());
 				if (m != null) {
 					System.out.println("Adding entry point " + m.getMethodName());
-					//TODO
+					// TODO
 					program.addEntryPoint(m);
 				}
 			}
 		}
 	}
-	
+
 	private void performAbstractionTransformations() {
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
@@ -202,8 +207,8 @@ public class SootToCfg {
 						SootTranslationHelpers.v().setCurrentMethod(sm);
 						try {
 							Body body = sm.retrieveActiveBody();
-							 ArrayAbstraction abstraction = new ArrayAbstraction();
-							 abstraction.transform(body);
+							ArrayAbstraction abstraction = new ArrayAbstraction();
+							abstraction.transform(body);
 						} catch (RuntimeException e) {
 							System.err.println("Soot failed to parse " + sm.getSignature());
 							return;
@@ -213,9 +218,9 @@ public class SootToCfg {
 			}
 		}
 	}
-	
+
 	private Set<SootMethod> staticInitializers = new HashSet<SootMethod>();
-	
+
 	/**
 	 * Perform a sequence of behavior preserving transformations to the body
 	 * of each method:
@@ -241,16 +246,17 @@ public class SootToCfg {
 				continue; // no need to process this guy.
 			}
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
+
+				initializeStaticFields(sc);
+
 				SootTranslationHelpers.v().setCurrentClass(sc);
 				for (SootMethod sm : sc.getMethods()) {
 					if (sm.isConcrete()) {
-						
-						initializeStaticFields(sm,sc); 
-						addDefaultInitializers(sm,sc);
-						
+						addDefaultInitializers(sm, sc);
+
 						SootTranslationHelpers.v().setCurrentMethod(sm);
 						try {
-							Body body = sm.retrieveActiveBody();	
+							Body body = sm.retrieveActiveBody();
 							UnreachableCodeEliminator.v().transform(body);
 							// detect duplicated finally blocks
 							DuplicatedCatchDetection duplicatedUnits = new DuplicatedCatchDetection();
@@ -289,31 +295,75 @@ public class SootToCfg {
 				}
 			}
 		}
+		addStaticInitializerCallsToMain();
 	}
 
-	private void initializeStaticFields(SootMethod staticInit, SootClass containingClass) {		
-		if (staticInit.isStaticInitializer()) {
-			Preconditions.checkArgument(staticInit.getDeclaringClass().equals(containingClass));
-			staticInitializers.add(staticInit);
-			Set<SootField> staticFields = new HashSet<SootField>();
-			for (SootField f : containingClass.getFields()) {
-				if (f.isStatic() ) {
-					staticFields.add(f);
+	private void addStaticInitializerCallsToMain() {
+		SootMethod entry = null;
+		for (SootMethod entryPoint : Scene.v().getEntryPoints()) {
+			if (entryPoint.getDeclaringClass().isApplicationClass()) {
+				if (entryPoint.isStaticInitializer()) {
+					continue;
 				}
-			}
-			for (ValueBox vb : staticInit.retrieveActiveBody().getDefBoxes()) {
-				if (vb.getValue() instanceof StaticFieldRef) {
-					//remove the fields that are initialized anyways from our staticFields set.
-					staticFields.remove(((StaticFieldRef)vb.getValue()).getField());
+				if (entry != null) {
+					System.err.println("Found more than one main. Not adding static initializers to main :(");
+					return;
 				}
+				entry = entryPoint;
 			}
-			for (SootField f : staticFields) {
-				Unit init = Jimple.v().newAssignStmt(Jimple.v().newStaticFieldRef(f.makeRef()), getDefaultValue(f.getType()));
-				staticInit.getActiveBody().getUnits().addFirst(init);
+		}
+		if (entry != null) {
+			System.out.println("Adding " + staticInitializers.size() + " static init calls to " + entry.getSignature());
+			for (SootMethod initializer : staticInitializers) {
+				Unit initCall = Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(initializer.makeRef()));
+				entry.getActiveBody().getUnits().addFirst(initCall);
 			}
 		}
 	}
+
+	private void initializeStaticFields(SootClass containingClass) {
+		// find all static fields of the class.
+		Set<SootField> staticFields = new HashSet<SootField>();
+		for (SootField f : containingClass.getFields()) {
+			if (f.isStatic()) {
+				staticFields.add(f);
+			}
+		}
+		if (staticFields.isEmpty()) {
+			return; //nothing to do.
+		}
+		
+		SootMethod staticInit = null;
+		for (SootMethod m : containingClass.getMethods()) {
+			if (m.isStaticInitializer()) {
+				staticInit = m;
+				break;
+			}
+		}
+		
+		if (staticInit==null) {
+			//TODO: super hacky!
+			staticInit = new SootMethod(SootMethod.staticInitializerName, new LinkedList<soot.Type>(), VoidType.v(), Modifier.STATIC|Modifier.PUBLIC);
+			JimpleBody body = Jimple.v().newBody(staticInit);
+			body.getUnits().add(Jimple.v().newReturnVoidStmt());
+			staticInit.setActiveBody(body);
+			containingClass.addMethod(staticInit);
+		}
+		staticInitializers.add(staticInit);
+		for (ValueBox vb : staticInit.retrieveActiveBody().getDefBoxes()) {
+			if (vb.getValue() instanceof StaticFieldRef) {
+				staticFields.remove( ((StaticFieldRef)vb.getValue()).getField());
+			}
+		}
+
+		for (SootField f : staticFields) {
+			Unit init = Jimple.v().newAssignStmt(Jimple.v().newStaticFieldRef(f.makeRef()),
+					getDefaultValue(f.getType()));
+			staticInit.getActiveBody().getUnits().addFirst(init);
+		}
 	
+	}
+
 	private void addDefaultInitializers(SootMethod constructor, SootClass containingClass) {
 		if (constructor.isConstructor()) {
 			Preconditions.checkArgument(constructor.getDeclaringClass().equals(containingClass));
@@ -325,28 +375,35 @@ public class SootToCfg {
 			}
 			for (ValueBox vb : constructor.retrieveActiveBody().getDefBoxes()) {
 				if (vb.getValue() instanceof InstanceFieldRef) {
-					Value base = ((InstanceFieldRef)vb.getValue()).getBase();
+					Value base = ((InstanceFieldRef) vb.getValue()).getBase();
 					soot.Type baseType = base.getType();
-					if (baseType instanceof RefType && ((RefType)baseType).getSootClass().equals(containingClass)) {
-						//remove the fields that are initialized anyways from our staticFields set.
-						instanceFields.remove(((InstanceFieldRef)vb.getValue()).getField());						
+					if (baseType instanceof RefType && ((RefType) baseType).getSootClass().equals(containingClass)) {
+						// remove the fields that are initialized anyways from
+						// our staticFields set.
+						instanceFields.remove(((InstanceFieldRef) vb.getValue()).getField());
 					}
-				}				
+				}
 			}
-					
+
 			Unit insertPos = null;
 			for (Unit u : constructor.getActiveBody().getUnits()) {
-				if (u instanceof DefinitionStmt && ((DefinitionStmt)u).getLeftOp().equals(constructor.getActiveBody().getThisLocal())) {
-					insertPos = u; break;
+				if (u instanceof DefinitionStmt
+						&& ((DefinitionStmt) u).getLeftOp().equals(constructor.getActiveBody().getThisLocal())) {
+					insertPos = u;
+					break;
 				}
 			}
 			for (SootField f : instanceFields) {
 				Unit init;
-				if (f.getName().contains(SootTranslationHelpers.typeFieldName)) {					
-					init = Jimple.v().newAssignStmt(Jimple.v().newInstanceFieldRef(constructor.getActiveBody().getThisLocal(),f.makeRef()), SootTranslationHelpers.v().getClassConstant(RefType.v(containingClass)));
+				if (f.getName().contains(SootTranslationHelpers.typeFieldName)) {
+					init = Jimple.v().newAssignStmt(
+							Jimple.v().newInstanceFieldRef(constructor.getActiveBody().getThisLocal(), f.makeRef()),
+							SootTranslationHelpers.v().getClassConstant(RefType.v(containingClass)));
 				} else {
-					init = Jimple.v().newAssignStmt(Jimple.v().newInstanceFieldRef(constructor.getActiveBody().getThisLocal(),f.makeRef()), getDefaultValue(f.getType()));
-				}				
+					init = Jimple.v().newAssignStmt(
+							Jimple.v().newInstanceFieldRef(constructor.getActiveBody().getThisLocal(), f.makeRef()),
+							getDefaultValue(f.getType()));
+				}
 				constructor.getActiveBody().getUnits().insertAfter(init, insertPos);
 			}
 
