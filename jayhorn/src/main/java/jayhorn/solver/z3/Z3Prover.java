@@ -3,6 +3,17 @@
  */
 package jayhorn.solver.z3;
 
+import com.microsoft.z3.*;
+import jayhorn.solver.BoolType;
+import jayhorn.solver.IntType;
+import jayhorn.solver.Prover;
+import jayhorn.solver.ProverExpr;
+import jayhorn.solver.ProverFun;
+import jayhorn.solver.ProverHornClause;
+import jayhorn.solver.ProverListener;
+import jayhorn.solver.ProverResult;
+import jayhorn.solver.ProverType;
+
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,31 +29,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import com.microsoft.z3.ArithExpr;
-import com.microsoft.z3.ArrayExpr;
-import com.microsoft.z3.ArraySort;
-import com.microsoft.z3.BoolExpr;
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
-import com.microsoft.z3.IntExpr;
-import com.microsoft.z3.InterpolationContext;
-import com.microsoft.z3.Model;
-import com.microsoft.z3.Params;
-import com.microsoft.z3.Quantifier;
-import com.microsoft.z3.Solver;
-import com.microsoft.z3.Sort;
-import com.microsoft.z3.Status;
-
-import jayhorn.solver.BoolType;
-import jayhorn.solver.IntType;
-import jayhorn.solver.Prover;
-import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverFun;
-import jayhorn.solver.ProverHornClause;
-import jayhorn.solver.ProverListener;
-import jayhorn.solver.ProverResult;
-import jayhorn.solver.ProverType;
 
 /**
  * @author schaef
@@ -237,10 +223,6 @@ public class Z3Prover implements Prover {
 	@Override
 	public ProverFun mkDefinedFunction(String name, ProverType[] argTypes,
 			ProverExpr body) {
-		Sort[] argSorts = new Sort[argTypes.length];
-		for (int i = 0; i < argTypes.length; i++) {
-			argSorts[i] = unpack(argTypes[i]);
-		}
 		final ProverExpr b = body;
 		return new ProverFun() {
 			public ProverExpr mkExpr(ProverExpr[] args) {
@@ -445,10 +427,7 @@ public class Z3Prover implements Prover {
 			return new Z3TermExpr(ctx.mkStore((ArrayExpr) unpack(ar),
 					unpack(indexes[0]), unpack(value)), ar.getType());
 		}
-		List<Expr> idxs = new LinkedList<Expr>();
-		for (ProverExpr e : indexes) {
-			idxs.add(unpack(e));
-		}
+
 		throw new RuntimeException("not implemented");
 	}
 
