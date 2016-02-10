@@ -14,6 +14,10 @@ import java.util.List;
 public class Classpath {
   private final List<File> elements = new ArrayList<>();
 
+  public static Classpath empty(){
+    return new Classpath();
+  }
+
   public static Classpath of(File... files) {
     return of(Arrays.asList(files));
   }

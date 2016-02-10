@@ -50,4 +50,9 @@ public class ClasspathTest {
     a.deleteOnExit();
     b.deleteOnExit();
   }
+
+  @Test public void testClasspathEmpty() throws Exception {
+    final Classpath empty = Classpath.empty();
+    assertThat(empty.isEmpty(), is(true));
+  }
 }
