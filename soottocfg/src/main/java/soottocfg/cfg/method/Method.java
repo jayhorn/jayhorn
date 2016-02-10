@@ -288,10 +288,6 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		sb.append(this.methodName);
 		String comma = "";
 		sb.append("(");
-		if (this.thisVariable != null) {
-			sb.append(this.thisVariable.getName());
-			comma = ", ";
-		}
 		for (Variable v : this.parameterList) {
 			sb.append(comma);
 			sb.append(v.getName());

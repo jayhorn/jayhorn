@@ -14,6 +14,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
+
+import com.microsoft.z3.Params;
+
 import java.util.Set;
 
 import jayhorn.Log;
@@ -24,6 +28,7 @@ import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverType;
+import soot.options.Options;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Program;
@@ -50,6 +55,7 @@ import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.MapType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.util.GraphUtil;
 
 /**
  * @author schaef
@@ -132,6 +138,7 @@ public class Checker {
 	////////////////////////////////////////////////////////////////////////////
 
 	private class MethodEncoder {
+            private final Program program;
 		private final Method method;
 		private final MethodContract methodContract;
 		private final Prover p;
@@ -142,16 +149,17 @@ public class Checker {
 		private final List<Variable> methodPreVariables;
 		private final List<ProverExpr> methodPreExprs;
 
-		public MethodEncoder(Prover p, Method method) {
-			this.p = p;
-			this.method = method;
-			this.methodContract = methodContracts.get(method.getMethodName());
-			this.methodPreVariables = methodContract.precondition.variables;
+            public MethodEncoder(Prover p, Program program, Method method) {
+                this.p = p;
+                this.program = program;
+                this.method = method;
+                this.methodContract = methodContracts.get(method.getMethodName());
+                this.methodPreVariables = methodContract.precondition.variables;
 
-			this.methodPreExprs = new ArrayList<ProverExpr>();
-			for (Variable v : methodPreVariables)
-				methodPreExprs.add(p.mkHornVariable(v.getName() + "_" + newVarNum(), getProverType(v.getType())));
-		}
+                this.methodPreExprs = new ArrayList<ProverExpr>();
+                for (Variable v : methodPreVariables)
+                    methodPreExprs.add(p.mkHornVariable(v.getName() + "_" + newVarNum(), getProverType(v.getType())));
+            }
 
 		public void encode() {
 			Log.info("\tEncoding method " + method.getMethodName());
@@ -525,10 +533,15 @@ public class Checker {
 
 		private ProverExpr exprToProverExpr(Expression e, Map<Variable, ProverExpr> varMap) {
 			if (e instanceof IdentifierExpression) {
-				ProverExpr res = varMap.get(((IdentifierExpression) e).getVariable());
-				if (res == null)
-					throw new RuntimeException("Could not resolve variable " + e);
-				return res;
+                            Variable var = ((IdentifierExpression) e).getVariable();
+                            if (var instanceof ClassVariable) {
+                                return p.mkLiteral(typeIds.get(var));
+                            } else {
+                                ProverExpr res = varMap.get(var);
+                                if (res == null)
+                                    throw new RuntimeException("Could not resolve variable " + e);
+                                return res;
+                            }
 			} else if (e instanceof IntegerLiteral) {
 				return p.mkLiteral(BigInteger.valueOf(((IntegerLiteral) e).getValue()));
 			} else if (e instanceof BinaryExpression) {
@@ -564,6 +577,29 @@ public class Checker {
 					return p.mkLt(left, right);
 				case Le:
 					return p.mkLeq(left, right);
+                                case PoLeq:
+                                    if ((be.getRight() instanceof IdentifierExpression) &&
+                                        (((IdentifierExpression)be.getRight()).getVariable()
+                                         instanceof ClassVariable)) {
+
+                                        final ClassVariable var = 
+                                            (ClassVariable)((IdentifierExpression)be.getRight())
+                                            .getVariable();
+
+                                        final Set<ClassVariable> subTypes =
+                                            GraphUtil.getForwardReachableVertices
+                                            (program.getTypeGraph(), var);
+
+                                        ProverExpr disj = p.mkLiteral(false);
+                                        for (ClassVariable st : subTypes)
+                                            disj =
+                                                p.mkOr(disj, p.mkEq(left, p.mkLiteral(typeIds.get(st))));
+
+                                        return disj;
+                                    } else {
+					throw new RuntimeException
+                                            ("instanceof is only supported for concrete types");
+                                    }
 
 				default: {
 					throw new RuntimeException("Not implemented for " + be.getOp());
@@ -608,11 +644,9 @@ public class Checker {
 		try {
 			Log.info("Building type hierarchy");
 
-                        for (Variable v : program.getGlobalVariables())
-                            if (v instanceof ClassVariable) {
-                                Log.info("" + v + " -> " + typeIds.size());
-                                typeIds.put((ClassVariable)v, typeIds.size());
-                            }
+                        for (ClassVariable var :
+                                 program.getTypeGraph().vertexSet())
+                            typeIds.put(var, typeIds.size());
 
 			Log.info("Generating method contracts");
 
@@ -650,7 +684,7 @@ public class Checker {
 				// if (method.getMethodName().contains("init"))
 				// continue;
 
-				final MethodEncoder encoder = new MethodEncoder(p, method);
+                            final MethodEncoder encoder = new MethodEncoder(p, program, method);
 				encoder.encode();
 				clauses.addAll(encoder.clauses);
 
@@ -676,7 +710,13 @@ public class Checker {
 
 				p.addAssertion(p.mkHornClause(entryAtom, new ProverExpr[0], p.mkLiteral(true)));
 
-				result = p.checkSat(true);
+				if (jayhorn.Options.v().getTimeout() > 0) {
+					int timeoutInMsec = (int)TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());
+					p.checkSat(false);
+					result = p.getResult(timeoutInMsec);
+				} else {
+					result = p.checkSat(true);	
+				}
 
 				p.pop();
 			}
