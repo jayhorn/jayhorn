@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.FileVisitResult;
@@ -18,6 +19,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -263,7 +266,7 @@ public final class Util {
 
     final String className = classNameBuilder.toString();
 
-    try (URLClassLoader classLoader = new URLClassLoader(new URL[] { classDir.toURI().toURL() })) {
+    try (URLClassLoader classLoader = createClassLoader(classDir)) {
       return classLoader.loadClass(className);
     } catch (Throwable e) {
       e.printStackTrace(System.err);
@@ -271,7 +274,20 @@ public final class Util {
     }
   }
 
-  public static String getNameWithoutExtension(String fullpath){
+	private static URLClassLoader createClassLoader(final File classDir) {
+		return AccessController.<URLClassLoader>doPrivileged(new PrivilegedAction<URLClassLoader>() {
+			@Override public URLClassLoader run() {
+				try {
+					return new URLClassLoader(new URL[] { classDir.toURI().toURL() });
+				} catch (MalformedURLException mue){
+					throw new RuntimeException("malformed URL");
+				}
+			}
+		});
+	}
+
+
+	public static String getNameWithoutExtension(String fullpath){
     return Files.getNameWithoutExtension(fullpath);
   }
 
@@ -279,7 +295,7 @@ public final class Util {
     return Files.getFileExtension(fullpath);
   }
 
-  static public void deleteDirectoryContent(File path, String exclude) {
+  static public void deleteDirectoryContent(File path, String exclude) throws IOException {
     // expect 2
     String[] split = exclude.split(":");
 
@@ -294,7 +310,9 @@ public final class Util {
         } else {
 
           if(!file.getName().contains(split[0]) && !file.getName().contains(split[1])){
-            file.delete();
+            if(!file.delete()){
+							throw new IOException("Failed to delete file: " + file);
+						}
           }
         }
       }

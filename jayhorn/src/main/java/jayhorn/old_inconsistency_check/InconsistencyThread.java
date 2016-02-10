@@ -113,11 +113,9 @@ public class InconsistencyThread implements Runnable {
 
 		createVerificationCondition();
 
-		Set<ProverExpr> enablingClause = new HashSet<ProverExpr>();
 		Map<ProverExpr, CfgBlock> blocks2cover = new HashMap<ProverExpr, CfgBlock>();
 		for (Entry<CfgBlock, ProverExpr> entry : blockVars.entrySet()) {
 			blocks2cover.put(entry.getValue(), entry.getKey());
-			enablingClause.add(entry.getValue());
 		}
 		Set<CfgBlock> covered = new HashSet<CfgBlock>();
 
@@ -133,7 +131,6 @@ public class InconsistencyThread implements Runnable {
 				if (prover.evaluate(entry.getKey()).getBooleanLiteralValue()) {
 					conj.add(entry.getKey());
 					covered.add(entry.getValue());
-					enablingClause.remove(entry.getKey());
 					if (debugMode)
 						System.err.print(entry.getValue().getLabel() + " ");
 				} else {

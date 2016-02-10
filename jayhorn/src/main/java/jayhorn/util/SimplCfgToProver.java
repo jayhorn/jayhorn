@@ -278,8 +278,6 @@ public class SimplCfgToProver implements ICfgToProver {
 			return prover.mkLiteral(((BooleanLiteral) e).getValue());
 		} else if (e instanceof IdentifierExpression) {
 			IdentifierExpression ie = (IdentifierExpression) e;
-			ie.getVariable();
-			ie.getIncarnation();
 			if (!ssaVariableMap.containsKey(ie.getVariable())) {
 				ssaVariableMap.put(ie.getVariable(), new HashMap<Integer, ProverExpr>());
 			}
