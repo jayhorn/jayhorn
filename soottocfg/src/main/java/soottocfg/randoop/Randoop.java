@@ -273,9 +273,6 @@ public class Randoop {
      */
     public RandoopBuilder jayhorn(){
       testClasses(
-        "jayhorn.Main",
-        "jayhorn.Options",
-        "jayhorn.Log",
         "jayhorn.util.ConvertToDiamondShape",
         "jayhorn.util.EdgeLabelToAssume",
         "jayhorn.util.LoopRemoval",
