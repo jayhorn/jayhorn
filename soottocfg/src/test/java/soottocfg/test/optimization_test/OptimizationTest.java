@@ -11,6 +11,7 @@ import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.optimization.CfgScanner;
 import soottocfg.cfg.optimization.CfgUpdater;
 import soottocfg.cfg.optimization.ConstantProp;
 import soottocfg.cfg.optimization.DeadCodeElimination;
@@ -22,6 +23,15 @@ import soottocfg.util.PrettyPrinter;
 
 public class OptimizationTest {
 	public OptimizationTest() {
+	}
+
+	@Test public void testCFGScanner() throws Exception {
+
+		OptimizationExample testGen = new OptimizationExample();
+		Method method = testGen.getMethod1();
+
+		final CfgScanner scanner = new CfgScanner();
+		Assert.assertTrue(scanner.scanMethod(method));
 	}
 
 	@Test

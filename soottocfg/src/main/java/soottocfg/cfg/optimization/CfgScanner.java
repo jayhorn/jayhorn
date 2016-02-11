@@ -10,6 +10,7 @@ import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.method.CfgBlock;
+import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.ArrayReadStatement;
 import soottocfg.cfg.statement.ArrayStoreStatement;
 import soottocfg.cfg.statement.AssertStatement;
@@ -23,6 +24,11 @@ import soottocfg.cfg.statement.Statement;
 //Whereas the updater visits and rebuilds all nodes
 public class CfgScanner extends CfgVisitor {
 	public CfgScanner() {
+	}
+
+	public boolean scanMethod(Method m) {
+		processMethod(m);
+		return true;
 	}
 
 	@Override
