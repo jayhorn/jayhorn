@@ -225,11 +225,7 @@ public enum SootTranslationHelpers {
 		return this.memoryModel;
 	}
 
-	public SootClass getCurrentClass() {
-		return currentClass;
-	}
-
-	public void setCurrentClass(SootClass currentClass) {
+  public void setCurrentClass(SootClass currentClass) {
 		String fn = findFileName(currentClass.getTags());
 		if (fn != null) {
 			this.currentSourceFileName = fn;
