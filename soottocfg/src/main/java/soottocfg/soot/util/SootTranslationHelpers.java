@@ -3,27 +3,8 @@
  */
 package soottocfg.soot.util;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.base.Optional;
-
-import soot.ArrayType;
-import soot.IntType;
-import soot.Modifier;
-import soot.PrimType;
-import soot.RefType;
-import soot.Scene;
-import soot.SootClass;
-import soot.SootField;
-import soot.SootMethod;
-import soot.Type;
-import soot.Unit;
-import soot.Value;
-import soot.VoidType;
+import soot.*;
 import soot.jimple.ClassConstant;
 import soot.jimple.IntConstant;
 import soot.jimple.InvokeStmt;
@@ -44,6 +25,12 @@ import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.memory_model.SimpleBurstallBornatModel;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author schaef
  *
@@ -53,6 +40,13 @@ public enum SootTranslationHelpers {
 
 	public static SootTranslationHelpers v() {
 		return INSTANCE;
+	}
+
+	public static SootTranslationHelpers v(Program program, MemModel kind){
+		final SootTranslationHelpers instance = INSTANCE;
+		instance.setMemoryModelKind(kind);
+		instance.setProgram(program);
+		return instance;
 	}
 
 	private static final String parameterPrefix = "$in_";
@@ -160,7 +154,7 @@ public enum SootTranslationHelpers {
 		return stmt;
 	}
 
-	public void setProgram(Program p) {
+	void setProgram(Program p) {
 		this.program = p;
 	}
 
@@ -213,7 +207,7 @@ public enum SootTranslationHelpers {
 		return new SourceLocation(this.currentSourceFileName, lineNumber);
 	}
 
-	public void setMemoryModelKind(MemModel kind) {
+	void setMemoryModelKind(MemModel kind) {
 		memoryModelKind = kind;
 	}
 

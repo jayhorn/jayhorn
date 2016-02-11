@@ -70,7 +70,6 @@ public class CfgScanner extends CfgVisitor {
 
 	@Override
 	protected Statement processStatement(ArrayReadStatement s) {
-		processExpression(s.getBase());
 		Expression[] ids = s.getIndices();
 		for (int i = 0; i < ids.length; i++) {
 			processExpression(ids[i]);
@@ -81,7 +80,6 @@ public class CfgScanner extends CfgVisitor {
 
 	@Override
 	protected Statement processStatement(ArrayStoreStatement s) {
-		processExpression(s.getBase());
 		Expression[] ids = s.getIndices();
 		for (int i = 0; i < ids.length; i++) {
 			processExpression(ids[i]);

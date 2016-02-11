@@ -210,19 +210,6 @@ public final class Util {
 		return tempDir;
 	}
 
-	public static void delete(File f) throws IOException {
-		if (f.isDirectory() && f.listFiles()!=null) {
-			final File[] files = f.exists() && f.listFiles() == null ? new File[0] : f.listFiles();
-
-			assert files != null;
-			for (File c : files)
-				delete(c);
-		}
-		if (!f.delete()) {
-			throw new IOException("Failed to delete file: " + f);
-		}
-	}
-
 	public static List<Object[]> getData(File testDirectory){
 		final Path start = Paths.get(testDirectory.toString());
 		final List<Object[]> data = new CopyOnWriteArrayList<>();
@@ -256,7 +243,7 @@ public final class Util {
       );
 
       if (files != null && files.length > 0) {
-        dir = files[0];
+				dir = files[0];
         classNameBuilder.append(Util.getNameWithoutExtension(dir.getAbsolutePath()));
         if (dir.isFile()
           && "class".equals(Util.getFileExtension(dir.getAbsolutePath()))) {

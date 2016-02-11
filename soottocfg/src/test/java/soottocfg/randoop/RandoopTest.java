@@ -88,8 +88,9 @@ public class RandoopTest {
       Randoop.RandoopBuilder builder = Randoop.configure()
         .jayhorn()
         .silentlyIgnoreBadClassNames().silentlyIgnoreBadClassNames();
+      Assert.assertNotNull(builder);
     } catch (Exception e){
-      Assert.assertTrue(true);
+      Assert.assertNotNull(e);
       return;
     }
 
