@@ -23,8 +23,6 @@ public class Randoop {
 
   private final Command.Builder builder;
 
-  private static Set<String> optionMonitor = new LinkedHashSet<>();
-
   /**
    * Constructs a Randoop command.
    */
@@ -39,8 +37,7 @@ public class Randoop {
    * @param java java command
    */
   Randoop(ExecutionLog log, String java){
-    optionMonitor = new LinkedHashSet<>();
-
+    Tracker.reset();
     this.builder = Command.of(log)
       .console(System.out);
 
@@ -59,13 +56,13 @@ public class Randoop {
   // keep track of used options
   private static String ensureSingleUsage(String option){
     final String nonNullOption = Objects.requireNonNull(option);
-    if(optionMonitor.contains(nonNullOption)) {
+    if(Tracker.monitor().contains(nonNullOption)) {
       throw new IllegalArgumentException(
         "Option " + nonNullOption + " already been set"
       );
     }
 
-    optionMonitor.add(Objects.requireNonNull(option));
+    Tracker.monitor().add(Objects.requireNonNull(option));
     return option;
   }
 
@@ -421,6 +418,18 @@ public class Randoop {
     }
 
 
+  }
+
+  private static class Tracker {
+    static Set<String> optionMonitor = new LinkedHashSet<>();
+
+    static void reset(){
+      optionMonitor.clear();
+    }
+
+    static Set<String> monitor(){
+      return optionMonitor;
+    }
   }
 
   public static void main(String[] args) {

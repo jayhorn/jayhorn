@@ -40,7 +40,11 @@ public class CbmcTest {
 				if (child.isDirectory() && child.listFiles()!=null) {
 					//check if the directory contains a test.desc that
 					//states the desired outcome.
-					for (File f : child.listFiles()) {
+
+					final File[] files = child.exists() && child.listFiles() == null ? new File[0] : child.listFiles();
+
+					assert files != null;
+					for (File f : files) {
 						if (f.isFile() && f.getName().endsWith(".desc")) {
 							fileAndResult.add(new Object[] { child, child.getName(), parseOutcomeFromDescFile(f)});
 							break;
