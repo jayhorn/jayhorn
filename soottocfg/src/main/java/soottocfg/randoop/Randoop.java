@@ -1,10 +1,16 @@
 package soottocfg.randoop;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author Huascar Sanchez
@@ -31,10 +37,11 @@ public class Randoop {
    * @param java java command
    */
   Randoop(ExecutionLog log, String java){
+    Tracker.reset();
     this.builder = Command.of(log)
       .console(System.out);
 
-    builder.arguments(java);
+    builder.arguments(ensureSingleUsage(java));
   }
 
   /**
@@ -46,6 +53,29 @@ public class Randoop {
     this(log, "java");
   }
 
+  // keep track of used options
+  private static String ensureSingleUsage(String option){
+    final String nonNullOption = Objects.requireNonNull(option);
+    if(Tracker.monitor().contains(nonNullOption)) {
+      throw new IllegalArgumentException(
+        "Option " + nonNullOption + " already been set"
+      );
+    }
+
+    Tracker.monitor().add(Objects.requireNonNull(option));
+    return option;
+  }
+
+  // keep track of used options
+  private List<String> ensureSingleUsage(List<String> args){
+    final List<String> nonNullOption = Objects.requireNonNull(args);
+    for(String arg : nonNullOption){
+      ensureSingleUsage(arg);
+    }
+
+    return args;
+  }
+
   /**
    * @return randoop.jar file.
    */
@@ -54,10 +84,52 @@ public class Randoop {
   }
 
   /**
+   * @return Jayhorn's classpath.
+   */
+  public static String jayHornPath(){
+
+    return System.getProperty("java.class.path")
+      + ":" + System.getProperty("user.dir") + "/jayhorn/build/classes/main/"
+      + ":" + System.getProperty("user.dir") + "/jayhorn/build/resources/main/"
+      + ":" + System.getProperty("user.dir") + "/jayhorn/lib/com.microsoft.z3.jar"
+      + ":" + System.getProperty("user.dir") + "/jayhorn/lib/lazabs.jar"
+      + ":" + System.getProperty("user.dir") + "/jayhorn/lib/princess.jar"
+      + ":" + System.getProperty("user.dir") + "/jayhorn/native_lib/";
+  }
+
+
+  /**
+   * Returns the classpath Jayhorn is using to run Randoop.
+   *
+   * @param withRandoop randoop file.
+   * @return Jayhorn's path.
+   */
+  public static Classpath jayhornPath(File withRandoop){
+    final String[] paths = Randoop.jayHornPath().split(":");
+
+    final List<File> files = new ArrayList<>();
+
+    for(String eachPath : paths){
+      files.add(new File(eachPath));
+    }
+
+    files.add(withRandoop);
+
+    return Classpath.of(files);
+  }
+
+  /**
+   * @return Jayhorn's current classpath.
+   */
+  public static Collection<File> jayhornClasspath(){
+    return Randoop.jayhornPath(Randoop.randoopJar()).getElements();
+  }
+
+  /**
    * @return the location of dynamic tests
    */
   public static File defaultOutput(){
-    return Randoop.of(System.getProperty("user.dir") + "src/test/resources/");
+    return Randoop.of(System.getProperty("user.dir") + "/soottocfg/src/test/resources/dynamic_tests/");
   }
 
   /**
@@ -71,13 +143,34 @@ public class Randoop {
     return new File(path);
   }
 
+
   /**
    * Starts the randoop configuration process.
    *
    * @return a new RandoopBuilder object.
    */
   public static RandoopBuilder configure(){
-    return configure(Randoop.defaultOutput());
+    return configure(Classpath.empty());
+  }
+
+  /**
+   * Starts the randoop configuration process.
+   *
+   * @param path the application's classpath.
+   * @return a new RandoopBuilder object.
+   */
+  public static RandoopBuilder configure(Classpath path){
+    return configure(path, Randoop.defaultOutput());
+  }
+
+  /**
+   * Starts the randoop configuration process.
+   *
+   * @param destination the destination directory where generated files will be placed.
+   * @return a new RandoopBuilder object.
+   */
+  public static RandoopBuilder configure(File destination){
+    return configure(Classpath.empty(), destination);
   }
 
   /**
@@ -86,15 +179,27 @@ public class Randoop {
    * @param destination the destination where generated files will be placed.
    * @return a new RandoopBuilder object.
    */
-  public static RandoopBuilder configure(File destination){
+  public static RandoopBuilder configure(Classpath path, File destination){
+
+    final Classpath nonNullPath   = Objects.requireNonNull(path);
+    final File nonNullDestination = Objects.requireNonNull(destination);
+
+
+    final List<File> updatedElements = Lists.newArrayList(
+      Iterables.concat(
+        Randoop.jayhornClasspath(),
+        nonNullPath.getElements()
+      )
+    );
+
     return new Randoop()
       .enableAssertions()
-      .classpath(Randoop.randoopJar())
-      .destination(destination);
+      .classpath(updatedElements)
+      .destination(nonNullDestination);
   }
 
   public Randoop enableAssertions(){
-    builder.arguments("-ea");
+    builder.arguments(ensureSingleUsage("-ea"));
     return this;
   }
 
@@ -112,13 +217,12 @@ public class Randoop {
     return classpath(Arrays.asList(path));
   }
 
-
-  private RandoopBuilder classpath(List<File> paths) {
+  private RandoopBuilder classpath(Collection<File> paths) {
     final Classpath classpath = Classpath.of(paths);
 
     if(classpath.isEmpty()){
       builder.arguments(
-        "-classpath",
+        ensureSingleUsage("-classpath"),
         TOOL, MAIN, GENERATE
       );
     } else {
@@ -130,12 +234,15 @@ public class Randoop {
   }
 
   private Randoop classpath(Classpath classpath) {
-    builder.arguments("-classpath", classpath.toString());
+    builder.arguments(
+      ensureSingleUsage("-classpath"),
+      classpath.toString()
+    );
     return this;
   }
 
   private Randoop extraArgs(List<String> extra) {
-    builder.arguments(extra);
+    builder.arguments(ensureSingleUsage(extra));
     return this;
   }
 
@@ -143,7 +250,7 @@ public class Randoop {
   /**
    * Randoop's DSL or at least something that is close to that.
    */
-  static class RandoopBuilder {
+  public static class RandoopBuilder {
     private Command.Builder builder;
 
     RandoopBuilder(Command.Builder builder){
@@ -151,13 +258,82 @@ public class Randoop {
     }
 
     public RandoopBuilder testClass(String fullyQualifiedClassName){
-      builder.arguments("--testclass=" + Objects.requireNonNull(fullyQualifiedClassName));
+      // this option can be repeated as many times as one wishes
+      builder().arguments("--testclass=" + Objects.requireNonNull(fullyQualifiedClassName));
+      return this;
+    }
+
+    /**
+     * Sets the classes we are interested in testing.
+     *
+     * @return this RandoopBuilder
+     */
+    public RandoopBuilder jayhorn(){
+      testClasses(
+        "jayhorn.util.ConvertToDiamondShape",
+        "jayhorn.util.EdgeLabelToAssume",
+        "jayhorn.util.LoopRemoval",
+        "jayhorn.util.SimplCfgToProver",
+        "jayhorn.util.SourceLocationUtil",
+        "jayhorn.util.SsaPrinter",
+        "jayhorn.util.SsaTransformer",
+        "jayhorn.solver.Main",
+        "jayhorn.solver.IntType",
+        "jayhorn.solver.BoolType",
+        "jayhorn.solver.ArrayType",
+        "jayhorn.solver.z3.Z3ProverFactory",
+        "jayhorn.solver.z3.Z3Prover",
+        "jayhorn.solver.z3.Z3TermExpr",
+        "jayhorn.solver.z3.Z3HornExpr",
+        "jayhorn.solver.z3.Z3Fun",
+        "jayhorn.solver.z3.Z3BoolExpr",
+        "jayhorn.solver.z3.Z3ArrayType",
+        "jayhorn.solver.princess.FormulaExpr",
+        "jayhorn.solver.princess.TermExpr",
+        "jayhorn.solver.princess.HornExpr",
+        "jayhorn.solver.princess.PrincessFun",
+        "jayhorn.solver.princess.PrincessProverExpr",
+        "jayhorn.solver.princess.PrincessProverFactory",
+        "jayhorn.solver.princess.PrincessProver",
+        "soottocfg.cfg.ClassVariable",
+        "soottocfg.cfg.LiveVars",
+        "soottocfg.cfg.Program",
+        "soottocfg.cfg.SourceLocation",
+        "soottocfg.cfg.Variable",
+        "soottocfg.cfg.util.BfsIterator",
+        "soottocfg.cfg.util.CategorizeEdges",
+        "soottocfg.cfg.util.DominanceFrontier",
+        "soottocfg.cfg.util.Dominators",
+        "soottocfg.cfg.util.EffectualSet",
+        "soottocfg.cfg.util.GraphUtil",
+        "soottocfg.cfg.util.LoopFinder",
+        "soottocfg.cfg.util.PostDominators",
+        "soottocfg.cfg.util.Tree",
+        "soottocfg.cfg.util.UnreachableNodeRemover",
+        "soottocfg.randoop.Classpath",
+        "soottocfg.randoop.Command",
+        "soottocfg.randoop.Javac",
+        "soottocfg.randoop.Strings"
+      );
+
+      return this;
+    }
+
+    public RandoopBuilder testClasses(String... fullyQualifiedClassNames){
+      for(String qualifiedName : fullyQualifiedClassNames){
+        testClass(qualifiedName);
+      }
+      return this;
+    }
+
+    public RandoopBuilder permitNonZeroExitStatus(){
+      builder().permitNonZeroExitStatus();
       return this;
     }
 
     public RandoopBuilder classList(File classListFile){
-      builder.arguments(
-        "--classlist=" +
+      builder().arguments(
+        ensureSingleUsage("--classlist=") +
         Classpath.of(
           Objects.requireNonNull(classListFile)
         ).toString()
@@ -165,34 +341,94 @@ public class Randoop {
       return this;
     }
 
+    public RandoopBuilder omitmethods(String regex){
+      builder().arguments(
+        ensureSingleUsage("--omitmethods=") + Objects.requireNonNull(regex)
+      );
+
+      return this;
+    }
+
+
+    public RandoopBuilder onlyTestPublicMembers(){
+      builder().arguments(
+        ensureSingleUsage("--only-test-public-members=") + "true"
+      );
+
+      return this;
+    }
+
+    public RandoopBuilder jUnitPackageName(String packageName){
+
+      builder().arguments(
+        ensureSingleUsage("--junit-package-name=") + Objects.requireNonNull(packageName)
+      );
+
+      return this;
+    }
+
     public RandoopBuilder destination(File directory) {
-      builder.arguments("--junit-output-dir=" + directory.toString());
+      builder().arguments(ensureSingleUsage("--junit-output-dir=") + directory.toString());
       return this;
     }
 
     public RandoopBuilder timeLimit(int seconds){
-      builder.arguments("--timelimit=" + seconds);
+      builder().arguments(ensureSingleUsage("--timelimit=") + seconds);
+      return this;
+    }
+
+    public RandoopBuilder discardOutOfMemoryErrors(){
+      return classifyTestWithOutOfMemoryException(OutOfMemory.INVALID);
+    }
+
+    public RandoopBuilder includeOutOfMemoryErrorsInErrorRevealingTests(){
+      return classifyTestWithOutOfMemoryException(OutOfMemory.ERROR);
+    }
+
+    public RandoopBuilder includeOutOfMemoryErrorsInRegressionTests(){
+      return classifyTestWithOutOfMemoryException(OutOfMemory.EXPECTED);
+    }
+
+    RandoopBuilder classifyTestWithOutOfMemoryException(OutOfMemory enumValue){
+
+      builder().arguments(
+        ensureSingleUsage("--oom-exception=")
+          + enumValue
+      );
+
       return this;
     }
 
     public RandoopBuilder silentlyIgnoreBadClassNames(){
-      builder.arguments("--silently-ignore-bad-class-names=true");
+      builder().arguments(
+        ensureSingleUsage("--silently-ignore-bad-class-names=")
+          + "true"
+      );
+
       return this;
+    }
+
+    Command.Builder builder(){
+      return builder;
     }
 
 
     public List<String> execute(){
-      return builder.execute();
+      return builder().execute();
     }
+
+
   }
 
-  public static void main(String[] args) {
+  private static class Tracker {
+    static Set<String> optionMonitor = new LinkedHashSet<>();
 
-    Randoop.configure(Randoop.of("/Users/hsanchez/dev/throwaway/garbage/"))
-      .testClass("java.util.TreeSet")
-      .silentlyIgnoreBadClassNames()
-      .timeLimit(60)
-      .execute();
+    static void reset(){
+      optionMonitor.clear();
+    }
 
+    static Set<String> monitor(){
+      return optionMonitor;
+    }
   }
 }

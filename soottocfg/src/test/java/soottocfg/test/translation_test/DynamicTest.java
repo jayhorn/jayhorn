@@ -3,6 +3,21 @@
  */
 package soottocfg.test.translation_test;
 
+import com.google.common.io.Files;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import soot.Scene;
+import soot.SootClass;
+import soot.SourceLocator;
+import soot.jimple.JasminClass;
+import soot.options.Options;
+import soot.util.JasminOutputStream;
+import soottocfg.soot.SootToCfg;
+import soottocfg.soot.util.SootTranslationHelpers;
+import soottocfg.test.Util;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -17,23 +32,6 @@ import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
-import com.google.common.io.Files;
-
-import soot.Scene;
-import soot.SootClass;
-import soot.SourceLocator;
-import soot.jimple.JasminClass;
-import soot.options.Options;
-import soot.util.JasminOutputStream;
-import soottocfg.soot.SootToCfg;
-import soottocfg.soot.util.SootTranslationHelpers;
-import soottocfg.test.Util;
 
 /**
  * @author schaef
@@ -215,8 +213,14 @@ public class DynamicTest {
 		StringBuilder sb = new StringBuilder();
 		File dir = classDir;
 		while (dir.isDirectory()) {
-			if (dir.listFiles() != null && dir.listFiles().length>0) {
-				dir = dir.listFiles()[0];
+
+			final File[] files = (dir.listFiles() == null
+				? new File[0]
+				: dir.listFiles()
+			);
+
+			if (files != null && files.length > 0) {
+				dir = files[0];
 				sb.append(Files.getNameWithoutExtension(dir.getAbsolutePath()));
 				if (dir.isFile() && "class".equals(Files.getFileExtension(dir.getAbsolutePath()))) {
 					if (Files.getNameWithoutExtension(dir.getAbsolutePath())
