@@ -431,15 +431,4 @@ public class Randoop {
       return optionMonitor;
     }
   }
-
-  public static void main(String[] args) {
-
-    Randoop.configure()
-      .jayhorn()
-      .silentlyIgnoreBadClassNames()
-      .discardOutOfMemoryErrors()
-      .permitNonZeroExitStatus()
-      .timeLimit(60)
-      .execute();
-  }
 }

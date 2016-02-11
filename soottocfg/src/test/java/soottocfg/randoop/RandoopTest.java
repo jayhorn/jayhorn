@@ -1,12 +1,14 @@
 package soottocfg.randoop;
 
 import com.google.common.io.Files;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -79,6 +81,28 @@ public class RandoopTest {
 
     final String toStringBuilder = builder.builder().build().toString();
     assertThat(toStringBuilder.contains("--oom-exception=EXPECTED"), is(true));
+  }
+
+  @Test public void testDuplicatedOption() throws Exception {
+    try {
+      Randoop.RandoopBuilder builder = Randoop.configure()
+        .jayhorn()
+        .silentlyIgnoreBadClassNames().silentlyIgnoreBadClassNames();
+    } catch (Exception e){
+      Assert.assertTrue(true);
+    }
+
+    Assert.fail();
+  }
+
+  @Test public void testWorkingDirectory() throws Exception {
+    final File a = File.createTempFile("aaaa", ".tmp");
+
+    Randoop.RandoopBuilder builder = Randoop.configure(a);
+
+    assertNotNull(builder);
+
+    a.deleteOnExit();
   }
 
   @Test public void testRandoopUpdatedConfiguration() throws Exception {
