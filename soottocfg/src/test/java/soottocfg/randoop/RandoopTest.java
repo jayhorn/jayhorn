@@ -90,6 +90,7 @@ public class RandoopTest {
         .silentlyIgnoreBadClassNames().silentlyIgnoreBadClassNames();
     } catch (Exception e){
       Assert.assertTrue(true);
+      return;
     }
 
     Assert.fail();
