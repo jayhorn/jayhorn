@@ -63,10 +63,10 @@ public class TrivialZ3Test {
 		this.sourceFile = source;
 	}
 
-//	@Test
-//	public void testWithPrincess() {
-//		verifyAssertions(new PrincessProverFactory());
-//	}
+	@Test
+	public void testWithPrincess() {
+		verifyAssertions(new PrincessProverFactory());
+	}
 
 	@Test
 	public void testWithZ3() {

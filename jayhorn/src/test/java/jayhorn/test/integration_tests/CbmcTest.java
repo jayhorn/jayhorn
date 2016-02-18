@@ -65,15 +65,15 @@ public class CbmcTest {
 	}
 
 	
-	@Test
-	public void testWithPrincess() {
-		verifyAssertions(new PrincessProverFactory());
-	}
-
 //	@Test
-//	public void testWithZ3() {		
-//		verifyAssertions(new Z3ProverFactory());
+//	public void testWithPrincess() {
+//		verifyAssertions(new PrincessProverFactory());
 //	}
+
+	@Test
+	public void testWithZ3() {		
+		verifyAssertions(new Z3ProverFactory());
+	}
 		
 		
 	private void verifyAssertions(ProverFactory factory) {

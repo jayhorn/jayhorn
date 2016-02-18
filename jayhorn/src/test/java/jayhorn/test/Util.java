@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
+import java.util.Collection;
 
 public final class Util {
 
@@ -93,7 +94,7 @@ public final class Util {
 	 *         fails.
 	 * @throws IOException
 	 */
-	public static File compileJavaFiles(File[] sourceFiles) throws IOException {
+	public static File compileJavaFiles(Collection<File> sourceFiles) throws IOException {
 		final File tempDir = getTempDir();
 		StringBuilder sb = new StringBuilder();
 		for (File f : sourceFiles) {
