@@ -98,8 +98,11 @@ public final class Util {
 	}
 
 	public static void delete(File f) throws IOException {
-		if (f.isDirectory()) {
-			for (File c : f.listFiles())
+		if (f.isDirectory() && f.listFiles()!= null) {
+			final File[] files = f.exists() && f.listFiles() == null ? new File[0] : f.listFiles();
+
+			assert files != null;
+			for (File c : files)
 				delete(c);
 		}
 		if (!f.delete()) {

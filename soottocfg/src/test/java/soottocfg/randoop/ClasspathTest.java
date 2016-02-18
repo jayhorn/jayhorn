@@ -50,4 +50,29 @@ public class ClasspathTest {
     a.deleteOnExit();
     b.deleteOnExit();
   }
+
+  @Test public void testClasspathCopyThruAllFiles() throws Exception {
+    final File a = File.createTempFile("aaaa", ".tmp");
+    final File b = File.createTempFile("bbbb", ".tmp");
+
+
+    final Classpath pathB = Classpath.of();
+
+    pathB.addAll(a, b);
+
+    assertThat(pathB.getElements().isEmpty(), is(false));
+    assertThat(pathB.isEmpty(), is(false));
+
+    assertThat(pathB.contains(a), is(true));
+
+    assertEquals(pathB.toString(), a.getAbsolutePath() + ":" + b.getAbsolutePath());
+
+    a.deleteOnExit();
+    b.deleteOnExit();
+  }
+
+  @Test public void testClasspathEmpty() throws Exception {
+    final Classpath empty = Classpath.empty();
+    assertThat(empty.isEmpty(), is(true));
+  }
 }

@@ -3,38 +3,9 @@
  */
 package soottocfg.soot;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import com.google.common.base.Preconditions;
-
-import soot.Body;
-import soot.Modifier;
-import soot.PrimType;
-import soot.RefType;
-import soot.Scene;
-import soot.SootClass;
-import soot.SootField;
-import soot.SootMethod;
-import soot.Unit;
-import soot.Value;
-import soot.ValueBox;
-import soot.VoidType;
-import soot.jimple.DefinitionStmt;
-import soot.jimple.DoubleConstant;
-import soot.jimple.FloatConstant;
-import soot.jimple.IdentityStmt;
-import soot.jimple.InstanceFieldRef;
-import soot.jimple.IntConstant;
-import soot.jimple.Jimple;
-import soot.jimple.JimpleBody;
-import soot.jimple.LongConstant;
-import soot.jimple.NullConstant;
-import soot.jimple.StaticFieldRef;
+import soot.*;
+import soot.jimple.*;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
 import soot.jimple.toolkits.scalar.UnreachableCodeEliminator;
 import soot.toolkits.graph.CompleteUnitGraph;
@@ -51,6 +22,13 @@ import soottocfg.soot.util.DuplicatedCatchDetection;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.soot.visitors.SootStmtSwitch;
+
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * This is the main class for the translation. It first invokes Soot to load all
@@ -88,12 +66,10 @@ public class SootToCfg {
 		// first reset everything:
 		soot.G.reset();
 		SootTranslationHelpers.v().reset();
-		SootTranslationHelpers.v().setMemoryModelKind(memModel);
-
 		resolveVirtualCalls = resolveVCalls;
 		createAssertionsForUncaughtExceptions = excAsAssert;
 
-		SootTranslationHelpers.v().setProgram(program);
+		SootTranslationHelpers.v(program, memModel);
 	}
 
 	/**
@@ -104,7 +80,6 @@ public class SootToCfg {
 	 * @param classPath
 	 *            class path, or platform jar folder for apk. see
 	 *            https://github.com/Sable/android-platforms
-	 * @param cfg
 	 */
 	public void run(String input, String classPath) {
 		// run soot to load all classes.
