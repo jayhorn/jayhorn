@@ -267,7 +267,8 @@ public class Command {
   /**
    * Command failed to execute exception.
    */
-  public static class CommandFailedException extends RuntimeException {
+  @SuppressWarnings("serial")
+public static class CommandFailedException extends RuntimeException {
 
     public CommandFailedException(List<String> args, List<String> outputLines) {
       super(formatMessage(args, outputLines));
