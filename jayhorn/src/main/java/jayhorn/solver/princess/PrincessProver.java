@@ -595,4 +595,10 @@ public class PrincessProver implements Prover {
 	public void setHornLogic(boolean b) {
 		// ignore
 	}
+	
+	@Override
+	public String toString() {
+		return "Princess";
+	}
+
 }

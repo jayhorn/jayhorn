@@ -100,8 +100,7 @@ public class Command {
     if(isStarted()){
       throw new IllegalStateException("Already started!");
     }
-
-    log.info("starting command");
+    log.info("starting command " + this.toString());
 
     final ProcessBuilder processBuilder = new ProcessBuilder()
       .command(args)

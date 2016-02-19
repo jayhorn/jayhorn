@@ -40,6 +40,12 @@ public final class Util {
     Sets.newHashSet("ErrorTest0.java", "RegressionTest0.java")
   );
 
+  public static File getFileForClass(Class<?> clazz) {
+	  final String resourceName = clazz.getCanonicalName().replace(".", File.separator) + ".class";
+	  URL url = clazz.getClassLoader().getResource(resourceName);
+	  System.err.println(url);
+	  return new File(url.getFile());	  
+  }
 
   private Util(){
 		throw new Error("Utility class");

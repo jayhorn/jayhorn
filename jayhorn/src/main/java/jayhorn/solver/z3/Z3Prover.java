@@ -742,4 +742,8 @@ public class Z3Prover implements Prover {
 		createSolver(useHornLogic);
 	}
 
+	@Override
+	public String toString() {
+		return "Z3";
+	}
 }
