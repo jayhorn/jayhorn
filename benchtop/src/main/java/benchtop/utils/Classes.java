@@ -55,7 +55,7 @@ public class Classes {
    * @return a list of loaded classes.
    * @throws IOException unexpected error has occurred.
    */
-  public static List<Class<?>> loadClasses(File classDir) throws IOException {
+  public static List<Class<?>> loadClasses(final File classDir) throws IOException {
 
     final Path start = Paths.get(classDir.toURI());
 
@@ -68,7 +68,7 @@ public class Classes {
 
           final File visitedFile = file.toFile();
 
-          if(!Objects.isNull(visitedFile) && visitedFile.getName().endsWith("class")){
+          if(visitedFile!=null && visitedFile.getName().endsWith("class")){
             try (URLClassLoader classLoader = createClassLoader(classDir)) {
               final String className = extractFileName(visitedFile.getAbsolutePath());
               classes.add(classLoader.loadClass(className));

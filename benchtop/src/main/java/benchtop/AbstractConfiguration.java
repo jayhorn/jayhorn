@@ -22,11 +22,11 @@ public abstract class AbstractConfiguration implements Configuration {
   @Override public final synchronized void configure(Command.Builder builder) {
     Tracker.reset();
     try {
-      if (!Objects.isNull(this.builder)) {
+      if (this.builder!=null) {
         throw new IllegalStateException("Re-entry is not allowed.");
       }
 
-      if(Objects.isNull(builder)){
+      if(builder==null){
         throw new IllegalArgumentException("configure() was given a null builder.");
       }
 

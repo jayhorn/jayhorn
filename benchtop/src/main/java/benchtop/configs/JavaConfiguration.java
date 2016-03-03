@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import com.google.common.base.Preconditions;
+
 /**
  * @author Huascar Sanchez
  */
@@ -21,10 +23,10 @@ public abstract class JavaConfiguration extends AbstractConfiguration {
    *
    * @param classpath the current classpath
    */
-  public JavaConfiguration(Classpath classpath){
+  public JavaConfiguration(Classpath classpath){	  
     this.classpath    = Classpath.union(
       Classpath.environmentClasspath(),
-      Objects.requireNonNull(classpath)
+      Preconditions.checkNotNull(classpath)
     );
   }
 
@@ -36,7 +38,7 @@ public abstract class JavaConfiguration extends AbstractConfiguration {
    * @param args arguments of main class
    * @return a new Java configuration object.
    */
-  public static JavaConfiguration newJavaConfiguration(Classpath classpath, String clazz, final String... args){
+  public static JavaConfiguration newJavaConfiguration(Classpath classpath, final String clazz, final String... args){
     return new JavaConfiguration(classpath) {
       @Override protected void execute() {
 

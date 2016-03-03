@@ -10,3 +10,22 @@ dependencies {
     compile project(':soottocfg')
 }
 
+//exclude integration tests when running regular check
+test {
+	include '**/BenchtopTest.java'
+    include '**/ClasspathTest.java'
+	exclude '**/RandoopTestGenerationTest.java'
+	exclude '**/SoundnessTest.java'
+	exclude '**/Tests.java'
+}
+
+task integration_test(type: Test) {
+  group 'Verification'
+  description 'Run integration tests.'
+
+	include '**/BenchtopTest.java'
+    include '**/ClasspathTest.java'
+	include '**/RandoopTestGenerationTest.java'
+	include '**/SoundnessTest.java'
+	include '**/Tests.java'
+}

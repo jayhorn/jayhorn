@@ -150,7 +150,7 @@ public class SoundnessTest {
       IO.deleteDirectoryContent(DIR);
     }
 
-    if(!Objects.isNull(compiledTempFolder)){
+    if(compiledTempFolder!=null){
       compiledTempFolder.deleteOnExit();
     }
 
