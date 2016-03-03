@@ -1,5 +1,7 @@
 package jayhorn.test;
 
+import com.google.common.io.Files;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -15,39 +17,16 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import com.google.common.io.Files;
-
-import soottocfg.randoop.Classpath;
-import soottocfg.randoop.Javac;
 
 public final class Util {
 
   private static final String USER_DIR  = System.getProperty("user.dir") + "/";
   private static final String TEST_ROOT = USER_DIR + "src/test/resources/";
-  private static final String IN_CLASSPATH_TEST_ROOT = USER_DIR + "src/test/java/jayhorn/test/";
-  private static final String RANDOOP_TEST_ROOT = USER_DIR + "src/test/java/";
 
-  public static final Set<String> FILES_TO_TEST = ImmutableSet.copyOf(
-    Sets.newHashSet("ErrorTest0.java", "RegressionTest0.java")
-  );
 
-  public static File getFileForClass(Class<?> clazz) {
-	  final String resourceName = clazz.getCanonicalName().replace(".", File.separator) + ".class";
-	  URL url = clazz.getClassLoader().getResource(resourceName);
-	  System.err.println(url);
-	  return new File(url.getFile());	  
-  }
-
-  private Util(){
+	private Util(){
 		throw new Error("Utility class");
 	}
 
@@ -55,19 +34,7 @@ public final class Util {
     return TEST_ROOT + name + "/";
   }
 
-  public static File randoopDestinationDirectory(){
-    return new File(RANDOOP_TEST_ROOT);
-  }
-
-  public static String currentTestDirectoryPath(String name){
-    return IN_CLASSPATH_TEST_ROOT + (name + "/");
-  }
-
-  public static File currentTestDirectory(String name){
-    return new File(currentTestDirectoryPath(name));
-  }
-
-  public static File testDirectory(String name){
+	public static File testDirectory(String name){
     return new File(testDirectoryPath(name));
   }
 
@@ -128,47 +95,23 @@ public final class Util {
    * @throws IOException
    */
   public static File compileJavaFile(File sourceFile) throws IOException {
-    final File tempDir = Files.createTempDir();
+		final File tempDir = getTempDir();
+		final String javac_command = String.format("javac -cp /Users/schaef/git/heros/junit.jar -g %s -d %s", sourceFile.getAbsolutePath(),
+			tempDir.getAbsolutePath());
 
-    return compileJavaFile(sourceFile, tempDir, System.getProperty("java.class.path").split(":"));
-  }
+		ProcessBuilder pb = new ProcessBuilder(javac_command.split(" "));
+		pb.redirectOutput(Redirect.INHERIT);
+		pb.redirectError(Redirect.INHERIT);
+		Process p = pb.start();
 
-	/**
-	 * Compiles a source file, places it inside a temp folder, and then returns this temp folder to
-	 * the caller, or null if compilation fails.
-	 *
-	 * @param sourceFile the file to compile
-	 * @param destination the destination folder
-	 * @param workingClasspath the current classpath
-	 * @return a new temp folder.
-	 * @throws IOException if compilation fails.
-   */
-  public static File compileJavaFile(File sourceFile, File destination, String[] workingClasspath) throws
-		IOException {
+		try {
+			p.waitFor();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return null;
+		}
 
-    String[] path = Objects.requireNonNull(workingClasspath);
-
-    final List<File> files = new ArrayList<>();
-
-    for(String eachPath : path){
-      files.add(new File(eachPath));
-    }
-
-    Classpath classpath = Classpath.of(files);
-
-
-    final Javac javac = new Javac()
-      .debug()
-      .classpath(classpath)
-      .destination(destination);
-
-    final List<String> output = javac.compile(sourceFile);
-
-    if(javac.inDebugMode()){
-      javac.log(output);
-    }
-
-    return destination;
+		return tempDir;
   }
 
 	/**
@@ -180,7 +123,7 @@ public final class Util {
 	 *         fails.
 	 * @throws IOException
 	 */
-	public static File compileJavaFiles(Collection<File> sourceFiles) throws IOException {
+	public static File compileJavaFiles(File[] sourceFiles) throws IOException {
 		final File tempDir = getTempDir();
 		StringBuilder sb = new StringBuilder();
 		for (File f : sourceFiles) {
@@ -292,27 +235,5 @@ public final class Util {
     return Files.getFileExtension(fullpath);
   }
 
-  static public void deleteDirectoryContent(File path, String exclude) throws IOException {
-    // expect 2
-    String[] split = exclude.split(":");
-
-    Objects.requireNonNull(exclude);
-    if(path.exists()) {
-      File[] files = path.listFiles();
-      assert files != null;
-
-      for (File file : files) {
-        if (file.isDirectory()) {
-          deleteDirectoryContent(file, exclude);
-        } else {
-
-          if(!file.getName().contains(split[0]) && !file.getName().contains(split[1])){
-            if(!file.delete()){
-							throw new IOException("Failed to delete file: " + file);
-						}
-          }
-        }
-      }
-    }
-  }
 }
+

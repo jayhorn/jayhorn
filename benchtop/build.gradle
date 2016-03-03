@@ -1,0 +1,12 @@
+repositories {
+    mavenCentral()
+}
+
+// In this section you declare the dependencies for your production and test code
+dependencies {
+    compile 'com.google.guava:guava:18.0'
+    compile fileTree(dir: 'lib', include: '*.jar')
+    testCompile 'junit:junit:4.12'
+    compile project(':soottocfg')
+}
+

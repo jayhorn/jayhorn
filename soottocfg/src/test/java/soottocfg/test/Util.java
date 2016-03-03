@@ -1,13 +1,11 @@
 package soottocfg.test;
 
 import com.google.common.io.Files;
-import soottocfg.randoop.Javac;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.Charset;
-import java.util.List;
 
 public final class Util {
 
@@ -43,23 +41,36 @@ public final class Util {
 	 */
 	public static File compileJavaFile(File sourceFile) throws IOException {
 		final File tempDir = Files.createTempDir();
+		final String javac_command = String.format("javac -g %s -d %s", sourceFile.getAbsolutePath(),
+			tempDir.getAbsolutePath());
 
-		final Javac javac = new Javac()
-			.debug()
-			.destination(tempDir);
+		ProcessBuilder pb = new ProcessBuilder(javac_command.split(" "));
+		pb.redirectOutput(Redirect.INHERIT);
+		pb.redirectError(Redirect.INHERIT);
+		Process p = pb.start();
 
-		final List<String> output = javac.compile(sourceFile);
-
-		if(javac.inDebugMode()){
-			javac.log(output);
+		try {
+			p.waitFor();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return null;
 		}
 
 		return tempDir;
 	}
 
 	protected static void printJavaCVersion() {
-		final Javac javac = new Javac();
-		javac.log(javac.version());
+		final String javac_command = "javac -version";
+
+		ProcessBuilder pb = new ProcessBuilder(javac_command.split(" "));
+		pb.redirectOutput(Redirect.INHERIT);
+		pb.redirectError(Redirect.INHERIT);
+		try {
+			Process p = pb.start();
+			p.waitFor();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
