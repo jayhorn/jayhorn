@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * A facade for running commands configured by Benchtop.
+ * A facade for running commands configured by classes implementing
+ * the {@link Configuration} interface.
  *
  * @author Huascar Sanchez
  */
