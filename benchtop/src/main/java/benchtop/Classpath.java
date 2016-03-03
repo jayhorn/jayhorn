@@ -38,6 +38,13 @@ public class Classpath {
     return Classpath.of(System.getProperty("java.class.path").split(":"));
   }
 
+  /**
+   * Creates a new classpath by combining two classpaths.
+   *
+   * @param a first classpath
+   * @param b second classpath
+   * @return the result of two classpaths.
+   */
   public static Classpath union(Classpath a, Classpath b){
     final Classpath nonNullA = Objects.requireNonNull(a);
     final Classpath nonNullB = Objects.requireNonNull(b);

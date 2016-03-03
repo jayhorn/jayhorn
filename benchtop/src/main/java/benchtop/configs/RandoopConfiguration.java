@@ -55,6 +55,7 @@ public abstract class RandoopConfiguration extends AbstractConfiguration {
    * @param destination the output directory.
    * @param timeLimit halts test generation by this limit.
    * @param classList the test generation seed.
+   * @return a new {@code RandoopConfiguration} object.
    */
   public static RandoopConfiguration defaultConfiguration(Classpath classpath, File destination,
                                                           int timeLimit, String... classList){

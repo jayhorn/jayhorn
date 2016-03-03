@@ -30,6 +30,11 @@ public abstract class JavacConfiguration extends AbstractConfiguration {
 
   /**
    * Creates a new Javac configuration.
+   *
+   * @param classpath Java program's needed classpath.
+   * @param destination Java program's compiling destination
+   * @param sourceFiles files to compile.
+   * @return a new Javac configuration.
    */
   public static JavacConfiguration newJavacConfiguration(Classpath classpath, File destination, final File... sourceFiles){
     return new JavacConfiguration(classpath, destination) {

@@ -24,6 +24,9 @@ import java.util.Objects;
  * @author Huascar Sanchez
  */
 public class Classes {
+  /**
+   * Classes constructor.
+   */
   private Classes(){
     throw new Error("Utility class");
   }
@@ -35,6 +38,7 @@ public class Classes {
    * @param destination where the .class files will be placed.
    * @param sourceFiles the source files to compile
    * @return the list of loaded classes.
+   * @throws IOException unexpected error has occurred.
    */
   public static List<Class<?>> compileJava(File destination, File... sourceFiles) throws
     IOException {
@@ -44,6 +48,13 @@ public class Classes {
     return loadClasses(destination);
   }
 
+  /**
+   * Loads a list of classes found in some directory.
+   *
+   * @param classDir the directory containing classes to load.
+   * @return a list of loaded classes.
+   * @throws IOException unexpected error has occurred.
+   */
   public static List<Class<?>> loadClasses(File classDir) throws IOException {
 
     final Path start = Paths.get(classDir.toURI());
@@ -75,6 +86,12 @@ public class Classes {
     return classes;
   }
 
+  /**
+   * Extracts the name of a fully qualified file
+   *
+   * @param filePathName the absolute path of a file.
+   * @return the name of the file.
+   */
   public static String extractFileName(String filePathName) {
     if ( filePathName == null )
       return null;
@@ -96,11 +113,13 @@ public class Classes {
   }
 
   private static URLClassLoader createClassLoader(final File classDir) {
-    return AccessController.doPrivileged((PrivilegedAction<URLClassLoader>) () -> {
-      try {
-        return new URLClassLoader(new URL[] { classDir.toURI().toURL() });
-      } catch (MalformedURLException mue){
-        throw new RuntimeException("malformed URL");
+    return AccessController.<URLClassLoader>doPrivileged(new PrivilegedAction<URLClassLoader>() {
+      @Override public URLClassLoader run() {
+        try {
+          return new URLClassLoader(new URL[] { classDir.toURI().toURL() });
+        } catch (MalformedURLException mue){
+          throw new RuntimeException("malformed URL");
+        }
       }
     });
   }

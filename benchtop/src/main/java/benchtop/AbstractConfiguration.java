@@ -67,9 +67,17 @@ public abstract class AbstractConfiguration implements Configuration {
 
     final List<Object> asList = Arrays.asList(args);
 
-    asList.stream()
-      .filter(a -> a.toString().startsWith("--")).map(s -> s.toString().substring(0, s.toString().lastIndexOf("=")))
-      .forEach(n -> trackOption((String)n));
+    for(Object eachObject : asList){
+      if(eachObject.toString().startsWith("--")){
+        final String option = eachObject.toString()
+          .substring(0, eachObject.toString().lastIndexOf("="));
+        trackOption(option);
+      }
+    }
+
+//    asList.stream()
+//      .filter(a -> a.toString().startsWith("--")).map(s -> s.toString().substring(0, s.toString().lastIndexOf("=")))
+//      .forEach(n -> trackOption((String)n));
 
     this.builder.arguments(asList);
   }

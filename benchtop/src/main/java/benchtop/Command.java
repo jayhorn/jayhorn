@@ -118,10 +118,16 @@ public class Command {
     process = processBuilder.start();
   }
 
+  /**
+   * @return true if the process has started; false otherwise.
+   */
   public boolean isStarted() {
     return process != null;
   }
 
+  /**
+   * @return the current input stream used by running process.
+   */
   public InputStream getInputStream() {
     if (!isStarted()) {
       throw new IllegalStateException("Not started!");
@@ -130,7 +136,14 @@ public class Command {
     return process.getInputStream();
   }
 
-
+  /**
+   * Returns the output returned by process.
+   *
+   * @return the output on terminal.
+   *
+   * @throws IOException unexpected behavior occurred.
+   * @throws InterruptedException unexpected behavior occurred.
+   */
   public List<String> gatherOutput()
     throws IOException, InterruptedException {
     if (!isStarted()) {
@@ -214,10 +227,22 @@ public class Command {
     }
 
 
+    /**
+     * Sets the command's arguments.
+     *
+     * @param args the command's arguments.
+     * @return self
+     */
     public Builder arguments(Object... args){
       return arguments(Arrays.asList(args));
     }
 
+    /**
+     * Sets the command's list of arguments.
+     *
+     * @param args the command's list of arguments.
+     * @return self
+     */
     public Builder arguments(List<?> args){
       for (Object eachObject : args) {
         this.args.add(eachObject.toString());
@@ -226,11 +251,24 @@ public class Command {
       return this;
     }
 
+    /**
+     * Sets an environment's variable.
+     *
+     * @param key key identifying the variable
+     * @param value the value of the variable
+     * @return self
+     */
     public Builder environment(String key, String value){
       env.put(Objects.requireNonNull(key), Objects.requireNonNull(value));
       return this;
     }
 
+    /**
+     * Sets the command's working directory.
+     *
+     * @param localWorkingDirectory the command's working directory.
+     * @return self
+     */
     public Builder workingDirectory(File localWorkingDirectory){
       this.workingDirectory = Objects.requireNonNull(localWorkingDirectory);
       return this;
@@ -239,22 +277,39 @@ public class Command {
     /**
      * Prevents execute() from throwing if the invoked process returns a
      * nonzero exit code.
+     *
+     * @return self
      */
     public Builder permitNonZeroExitStatus() {
       this.permitNonZeroExitStatus = true;
       return this;
     }
 
+    /**
+     * Sets the command's print stream.
+     *
+     * @param printStream the used print stream; e.g., System.out or System.err.
+     * @return self
+     */
     public Builder console(PrintStream printStream) {
       console = printStream;
       return this;
     }
 
+    /**
+     * Sets the permitted length of a command in its String representation.
+     *
+     * @param maxLength the length of a command (string representation of command)
+     * @return self.
+     */
     public Builder maxCommandLength(int maxLength) {
       this.maxCommandLength = maxLength;
       return this;
     }
 
+    /**
+     * @return the built command.
+     */
     public Command build(){
       return new Command(this);
     }
@@ -269,10 +324,23 @@ public class Command {
    */
   public static class CommandFailedException extends RuntimeException {
 
+    /**
+     * Construct a new CommandFailedException object.
+     *
+     * @param args list of command's args.
+     * @param outputLines list of output lines displayed on terminal.
+     */
     public CommandFailedException(List<String> args, List<String> outputLines) {
       super(formatMessage(args, outputLines));
     }
 
+    /**
+     * Turns a list of args and output lines into a formatted message.
+     *
+     * @param args list of command's args.
+     * @param outputLines list of output lines displayed on terminal.
+     * @return formatted message.
+     */
     static String formatMessage(List<String> args, List<String> outputLines) {
       StringBuilder result = new StringBuilder();
       result.append("Command failed:");

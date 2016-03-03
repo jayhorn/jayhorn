@@ -19,6 +19,11 @@ public class Strings {
   /**
    * Joins a collection of objects, which override toString, using a
    * delimiter.
+   *
+   * @param delimiter delimiter between entries in a collection.
+   * @param entries collection to join using a given delimiter.
+   * @param <T> type parameter of elements in entries collection.
+   * @return joined collection represented as a String
    */
   public static <T> String joinCollection(String delimiter, Collection<T> entries){
     return java6LikeJoin(delimiter, entries);
@@ -40,6 +45,11 @@ public class Strings {
     return result;
   }
 
+  /**
+   * Generates an array of objects from an array of Strings.
+   * @param objects array of strings
+   * @return array of objects.
+   */
   public static Object[] generateArrayOfObjects(String[] objects) {
     Object[] result = new Object[objects.length];
     int i = 0;
@@ -64,6 +74,10 @@ public class Strings {
   /**
    * Implements a generic method for joining a collection of objects. This
    * method is intended to work on Java6+ versions.
+   *
+   * @param delimiter delimiter between entries in a collection.
+   * @param data collection to join using a given delimiter.
+   * @return joined collection represented as a String
    */
   private static <T> String java6LikeJoin(String delimiter, Collection<T> data){
     final Iterator<T> iterator = data.iterator();

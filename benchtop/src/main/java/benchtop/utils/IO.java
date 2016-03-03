@@ -25,6 +25,10 @@ public class IO {
   /**
    * Copies a collection of files to a target location. The {@code preserve}
    * parameter determines if file attributes should be copied/preserved.
+   *
+   * @param files collection of files to copy to new location.
+   * @param target source file (destination)
+   * @param preserve true if file attributes should be copied/preserved; false otherwise.
    */
   public static void copyFiles(Collection<File> files, Path target, boolean preserve){
     final Collection<File> nonNullFiles = Objects.requireNonNull(files);
@@ -45,6 +49,10 @@ public class IO {
    * <p>Copies a file to target location. The {@code preserve}
    * parameter determines if file attributes should be copied/preserved.
    * </p>
+   *
+   * @param source source file
+   * @param target source file (destination)
+   * @param preserve true if file attributes should be copied/preserved; false otherwise.
    */
   public static void copyFile(Path source, Path target, boolean preserve) {
     CopyOption[] options = (preserve) ?
@@ -57,6 +65,13 @@ public class IO {
     }
   }
 
+  /**
+   * Collect files in a given location.
+   *
+   * @param testDirectory directory to access
+   * @param extension extension of files to collect
+   * @return the list of files matching a given extension.
+   */
   public static List<File> collectFiles(File testDirectory, String extension){
     final List<File> data = new ArrayList<>();
 
@@ -87,6 +102,12 @@ public class IO {
     }
   }
 
+  /**
+   * Deletes the content (e.g., files) of a given directory.
+   *
+   * @param path the directory to access.
+   * @throws IOException unexpected error occurred.
+   */
   public static void deleteDirectoryContent(File path) throws IOException {
 
     if(path.exists()) {
