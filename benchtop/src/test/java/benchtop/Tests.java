@@ -1,5 +1,8 @@
 package benchtop;
 
+import benchtop.utils.Classes;
+import benchtop.utils.IO;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -31,6 +34,28 @@ public class Tests {
     return WORKING_DIR;
   }
 
+  public static void randoopSetup(File directory) throws Exception {
+    if(directory.exists()){
+      IO.deleteDirectoryContent(directory);
+    }
+
+    final File javaFile = Tests.createJavaFile(directory.getAbsolutePath() + "/");
+
+    Classes.compileJava(
+      directory, javaFile
+    );
+
+
+    final Classpath env = Classpath.union(
+      Classpath.environmentClasspath(),
+      Classpath.of(directory)
+    );
+
+
+    Benchtop.randoop(
+      env, directory, "JavaFile"
+    );
+  }
 
   public static File createJavaFile(String destination) throws IOException {
     final Path path = Paths.get(destination + "JavaFile.java");

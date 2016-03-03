@@ -2,6 +2,8 @@ package benchtop.configs;
 
 import benchtop.AbstractConfiguration;
 import benchtop.Classpath;
+import benchtop.utils.Strings;
+
 import java.util.Arrays;
 
 import java.util.List;
@@ -52,7 +54,12 @@ public abstract class JavaConfiguration extends AbstractConfiguration {
   }
 
   public void mainArgs(List<String> args){
-    arguments(Objects.requireNonNull(args).toArray(new String[args.size()]));
+
+    final Object[] objects = Strings.generateArrayOfObjects(
+      Objects.requireNonNull(args).toArray(new String[args.size()])
+    );
+
+    arguments(objects);
   }
 
   private void classpath(Classpath classpath) {

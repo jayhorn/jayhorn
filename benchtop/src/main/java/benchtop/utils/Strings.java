@@ -40,6 +40,17 @@ public class Strings {
     return result;
   }
 
+  public static Object[] generateArrayOfObjects(String[] objects) {
+    Object[] result = new Object[objects.length];
+    int i = 0;
+
+    for (String o : objects) {
+      result[i++] = Object.class.cast(o);
+    }
+
+    return result;
+  }
+
   /**
    * Generates an array of strings from a collection of objects.
    *

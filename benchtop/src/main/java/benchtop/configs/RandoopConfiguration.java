@@ -2,8 +2,7 @@ package benchtop.configs;
 
 import benchtop.AbstractConfiguration;
 import benchtop.Classpath;
-import benchtop.utils.Classes;
-import com.google.common.io.Files;
+import benchtop.utils.IO;
 
 import java.io.File;
 import java.io.IOException;
@@ -187,7 +186,7 @@ public abstract class RandoopConfiguration extends AbstractConfiguration {
 
   private static void delete(File directory){
     try {
-      Classes.deleteDirectoryContent(directory);
+      IO.deleteDirectoryContent(directory);
     } catch (IOException e) {
       System.out.println("unable to delete " + directory.toString());
       e.printStackTrace(System.err);

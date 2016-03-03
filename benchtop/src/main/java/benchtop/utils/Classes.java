@@ -44,19 +44,7 @@ public class Classes {
     return loadClasses(destination);
   }
 
-  public static List<File> collectFiles(File testDirectory, String extension){
-    final List<File> data = new ArrayList<>();
-
-    try {
-      collectDirectoryContent(testDirectory, extension, data);
-    } catch (IOException e) {
-      // ignored
-    }
-
-    return data;
-  }
-
-  static List<Class<?>> loadClasses(File classDir) throws IOException {
+  public static List<Class<?>> loadClasses(File classDir) throws IOException {
 
     final Path start = Paths.get(classDir.toURI());
 
@@ -117,40 +105,4 @@ public class Classes {
     });
   }
 
-  private static void collectDirectoryContent(File path, String extension, Collection<File> collector) throws IOException {
-
-    if(path.exists()) {
-      File[] files = path.listFiles();
-      assert files != null;
-
-      for (File file : files) {
-        if (file.isDirectory()) {
-          collectDirectoryContent(file, extension, collector);
-        } else {
-          if(file.getName().endsWith(extension)){
-            collector.add(file);
-          }
-        }
-      }
-    }
-  }
-
-  public static void deleteDirectoryContent(File path) throws IOException {
-
-    if(path.exists()) {
-      File[] files = path.listFiles();
-      assert files != null;
-
-      for (File file : files) {
-        if (file.isDirectory()) {
-          deleteDirectoryContent(file);
-        } else {
-
-          if(!file.delete()){
-            throw new IOException("Failed to delete file: " + file);
-          }
-        }
-      }
-    }
-  }
 }
