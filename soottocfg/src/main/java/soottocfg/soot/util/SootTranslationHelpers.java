@@ -57,7 +57,7 @@ public enum SootTranslationHelpers {
 	public static final String indexFieldNamePrefix = "$idx_";
 
 	private transient SootMethod currentMethod;
-	private transient SootClass currentClass;
+//	private transient SootClass currentClass;
 	private transient String currentSourceFileName;
 
 	private transient MemoryModel memoryModel;
@@ -67,7 +67,7 @@ public enum SootTranslationHelpers {
 
 	public void reset() {
 		currentMethod = null;
-		currentClass = null;
+//		currentClass = null;
 		currentSourceFileName = null;
 		memoryModel = null;
 		program = null;
@@ -231,7 +231,7 @@ public enum SootTranslationHelpers {
 			this.currentSourceFileName = fn;
 		}
 
-		this.currentClass = currentClass;
+//		this.currentClass = currentClass;
 	}
 
 	private String findFileName(List<Tag> tags) {
