@@ -3,6 +3,7 @@ package benchtop.configs;
 import benchtop.AbstractConfiguration;
 import benchtop.Classpath;
 import benchtop.utils.Classes;
+import com.google.common.io.Files;
 
 import java.io.File;
 import java.io.IOException;
@@ -194,7 +195,7 @@ public abstract class RandoopConfiguration extends AbstractConfiguration {
   }
 
   private static void make(File directory){
-    if(!directory.mkdir()){
+    if(!directory.mkdirs()){
       System.out.println("Unable to create " + directory.toString());
     }
   }
