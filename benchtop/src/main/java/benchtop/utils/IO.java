@@ -1,5 +1,8 @@
 package benchtop.utils;
 
+import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.CopyOption;
@@ -9,9 +12,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
-import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import com.google.common.collect.Lists;
 
 /**
  * @author Huascar Sanchez
@@ -65,6 +68,27 @@ public class IO {
     }
   }
 
+  
+  public static List<String> resolveFullyQualifiedNames(String location, List<File> collectedFiles){
+	  final List<String> namespaces = new ArrayList<>();
+	  for(File each : collectedFiles){
+	    final String absolutePath = each.getAbsolutePath();
+	    if(absolutePath.contains("$")) continue;
+
+	    final List<String> A = Lists.newArrayList(location.split(Pattern.quote(File.separator)));
+	    final List<String> B = Lists.newArrayList(absolutePath.split(Pattern.quote(File.separator)));
+
+	    for (String foo : A) {
+	    	B.remove(0);
+	    }
+	    //TODO
+
+	    namespaces.add(Strings.joinCollection(".", B).replace(".class", ""));
+	  }
+
+	  return namespaces;
+	}
+  
   /**
    * Collect files in a given location.
    *

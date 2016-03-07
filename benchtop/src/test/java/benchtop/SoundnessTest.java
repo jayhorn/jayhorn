@@ -1,20 +1,7 @@
 package benchtop;
 
-import benchtop.configs.RandoopConfiguration;
-import benchtop.utils.Classes;
-import benchtop.utils.IO;
-import com.google.common.collect.Iterables;
-import com.google.common.io.Files;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import soot.Scene;
-import soot.SootClass;
-import soot.SourceLocator;
-import soot.jimple.JasminClass;
-import soot.options.Options;
-import soot.util.JasminOutputStream;
-import soottocfg.soot.SootToCfg;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -24,10 +11,24 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import com.google.common.collect.Iterables;
+import com.google.common.io.Files;
+
+import benchtop.configs.RandoopConfiguration;
+import benchtop.utils.Classes;
+import benchtop.utils.IO;
+import soot.Scene;
+import soot.SootClass;
+import soot.SourceLocator;
+import soot.jimple.JasminClass;
+import soot.options.Options;
+import soot.util.JasminOutputStream;
+import soottocfg.soot.SootToCfg;
 
 /**
  * @author Huascar Sanchez

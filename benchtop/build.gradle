@@ -17,6 +17,7 @@ test {
 	exclude '**/RandoopTestGenerationTest.java'
 	exclude '**/SoundnessTest.java'
 	exclude '**/Tests.java'
+	exclude '**/SystemTest01.java'
 }
 
 task integration_test(type: Test) {
