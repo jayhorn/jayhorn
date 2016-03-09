@@ -71,6 +71,9 @@ public abstract class AbstractConfiguration implements Configuration {
       if(eachObject.toString().startsWith("--")){
         final String option = eachObject.toString()
           .substring(0, eachObject.toString().lastIndexOf("="));
+
+        if("--testclass".equals(option)) continue;
+
         trackOption(option);
       }
     }

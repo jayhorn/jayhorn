@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * A facade for running commands configured by classes implementing
+ * A facade for running commands. These commands are configured via classes that implement
  * the {@link Configuration} interface.
  *
  * @author Huascar Sanchez
@@ -49,6 +49,22 @@ public class Benchtop {
   }
 
   /**
+   * Consumes an non-empty array of bundles. See {@link ExecutionBundle} to understand
+   * how bundles are constructed.
+   *
+   * @param bundles an array of bundle objects.
+   * @throws BundleCreationError unexpected errors have occurred.
+   */
+  public static void consumes(ExecutionBundle... bundles) throws BundleCreationError {
+    final DefaultEnvironment host = new DefaultEnvironment();
+    for(ExecutionBundle each : bundles){
+      host.install(each);
+    }
+
+    host.throwCachedErrors();
+  }
+
+  /**
    * Executes a configured command.
    * @param command the command to run
    */
@@ -63,13 +79,17 @@ public class Benchtop {
 
 
   /**
-   * Creates a Javac command; ready to be executed.
+   * Creates a Javac command; ready to be executed. The classpath object is made of the project's
+   * content; including classes, managed dependencies, and other dependencies under the
+   * /lib directory. If one needs to update this classpath or have more control of what it is in
+   * that classpath, then use the {@link Benchtop#java(Classpath, String, String...)} method
+   * instead.
    *
    * @param destination the directory where compiled classes will be placed.
    * @param sourceFiles the array of source files to compile.
    */
   public static void javac(File destination, File... sourceFiles){
-    javac(Classpath.environmentClasspath(), destination, sourceFiles);
+    javac(Classpath.empty() /*classpath is resolved automatically*/, destination, sourceFiles);
   }
 
   /**
@@ -81,7 +101,11 @@ public class Benchtop {
    */
   public static void javac(Classpath classpath, File destination, File... sourceFiles){
     run(createCommand(
-      JavacConfiguration.newJavacConfiguration(classpath, destination, sourceFiles)
+      JavacConfiguration.newJavacConfiguration(
+        Classpath.union(Classpath.environmentClasspath(), classpath),
+        destination,
+        sourceFiles
+      )
     ));
   }
 

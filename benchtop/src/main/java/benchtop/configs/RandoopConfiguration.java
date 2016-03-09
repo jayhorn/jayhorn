@@ -121,7 +121,7 @@ public abstract class RandoopConfiguration extends AbstractConfiguration {
    * @return randoop.jar file.
    */
   public static File randoopJar(){
-    return of(System.getProperty("user.dir") + "/benchtop/lib/" + TOOL);
+    return of("lib/" + TOOL);
   }
 
   private void testClasses(List<String> fullyQualifiedClassNames){

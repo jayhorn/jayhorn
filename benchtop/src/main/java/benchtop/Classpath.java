@@ -34,8 +34,16 @@ public class Classpath {
   /**
    * @return Benchtop's current classpath.
    */
-  public static Classpath environmentClasspath(){
-    return Classpath.of(System.getProperty("java.class.path").split(":"));
+  public static Classpath environmentClasspath(Classpath... otherPaths){
+    Classpath env = Classpath.of(System.getProperty("java.class.path").split(":"));
+
+    for( Classpath each : otherPaths){
+      if(null != each){
+        env = union(env, each);
+      }
+    }
+
+    return env;
   }
 
   /**
