@@ -23,7 +23,7 @@ package benchtop;
  *        host.bundleClasspath();
  *        host.bundleFocus("Regression");
  *     }
- *   }
+ *   };
  *
  *   // pass it to Benchtop, sit down, and let Benchtop
  *   // produce-execute all the needed tests

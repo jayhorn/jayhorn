@@ -1,6 +1,6 @@
 package benchtop;
 
-import benchtop.configs.RandoopConfiguration;
+import benchtop.spi.RandoopConfiguration;
 import benchtop.utils.Classes;
 import benchtop.utils.IO;
 import com.google.common.collect.Iterables;

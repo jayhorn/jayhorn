@@ -1,8 +1,9 @@
 package benchtop;
 
-import benchtop.configs.JavaConfiguration;
-import benchtop.configs.JavacConfiguration;
-import benchtop.configs.RandoopConfiguration;
+import benchtop.spi.JavaConfiguration;
+import benchtop.spi.JavacConfiguration;
+import benchtop.spi.RandoopConfiguration;
+import benchtop.spi.Configuration;
 
 import java.io.File;
 import java.util.List;

@@ -1,7 +1,6 @@
 package benchtop.spi;
 
 import benchtop.Command;
-import benchtop.Configuration;
 
 import java.io.File;
 import java.util.Arrays;

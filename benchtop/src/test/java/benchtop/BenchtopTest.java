@@ -1,7 +1,8 @@
 package benchtop;
 
-import benchtop.configs.JavacConfiguration;
-import benchtop.configs.RandoopConfiguration;
+import benchtop.spi.JavacConfiguration;
+import benchtop.spi.RandoopConfiguration;
+import benchtop.spi.AbstractConfiguration;
 import com.google.common.io.Files;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
