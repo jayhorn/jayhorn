@@ -1,5 +1,6 @@
 package benchtop;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -52,7 +53,7 @@ public class BundleCreationError extends RuntimeException {
   }
 
 
-  static class MessageComparator implements Comparator<Throwable> {
+  static class MessageComparator implements Comparator<Throwable>, Serializable {
     @Override public int compare(Throwable a, Throwable b) {
       return a.getMessage().compareTo(b.getMessage());
     }

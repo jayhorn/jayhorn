@@ -54,11 +54,11 @@ public class DefaultEnvironment implements Environment {
 
   private void execute() {
     try {
-      Preconditions.checkArgument(this.timeout > 0);
-      Preconditions.checkNotNull(this.target);
-      Preconditions.checkNotNull(this.output);
-      Preconditions.checkArgument(!this.classpath.isEmpty());
-      Preconditions.checkArgument(!this.classList.isEmpty());
+      Preconditions.checkArgument(this.timeout > 0, "Invalid timeout value");
+      Preconditions.checkNotNull(this.target, "Target directory is null");
+      Preconditions.checkNotNull(this.output, "Output directory is null");
+      Preconditions.checkArgument(!this.classpath.isEmpty(), "Classpath is empty");
+      Preconditions.checkArgument(!this.classList.isEmpty(), "Classlist is empty");
 
       // runs randoop
       Benchtop.randoop(
@@ -87,7 +87,7 @@ public class DefaultEnvironment implements Environment {
   }
 
   @Override public Environment bundleTarget(File directory) {
-    this.target = Preconditions.checkNotNull(directory);
+    this.target = Preconditions.checkNotNull(directory, "Target directory is null");
     if(!this.target.exists()){
       addError(new IOException("target directory does not exist"));
     }
@@ -97,7 +97,7 @@ public class DefaultEnvironment implements Environment {
 
   @Override public Environment bundleTimeout(int timeoutInSecs) {
     try {
-      Preconditions.checkArgument(timeoutInSecs > 0);
+      Preconditions.checkArgument(timeoutInSecs > 0, "invalid timeout");
       this.timeout = timeoutInSecs;
     } catch (Exception e){
       addError(e);
@@ -108,7 +108,7 @@ public class DefaultEnvironment implements Environment {
 
   @Override public Environment bundleOutput(File directory) {
     try {
-      this.output = Preconditions.checkNotNull(directory);
+      this.output = Preconditions.checkNotNull(directory, "Output directory is null");
     } catch (Exception e) {
       addError(e);
     }
@@ -120,8 +120,8 @@ public class DefaultEnvironment implements Environment {
     // build classpath
     try {
 
-      Preconditions.checkNotNull(this.target);
-      Preconditions.checkNotNull(this.output);
+      Preconditions.checkNotNull(this.target, "Target directory is null");
+      Preconditions.checkNotNull(this.output, "Output directory is null");
 
       final List<File> allFiles = IO.collectFiles(this.target, "class");
       final Classpath envClasspath = Classpath.environmentClasspath(
@@ -156,7 +156,7 @@ public class DefaultEnvironment implements Environment {
     try {
       final List<String> prefixes = Lists.newArrayList(testPrefixes);
       if(prefixes.contains(null)) {
-        addError(new IllegalArgumentException("Wrong prefix"));
+        addError(new IllegalArgumentException("Wrong test prefix"));
         return this;
       }
 

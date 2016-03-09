@@ -1,6 +1,5 @@
-package benchtop.configs;
+package benchtop.spi;
 
-import benchtop.AbstractConfiguration;
 import benchtop.Classpath;
 import benchtop.utils.IO;
 
