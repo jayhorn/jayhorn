@@ -1,4 +1,6 @@
-package benchtop;
+package benchtop.spi;
+
+import benchtop.Command;
 
 /**
  *

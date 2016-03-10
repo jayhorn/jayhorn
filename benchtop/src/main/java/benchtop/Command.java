@@ -1,6 +1,7 @@
 package benchtop;
 
 import benchtop.utils.Strings;
+import com.google.common.base.Preconditions;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,7 +15,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author Huascar Sanchez
@@ -62,7 +62,7 @@ public class Command {
    * @param builder the command builder.
    */
   private Command(Builder builder){
-    final Builder nonNullBuilder = Objects.requireNonNull(builder);
+    final Builder nonNullBuilder = Preconditions.checkNotNull(builder);
 
     this.log  = nonNullBuilder.log;
     this.args = new ArrayList<>(nonNullBuilder.args);
@@ -102,7 +102,8 @@ public class Command {
     if(isStarted()){
       throw new IllegalStateException("Already started!");
     }
-    log.info("starting command " + this.toString());
+
+    log.info("starting command");
 
     final ProcessBuilder processBuilder = new ProcessBuilder()
       .command(args)
@@ -213,7 +214,7 @@ public class Command {
      * @param log the execution log that monitors builder actions.
      */
     Builder(ExecutionLog log){
-      this.log = Objects.requireNonNull(log);
+      this.log = Preconditions.checkNotNull(log);
 
       this.workingDirectory         = null;
       this.permitNonZeroExitStatus  = false;
@@ -258,7 +259,7 @@ public class Command {
      * @return self
      */
     public Builder environment(String key, String value){
-      env.put(Objects.requireNonNull(key), Objects.requireNonNull(value));
+      env.put(Preconditions.checkNotNull(key), Preconditions.checkNotNull(value));
       return this;
     }
 
@@ -269,7 +270,7 @@ public class Command {
      * @return self
      */
     public Builder workingDirectory(File localWorkingDirectory){
-      this.workingDirectory = Objects.requireNonNull(localWorkingDirectory);
+      this.workingDirectory = Preconditions.checkNotNull(localWorkingDirectory);
       return this;
     }
 
@@ -321,8 +322,7 @@ public class Command {
   /**
    * Command failed to execute exception.
    */
-  @SuppressWarnings("serial")
-public static class CommandFailedException extends RuntimeException {
+  public static class CommandFailedException extends RuntimeException {
 
     /**
      * Construct a new CommandFailedException object.
