@@ -1,13 +1,13 @@
 package benchtop;
 
+import benchtop.spi.Configuration;
 import benchtop.spi.JavaConfiguration;
 import benchtop.spi.JavacConfiguration;
 import benchtop.spi.RandoopConfiguration;
-import benchtop.spi.Configuration;
+import com.google.common.base.Preconditions;
 
 import java.io.File;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * A facade for running commands. These commands are configured via classes that implement
@@ -41,8 +41,8 @@ public class Benchtop {
    * @return a new and configured command.
    */
   public static Command createCommand(Configuration configuration, ExecutionLog executionLog){
-    final Configuration nonNullConfiguration = Objects.requireNonNull(configuration);
-    final Command.Builder builder = Command.of(Objects.requireNonNull(executionLog))
+    final Configuration nonNullConfiguration = Preconditions.checkNotNull(configuration);
+    final Command.Builder builder = Command.of(Preconditions.checkNotNull(executionLog))
       .console(System.out);
     nonNullConfiguration.configure(builder);
 
@@ -70,7 +70,7 @@ public class Benchtop {
    * @param command the command to run
    */
   public static void run(Command command){
-    final List<String> output = Objects.requireNonNull(command).execute();
+    final List<String> output = Preconditions.checkNotNull(command).execute();
 
     //noinspection Convert2streamapi
     for(String each : output){ // unchecked warning

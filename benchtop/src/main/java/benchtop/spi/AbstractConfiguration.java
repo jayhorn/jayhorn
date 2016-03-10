@@ -1,12 +1,12 @@
 package benchtop.spi;
 
 import benchtop.Command;
+import com.google.common.base.Preconditions;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -24,11 +24,11 @@ public abstract class AbstractConfiguration implements Configuration {
   @Override public final synchronized void configure(Command.Builder builder) {
     Tracker.reset();
     try {
-      if (!Objects.isNull(this.builder)) {
+      if (null != this.builder) {
         throw new IllegalStateException("Re-entry is not allowed.");
       }
 
-      if(Objects.isNull(builder)){
+      if(null == builder){
         throw new IllegalArgumentException("configure() was given a null builder.");
       }
 
@@ -54,14 +54,14 @@ public abstract class AbstractConfiguration implements Configuration {
 
   // keep track of used options
   private static String trackOption(String option){
-    final String nonNullOption = Objects.requireNonNull(option);
+    final String nonNullOption = Preconditions.checkNotNull(option);
     if(Tracker.monitor().contains(nonNullOption)) {
       throw new IllegalArgumentException(
         "Option " + nonNullOption + " already been set"
       );
     }
 
-    Tracker.monitor().add(Objects.requireNonNull(option));
+    Tracker.monitor().add(Preconditions.checkNotNull(option));
     return option;
   }
 
@@ -88,8 +88,8 @@ public abstract class AbstractConfiguration implements Configuration {
   }
 
   protected void environment(String key, String value){
-    final String nonNullKey   = Objects.requireNonNull(key);
-    final String nonNullValue = Objects.requireNonNull(value);
+    final String nonNullKey   = Preconditions.checkNotNull(key);
+    final String nonNullValue = Preconditions.checkNotNull(value);
     this.builder.environment(nonNullKey, nonNullValue);
   }
 

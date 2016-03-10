@@ -24,7 +24,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -150,7 +149,7 @@ public class SoundnessTest {
       IO.deleteDirectoryContent(DIR);
     }
 
-    if(!Objects.isNull(compiledTempFolder)){
+    if(null != compiledTempFolder){
       compiledTempFolder.deleteOnExit();
     }
 

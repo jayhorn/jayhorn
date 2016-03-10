@@ -1,6 +1,7 @@
 package benchtop.utils;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -20,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
@@ -50,8 +50,8 @@ public class IO {
    * @param preserve true if file attributes should be copied/preserved; false otherwise.
    */
   public static void copyFiles(Collection<File> files, Path target, boolean preserve){
-    final Collection<File> nonNullFiles = Objects.requireNonNull(files);
-    final Path nonNullTarget = Objects.requireNonNull(target);
+    final Collection<File> nonNullFiles = Preconditions.checkNotNull(files);
+    final Path nonNullTarget = Preconditions.checkNotNull(target);
 
     for(File eachFile : nonNullFiles){
       copyFile(eachFile.toPath(), nonNullTarget.resolve(eachFile.getName()), preserve);

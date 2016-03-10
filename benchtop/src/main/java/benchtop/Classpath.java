@@ -1,13 +1,13 @@
 package benchtop;
 
 import benchtop.utils.Strings;
+import com.google.common.base.Preconditions;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * A list of jar files and directories needed by randoop.
@@ -54,8 +54,8 @@ public class Classpath {
    * @return the result of two classpaths.
    */
   public static Classpath union(Classpath a, Classpath b){
-    final Classpath nonNullA = Objects.requireNonNull(a);
-    final Classpath nonNullB = Objects.requireNonNull(b);
+    final Classpath nonNullA = Preconditions.checkNotNull(a);
+    final Classpath nonNullB = Preconditions.checkNotNull(b);
 
     final Classpath newCp = Classpath.empty();
     newCp.addAll(nonNullA);
@@ -104,7 +104,7 @@ public class Classpath {
    */
   public static Classpath of(Collection<File> files) {
 
-    final Collection<File> nonNullCollection = Objects.requireNonNull(files);
+    final Collection<File> nonNullCollection = Preconditions.checkNotNull(files);
     if(nonNullCollection.contains(null)) {
       throw new IllegalArgumentException("Collection contains null elements");
     }

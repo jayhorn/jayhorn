@@ -2,12 +2,12 @@ package benchtop.spi;
 
 import benchtop.Classpath;
 import benchtop.utils.IO;
+import com.google.common.base.Preconditions;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author Huascar Sanchez
@@ -36,7 +36,7 @@ public abstract class RandoopConfiguration extends AbstractConfiguration {
                               int timeLimit, String... classList){
 
     this.classpath    = Classpath.union(randoopClasspath(), classpath);
-    this.destination  = Objects.requireNonNull(destination);
+    this.destination  = Preconditions.checkNotNull(destination);
 
     this.timeLimit    = timeLimit;
     this.classList    = Arrays.asList(classList);
@@ -132,7 +132,7 @@ public abstract class RandoopConfiguration extends AbstractConfiguration {
 
   protected void testClass(String fullyQualifiedClassName){
     // this option can be repeated as many times as one wishes
-    arguments("--testclass="+ Objects.requireNonNull(fullyQualifiedClassName));
+    arguments("--testclass="+ Preconditions.checkNotNull(fullyQualifiedClassName));
   }
 
 
