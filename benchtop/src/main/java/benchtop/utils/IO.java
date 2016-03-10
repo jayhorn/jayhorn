@@ -128,7 +128,7 @@ public class IO {
   }
 
 
-  private static void collectDirContent(File classDir, String extension, Collection<File> files) throws IOException {
+  private static void collectDirContent(final File classDir, final String extension, final Collection<File> files) throws IOException {
 
     final Path        start   = Paths.get(classDir.toURI());
     final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:*." + extension);
