@@ -162,6 +162,11 @@ public class IO {
    */
   public static List<File> localCaches() throws IOException {
     final Set<File> files = new HashSet<>();
+
+    if(isRunningOnWindows()){
+      return new ArrayList<>();
+    }
+
     //noinspection Convert2streamapi
     for(File each : IVY_GRADLE_MAVEN_LOCAL_CACHES){ // Java 7 compatible
       if(each.exists()){
@@ -196,5 +201,9 @@ public class IO {
         }
       }
     }
+  }
+
+  private static boolean isRunningOnWindows(){
+    return System.getProperty("os.name").startsWith("Windows");
   }
 }
