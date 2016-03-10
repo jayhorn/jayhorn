@@ -102,8 +102,7 @@ public class Command {
     if(isStarted()){
       throw new IllegalStateException("Already started!");
     }
-
-    log.info("starting command");
+    log.info("starting command " + this.toString());
 
     final ProcessBuilder processBuilder = new ProcessBuilder()
       .command(args)
@@ -322,7 +321,8 @@ public class Command {
   /**
    * Command failed to execute exception.
    */
-  public static class CommandFailedException extends RuntimeException {
+  @SuppressWarnings("serial")
+public static class CommandFailedException extends RuntimeException {
 
     /**
      * Construct a new CommandFailedException object.
