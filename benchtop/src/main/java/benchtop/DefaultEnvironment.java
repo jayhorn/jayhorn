@@ -2,6 +2,7 @@ package benchtop;
 
 import benchtop.utils.Classes;
 import benchtop.utils.IO;
+import benchtop.utils.Soot;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
@@ -20,6 +21,7 @@ public class DefaultEnvironment implements Environment {
   private File target;
   private File output;
   private int  timeout;
+  private boolean transformations;
 
   private final List<Throwable> cachedErrors;
   private final Classpath       classpath;
@@ -33,6 +35,7 @@ public class DefaultEnvironment implements Environment {
     this.target       = null;
     this.output       = null;
     this.timeout      = 60;
+    this.transformations = false;
     this.cachedErrors = new ArrayList<>();
     this.classpath    = Classpath.empty();
     this.classList    = new ArrayList<>();
@@ -74,15 +77,26 @@ public class DefaultEnvironment implements Environment {
         this.classpath, this.output, files.toArray(new File[files.size()])
       );
 
+      runJunit(listOfClasses, this.classpath, this.testPrefixes);
 
-      //noinspection Convert2streamapi
-      for(Class<?> eachClass : listOfClasses){ // run the test files
-        if(matches(eachClass.getName(), testPrefixes)){
-          Benchtop.junit(this.classpath, eachClass.getCanonicalName());
-        }
+      if(transformations){
+        // transforms classes under this.target directory
+        Soot.sootifyJavaClasses(this.classpath, this.target);
+
+        runJunit(listOfClasses, this.classpath, this.testPrefixes);
       }
+
     } catch (Exception e){
       addError(e);
+    }
+  }
+
+  private static void runJunit(List<Class<?>> listOfClasses, Classpath classpath, List<String> testPrefixes){
+    //noinspection Convert2streamapi
+    for(Class<?> eachClass : listOfClasses){ // run the test files
+      if(matches(eachClass.getName(), testPrefixes)){
+        Benchtop.junit(classpath, eachClass.getCanonicalName());
+      }
     }
   }
 
@@ -106,9 +120,19 @@ public class DefaultEnvironment implements Environment {
     return this;
   }
 
+  @Override public Environment bundleTransformations() {
+    this.transformations = true;
+    return this;
+  }
+
   @Override public Environment bundleOutput(File directory) {
     try {
       this.output = Preconditions.checkNotNull(directory, "Output directory is null");
+
+      if(directory.exists()){
+        IO.deleteDirectory(directory.toPath());
+      }
+
     } catch (Exception e) {
       addError(e);
     }
@@ -183,7 +207,7 @@ public class DefaultEnvironment implements Environment {
 
     Preconditions.checkNotNull(prefixes);
     for (String each : prefixes){
-      if(className.contains(each)) return true;
+      if(className.startsWith(each)) return true;
     }
 
     return false;
