@@ -8,17 +8,11 @@ import com.google.common.collect.Sets;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.CopyOption;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -184,33 +178,134 @@ public class IO {
     return Lists.newArrayList(files);
   }
 
+  /**
+   * Completely removes given file tree starting at and including the given path.
+   *
+   * @param path the directory to delete.
+   * @throws IOException unexpected error has occurred.
+   */
+  public static void deleteDirectory(Path path) throws IOException {
+    if (Files.exists(path)) {
+      validate(path);
+      Files.walkFileTree(path, new DeleteDirectoryVisitor());
+    }
+  }
 
   /**
-   * Deletes the content (e.g., files) of a given directory.
+   * Walks file tree starting at the given path and deletes all files
+   * but leaves the directory structure intact. If the given Path does not exist nothing
+   * is done.
    *
-   * @param path the directory to access.
-   * @throws IOException unexpected error occurred.
+   * @param path the target path
+   * @throws IOException
    */
-  public static void deleteDirectoryContent(File path) throws IOException {
+  public static void cleanDirectory(File path) throws IOException {
+    final Path target = Preconditions.checkNotNull(path).toPath();
+    if (Files.exists(target)) {
+      validate(target);
+      Files.walkFileTree(target, new CleanDirectoryVisitor());
+    }
+  }
 
-    if(path.exists()) {
-      File[] files = path.listFiles();
-      assert files != null;
 
-      for (File file : files) {
-        if (file.isDirectory()) {
-          deleteDirectoryContent(file);
-        } else {
+  /**
+   * Copies a directory tree (including its content).
+   *
+   * @param from the source directory
+   * @param to the destination directory
+   * @throws IOException unexpected error has occurred.
+   */
+  public static void copyDirectoryTree(Path from, Path to) throws IOException {
+    validate(from);
+    Files.walkFileTree(
+      from,
+      EnumSet.of(FileVisitOption.FOLLOW_LINKS),
+      Integer.MAX_VALUE,
+      new CopyDirectoryVisitor(from, to)
+    );
+  }
 
-          if(!file.delete()){
-            throw new IOException("Failed to delete file: " + file);
-          }
-        }
+  private static void validate(Path... paths) {
+    for (Path path : paths) {
+      Preconditions.checkNotNull(path);
+      if (!Files.isDirectory(path)) {
+        throw new IllegalArgumentException(String.format("%s is not a directory", path.toString()));
       }
     }
   }
 
   private static boolean isRunningOnWindows(){
     return System.getProperty("os.name").startsWith("Windows");
+  }
+
+  static class CopyDirectoryVisitor extends SimpleFileVisitor <Path> {
+    private final Path fromPath;
+    private final Path toPath;
+    private final StandardCopyOption copyOption;
+
+    /**
+     * Constructs a visitor which will replicate a directory tree in some new location.
+     *
+     * @param fromPath the source
+     * @param toPath the destination
+     */
+    CopyDirectoryVisitor(Path fromPath, Path toPath) {
+      this(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+
+    /**
+     * Constructs a visitor which will replicate a directory tree in some new location.
+     *
+     * @param fromPath the source
+     * @param toPath the destination
+     * @param copyOption copying options
+     */
+    CopyDirectoryVisitor(Path fromPath, Path toPath, StandardCopyOption copyOption) {
+      this.fromPath   = Preconditions.checkNotNull(fromPath);
+      this.toPath     = Preconditions.checkNotNull(toPath);
+      this.copyOption = Preconditions.checkNotNull(copyOption);
+    }
+
+
+    @Override public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+      final Path targetPath = toPath.resolve(fromPath.relativize(dir));
+
+      if(!Files.exists(targetPath)){
+        Files.createDirectory(targetPath);
+      }
+
+      return FileVisitResult.CONTINUE;
+    }
+
+    @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+      Files.copy(file, toPath.resolve(fromPath.relativize(file)), copyOption);
+
+      return FileVisitResult.CONTINUE;
+    }
+  }
+
+  static class DeleteDirectoryVisitor extends SimpleFileVisitor<Path> {
+
+    @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+      Files.delete(file);
+      return FileVisitResult.CONTINUE;
+    }
+
+    @Override public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+      if(exc == null){
+        Files.delete(dir);
+        return FileVisitResult.CONTINUE;
+      }
+      throw exc;
+    }
+  }
+
+  static class CleanDirectoryVisitor extends SimpleFileVisitor<Path> {
+    @Override
+    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+      Files.delete(file);
+      return FileVisitResult.CONTINUE;
+    }
   }
 }

@@ -50,7 +50,7 @@ public class RandoopTestGenerationTest {
     TEST_CLASSES.clear();
 
     if(DIR.exists()){
-      IO.deleteDirectoryContent(DIR);
+      IO.cleanDirectory(DIR);
     }
   }
 

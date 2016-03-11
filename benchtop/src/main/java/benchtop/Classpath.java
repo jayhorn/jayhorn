@@ -75,7 +75,9 @@ public class Classpath {
     for(String eachPath : files){
       if(null == eachPath || eachPath.isEmpty()) return empty();
 
-      final File fileObj = new File(eachPath);
+      final String massagedPath = eachPath.contains(" ") ? ("\"" + eachPath +  "\"") : eachPath;
+
+      final File fileObj = new File(massagedPath);
 
       if(fileObj.exists()){
         content.add(fileObj);

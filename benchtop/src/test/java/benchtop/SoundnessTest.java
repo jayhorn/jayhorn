@@ -146,7 +146,7 @@ public class SoundnessTest {
     TEST_CLASSES.clear();
 
     if(DIR.exists()){
-      IO.deleteDirectoryContent(DIR);
+      IO.cleanDirectory(DIR);
     }
 
     if(null != compiledTempFolder){

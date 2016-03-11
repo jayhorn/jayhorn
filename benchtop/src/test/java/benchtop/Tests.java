@@ -36,7 +36,7 @@ public class Tests {
 
   public static void randoopSetup(File directory) throws Exception {
     if(directory.exists()){
-      IO.deleteDirectoryContent(directory);
+      IO.cleanDirectory(directory);
     }
 
     final File javaFile = Tests.createJavaFile(directory.getAbsolutePath() + "/");
