@@ -170,7 +170,14 @@ public class IO {
     //noinspection Convert2streamapi
     for(File each : IVY_GRADLE_MAVEN_LOCAL_CACHES){ // Java 7 compatible
       if(each.exists()){
-        files.addAll(collectFiles(each, "jar"));
+        final List<File> f = collectFiles(each, "jar");
+        for(File eachF : f){
+          if(eachF.getName().contains("-sources")) {
+            continue;
+          }
+
+          files.add(eachF);
+        }
       }
     }
 

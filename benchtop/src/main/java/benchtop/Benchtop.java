@@ -90,7 +90,7 @@ public class Benchtop {
    * @param sourceFiles the array of source files to compile.
    */
   public static void javac(File destination, File... sourceFiles){
-    javac(Classpath.empty() /*classpath is resolved automatically*/, destination, sourceFiles);
+    javac(Classpath.environmentClasspath() /*classpath is resolved automatically*/, destination, sourceFiles);
   }
 
   /**
@@ -103,7 +103,7 @@ public class Benchtop {
   public static void javac(Classpath classpath, File destination, File... sourceFiles){
     run(createCommand(
       JavacConfiguration.newJavacConfiguration(
-        Classpath.union(Classpath.environmentClasspath(), classpath),
+        classpath,
         destination,
         sourceFiles
       )

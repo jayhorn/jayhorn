@@ -43,17 +43,17 @@ public class SystemTest01 {
 	@Test public void testNewWay() throws Exception {
 		Benchtop.consumes(new ExecutionBundle() {
 			@Override public void configure(Environment host) {
-				host.bundleTarget(new File("graphgen/build/classes/main"));
-				host.bundleOutput(new File("randoop"));
+				host.bundleTarget(new File("/Users/hsanchez/dev/codepacking/target/classes"));
+				host.bundleOutput(new File("/Users/hsanchez/dev/trashit/okay2"));
 				// classpath is auto resolved..(.ivy2, .m2, and .gradle are ignored if on Windows)
 				host.bundleClasspath();
-				host.bundleTimeout(2);
+				host.bundleTimeout(60);
 				host.bundleFocus(); // default is regression tests
 			}
 		});
 	}
 
-	private final List<Class<?>> compileRandoopTests(Classpath classpath, File DIR) throws Exception {
+	private List<Class<?>> compileRandoopTests(Classpath classpath, File DIR) throws Exception {
 		final List<File> files = IO.collectFiles(DIR, "java");
 		return Classes.compileJava(classpath, DIR, files.toArray(new File[files.size()]));
 	}
