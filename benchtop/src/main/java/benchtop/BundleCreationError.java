@@ -26,10 +26,6 @@ public class BundleCreationError extends RuntimeException {
     }
   }
 
-  public void cache(Throwable throwable){
-    errorMessages.add(throwable);
-  }
-
   public String getMessage() {
     return createErrorMessage(title, errorMessages);
   }
