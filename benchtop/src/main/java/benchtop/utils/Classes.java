@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,6 +20,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -57,6 +59,14 @@ public class Classes {
     return loadClasses(classpath, destination);
   }
 
+  public static List<Class<?>> compileJava(Classpath classpath, int depth, File destination, File... sourceFiles) throws
+    IOException {
+
+    Benchtop.javac(classpath, destination, sourceFiles);
+
+    return loadClasses(classpath, depth, destination);
+  }
+
   public static List<Class<?>> loadClasses(File classDir) throws IOException {
     return loadClasses(Classpath.empty(), classDir);
   }
@@ -69,6 +79,10 @@ public class Classes {
    * @throws IOException unexpected error has occurred.
    */
   public static List<Class<?>> loadClasses(final Classpath classpath, final File classDir) throws IOException {
+    return loadClasses(classpath, Integer.MAX_VALUE, classDir);
+  }
+
+  public static List<Class<?>> loadClasses(final Classpath classpath, int depth, final File classDir) throws IOException {
 
     final Path start = Paths.get(classDir.toURI());
 
@@ -76,8 +90,10 @@ public class Classes {
 
     final List<Class<?>> classes = new ArrayList<>();
 
+    final EnumSet<FileVisitOption> options = EnumSet.noneOf(FileVisitOption.class);
+
     try {
-      Files.walkFileTree(start, new SimpleFileVisitor<Path>(){
+      Files.walkFileTree(start, options, depth, new SimpleFileVisitor<Path>(){
         @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws
           IOException {
 

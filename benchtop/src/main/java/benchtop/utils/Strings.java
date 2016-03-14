@@ -1,5 +1,8 @@
 package benchtop.utils;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -92,6 +95,31 @@ public class Strings {
     }
 
     return stringBuilder.toString();
+  }
+
+
+  /**
+   * Returns the string representation of a Throwable's StackTrace.
+   *
+   * @param ex the throwable object
+   * @return the string representation of the throwable object.
+   */
+  public static String getStringFromStackTrace(Throwable ex) {
+    if (ex == null) { return ""; }
+
+    final StringWriter stringWriter = new StringWriter();
+    final PrintWriter writer = new PrintWriter(stringWriter);
+    try {
+      ex.printStackTrace(writer);
+      return stringWriter.getBuffer().toString();
+    } finally {
+      try {
+        stringWriter.close();
+        writer.close();
+      } catch (IOException e) {
+        //ignore
+      }
+    }
   }
 
 }

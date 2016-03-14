@@ -1,5 +1,7 @@
 package benchtop;
 
+import benchtop.utils.Strings;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,9 +46,9 @@ public class BundleCreationError extends RuntimeException {
     for (Throwable errorMessage : errorMessages) {
       final String    message = errorMessage.getLocalizedMessage();
       final String    line    = "line " + message.substring(message.lastIndexOf("line") + 5, message.lastIndexOf("line") + 6);
-      messageFormatter.format("%s) Error at %s:%n", index++, line)
-        .format(" %s%n%n", message
-        );
+
+      messageFormatter.format("%s) Error at %s:%n", index++, line).format(" %s%n%n", message);
+      messageFormatter.format("%s", Strings.getStringFromStackTrace(errorMessage));
     }
 
     return messageFormatter.format("%s error[s]", errorMessages.size()).toString();

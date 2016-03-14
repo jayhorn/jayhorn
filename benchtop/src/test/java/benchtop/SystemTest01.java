@@ -1,12 +1,11 @@
 package benchtop;
 
-import java.io.File;
-import java.util.List;
-
-import org.junit.Test;
-
 import benchtop.utils.Classes;
 import benchtop.utils.IO;
+import org.junit.Test;
+
+import java.io.File;
+import java.util.List;
 
 public class SystemTest01 {
 
@@ -49,6 +48,9 @@ public class SystemTest01 {
 				host.bundleClasspath();
 				host.bundleTimeout(60);
 				host.bundleFocus(); // default is regression tests
+				// throws a Soot error: Stack height is negative.
+				// disabling this call until it can be solved.
+				//host.bundleTransformations();
 			}
 		});
 	}

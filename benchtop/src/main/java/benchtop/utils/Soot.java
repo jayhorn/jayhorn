@@ -34,20 +34,19 @@ public class Soot {
    * Transforms Java classes in the target directory given some classpath.
    *
    * @param classpath the needed classpath.
-   * @param target the target directory.
+   * @param output the target directory.
    * @throws IOException unexpected error has occurred.
    */
-  public static void sootifyJavaClasses(Classpath classpath, File target) throws IOException {
+  public static void sootifyJavaClasses(Classpath classpath, File output, File transformed) throws IOException {
 
     Options.v().set_verbose(false);
     Options.v().set_soot_classpath(classpath.toString());
 
     final SootToCfg soot2cfg = new SootToCfg();
-    soot2cfg.runPreservingTransformationOnly(target.getAbsolutePath(), null);
-
+    soot2cfg.runPreservingTransformationOnly(output.getAbsolutePath(), classpath.toString());
 
     for (SootClass sc : Scene.v().getApplicationClasses()) {
-      transforms(sc, target);
+      transforms(sc, output);
     }
   }
 

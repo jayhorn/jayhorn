@@ -5,6 +5,7 @@ import benchtop.utils.IO;
 import benchtop.utils.Soot;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +24,8 @@ public class DefaultEnvironment implements Environment {
   private int  timeout;
   private boolean transformations;
 
+  private File transformed;
+
   private final List<Throwable> cachedErrors;
   private final Classpath       classpath;
   private final List<String>    classList;
@@ -36,6 +39,7 @@ public class DefaultEnvironment implements Environment {
     this.output       = null;
     this.timeout      = 60;
     this.transformations = false;
+    this.transformed  = null;
     this.cachedErrors = new ArrayList<>();
     this.classpath    = Classpath.empty();
     this.classList    = new ArrayList<>();
@@ -56,6 +60,7 @@ public class DefaultEnvironment implements Environment {
   }
 
   private void execute() {
+    final File temp = Files.createTempDir();
     try {
       Preconditions.checkArgument(this.timeout > 0, "Invalid timeout value");
       Preconditions.checkNotNull(this.target, "Target directory is null");
@@ -63,31 +68,42 @@ public class DefaultEnvironment implements Environment {
       Preconditions.checkArgument(!this.classpath.isEmpty(), "Classpath is empty");
       Preconditions.checkArgument(!this.classList.isEmpty(), "Classlist is empty");
 
+
+      classpath.addAll(temp);
+
       // runs randoop
       Benchtop.randoop(
         this.classpath,
-        this.output,
+        temp,
         this.timeout,
         classList.toArray(new String[classList.size()])
       );
 
       // compiles produced test files
-      final List<File> files = IO.collectFiles(this.output, "java");
+      final List<File> files = IO.collectFiles(temp, "java");
       final List<Class<?>> listOfClasses = Classes.compileJava(
-        this.classpath, this.output, files.toArray(new File[files.size()])
+        this.classpath, 1, temp, files.toArray(new File[files.size()])
       );
 
       runJunit(listOfClasses, this.classpath, this.testPrefixes);
 
       if(transformations){
-        // transforms classes under this.target directory
-        Soot.sootifyJavaClasses(this.classpath, this.target);
+        // transforms classes under this.output directory
+        Soot.sootifyJavaClasses(this.classpath, this.output, this.transformed);
 
         runJunit(listOfClasses, this.classpath, this.testPrefixes);
       }
 
     } catch (Exception e){
       addError(e);
+    }
+
+    // deleting temp folder
+    try {
+      IO.deleteDirectory(temp.toPath());
+    } catch (IOException e) {
+      addError(e);
+      temp.deleteOnExit(); // one more time
     }
   }
 
@@ -147,12 +163,21 @@ public class DefaultEnvironment implements Environment {
       Preconditions.checkNotNull(this.target, "Target directory is null");
       Preconditions.checkNotNull(this.output, "Output directory is null");
 
-      final List<File> allFiles = IO.collectFiles(this.target, "class");
+      // replicates a directory tree (including content)
+      // we do this to make Benchtop process repeatable and clean.
+      // by doing we can always come back to the target directory
+      // and collect all non-transformed classes.
+      IO.copyDirectoryTree(this.target.toPath(), this.output.toPath());
+
+      final List<File> relocatedFiles = IO.collectFiles(this.output, "class");
+
+      this.transformed = new File(convertNameSpaceToSubdirectories(this.output.toString(), relocatedFiles));
+
       final Classpath envClasspath = Classpath.environmentClasspath(
-        Classpath.of(allFiles),
+        Classpath.of(relocatedFiles),
         Classpath.of(IO.localCaches()),
-        Classpath.of(this.target),
-        Classpath.of(this.output)
+        Classpath.of(this.output),
+        Classpath.of(this.transformed)
       );
 
       this.classpath.addAll(envClasspath);
@@ -165,7 +190,7 @@ public class DefaultEnvironment implements Environment {
 
       // collect Randoop's classList
       this.classList.addAll(
-        IO.resolveFullyQualifiedNames(this.target.toString(), allFiles)
+        IO.resolveFullyQualifiedNames(this.output.toString(), relocatedFiles)
       );
 
     } catch (IOException e) {
@@ -194,6 +219,23 @@ public class DefaultEnvironment implements Environment {
     }
 
     return this;
+  }
+
+  private static String convertNameSpaceToSubdirectories(String current, List<File> relocatedFiles){
+    String min = null;
+    for(File each : relocatedFiles){
+      final String absPath = each.getAbsolutePath();
+      final String subdirectory = absPath.substring(0, absPath.lastIndexOf("/"));
+      if(min == null){
+        min = subdirectory;
+      } else {
+        if(min.length() > subdirectory.length() && !subdirectory.equals(current)){
+          min = subdirectory;
+        }
+      }
+    }
+
+    return min;
   }
 
 
