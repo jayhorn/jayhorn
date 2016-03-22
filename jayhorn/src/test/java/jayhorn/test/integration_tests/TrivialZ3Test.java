@@ -68,10 +68,10 @@ public class TrivialZ3Test {
 		verifyAssertions(new PrincessProverFactory());
 	}
 
-	@Test
-	public void testWithZ3() {
-		verifyAssertions(new Z3ProverFactory());
-	}
+//	@Test
+//	public void testWithZ3() {
+//		verifyAssertions(new Z3ProverFactory());
+//	}
 
 	
 	protected void verifyAssertions(ProverFactory factory) {

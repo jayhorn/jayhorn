@@ -3,8 +3,10 @@
  */
 package soottocfg.soot.memory_model;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import soot.Unit;
 import soot.Value;
@@ -13,6 +15,9 @@ import soot.jimple.DefinitionStmt;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.StaticFieldRef;
+import soot.jimple.Stmt;
+import soot.toolkits.graph.CompleteUnitGraph;
+import soot.toolkits.graph.UnitGraph;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
@@ -32,6 +37,48 @@ public class NewMemoryModel extends BasicMemoryModel {
 	public NewMemoryModel() {
 	}
 
+	private boolean needsPacking(Unit u, FieldRef f) {
+		UnitGraph graph = new CompleteUnitGraph(SootTranslationHelpers.v().getCurrentMethod().getActiveBody());
+		List<Unit> todo = new LinkedList<Unit>(graph.getSuccsOf(u));
+		Set<Unit> done = new HashSet<Unit>();
+		while (!todo.isEmpty()) {
+			Unit current = todo.remove(0);
+			Stmt s = (Stmt)current;
+			if (s.containsFieldRef() && s.getFieldRef().getField()==f.getField()) {
+				return false;
+			}
+			done.add(current);
+			for (Unit next : graph.getSuccsOf(current)) {
+				if (!todo.contains(next) && !done.contains(next)) {
+					todo.add(next);
+				}
+			}
+		}
+		return true;
+	}
+
+	private boolean needsUnpacking(Unit u, FieldRef f) {
+		UnitGraph graph = new CompleteUnitGraph(SootTranslationHelpers.v().getCurrentMethod().getActiveBody());
+		List<Unit> todo = new LinkedList<Unit>(graph.getPredsOf(u));
+		Set<Unit> done = new HashSet<Unit>();
+		while (!todo.isEmpty()) {
+			Unit current = todo.remove(0);
+			System.err.println("\tLooking at "+current + " from " +u);
+			Stmt s = (Stmt)current;
+			if (s.containsFieldRef() && s.getFieldRef().getField()==f.getField()) {
+				return false;
+			}
+			done.add(current);
+			for (Unit next : graph.getPredsOf(current)) {
+				if (!todo.contains(next) && !done.contains(next)) {
+					todo.add(next);
+				}
+			}
+		}
+		return true;	
+	}
+
+	
 	@Override
 	public void mkHeapWriteStatement(Unit u, FieldRef field, Value rhs) {
 		SourceLocation loc = SootTranslationHelpers.v().getSourceLocation(u);
@@ -56,13 +103,23 @@ public class NewMemoryModel extends BasicMemoryModel {
 				skipUnpack = true;
 				skipPack = true;
 			}
-			// ------------- unpack ---------------
+			
 			if (u instanceof DefinitionStmt && ((DefinitionStmt) u).getRightOp() instanceof AnyNewExpr
 					&& field.getField().getName().contains(SootTranslationHelpers.typeFieldName)) {
 				// TODO: Hacky way of suppressing the unpack after new.
 				skipUnpack = true;
 			}
 
+			if (!needsPacking(u, field)) { //TODO hack remove
+				System.err.println("not packing " + u);
+				skipPack = true;
+			}
+			if (!needsUnpacking(u, field)) {//TODO hack remove
+				System.err.println("not unpacking " + u);
+				skipUnpack = true;
+			}
+			
+			// ------------- unpack ---------------
 			if (!skipUnpack) {
 				List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 				for (int i = 0; i < vars.length; i++) {
