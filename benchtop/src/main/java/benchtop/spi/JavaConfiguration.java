@@ -1,15 +1,11 @@
-package benchtop.configs;
+package benchtop.spi;
 
-import benchtop.AbstractConfiguration;
 import benchtop.Classpath;
 import benchtop.utils.Strings;
+import com.google.common.base.Preconditions;
 
 import java.util.Arrays;
-
 import java.util.List;
-import java.util.Objects;
-
-import com.google.common.base.Preconditions;
 
 /**
  * @author Huascar Sanchez
@@ -42,7 +38,7 @@ public abstract class JavaConfiguration extends AbstractConfiguration {
     return new JavaConfiguration(classpath) {
       @Override protected void execute() {
 
-        final List<String> argsList = Arrays.asList(Objects.requireNonNull(args));
+        final List<String> argsList = Arrays.asList(Preconditions.checkNotNull(args));
 
         mainClass(clazz);
         mainArgs(argsList);
@@ -62,7 +58,7 @@ public abstract class JavaConfiguration extends AbstractConfiguration {
    * @param clazz the main class.
    */
   public void mainClass(String clazz){
-    arguments(Objects.requireNonNull(clazz));
+    arguments(Preconditions.checkNotNull(clazz));
   }
 
   /**
@@ -73,7 +69,7 @@ public abstract class JavaConfiguration extends AbstractConfiguration {
   public void mainArgs(List<String> args){
 
     final Object[] objects = Strings.generateArrayOfObjects(
-      Objects.requireNonNull(args).toArray(new String[args.size()])
+      Preconditions.checkNotNull(args).toArray(new String[args.size()])
     );
 
     arguments(objects);

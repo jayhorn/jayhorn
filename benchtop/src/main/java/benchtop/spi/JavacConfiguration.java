@@ -1,13 +1,12 @@
-package benchtop.configs;
+package benchtop.spi;
 
-import benchtop.AbstractConfiguration;
 import benchtop.Classpath;
 import benchtop.utils.Strings;
+import com.google.common.base.Preconditions;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Objects;
 
 /**
  * @author Huascar Sanchez
@@ -24,8 +23,8 @@ public abstract class JavacConfiguration extends AbstractConfiguration {
    * @param destination the directory containing compiled Java files.
    */
   public JavacConfiguration(Classpath classpath, File destination){
-    this.classpath    = Objects.requireNonNull(classpath);
-    this.destination  = Objects.requireNonNull(destination);
+    this.classpath    = Preconditions.checkNotNull(classpath);
+    this.destination  = Preconditions.checkNotNull(destination);
   }
 
   /**
