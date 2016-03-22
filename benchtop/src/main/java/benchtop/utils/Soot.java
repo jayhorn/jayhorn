@@ -34,19 +34,18 @@ public class Soot {
    * Transforms Java classes in the target directory given some classpath.
    *
    * @param classpath the needed classpath.
-   * @param output the target directory.
    * @throws IOException unexpected error has occurred.
    */
-  public static void sootifyJavaClasses(Classpath classpath, File output, File transformed) throws IOException {
+  public static void sootifyJavaClasses(Classpath classpath, File transformed) throws IOException {
 
     Options.v().set_verbose(false);
     Options.v().set_soot_classpath(classpath.toString());
 
     final SootToCfg soot2cfg = new SootToCfg();
-    soot2cfg.runPreservingTransformationOnly(output.getAbsolutePath(), classpath.toString());
+    soot2cfg.runPreservingTransformationOnly(transformed.getAbsolutePath(), classpath.toString());
 
     for (SootClass sc : Scene.v().getApplicationClasses()) {
-      transforms(sc, output);
+      transforms(sc, transformed);
     }
   }
 
@@ -55,6 +54,10 @@ public class Soot {
 
     final String currentClassname = SourceLocator.v()
       .getFileNameFor(sootClass, Options.output_format_class);
+
+    // skip static nested classes (and inner classes)
+    // TODO(Huascar) revisit this call after fixing SOOT transformations.
+    if(currentClassname.contains("$")) return;
 
     final StringBuilder content = new StringBuilder(1000);
     content.append(transformedTempFolder.getAbsolutePath());

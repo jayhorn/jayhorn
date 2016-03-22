@@ -89,7 +89,7 @@ public class DefaultEnvironment implements Environment {
 
       if(transformations){
         // transforms classes under this.output directory
-        Soot.sootifyJavaClasses(this.classpath, this.output, this.transformed);
+        Soot.sootifyJavaClasses(this.classpath, this.transformed);
 
         runJunit(listOfClasses, this.classpath, this.testPrefixes);
       }
