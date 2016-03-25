@@ -34,6 +34,31 @@ public class Tests {
     return WORKING_DIR;
   }
 
+
+  public static void testSetup(File directory) throws Exception {
+    if(directory.exists()){
+      IO.cleanDirectory(directory);
+    }
+
+    final File javaFile = Tests.createJavaFile(directory.getAbsolutePath() + "/");
+
+    Classes.compileJava(
+      directory, javaFile
+    );
+  }
+
+
+  public static void testTeardown(File directory) throws Exception {
+    if(directory.exists()){
+      IO.cleanDirectory(directory);
+    }
+
+    IO.deleteDirectory(directory.toPath());
+
+  }
+
+
+
   public static void randoopSetup(File directory) throws Exception {
     if(directory.exists()){
       IO.cleanDirectory(directory);
