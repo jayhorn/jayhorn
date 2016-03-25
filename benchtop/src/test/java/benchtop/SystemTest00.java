@@ -43,7 +43,7 @@ public class SystemTest00 {
   }
 
 
-  private static void consumesExecutionBundle(boolean withTransformations) throws Exception {
+  private static void consumesExecutionBundle(final boolean withTransformations) throws Exception {
     Benchtop.consumes(new ExecutionBundle() {
       @Override public void configure(Environment host) {
         host.bundleTarget(compiledTempFolder);
