@@ -14,8 +14,7 @@ dependencies {
 test {
 	include '**/BenchtopTest.java'
     include '**/ClasspathTest.java'
-	exclude '**/RandoopTestGenerationTest.java'
-	exclude '**/SoundnessTest.java'
+	exclude '**/SystemTest00.java'
 	exclude '**/Tests.java'
 	exclude '**/SystemTest01.java'
 }
@@ -26,7 +25,6 @@ task integration_test(type: Test) {
 
 	include '**/BenchtopTest.java'
     include '**/ClasspathTest.java'
-	include '**/RandoopTestGenerationTest.java'
-	include '**/SoundnessTest.java'
+	include '**/SystemTest00.java'
 	include '**/Tests.java'
 }

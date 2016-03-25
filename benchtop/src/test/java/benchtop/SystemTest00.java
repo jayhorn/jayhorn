@@ -26,20 +26,33 @@ public class SystemTest00 {
   }
 
 
-  @Test public void testDynamicallyCreatedClass(){
+  @Test public void testDynamicallyCreatedClass() {
     try {
-      Benchtop.consumes(new ExecutionBundle() {
-        @Override public void configure(Environment host) {
-          host.bundleTarget(compiledTempFolder);
-          host.bundleOutput(DIR);
-          host.bundleClasspath();
-          host.bundleFocus("Regression");
-          host.bundleTransformations();
-        }
-      });
+      consumesExecutionBundle(false);
     } catch (Exception e){
       fail("Failed due to : " + e.getLocalizedMessage());
     }
+  }
+
+  @Test public void testDynamicallyCreatedAndTransformedClass(){
+    try {
+      consumesExecutionBundle(true);
+    } catch (Exception e){
+      fail("Failed due to : " + e.getLocalizedMessage());
+    }
+  }
+
+
+  private static void consumesExecutionBundle(boolean withTransformations) throws Exception {
+    Benchtop.consumes(new ExecutionBundle() {
+      @Override public void configure(Environment host) {
+        host.bundleTarget(compiledTempFolder);
+        host.bundleOutput(DIR);
+        host.bundleClasspath();
+        host.bundleFocus("Regression");
+        if(withTransformations) host.bundleTransformations();
+      }
+    });
   }
 
 
