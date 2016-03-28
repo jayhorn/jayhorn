@@ -3,6 +3,7 @@ package benchtop;
 import benchtop.utils.Classes;
 import benchtop.utils.IO;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
 import java.io.File;
@@ -27,12 +28,16 @@ public class Tests {
   public static final String JAVA_FILE  = "JavaFile";
   public static final String JAVA_FILE2 = "JavaFile2";
   public static final String JAVA_FILE3 = "JavaFile3";
+  public static final String JAVA_FILE4 = "JavaFile4";
+  public static final String JAVA_FILE5 = "JavaFile5";
 
   private static final Map<String, List<String>> NAME_TO_FILE_CONTENT = Maps.newHashMap();
   static {
     NAME_TO_FILE_CONTENT.put(JAVA_FILE, simpleJavaFile());
     NAME_TO_FILE_CONTENT.put(JAVA_FILE2, javaFileWithStaticNestedClass());
     NAME_TO_FILE_CONTENT.put(JAVA_FILE3, javaFileWithStaticNestedClassAndNamespace());
+    NAME_TO_FILE_CONTENT.put(JAVA_FILE4, firstClass());
+    NAME_TO_FILE_CONTENT.put(JAVA_FILE5, secondClass());
   }
 
 
@@ -55,7 +60,11 @@ public class Tests {
 
 
   public static void testAllSetup(File directory) throws Exception {
-    Tests.testSetup(directory, JAVA_FILE, JAVA_FILE2, JAVA_FILE3);
+    Tests.testSetup(
+      directory, JAVA_FILE,
+      JAVA_FILE2, JAVA_FILE3,
+      JAVA_FILE4, JAVA_FILE5
+    );
   }
 
 
@@ -224,6 +233,29 @@ public class Tests {
     lines.add("	}");
     lines.add("}");
     return lines;
+  }
+
+  private static List<String> firstClass(){
+    return ImmutableList.of(
+      "package goo.foo;",
+      "	",
+      "public class JavaFile4 {",
+      "	public String simpleTest01() {",
+      "		return new JavaFile5().toString();",
+      " }",
+      "}"
+    );
+  }
+  private static List<String> secondClass(){
+    return ImmutableList.of(
+      "package goo.foo;",
+      "	",
+      "public class JavaFile5 {",
+      "	@Override public String toString() {",
+      "		return super.toString();",
+      " }",
+      "}"
+    );
   }
 
 }
