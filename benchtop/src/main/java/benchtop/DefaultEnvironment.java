@@ -3,6 +3,7 @@ package benchtop;
 import benchtop.utils.Classes;
 import benchtop.utils.IO;
 import benchtop.utils.Soot;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
@@ -18,6 +19,8 @@ import java.util.List;
 public class DefaultEnvironment implements Environment {
 
   private static final String DEFAULT_PREFIX = "Regression";
+
+  private static final ExecutionLog LOG = new BasicExecutionLog(System.out);
 
   private File target;
   private File output;
@@ -71,6 +74,8 @@ public class DefaultEnvironment implements Environment {
 
       classpath.addAll(temp);
 
+      LOG.info("Generate Randoop tests for:\n" + Joiner.on("\n").join(classList));
+
       // runs randoop
       Benchtop.randoop(
         this.classpath,
@@ -85,17 +90,21 @@ public class DefaultEnvironment implements Environment {
         this.classpath, 1, temp, files.toArray(new File[files.size()])
       );
 
+      LOG.info("Same number of (compiled) Randoop tests: " + (files.size() == listOfClasses.size()));
+
       runJunit(listOfClasses, this.classpath, this.testPrefixes);
 
       if(transformations){
         // transforms classes under this.output directory
-        Soot.sootifyJavaClasses(this.classpath, this.transformed);
+        Soot.sootifyJavaClasses(this.classpath, this.transformed, classList);
 
         runJunit(listOfClasses, this.classpath, this.testPrefixes);
       }
 
     } catch (Exception e){
       addError(e);
+
+      LOG.error("Unexpected error", e);
     }
 
     // deleting temp folder

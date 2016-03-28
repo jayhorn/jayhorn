@@ -16,7 +16,8 @@ test {
     include '**/ClasspathTest.java'
 	exclude '**/SystemTest00.java'
 	exclude '**/Tests.java'
-	exclude '**/SystemTest01.java'
+    exclude '**/SystemTest01.java'
+    exclude '**/SystemTest02.java'
 }
 
 task integration_test(type: Test) {
@@ -26,5 +27,7 @@ task integration_test(type: Test) {
 	include '**/BenchtopTest.java'
     include '**/ClasspathTest.java'
 	include '**/SystemTest00.java'
+    include '**/SystemTest01.java'
+    include '**/SystemTest02.java'
 	include '**/Tests.java'
 }

@@ -82,7 +82,7 @@ public class IO {
     final List<String> namespaces = new ArrayList<>();
     for(File each : collectedFiles){
       final String absolutePath = each.getAbsolutePath();
-      if(absolutePath.contains("$")) continue;
+      //if(absolutePath.contains("$")) continue;
 
       final List<String> locationList = Lists.newArrayList(Splitter.on(File.separator)
         .split(location));

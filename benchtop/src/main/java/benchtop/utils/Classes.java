@@ -20,6 +20,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -65,6 +66,15 @@ public class Classes {
     Benchtop.javac(classpath, destination, sourceFiles);
 
     return loadClasses(classpath, depth, destination);
+  }
+
+
+  public static List<Class<?>> compileJava(Classpath classpath, File destination, Collection<File> sourceFiles) throws
+    IOException {
+
+    Benchtop.javac(classpath, destination, sourceFiles);
+
+    return loadClasses(classpath, destination);
   }
 
   public static List<Class<?>> loadClasses(File classDir) throws IOException {

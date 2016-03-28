@@ -35,7 +35,7 @@ public abstract class JavacConfiguration extends AbstractConfiguration {
    * @param sourceFiles files to compile.
    * @return a new Javac configuration.
    */
-  public static JavacConfiguration newJavacConfiguration(Classpath classpath, File destination, final File... sourceFiles){
+  public static JavacConfiguration newJavacConfiguration(Classpath classpath, File destination, final Collection<File> sourceFiles){
     return new JavacConfiguration(classpath, destination) {
       @Override protected void javac() {
         compile(sourceFiles);
@@ -81,15 +81,13 @@ public abstract class JavacConfiguration extends AbstractConfiguration {
     arguments("-classpath", classpath.toString());
   }
 
-  private void compile(Collection<File> files) {
-    if(files.contains(null)) {
-      throw new IllegalArgumentException("null values in collection");
+  protected void compile(Collection<File> files) {
+    if(files == null || files.contains(null)) {
+      throw new IllegalArgumentException(
+        "Error: either null collection or null values in collection"
+      );
     }
 
     arguments((Object[]) Strings.generateArrayOfStrings(files));
-  }
-
-  protected void compile(File... files) {
-    compile(Arrays.asList(files));
   }
 }

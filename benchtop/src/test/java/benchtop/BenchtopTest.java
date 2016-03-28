@@ -1,8 +1,9 @@
 package benchtop;
 
+import benchtop.spi.AbstractConfiguration;
 import benchtop.spi.JavacConfiguration;
 import benchtop.spi.RandoopConfiguration;
-import benchtop.spi.AbstractConfiguration;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
@@ -124,7 +125,7 @@ public class BenchtopTest {
   @Test public void testJavacCommand() throws Exception {
 
     final Command javac = Benchtop.createCommand(
-      JavacConfiguration.newJavacConfiguration(Classpath.of(new File("boo")), new File("doo"), new File("java"))
+      JavacConfiguration.newJavacConfiguration(Classpath.of(new File("boo")), new File("doo"), ImmutableList.of(new File("java")))
     );
 
     assertNotNull(javac);

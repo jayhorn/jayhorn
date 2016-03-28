@@ -5,8 +5,10 @@ import benchtop.spi.JavaConfiguration;
 import benchtop.spi.JavacConfiguration;
 import benchtop.spi.RandoopConfiguration;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -101,6 +103,18 @@ public class Benchtop {
    * @param sourceFiles the array of source files to compile.
    */
   public static void javac(Classpath classpath, File destination, File... sourceFiles){
+    javac(classpath, destination, ImmutableList.copyOf(sourceFiles));
+  }
+
+
+  /**
+   * Creates a Javac command; ready to be executed.
+   *
+   * @param classpath the required classpath to compile source files.
+   * @param destination the directory where compiled classes will be placed.
+   * @param sourceFiles the array of source files to compile.
+   */
+  public static void javac(Classpath classpath, File destination, Collection<File> sourceFiles){
     run(createCommand(
       JavacConfiguration.newJavacConfiguration(
         classpath,
