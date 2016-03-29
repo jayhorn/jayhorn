@@ -69,7 +69,7 @@ public class SootToCfg {
 	}
 
 	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel) {
-		this(resolveVCalls, excAsAssert, memModel, new ArrayList<>());
+		this(resolveVCalls, excAsAssert, memModel, new ArrayList<String>());
 	}
 
 	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel, List<String> resolvedClassNames) {

@@ -58,7 +58,7 @@ public class SootRunner {
 	private final List<String> resolvedClassNames;
 
 	public SootRunner() {
-		this(new ArrayList<>());
+		this(new ArrayList<String>());
 	}
 
 	public SootRunner(List<String> resolvedClassNames) {
