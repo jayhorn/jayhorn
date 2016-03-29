@@ -42,9 +42,9 @@ public class DefaultEnvironment implements Environment {
     this.target       = null;
     this.output       = null;
     this.timeout      = 60;
-    this.transformations = false;
-    this.transformed    = null;
-    this.nontransformed = null;
+    this.transformations  = false;
+    this.transformed      = null;
+    this.nontransformed   = null;
     this.cachedErrors = new ArrayList<>();
     this.classpath    = Classpath.empty();
     this.classList    = new ArrayList<>();
