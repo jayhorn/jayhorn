@@ -46,7 +46,7 @@ public class SystemTest02 {
 
 
   @Test public void testFailureOfDynamicallyCreatedAndTransformedClasses(){
-    Soot.sanityCheck = true;
+    Soot.withSanityCheck();
     try {
       Tests.consumesExecutionBundle(compiledTempFolder, DIR, true);
       fail("Expected an exception (e.g., NullpointerException) to be thrown.");

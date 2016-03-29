@@ -34,7 +34,7 @@ public class Soot {
   private static final String FILE_SEPARATOR = File.separator;
   private static final String DOT_CLASS      = ".class";
 
-  public static boolean sanityCheck = false;
+  private static boolean sanityCheck = false;
 
   private Soot(){
     throw new Error("");
@@ -79,6 +79,10 @@ public class Soot {
         }
       }
     }
+  }
+
+  public static void withSanityCheck(){
+    sanityCheck = true;
   }
 
   private static void transforms(SootClass sootClass, File transformedTempFolder) throws IOException {
