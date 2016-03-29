@@ -2,10 +2,17 @@ package benchtop.utils;
 
 import benchtop.Classpath;
 import com.google.common.io.Files;
+import soot.PatchingChain;
 import soot.Scene;
 import soot.SootClass;
+import soot.SootMethod;
 import soot.SourceLocator;
+import soot.Unit;
+import soot.jimple.IdentityStmt;
 import soot.jimple.JasminClass;
+import soot.jimple.Jimple;
+import soot.jimple.NullConstant;
+import soot.jimple.Stmt;
 import soot.options.Options;
 import soot.util.JasminOutputStream;
 import soottocfg.soot.SootToCfg;
@@ -26,6 +33,8 @@ public class Soot {
 
   private static final String FILE_SEPARATOR = File.separator;
   private static final String DOT_CLASS      = ".class";
+
+  public static boolean sanityCheck = false;
 
   private Soot(){
     throw new Error("");
@@ -48,7 +57,27 @@ public class Soot {
     soot2cfg.runPreservingTransformationOnly(transformed.getAbsolutePath(), classpath.toString());
 
     for (SootClass sc : Scene.v().getApplicationClasses()) {
+
+      if(sanityCheck) sanityCheck(sc);
+
       transforms(sc, transformed);
+    }
+  }
+
+  private static void sanityCheck(SootClass sc) {
+    for (SootMethod m : sc.getMethods()) {
+      if (m.hasActiveBody() && m.getActiveBody().getUnits().size()>1) {
+
+        PatchingChain<Unit> units = m.getActiveBody().getUnits();
+        for (Unit unit : units) {
+          Stmt s = (Stmt) unit;
+          if (!(s instanceof IdentityStmt)) {
+            System.err.println("CHECKING");
+            m.getActiveBody().getUnits().insertBefore(Jimple.v().newThrowStmt(NullConstant.v()), s);
+            break;
+          }
+        }
+      }
     }
   }
 

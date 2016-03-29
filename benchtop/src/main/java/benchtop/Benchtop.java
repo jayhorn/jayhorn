@@ -32,7 +32,9 @@ public class Benchtop {
    * @return a new and configured command.
    */
   public static Command createCommand(Configuration configuration){
-    return createCommand(configuration, newBasicExecutionLog());
+    final Command command = createCommand(configuration, newBasicExecutionLog());
+    System.out.println(command);
+    return command;
   }
 
   /**

@@ -68,9 +68,8 @@ public class Tests {
   }
 
 
-
   public static void consumesExecutionBundle(final File target, final File output,
-                                              final boolean withTransformations) throws Exception {
+                                             final boolean withTransformations) throws Exception {
 
     Preconditions.checkNotNull(target);
     Preconditions.checkNotNull(output);
@@ -81,6 +80,7 @@ public class Tests {
         host.bundleOutput(output);
         host.bundleClasspath();
         host.bundleFocus("Regression");
+        host.bundleTimeout(2);
         if(withTransformations) host.bundleTransformations();
       }
     });
@@ -252,7 +252,7 @@ public class Tests {
       "	",
       "public class JavaFile5 {",
       "	@Override public String toString() {",
-      "		return super.toString();",
+      "		return \"Hello\";",
       " }",
       "}"
     );

@@ -22,12 +22,13 @@ public class DefaultEnvironment implements Environment {
 
   private static final ExecutionLog LOG = new BasicExecutionLog(System.out);
 
-  private File target;
-  private File output;
+  private File target; // project's class files
+  private File output; // Randoop tests
+  private File nontransformed; // a copy of classes in target
+  private File transformed;   // a transformed copy of classes in target
+
   private int  timeout;
   private boolean transformations;
-
-  private File transformed;
 
   private final List<Throwable> cachedErrors;
   private final Classpath       classpath;
@@ -42,7 +43,8 @@ public class DefaultEnvironment implements Environment {
     this.output       = null;
     this.timeout      = 60;
     this.transformations = false;
-    this.transformed  = null;
+    this.transformed    = null;
+    this.nontransformed = null;
     this.cachedErrors = new ArrayList<>();
     this.classpath    = Classpath.empty();
     this.classList    = new ArrayList<>();
@@ -63,7 +65,7 @@ public class DefaultEnvironment implements Environment {
   }
 
   private void execute() {
-    final File temp = Files.createTempDir();
+    //final File temp = Files.createTempDir();
     try {
       Preconditions.checkArgument(this.timeout > 0, "Invalid timeout value");
       Preconditions.checkNotNull(this.target, "Target directory is null");
@@ -72,33 +74,46 @@ public class DefaultEnvironment implements Environment {
       Preconditions.checkArgument(!this.classList.isEmpty(), "Classlist is empty");
 
 
-      classpath.addAll(temp);
+      // copy of classpath pointing to classes that have not been transformed
+      // by SOOT
+      final Classpath copy = Classpath.union(
+        Classpath.of(this.nontransformed),
+        this.classpath
+      );
+
+
 
       LOG.info("Generate Randoop tests for:\n" + Joiner.on("\n").join(classList));
 
       // runs randoop
       Benchtop.randoop(
-        this.classpath,
-        temp,
+        copy,
+        this.output,
         this.timeout,
         classList.toArray(new String[classList.size()])
       );
 
       // compiles produced test files
-      final List<File> files = IO.collectFiles(temp, "java");
+      final List<File> files = IO.collectFiles(this.output, "java");
       final List<Class<?>> listOfClasses = Classes.compileJava(
-        this.classpath, 1, temp, files.toArray(new File[files.size()])
+        copy, 1, this.output, files.toArray(new File[files.size()])
       );
 
       LOG.info("Same number of (compiled) Randoop tests: " + (files.size() == listOfClasses.size()));
 
-      runJunit(listOfClasses, this.classpath, this.testPrefixes);
+      runJunit(listOfClasses, copy, this.testPrefixes);
+
 
       if(transformations){
         // transforms classes under this.output directory
-        Soot.sootifyJavaClasses(this.classpath, this.transformed, classList);
+        final Classpath secondCopy = Classpath.union(
+          Classpath.of(this.transformed),
+          this.classpath
+        );
 
-        runJunit(listOfClasses, this.classpath, this.testPrefixes);
+        Soot.sootifyJavaClasses(secondCopy, this.transformed, classList);
+
+        runJunit(listOfClasses, secondCopy, this.testPrefixes);
       }
 
     } catch (Exception e){
@@ -109,10 +124,14 @@ public class DefaultEnvironment implements Environment {
 
     // deleting temp folder
     try {
-      IO.deleteDirectory(temp.toPath());
+      IO.deleteDirectory(this.nontransformed.toPath());
+      IO.deleteDirectory(this.transformed.toPath());
+      LOG.info(String.format("Content of files %s and %s has been deleted!", this.nontransformed, this.transformed));
     } catch (IOException e) {
       addError(e);
-      temp.deleteOnExit(); // one more time
+      nontransformed.deleteOnExit(); // one more time
+      transformed.deleteOnExit();    // one more time
+      LOG.info(String.format("Files %s and %s have been permanently deleted!", this.nontransformed, this.transformed));
     }
   }
 
@@ -130,6 +149,24 @@ public class DefaultEnvironment implements Environment {
     if(!this.target.exists()){
       addError(new IOException("target directory does not exist"));
     }
+
+    // replicates a directory tree (including content)
+    // we do this to make Benchtop process repeatable and clean.
+    // by doing we can always come back to the target directory
+    // and collect all non-transformed and transformed classes.
+    try {
+      IO.copyDirectoryTree(this.target.toPath(),
+        (this.nontransformed = Files.createTempDir()).toPath()
+      );
+
+      IO.copyDirectoryTree(this.target.toPath(),
+        (this.transformed = Files.createTempDir()).toPath()
+      );
+
+    } catch (IOException e) {
+      addError(e);
+    }
+
 
     return this;
   }
@@ -172,21 +209,13 @@ public class DefaultEnvironment implements Environment {
       Preconditions.checkNotNull(this.target, "Target directory is null");
       Preconditions.checkNotNull(this.output, "Output directory is null");
 
-      // replicates a directory tree (including content)
-      // we do this to make Benchtop process repeatable and clean.
-      // by doing we can always come back to the target directory
-      // and collect all non-transformed classes.
-      IO.copyDirectoryTree(this.target.toPath(), this.output.toPath());
 
-      final List<File> relocatedFiles = IO.collectFiles(this.output, "class");
-
-      this.transformed = new File(convertNameSpaceToSubdirectories(this.output.toString(), relocatedFiles));
+      final List<File> relocatedFiles = IO.collectFiles(this.nontransformed, "class");
 
       final Classpath envClasspath = Classpath.environmentClasspath(
         Classpath.of(relocatedFiles),
         Classpath.of(IO.localCaches()),
-        Classpath.of(this.output),
-        Classpath.of(this.transformed)
+        Classpath.of(this.output)
       );
 
       this.classpath.addAll(envClasspath);
@@ -199,7 +228,7 @@ public class DefaultEnvironment implements Environment {
 
       // collect Randoop's classList
       this.classList.addAll(
-        IO.resolveFullyQualifiedNames(this.output.toString(), relocatedFiles)
+        IO.resolveFullyQualifiedNames(this.nontransformed.toString(), relocatedFiles)
       );
 
     } catch (IOException e) {
@@ -228,23 +257,6 @@ public class DefaultEnvironment implements Environment {
     }
 
     return this;
-  }
-
-  private static String convertNameSpaceToSubdirectories(String current, List<File> relocatedFiles){
-    String min = null;
-    for(File each : relocatedFiles){
-      final String absPath = each.getAbsolutePath();
-      final String subdirectory = absPath.substring(0, absPath.lastIndexOf("/"));
-      if(min == null){
-        min = subdirectory;
-      } else {
-        if(min.length() > subdirectory.length() && !subdirectory.equals(current)){
-          min = subdirectory;
-        }
-      }
-    }
-
-    return min;
   }
 
 
