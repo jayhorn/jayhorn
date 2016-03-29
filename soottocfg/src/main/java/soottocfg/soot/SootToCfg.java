@@ -65,7 +65,11 @@ public class SootToCfg {
 	}
 
 	public SootToCfg(boolean resolveVCalls, boolean excAsAssert) {
-		this(resolveVCalls, excAsAssert, MemModel.PackUnpack, new ArrayList<>());
+		this(resolveVCalls, excAsAssert, MemModel.PackUnpack);
+	}
+
+	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel) {
+		this(resolveVCalls, excAsAssert, memModel, new ArrayList<>());
 	}
 
 	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel, List<String> resolvedClassNames) {
