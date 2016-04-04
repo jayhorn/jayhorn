@@ -30,6 +30,7 @@ public class Tests {
   public static final String JAVA_FILE3 = "JavaFile3";
   public static final String JAVA_FILE4 = "JavaFile4";
   public static final String JAVA_FILE5 = "JavaFile5";
+  public static final String JAVA_FILE6 = "JavaFile6";
 
   private static final Map<String, List<String>> NAME_TO_FILE_CONTENT = Maps.newHashMap();
   static {
@@ -38,6 +39,7 @@ public class Tests {
     NAME_TO_FILE_CONTENT.put(JAVA_FILE3, javaFileWithStaticNestedClassAndNamespace());
     NAME_TO_FILE_CONTENT.put(JAVA_FILE4, firstClass());
     NAME_TO_FILE_CONTENT.put(JAVA_FILE5, secondClass());
+    NAME_TO_FILE_CONTENT.put(JAVA_FILE6, classWithThrowableCode());
   }
 
 
@@ -68,13 +70,13 @@ public class Tests {
   }
 
 
-  public static void consumesExecutionBundle(final File target, final File output,
-                                             final boolean withTransformations) throws Exception {
+  public static Result consumesExecutionBundle(final File target, final File output,
+                                               final boolean withTransformations) throws Exception {
 
     Preconditions.checkNotNull(target);
     Preconditions.checkNotNull(output);
 
-    Benchtop.consumes(new ExecutionBundle() {
+    return Benchtop.consumes(new ExecutionBundle() {
       @Override public void configure(Environment host) {
         host.bundleTarget(target);
         host.bundleOutput(output);
@@ -246,6 +248,7 @@ public class Tests {
       "}"
     );
   }
+
   private static List<String> secondClass(){
     return ImmutableList.of(
       "package goo.foo;",
@@ -253,6 +256,17 @@ public class Tests {
       "public class JavaFile5 {",
       "	@Override public String toString() {",
       "		return \"Hello\";",
+      " }",
+      "}"
+    );
+  }
+
+  private static List<String> classWithThrowableCode(){
+    return ImmutableList.of(
+      "package goo.foo;", " ",
+      "public class JavaFile6 {",
+      " public void hello(Object o){",
+      "   o.hashCode();",
       " }",
       "}"
     );

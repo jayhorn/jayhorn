@@ -5,6 +5,7 @@ import benchtop.utils.IO;
 import benchtop.utils.Soot;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 
@@ -35,6 +36,8 @@ public class DefaultEnvironment implements Environment {
   private final List<String>    classList;
   private final List<String>    testPrefixes;
 
+  private final Result result;
+
   /**
    * Constructs a default bundle host.
    */
@@ -49,6 +52,8 @@ public class DefaultEnvironment implements Environment {
     this.classpath    = Classpath.empty();
     this.classList    = new ArrayList<>();
     this.testPrefixes = new ArrayList<>();
+
+    this.result = new Result();
   }
 
   @Override public void addError(Throwable cause) {
@@ -135,13 +140,30 @@ public class DefaultEnvironment implements Environment {
     }
   }
 
-  private static void runJunit(List<Class<?>> listOfClasses, Classpath classpath, List<String> testPrefixes){
+  private void runJunit(List<Class<?>> listOfClasses, Classpath classpath, List<String> testPrefixes){
     //noinspection Convert2streamapi
     for(Class<?> eachClass : listOfClasses){ // run the test files
       if(matches(eachClass.getName(), testPrefixes)){
-        Benchtop.junit(classpath, eachClass.getCanonicalName());
+        try {
+          final List<String> junitOut = Benchtop.junit(classpath, eachClass.getCanonicalName());
+          result.add(eachClass.getName(), junitOut.get(1));
+        } catch (Exception e){
+          result.add(eachClass.getName(), extractLineTrace(e.getLocalizedMessage()));
+        }
       }
     }
+  }
+
+  private static String extractLineTrace(String output){
+    final int lastIndex = output.lastIndexOf("JUnit version 4.12");
+    final String truncated = output.substring(lastIndex, output.length());
+
+    final List<String> lines = Splitter.on("\n").splitToList(truncated);
+    if(!lines.isEmpty()){
+      return lines.get(1);
+    }
+
+    return "";
   }
 
   @Override public Environment bundleTarget(File directory) {
@@ -259,7 +281,11 @@ public class DefaultEnvironment implements Environment {
     return this;
   }
 
-
+  /**
+   * Throws any cached creation errors.
+   *
+   * @throws BundleCreationError cached errors.
+   */
   public void throwCachedErrors() throws BundleCreationError {
     if(!cachedErrors.isEmpty()){
       throw new BundleCreationError("Bundle creation error", cachedErrors);
@@ -274,5 +300,12 @@ public class DefaultEnvironment implements Environment {
     }
 
     return false;
+  }
+
+  /**
+   * @return the non-empty output monitor.
+   */
+  public Result getMonitor() {
+    return result;
   }
 }

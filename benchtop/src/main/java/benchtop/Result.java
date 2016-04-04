@@ -99,7 +99,7 @@ final class Result implements Iterable <String> {
    * @param monitor the current result monitor
    * @throws RuntimeException if outputs are inconsistent.
    */
-  public static void throwAnySoundnessErrors(Result monitor) throws RuntimeException {
+  public static void passOrThrow(Result monitor) throws RuntimeException {
     final List<Throwable> soundnessErrors = Lists.newArrayList();
 
     for(String className : monitor){
