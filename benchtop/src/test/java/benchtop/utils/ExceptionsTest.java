@@ -18,9 +18,9 @@ public class ExceptionsTest {
 
   @Test public void testErrorMessageConstructions() throws Exception {
     final List<Throwable> throwables = ImmutableList.of(
-      new RuntimeException("One"),
-      new RuntimeException("Two"),
-      new RuntimeException("Three")
+      new Throwable("One"),
+      new Throwable("Two"),
+      new Throwable("Three")
     );
 
     final String message = Exceptions.createErrorMessage("Test", throwables);
