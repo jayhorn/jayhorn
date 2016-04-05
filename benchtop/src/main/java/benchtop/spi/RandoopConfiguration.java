@@ -186,7 +186,7 @@ public abstract class RandoopConfiguration extends AbstractConfiguration {
 
   private static void delete(File directory){
     try {
-      IO.deleteDirectoryContent(directory);
+      IO.cleanDirectory(directory);
     } catch (IOException e) {
       System.out.println("unable to delete " + directory.toString());
       e.printStackTrace(System.err);

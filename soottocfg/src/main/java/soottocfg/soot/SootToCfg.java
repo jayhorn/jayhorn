@@ -23,6 +23,7 @@ import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.soot.visitors.SootStmtSwitch;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,6 +45,7 @@ public class SootToCfg {
 		BurstallBornat, PackUnpack
 	}
 
+	private final List<String> resolvedClassNames;
 	private boolean debug = false;
 
 	private final boolean resolveVirtualCalls;
@@ -58,11 +60,20 @@ public class SootToCfg {
 		this(true, false);
 	}
 
+	public SootToCfg(List<String> resolvedClassNames) {
+		this(true, false, MemModel.PackUnpack, resolvedClassNames);
+	}
+
 	public SootToCfg(boolean resolveVCalls, boolean excAsAssert) {
 		this(resolveVCalls, excAsAssert, MemModel.PackUnpack);
 	}
 
 	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel) {
+		this(resolveVCalls, excAsAssert, memModel, new ArrayList<String>());
+	}
+
+	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel, List<String> resolvedClassNames) {
+		this.resolvedClassNames = resolvedClassNames;
 		// first reset everything:
 		soot.G.reset();
 		SootTranslationHelpers.v().reset();
@@ -103,7 +114,7 @@ public class SootToCfg {
 	 * @param classPath
 	 */
 	public void runPreservingTransformationOnly(String input, String classPath) {
-		SootRunner runner = new SootRunner();
+		SootRunner runner = new SootRunner(this.resolvedClassNames);
 		runner.run(input, classPath);
 		performBehaviorPreservingTransformations();
 		SootTranslationHelpers.v().reset();
