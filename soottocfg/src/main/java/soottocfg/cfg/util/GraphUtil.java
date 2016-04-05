@@ -113,6 +113,40 @@ public class GraphUtil {
 		return subgraph;
 	}
 	
+	/**
+	 * Generates a subgraph containing all paths in 'orig' from the source to 'from'.
+	 * This assumes that 'orig' has one unique source and one unique 'sink'. The resulting
+	 * subgraph is a shallow copy of 'orig'. That is, it uses the same objects as vertices 
+	 * as 'orig'
+	 * @param orig The original graph (with unique source and sink).
+	 * @param from The vertex for which we want to have a subgraph.
+	 * @return A subgraph containing all paths in 'orig' from source to'from'.
+	 */
+	public static <V,E> DirectedGraph<V, E> computeSubgraphToVertex(DirectedGraph<V, E> orig, V from) {	
+		DirectedGraph<V, E> subgraph = new DefaultDirectedGraph<V, E>(orig.getEdgeFactory());
+		subgraph.addVertex(from);
+		/*
+		 * Add all vertices to the subgraph that can reach 'from'.
+		 */
+		Queue<V> todo = new LinkedList<V>();
+		todo.add(from);
+		while (!todo.isEmpty()) {
+			V current = todo.poll();			
+			for (V pre : Graphs.predecessorListOf(orig, current)) {
+				if (!subgraph.containsVertex(pre) && !todo.contains(pre)) {
+					subgraph.addVertex(pre);
+					todo.add(pre);
+				}
+				if (!subgraph.containsEdge(pre, current)) {
+					subgraph.addEdge(pre, current);					
+				}
+			}
+		}
+
+		return subgraph;
+	}
+	
+	
 	/** TODO: inefficient!
 	 * Returns the set of all vertices between from and to, including from and to.
 	 * Doesn't check if 'to' is reachable from 'from'

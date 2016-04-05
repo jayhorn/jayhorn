@@ -108,7 +108,7 @@ public class SootRunner {
 			sootOpt.set_soot_classpath(cp);
 
 			// finally, run soot
-			runSootAndAnalysis(enumClasses(new File(jarFile)));
+			loadClassesIntoScene(enumClasses(new File(jarFile)));
 
 		} catch (Exception e) {
 			throw e;
@@ -129,7 +129,7 @@ public class SootRunner {
 			sootOpt.set_process_dir(procdir);
 
 			// finally, run soot
-			runSootAndAnalysis(enumClasses(new File(apkFile)));
+			loadClassesIntoScene(enumClasses(new File(apkFile)));
 
 		} catch (Exception e) {
 			throw e;
@@ -167,7 +167,7 @@ public class SootRunner {
 			sootOpt.set_process_dir(processDirs);
 
 			// finally, run soot
-			runSootAndAnalysis(new LinkedList<String>());
+			loadClassesIntoScene(new LinkedList<String>());
 
 		} catch (Exception e) {
 			throw e;
@@ -182,12 +182,13 @@ public class SootRunner {
 	 *            additional classes that need to be loaded (e.g., when
 	 *            analyzing jars)
 	 */
-	protected void runSootAndAnalysis(List<String> classes) {
+	protected void loadClassesIntoScene(List<String> classes) {
 		sootOpt.set_keep_line_number(true);
 		sootOpt.set_prepend_classpath(true); // -pp
 
 		sootOpt.set_output_format(soot.options.Options.output_format_none);
-
+		//prevent strange assertion optimization.
+		sootOpt.setPhaseOption("jop.cpf", "enabled:false");
 		sootOpt.set_allow_phantom_refs(true);
 
 		for (String s : classes) {
@@ -242,7 +243,10 @@ public class SootRunner {
 	/**
 	 * TODO
 	 */
-	private void createAssertionClass() {
+	public static void createAssertionClass() {
+		if (Scene.v().containsClass(assertionClassName)) {
+			return; // Don't create it twice.
+		}
 		SootClass sClass = new SootClass(assertionClassName, Modifier.PUBLIC);
 		sClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
 

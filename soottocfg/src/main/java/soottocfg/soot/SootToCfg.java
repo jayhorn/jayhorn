@@ -82,7 +82,7 @@ public class SootToCfg {
 	 *            https://github.com/Sable/android-platforms
 	 */
 	public void run(String input, String classPath) {
-		// run soot to load all classes.
+		// run soot to load all classes.		
 		SootRunner runner = new SootRunner();
 		runner.run(input, classPath);
 
@@ -90,6 +90,21 @@ public class SootToCfg {
 		performAbstractionTransformations();
 
 		constructCfg();
+		// reset all the soot stuff.
+		SootTranslationHelpers.v().reset();
+	}
+
+	/**
+	 * Run the transformation on an existing Scene and only generate the CFG
+	 * for a single class sc.
+	 * 
+	 * @param sc
+	 */
+	public void runForSingleClass(SootClass sc) {
+		SootRunner.createAssertionClass();
+		performBehaviorPreservingTransformations();
+		performAbstractionTransformations();
+		constructCfg(sc);
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
 	}
@@ -117,6 +132,37 @@ public class SootToCfg {
 		return locations;
 	}
 
+	private void constructCfg(SootClass sc) {
+		SootTranslationHelpers.v().setCurrentClass(sc);
+		for (SootMethod sm : sc.getMethods()) {
+			if (sm.isConcrete()) {
+				SootTranslationHelpers.v().setCurrentMethod(sm);
+				try {
+					Body body = sm.retrieveActiveBody();
+					System.out.println(body);
+					MethodInfo mi = new MethodInfo(body.getMethod(),
+							SootTranslationHelpers.v().getCurrentSourceFileName());
+					SootStmtSwitch ss = new SootStmtSwitch(body, mi);
+					mi.setSource(ss.getEntryBlock());
+
+					mi.finalizeAndAddToProgram();
+					Method m = mi.getMethod();
+					System.err.println(m);
+					if (debug) {
+						// System.out.println("adding method: " +
+						// m.getMethodName());
+						getProgram().addEntryPoint(m);
+					}
+				} catch (RuntimeException e) {
+					System.err.println("Soot failed to parse " + sm.getSignature());
+					e.printStackTrace();
+					return;
+				}
+			}
+		}
+
+	}
+
 	private void constructCfg() {
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
@@ -124,33 +170,7 @@ public class SootToCfg {
 				continue; // no need to process this guy.
 			}
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
-				SootTranslationHelpers.v().setCurrentClass(sc);
-				for (SootMethod sm : sc.getMethods()) {
-					if (sm.isConcrete()) {
-						SootTranslationHelpers.v().setCurrentMethod(sm);
-						try {
-							Body body = sm.retrieveActiveBody();
-							System.out.println(body);
-							MethodInfo mi = new MethodInfo(body.getMethod(),
-									SootTranslationHelpers.v().getCurrentSourceFileName());
-							SootStmtSwitch ss = new SootStmtSwitch(body, mi);
-							mi.setSource(ss.getEntryBlock());
-
-							mi.finalizeAndAddToProgram();
-							Method m = mi.getMethod();
-							System.err.println(m);
-							if (debug) {
-								// System.out.println("adding method: " +
-								// m.getMethodName());
-								getProgram().addEntryPoint(m);
-							}
-						} catch (RuntimeException e) {
-							System.err.println("Soot failed to parse " + sm.getSignature());
-							e.printStackTrace();
-							return;
-						}
-					}
-				}
+				constructCfg(sc);
 			}
 		}
 		// now set the entry points.
@@ -218,12 +238,11 @@ public class SootToCfg {
 					RefType.v(Scene.v().getSootClass("java.lang.Class"))));
 		}
 
-		
 		for (SootClass sc : classes) {
 			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
 				continue; // no need to process this guy.
 			}
-						
+
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
 
 				initializeStaticFields(sc);
@@ -247,7 +266,7 @@ public class SootToCfg {
 									locations.add(SootTranslationHelpers.v().getSourceLocation(u));
 								}
 							}
-
+							
 							// first reconstruct the assertions.
 							AssertionReconstruction ar = new AssertionReconstruction();
 							ar.transform(body);
@@ -268,7 +287,8 @@ public class SootToCfg {
 							}
 						} catch (RuntimeException e) {
 							e.printStackTrace();
-							throw new RuntimeException("Soot failed to parse " + sm.getSignature() + " " + e.toString());							
+							throw new RuntimeException(
+									"Soot failed to parse " + sm.getSignature() + " " + e.toString());
 						}
 					}
 				}
@@ -309,9 +329,9 @@ public class SootToCfg {
 			}
 		}
 		if (staticFields.isEmpty()) {
-			return; //nothing to do.
+			return; // nothing to do.
 		}
-		
+
 		SootMethod staticInit = null;
 		for (SootMethod m : containingClass.getMethods()) {
 			if (m.isStaticInitializer()) {
@@ -319,10 +339,11 @@ public class SootToCfg {
 				break;
 			}
 		}
-		
-		if (staticInit==null) {
-			//TODO: super hacky!
-			staticInit = new SootMethod(SootMethod.staticInitializerName, new LinkedList<soot.Type>(), VoidType.v(), Modifier.STATIC|Modifier.PUBLIC);
+
+		if (staticInit == null) {
+			// TODO: super hacky!
+			staticInit = new SootMethod(SootMethod.staticInitializerName, new LinkedList<soot.Type>(), VoidType.v(),
+					Modifier.STATIC | Modifier.PUBLIC);
 			JimpleBody body = Jimple.v().newBody(staticInit);
 			body.getUnits().add(Jimple.v().newReturnVoidStmt());
 			staticInit.setActiveBody(body);
@@ -331,7 +352,7 @@ public class SootToCfg {
 		staticInitializers.add(staticInit);
 		for (ValueBox vb : staticInit.retrieveActiveBody().getDefBoxes()) {
 			if (vb.getValue() instanceof StaticFieldRef) {
-				staticFields.remove( ((StaticFieldRef)vb.getValue()).getField());
+				staticFields.remove(((StaticFieldRef) vb.getValue()).getField());
 			}
 		}
 
@@ -340,7 +361,7 @@ public class SootToCfg {
 					getDefaultValue(f.getType()));
 			staticInit.getActiveBody().getUnits().addFirst(init);
 		}
-	
+
 	}
 
 	private void addDefaultInitializers(SootMethod constructor, SootClass containingClass) {
@@ -369,7 +390,7 @@ public class SootToCfg {
 				if (u instanceof IdentityStmt) {
 					insertPos = u;
 				} else {
-					break; //insert after the last IdentityStmt
+					break; // insert after the last IdentityStmt
 				}
 			}
 			for (SootField f : instanceFields) {

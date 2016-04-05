@@ -3,8 +3,6 @@
  */
 package dynamic_tests;
 
-import java.io.IOException;
-
 /**
  * @author schaef
  *
@@ -64,20 +62,20 @@ public class DynamicTest02 {
         }
         log("Checking for listener at " + server + ":" + port,
             42);
-        java.net.Socket s = null;
-        try {
-            s = new java.net.Socket(server, port);
-        } catch (IOException e) {
-            return false;
-        } finally {
-          if (s != null) {
-            try {
-              s.close();
-            } catch (IOException ioe) {
-              // Intentionally left blank
-            }
-          }
-        }
+//        Socket s = null;
+//        try {
+//            s = new Socket(server, port);
+//        } catch (IOException e) {
+//            return false;
+//        } finally {
+//          if (s != null) {
+//            try {
+//              s.close();
+//            } catch (IOException ioe) {
+//              // Intentionally left blank
+//            }
+//          }
+//        }
         return true;
     }
 
