@@ -1,7 +1,10 @@
 package benchtop.utils;
 
+import com.google.common.base.Splitter;
+
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 
 /**
@@ -94,4 +97,22 @@ public class Strings {
     return stringBuilder.toString();
   }
 
+
+  /**
+   * Returns JUnit's produced line trace.
+   *
+   * @param output complete JUnit's output.
+   * @return the extracted line trace.
+   */
+  public static String lineTrace(String output){
+    final int lastIndex = output.lastIndexOf("JUnit version 4.12");
+    final String truncated = output.substring(lastIndex, output.length());
+
+    final List<String> lines = Splitter.on("\n").splitToList(truncated);
+    if(!lines.isEmpty()){
+      return lines.get(1);
+    }
+
+    return "";
+  }
 }

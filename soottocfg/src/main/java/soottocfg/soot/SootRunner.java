@@ -19,6 +19,18 @@
 
 package soottocfg.soot;
 
+import soot.BooleanType;
+import soot.Local;
+import soot.Modifier;
+import soot.Scene;
+import soot.SootClass;
+import soot.SootField;
+import soot.SootMethod;
+import soot.Type;
+import soot.VoidType;
+import soot.jimple.Jimple;
+import soot.jimple.JimpleBody;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -34,18 +46,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import soot.BooleanType;
-import soot.Local;
-import soot.Modifier;
-import soot.Scene;
-import soot.SootClass;
-import soot.SootField;
-import soot.SootMethod;
-import soot.Type;
-import soot.VoidType;
-import soot.jimple.Jimple;
-import soot.jimple.JimpleBody;
-
 /**
  * The Soot Runner
  * 
@@ -55,10 +55,17 @@ import soot.jimple.JimpleBody;
 public class SootRunner {
 
 	private final soot.options.Options sootOpt;
+	private final List<String> resolvedClassNames;
 
 	public SootRunner() {
-		sootOpt = soot.options.Options.v();
+		this(new ArrayList<String>());
 	}
+
+	public SootRunner(List<String> resolvedClassNames) {
+		this.resolvedClassNames = resolvedClassNames;
+		this.sootOpt						= soot.options.Options.v();
+	}
+
 
 	public void run(String input, String classPath) {
 		if (null == input || input.isEmpty()) {
@@ -86,9 +93,6 @@ public class SootRunner {
 	 *            JAR file
 	 * @param classPath
 	 *            Optional classpath (may be null)
-	 * @param cga
-	 *            Which {@link CallgraphAlgorithm} should be used? May not be
-	 *            null.
 	 * 
 	 */
 	private void runWithJar(String jarFile, String classPath) {
@@ -143,9 +147,6 @@ public class SootRunner {
 	 *            Path * @param classPath Optional classpath (may be null)
 	 * @param classPath
 	 *            Optional classpath (may be null)
-	 * @param cga
-	 *            Which {@link CallgraphAlgorithm} should be used? May not be
-	 *            null.
 	 */
 	private void runWithPath(String path, String classPath) {
 		try {
@@ -213,7 +214,9 @@ public class SootRunner {
 			// Now load the soot classes.
 
 			Scene.v().loadBasicClasses();
-			Scene.v().loadNecessaryClasses();
+			if(resolvedClassNames.isEmpty()) { Scene.v().loadNecessaryClasses(); } else {
+				loadNecessaryClasses();
+			}
 
 			/*
 			 * TODO: apply some preprocessing stuff like:
@@ -233,6 +236,13 @@ public class SootRunner {
 			throw new RuntimeException(e.toString());
 		} catch (RuntimeException e) {
 			throw e;
+		}
+	}
+
+	private void loadNecessaryClasses(){
+		for(String eachClassname : resolvedClassNames){
+			final SootClass theClass = Scene.v().loadClassAndSupport(eachClassname);
+			theClass.setApplicationClass();
 		}
 	}
 

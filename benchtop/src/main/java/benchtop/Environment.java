@@ -68,4 +68,12 @@ public interface Environment {
    * @return self
    */
   Environment bundleTimeout(int timeoutInSecs);
+
+  /**
+   * Soot transformations are applied to project's classes. Then Randoop tests are
+   * executed against the transformed classes.
+   *
+   * @return self
+   */
+  Environment bundleTransformations();
 }

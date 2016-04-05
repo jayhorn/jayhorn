@@ -5,8 +5,10 @@ import benchtop.spi.JavaConfiguration;
 import benchtop.spi.JavacConfiguration;
 import benchtop.spi.RandoopConfiguration;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -30,7 +32,9 @@ public class Benchtop {
    * @return a new and configured command.
    */
   public static Command createCommand(Configuration configuration){
-    return createCommand(configuration, newBasicExecutionLog());
+    final Command command = createCommand(configuration, newBasicExecutionLog());
+    System.out.println(command);
+    return command;
   }
 
   /**
@@ -54,28 +58,41 @@ public class Benchtop {
    * how bundles are constructed.
    *
    * @param bundles an array of bundle objects.
+   * @return Benchtop's output monitor.
    * @throws BundleCreationError unexpected errors have occurred.
    */
-  public static void consumes(ExecutionBundle... bundles) throws BundleCreationError {
+  public static Result consumes(ExecutionBundle... bundles) throws BundleCreationError {
     final DefaultEnvironment host = new DefaultEnvironment();
+    Result monitor = null;
     for(ExecutionBundle each : bundles){
       host.install(each);
+
+      if(monitor == null){ monitor = host.getMonitor(); } else {
+        monitor = monitor.combines(host.getMonitor());
+      }
+
     }
 
     host.throwCachedErrors();
+
+    return monitor;
   }
 
   /**
    * Executes a configured command.
+   *
    * @param command the command to run
+   * @return the command's output on terminal
    */
-  public static void run(Command command){
+  public static List<String> run(Command command){
     final List<String> output = Preconditions.checkNotNull(command).execute();
 
     //noinspection Convert2streamapi
     for(String each : output){ // unchecked warning
       System.out.println(each);
     }
+
+    return output;
   }
 
 
@@ -88,9 +105,10 @@ public class Benchtop {
    *
    * @param destination the directory where compiled classes will be placed.
    * @param sourceFiles the array of source files to compile.
+   * @return the command's output on terminal
    */
-  public static void javac(File destination, File... sourceFiles){
-    javac(Classpath.empty() /*classpath is resolved automatically*/, destination, sourceFiles);
+  public static List<String> javac(File destination, File... sourceFiles){
+    return javac(Classpath.environmentClasspath() /*classpath is resolved automatically*/, destination, sourceFiles);
   }
 
   /**
@@ -99,11 +117,25 @@ public class Benchtop {
    * @param classpath the required classpath to compile source files.
    * @param destination the directory where compiled classes will be placed.
    * @param sourceFiles the array of source files to compile.
+   * @return the command's output on terminal
    */
-  public static void javac(Classpath classpath, File destination, File... sourceFiles){
-    run(createCommand(
+  public static List<String> javac(Classpath classpath, File destination, File... sourceFiles){
+    return javac(classpath, destination, ImmutableList.copyOf(sourceFiles));
+  }
+
+
+  /**
+   * Creates a Javac command; ready to be executed.
+   *
+   * @param classpath the required classpath to compile source files.
+   * @param destination the directory where compiled classes will be placed.
+   * @param sourceFiles the array of source files to compile.
+   * @return the command's output on terminal
+   */
+  public static List<String> javac(Classpath classpath, File destination, Collection<File> sourceFiles){
+    return run(createCommand(
       JavacConfiguration.newJavacConfiguration(
-        Classpath.union(Classpath.environmentClasspath(), classpath),
+        classpath,
         destination,
         sourceFiles
       )
@@ -115,9 +147,10 @@ public class Benchtop {
    *
    * @param classpath the required classpath to run JUnit tests
    * @param args the array of parameters needed by JUnit to run. e.g., test class.
+   * @return the command's output on terminal.
    */
-  public static void junit(Classpath classpath, String... args){
-    java(classpath, "org.junit.runner.JUnitCore", args);
+  public static List<String> junit(Classpath classpath, String... args){
+    return java(classpath, "org.junit.runner.JUnitCore", args);
   }
 
   /**
@@ -126,9 +159,10 @@ public class Benchtop {
    * @param classpath the required classpath to run Java program
    * @param mainClass the main class or Java program
    * @param args the args taken by the main class.
+   * @return the command's output on terminal
    */
-  public static void java(Classpath classpath, String mainClass, String... args){
-    run(createCommand(
+  public static List<String> java(Classpath classpath, String mainClass, String... args){
+    return run(createCommand(
       JavaConfiguration.newJavaConfiguration(classpath, mainClass, args)
     ));
   }
@@ -138,8 +172,8 @@ public class Benchtop {
    *
    * @param classList list of classes needed by Randoop to generate tests.
    */
-  public static void randoop(String... classList){
-    randoop(Classpath.environmentClasspath(), classList);
+  public static List<String> randoop(String... classList){
+    return randoop(Classpath.environmentClasspath(), classList);
   }
 
   /**
@@ -147,9 +181,10 @@ public class Benchtop {
    *
    * @param classpath required classpath by Randoop
    * @param classList list of classes needed by Randoop to generate tests.
+   * @return the command's output on terminal
    */
-  public static void randoop(Classpath classpath, String... classList){
-    randoop(classpath, RandoopConfiguration.randoopOutput(), classList);
+  public static List<String> randoop(Classpath classpath, String... classList){
+    return randoop(classpath, RandoopConfiguration.randoopOutput(), classList);
   }
 
   /**
@@ -158,9 +193,10 @@ public class Benchtop {
    * @param classpath required classpath by Randoop
    * @param destination the location where these Randoop tests will be placed
    * @param classList list of classes needed by Randoop to generate tests.
+   * @return the command's output on terminal
    */
-  public static void randoop(Classpath classpath, File destination, String... classList){
-    randoop(classpath, destination, 60, classList);
+  public static List<String> randoop(Classpath classpath, File destination, String... classList){
+    return randoop(classpath, destination, 60, classList);
   }
 
   /**
@@ -170,10 +206,11 @@ public class Benchtop {
    * @param destination the location where these Randoop tests will be placed
    * @param timeLimit Randoop's time limit
    * @param classList list of classes needed by Randoop to generate tests.
+   * @return the command's output on terminal
    */
-  public static void randoop(Classpath classpath, File destination,
+  public static List<String> randoop(Classpath classpath, File destination,
                              int timeLimit, String... classList){
-    run(createCommand(
+    return run(createCommand(
       RandoopConfiguration.defaultConfiguration(classpath, destination, timeLimit, classList)
     ));
   }
