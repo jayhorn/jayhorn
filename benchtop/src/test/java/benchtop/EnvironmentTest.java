@@ -22,36 +22,7 @@ public class EnvironmentTest {
 
     final DefaultEnvironment environment = new DefaultEnvironment() {
       @Override void execute() {
-        try {
-          Field target = this.getClass().getDeclaredField("target");
-          final File aa = (File) target.get(this);
-
-          assertEquals(aa, a);
-
-          Field output = this.getClass().getDeclaredField("output");
-          final File bb = (File) output.get(this);
-
-          assertEquals(bb, b);
-
-          Field prefixes = this.getClass().getDeclaredField("testPrefixes");
-          final List listPrefixes = (List) prefixes.get(this);
-          final String prefix = (String) listPrefixes.get(0);
-
-          assertEquals(prefix, "Recursive");
-
-          Field transformations = this.getClass().getDeclaredField("transformations");
-          final boolean transformationValue = transformations.getBoolean(this);
-
-          assertEquals(transformationValue, true);
-
-          Field time = this.getClass().getDeclaredField("timeout");
-          int timeout = time.getInt(this);
-
-          assertEquals(timeout, 5);
-
-        } catch (Exception e){
-          fail();
-        }
+        testInternals(this, a, b);
       }
     };
 
@@ -69,5 +40,38 @@ public class EnvironmentTest {
     a.deleteOnExit();
     b.deleteOnExit();
 
+  }
+
+  private static void testInternals(Environment that, File a, File b) {
+    try {
+      Field target = that.getClass().getDeclaredField("target");
+      final File aa = (File) target.get(that);
+
+      assertEquals(aa, a);
+
+      Field output = that.getClass().getDeclaredField("output");
+      final File bb = (File) output.get(that);
+
+      assertEquals(bb, b);
+
+      Field prefixes = that.getClass().getDeclaredField("testPrefixes");
+      final List listPrefixes = (List) prefixes.get(that);
+      final String prefix = (String) listPrefixes.get(0);
+
+      assertEquals(prefix, "Recursive");
+
+      Field transformations = that.getClass().getDeclaredField("transformations");
+      final boolean transformationValue = transformations.getBoolean(that);
+
+      assertEquals(transformationValue, true);
+
+      Field time = that.getClass().getDeclaredField("timeout");
+      int timeout = time.getInt(that);
+
+      assertEquals(timeout, 5);
+
+    } catch (NoSuchFieldException | IllegalAccessException e){
+      fail();
+    }
   }
 }
