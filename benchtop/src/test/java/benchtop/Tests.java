@@ -21,7 +21,7 @@ import java.util.Map;
  */
 public class Tests {
   private static final String DESTINATION = System.getProperty("user.dir")
-    + "/build/test/resources/";
+    + "/build/resources/test/";
 
   private static final File WORKING_DIR = new File(DESTINATION);
 
@@ -34,6 +34,13 @@ public class Tests {
 
   private static final Map<String, List<String>> NAME_TO_FILE_CONTENT = Maps.newHashMap();
   static {
+//
+//    if(!WORKING_DIR.exists()){
+//      if(!WORKING_DIR.mkdirs()){
+//        System.out.println("Unable to create " + WORKING_DIR.toString());
+//      }
+//    }
+
     NAME_TO_FILE_CONTENT.put(JAVA_FILE, simpleJavaFile());
     NAME_TO_FILE_CONTENT.put(JAVA_FILE2, javaFileWithStaticNestedClass());
     NAME_TO_FILE_CONTENT.put(JAVA_FILE3, javaFileWithStaticNestedClassAndNamespace());

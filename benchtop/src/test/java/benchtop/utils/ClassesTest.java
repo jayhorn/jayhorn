@@ -1,11 +1,10 @@
 package benchtop.utils;
 
+import benchtop.Classpath;
 import benchtop.Tests;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -18,6 +17,7 @@ import static org.junit.Assert.assertThat;
 public class ClassesTest {
 
   @Test public void testParsing() throws Exception {
+    IO.cleanDirectory(Tests.defaultWorkingDirectory());
     final File javaFile = Tests.createJavaFile(Tests.defaultDestination());
 
     final List<Class<?>> classes = Classes.compileJava(Tests.defaultWorkingDirectory(), javaFile);
@@ -27,12 +27,19 @@ public class ClassesTest {
 
     final Class<?> clazz = classes.get(0);
     assertNotNull(clazz);
-
-    deleteClassFiles(javaFile);
   }
 
-  private static void deleteClassFiles(File javaFile) throws IOException {
-    javaFile.deleteOnExit();
-    Files.delete(new File(Tests.defaultDestination() + "JavaFile.class").toPath());
+
+  @Test public void testAllFiles() throws Exception {
+    IO.cleanDirectory(Tests.defaultWorkingDirectory());
+
+    final List<File> javaFiles = Tests.createJavaFiles(Tests.defaultDestination(), Tests.JAVA_FILE, Tests.JAVA_FILE2);
+
+    final List<Class<?>> classes = Classes.compileJava(
+      Classpath.environmentClasspath(), Tests.defaultWorkingDirectory(), javaFiles
+    );
+
+    assertThat(classes.isEmpty(), is(false));
+    assertThat(classes.size() == 3, is(true));
   }
 }

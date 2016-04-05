@@ -69,7 +69,7 @@ public class DefaultEnvironment implements Environment {
     execute();
   }
 
-  private void execute() {
+  void execute() {
     //final File temp = Files.createTempDir();
     try {
       Preconditions.checkArgument(this.timeout > 0, "Invalid timeout value");
