@@ -3,9 +3,9 @@ package benchtop;
 import benchtop.utils.Classes;
 import benchtop.utils.IO;
 import benchtop.utils.Soot;
+import benchtop.utils.Strings;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 
@@ -72,11 +72,7 @@ public class DefaultEnvironment implements Environment {
   void execute() {
     //final File temp = Files.createTempDir();
     try {
-      Preconditions.checkArgument(this.timeout > 0, "Invalid timeout value");
-      Preconditions.checkNotNull(this.target, "Target directory is null");
-      Preconditions.checkNotNull(this.output, "Output directory is null");
-      Preconditions.checkArgument(!this.classpath.isEmpty(), "Classpath is empty");
-      Preconditions.checkArgument(!this.classList.isEmpty(), "Classlist is empty");
+      ensureValidInputs();
 
 
       // copy of classpath pointing to classes that have not been transformed
@@ -91,34 +87,12 @@ public class DefaultEnvironment implements Environment {
       LOG.info("Generate Randoop tests for:\n" + Joiner.on("\n").join(classList));
 
       // runs randoop
-      Benchtop.randoop(
-        copy,
-        this.output,
-        this.timeout,
-        classList.toArray(new String[classList.size()])
-      );
-
-      // compiles produced test files
-      final List<File> files = IO.collectFiles(this.output, "java");
-      final List<Class<?>> listOfClasses = Classes.compileJava(
-        copy, 1, this.output, files.toArray(new File[files.size()])
-      );
-
-      LOG.info("Same number of (compiled) Randoop tests: " + (files.size() == listOfClasses.size()));
-
-      runJunit(listOfClasses, copy, this.testPrefixes);
+      final List<Class<?>> listOfClasses = runRandoopAndJUnit(copy);
 
 
       if(transformations){
         // transforms classes under this.output directory
-        final Classpath secondCopy = Classpath.union(
-          Classpath.of(this.transformed),
-          this.classpath
-        );
-
-        Soot.sootifyJavaClasses(secondCopy, this.transformed, classList);
-
-        runJunit(listOfClasses, secondCopy, this.testPrefixes);
+        transformAndTest(listOfClasses);
       }
 
     } catch (Exception e){
@@ -140,6 +114,45 @@ public class DefaultEnvironment implements Environment {
     }
   }
 
+  void transformAndTest(List<Class<?>> listOfClasses) throws IOException {
+    final Classpath secondCopy = Classpath.union(
+      Classpath.of(this.transformed),
+      this.classpath
+    );
+
+    Soot.sootifyJavaClasses(secondCopy, this.transformed, classList);
+
+    runJunit(listOfClasses, secondCopy, this.testPrefixes);
+  }
+
+  List<Class<?>> runRandoopAndJUnit(Classpath copy) throws IOException {
+    Benchtop.randoop(
+      copy,
+      this.output,
+      this.timeout,
+      classList.toArray(new String[classList.size()])
+    );
+
+    // compiles produced test files
+    final List<File> files = IO.collectFiles(this.output, "java");
+    final List<Class<?>> listOfClasses = Classes.compileJava(
+      copy, 1, this.output, files.toArray(new File[files.size()])
+    );
+
+    LOG.info("Same number of (compiled) Randoop tests: " + (files.size() == listOfClasses.size()));
+
+    runJunit(listOfClasses, copy, this.testPrefixes);
+    return listOfClasses;
+  }
+
+  private void ensureValidInputs() {
+    Preconditions.checkArgument(this.timeout > 0, "Invalid timeout value");
+    Preconditions.checkNotNull(this.target, "Target directory is null");
+    Preconditions.checkNotNull(this.output, "Output directory is null");
+    Preconditions.checkArgument(!this.classpath.isEmpty(), "Classpath is empty");
+    Preconditions.checkArgument(!this.classList.isEmpty(), "Classlist is empty");
+  }
+
   private void runJunit(List<Class<?>> listOfClasses, Classpath classpath, List<String> testPrefixes){
     //noinspection Convert2streamapi
     for(Class<?> eachClass : listOfClasses){ // run the test files
@@ -148,22 +161,10 @@ public class DefaultEnvironment implements Environment {
           final List<String> junitOut = Benchtop.junit(classpath, eachClass.getCanonicalName());
           result.add(eachClass.getName(), junitOut.get(1));
         } catch (Exception e){
-          result.add(eachClass.getName(), extractLineTrace(e.getLocalizedMessage()));
+          result.add(eachClass.getName(), Strings.lineTrace(e.getLocalizedMessage()));
         }
       }
     }
-  }
-
-  private static String extractLineTrace(String output){
-    final int lastIndex = output.lastIndexOf("JUnit version 4.12");
-    final String truncated = output.substring(lastIndex, output.length());
-
-    final List<String> lines = Splitter.on("\n").splitToList(truncated);
-    if(!lines.isEmpty()){
-      return lines.get(1);
-    }
-
-    return "";
   }
 
   @Override public Environment bundleTarget(File directory) {
@@ -249,7 +250,7 @@ public class DefaultEnvironment implements Environment {
       }
 
       // collect Randoop's classList
-      this.classList.addAll(
+      addClasses(
         IO.resolveFullyQualifiedNames(this.nontransformed.toString(), relocatedFiles)
       );
 
@@ -258,6 +259,10 @@ public class DefaultEnvironment implements Environment {
     }
 
     return this;
+  }
+
+  void addClasses(List<String> listOfClassNames){
+    this.classList.addAll(listOfClassNames);
   }
 
   @Override public Environment bundleFocus(String... testPrefixes) {

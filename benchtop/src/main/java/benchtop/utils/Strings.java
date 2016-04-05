@@ -1,10 +1,10 @@
 package benchtop.utils;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import com.google.common.base.Splitter;
+
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 
 /**
@@ -99,27 +99,20 @@ public class Strings {
 
 
   /**
-   * Returns the string representation of a Throwable's StackTrace.
+   * Returns JUnit's produced line trace.
    *
-   * @param ex the throwable object
-   * @return the string representation of the throwable object.
+   * @param output complete JUnit's output.
+   * @return the extracted line trace.
    */
-  public static String getStringFromStackTrace(Throwable ex) {
-    if (ex == null) { return ""; }
+  public static String lineTrace(String output){
+    final int lastIndex = output.lastIndexOf("JUnit version 4.12");
+    final String truncated = output.substring(lastIndex, output.length());
 
-    final StringWriter stringWriter = new StringWriter();
-    final PrintWriter writer = new PrintWriter(stringWriter);
-    try {
-      ex.printStackTrace(writer);
-      return stringWriter.getBuffer().toString();
-    } finally {
-      try {
-        stringWriter.close();
-        writer.close();
-      } catch (IOException e) {
-        //ignore
-      }
+    final List<String> lines = Splitter.on("\n").splitToList(truncated);
+    if(!lines.isEmpty()){
+      return lines.get(1);
     }
-  }
 
+    return "";
+  }
 }

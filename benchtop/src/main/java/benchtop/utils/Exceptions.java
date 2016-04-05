@@ -1,5 +1,7 @@
 package benchtop.utils;
 
+import com.google.common.base.Throwables;
+
 import java.util.Collection;
 
 /**
@@ -24,16 +26,24 @@ public class Exceptions {
 
     for (Throwable errorMessage : errorMessages) {
       final String message    = errorMessage.getLocalizedMessage();
-      final String lineDigit  = message.substring(message.lastIndexOf("line") + 5, message.lastIndexOf("line") + 6);
+      final String lineDigit  = findDigit(message);
       final String line       = isInteger(lineDigit) ? ("line " + lineDigit) : "test";
 
 
 
       messageFormatter.format("%s) Error at %s:%n", index++, line).format(" %s%n%n", message);
-      messageFormatter.format("%s", Strings.getStringFromStackTrace(errorMessage));
+      messageFormatter.format("%s", Throwables.getStackTraceAsString(errorMessage));
     }
 
     return messageFormatter.format("%s error[s]", errorMessages.size()).toString();
+  }
+
+  private static String findDigit(String message){
+    try {
+      return message.substring(message.lastIndexOf("line") + 5, message.lastIndexOf("line") + 6);
+    } catch (Exception e){
+      return "";
+    }
   }
 
   private static boolean isInteger(String input) {
