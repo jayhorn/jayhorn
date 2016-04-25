@@ -63,7 +63,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 		Set<Unit> done = new HashSet<Unit>();
 		while (!todo.isEmpty()) {
 			Unit current = todo.remove(0);
-			System.err.println("\tLooking at "+current + " from " +u);
+//			System.err.println("\tLooking at "+current + " from " +u);
 			Stmt s = (Stmt)current;
 			if (s.containsFieldRef() && s.getFieldRef().getField()==f.getField()) {
 				return false;

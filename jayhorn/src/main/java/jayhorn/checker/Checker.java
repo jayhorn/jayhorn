@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Verify;
 import com.microsoft.z3.Params;
 
 import java.util.Set;
@@ -96,14 +97,14 @@ public class Checker {
 	}
 
 	private final ProverFactory factory;
-	
+
 	public Checker(ProverFactory fac) {
 		this.factory = fac;
 	}
 
 	private final Map<CfgBlock, HornPredicate> blockPredicates = new LinkedHashMap<CfgBlock, HornPredicate>();
 	private Map<String, MethodContract> methodContracts = new LinkedHashMap<String, MethodContract>();
-        private Map<ClassVariable, Integer> typeIds = new LinkedHashMap<ClassVariable, Integer>();
+	private Map<ClassVariable, Integer> typeIds = new LinkedHashMap<ClassVariable, Integer>();
 
 	////////////////////////////////////////////////////////////////////////////
 
@@ -138,7 +139,7 @@ public class Checker {
 	////////////////////////////////////////////////////////////////////////////
 
 	private class MethodEncoder {
-            private final Program program;
+		private final Program program;
 		private final Method method;
 		private final MethodContract methodContract;
 		private final Prover p;
@@ -149,20 +150,20 @@ public class Checker {
 		private final List<Variable> methodPreVariables;
 		private final List<ProverExpr> methodPreExprs;
 
-            public MethodEncoder(Prover p, Program program, Method method) {
-                this.p = p;
-                this.program = program;
-                this.method = method;
-                this.methodContract = methodContracts.get(method.getMethodName());
-                this.methodPreVariables = methodContract.precondition.variables;
+		public MethodEncoder(Prover p, Program program, Method method) {
+			this.p = p;
+			this.program = program;
+			this.method = method;
+			this.methodContract = methodContracts.get(method.getMethodName());
+			this.methodPreVariables = methodContract.precondition.variables;
 
-                this.methodPreExprs = new ArrayList<ProverExpr>();
-                for (Variable v : methodPreVariables)
-                    methodPreExprs.add(p.mkHornVariable(v.getName() + "_" + newVarNum(), getProverType(v.getType())));
-            }
+			this.methodPreExprs = new ArrayList<ProverExpr>();
+			for (Variable v : methodPreVariables)
+				methodPreExprs.add(p.mkHornVariable(v.getName() + "_" + newVarNum(), getProverType(v.getType())));
+		}
 
 		public void encode() {
-			Log.info("\tEncoding method " + method.getMethodName());
+//			Log.info("\tEncoding method " + method.getMethodName());
 			LiveVars<CfgBlock> liveVariables = method.computeBlockLiveVariables();
 			makeBlockPredicates(liveVariables);
 
@@ -214,7 +215,7 @@ public class Checker {
 			// translate reachable blocks
 			while (!todo.isEmpty()) {
 				CfgBlock current = todo.remove(0);
-				Log.info("\tEncoding block " + current);
+//				Log.info("\tEncoding block " + current);
 
 				done.add(current);
 				final HornPredicate exitPred = blockToHorn(current, liveVariables);
@@ -425,9 +426,8 @@ public class Checker {
 					throw new RuntimeException("Invoked method " + calledMethod.getMethodName() + " is unknown");
 
 				assert (calledMethod.getInParams().size() == cs.getArguments().size()
-                                        && calledMethod.getInParams().size() == contract.precondition.variables.size());
-				assert (!cs.getReceiver().isPresent() ||
-                                        calledMethod.getReturnType().isPresent());
+						&& calledMethod.getInParams().size() == contract.precondition.variables.size());
+				assert (!cs.getReceiver().isPresent() || calledMethod.getReturnType().isPresent());
 
 				final List<Variable> receiverVars = new ArrayList<Variable>();
 				if (cs.getReceiver().isPresent())
@@ -463,11 +463,10 @@ public class Checker {
 						throw new RuntimeException("only assignments to variables are supported, " + "not to " + lhs);
 					}
 				} else if (calledMethod.getReturnType().isPresent()) {
-                                    final ProverExpr callRes =
-                                        p.mkHornVariable("callRes_" + newVarNum(),
-                                                         getProverType(calledMethod.getReturnType().get()));
-                                    actualPostParams[cnt++] = callRes;
-                                }
+					final ProverExpr callRes = p.mkHornVariable("callRes_" + newVarNum(),
+							getProverType(calledMethod.getReturnType().get()));
+					actualPostParams[cnt++] = callRes;
+				}
 
 				final ProverExpr preCondAtom = contract.precondition.predicate.mkExpr(actualInParams);
 				clauses.add(p.mkHornClause(preCondAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
@@ -533,15 +532,15 @@ public class Checker {
 
 		private ProverExpr exprToProverExpr(Expression e, Map<Variable, ProverExpr> varMap) {
 			if (e instanceof IdentifierExpression) {
-                            Variable var = ((IdentifierExpression) e).getVariable();
-                            if (var instanceof ClassVariable) {
-                                return p.mkLiteral(typeIds.get(var));
-                            } else {
-                                ProverExpr res = varMap.get(var);
-                                if (res == null)
-                                    throw new RuntimeException("Could not resolve variable " + e);
-                                return res;
-                            }
+				Variable var = ((IdentifierExpression) e).getVariable();
+				if (var instanceof ClassVariable) {
+					return p.mkLiteral(typeIds.get(var));
+				} else {
+					ProverExpr res = varMap.get(var);
+					if (res == null)
+						throw new RuntimeException("Could not resolve variable " + e);
+					return res;
+				}
 			} else if (e instanceof IntegerLiteral) {
 				return p.mkLiteral(BigInteger.valueOf(((IntegerLiteral) e).getValue()));
 			} else if (e instanceof BinaryExpression) {
@@ -564,7 +563,6 @@ public class Checker {
 					return p.mkTDiv(left, right);
 				case Mod:
 					return p.mkTMod(left, right);
-
 				case Eq:
 					return p.mkEq(left, right);
 				case Ne:
@@ -577,30 +575,31 @@ public class Checker {
 					return p.mkLt(left, right);
 				case Le:
 					return p.mkLeq(left, right);
-                                case PoLeq:
-                                    if ((be.getRight() instanceof IdentifierExpression) &&
-                                        (((IdentifierExpression)be.getRight()).getVariable()
-                                         instanceof ClassVariable)) {
+				case PoLeq:
+					if ((be.getRight() instanceof IdentifierExpression)
+							&& (((IdentifierExpression) be.getRight()).getVariable() instanceof ClassVariable)) {
 
-                                        final ClassVariable var = 
-                                            (ClassVariable)((IdentifierExpression)be.getRight())
-                                            .getVariable();
+						final ClassVariable var = (ClassVariable) ((IdentifierExpression) be.getRight()).getVariable();
 
-                                        final Set<ClassVariable> subTypes =
-                                            GraphUtil.getForwardReachableVertices
-                                            (program.getTypeGraph(), var);
+						final Set<ClassVariable> subTypes = GraphUtil
+								.getForwardReachableVertices(program.getTypeGraph(), var);
 
-                                        ProverExpr disj = p.mkLiteral(false);
-                                        for (ClassVariable st : subTypes)
-                                            disj =
-                                                p.mkOr(disj, p.mkEq(left, p.mkLiteral(typeIds.get(st))));
+						ProverExpr disj = p.mkLiteral(false);
+						for (ClassVariable st : subTypes)
+							disj = p.mkOr(disj, p.mkEq(left, p.mkLiteral(typeIds.get(st))));
 
-                                        return disj;
-                                    } else {
-					throw new RuntimeException
-                                            ("instanceof is only supported for concrete types");
-                                    }
-
+						return disj;
+					} else {
+						throw new RuntimeException("instanceof is only supported for concrete types");
+					}
+				case Shl:
+				case Shr:
+				case BAnd:
+				case BOr:
+				case Xor:
+					return p.mkVariable("HACK_FreeVar"+hack_counter++, p.getIntType());
+//					Verify.verify(left.getType()==p.getIntType() && right.getType()==p.getIntType());
+//					return binopFun.mkExpr(new ProverExpr[]{left, right});				
 				default: {
 					throw new RuntimeException("Not implemented for " + be.getOp());
 				}
@@ -632,6 +631,8 @@ public class Checker {
 		}
 	}
 
+	private int hack_counter=0;
+	
 	////////////////////////////////////////////////////////////////////////////
 
 	public boolean checkProgram(Program program) {
@@ -640,13 +641,12 @@ public class Checker {
 		Prover p = factory.spawn();
 		p.setHornLogic(true);
 		ProverResult result = ProverResult.Unknown;
-
+		
 		try {
 			Log.info("Building type hierarchy");
 
-                        for (ClassVariable var :
-                                 program.getTypeGraph().vertexSet())
-                            typeIds.put(var, typeIds.size());
+			for (ClassVariable var : program.getTypeGraph().vertexSet())
+				typeIds.put(var, typeIds.size());
 
 			Log.info("Generating method contracts");
 
@@ -656,9 +656,9 @@ public class Checker {
 				final List<Variable> postParams = new ArrayList<Variable>();
 				postParams.addAll(method.getInParams());
 				if (method.getOutParam().isPresent()) {
-                                    postParams.add(method.getOutParam().get());
-                                } else if (method.getReturnType().isPresent()) {
-                                    postParams.add(new Variable ("resultVar", method.getReturnType().get()));
+					postParams.add(method.getOutParam().get());
+				} else if (method.getReturnType().isPresent()) {
+					postParams.add(new Variable("resultVar", method.getReturnType().get()));
 				}
 
 				final ProverFun prePred = freshHornPredicate(p, method.getMethodName() + "_pre", inParams);
@@ -684,13 +684,13 @@ public class Checker {
 				// if (method.getMethodName().contains("init"))
 				// continue;
 
-                            final MethodEncoder encoder = new MethodEncoder(p, program, method);
+				final MethodEncoder encoder = new MethodEncoder(p, program, method);
 				encoder.encode();
 				clauses.addAll(encoder.clauses);
 
-				Log.info("\tNumber of clauses:  " + encoder.clauses.size());
-				for (ProverHornClause clause : encoder.clauses)
-					Log.info("\t\t" + clause);
+//				Log.info("\tNumber of clauses:  " + encoder.clauses.size());
+//				for (ProverHornClause clause : encoder.clauses)
+//					Log.info("\t\t" + clause);
 			}
 
 			for (Method method : program.getEntryPoints()) {
@@ -711,11 +711,11 @@ public class Checker {
 				p.addAssertion(p.mkHornClause(entryAtom, new ProverExpr[0], p.mkLiteral(true)));
 
 				if (jayhorn.Options.v().getTimeout() > 0) {
-					int timeoutInMsec = (int)TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());
+					int timeoutInMsec = (int) TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());
 					p.checkSat(false);
 					result = p.getResult(timeoutInMsec);
 				} else {
-					result = p.checkSat(true);	
+					result = p.checkSat(true);
 				}
 
 				p.pop();
@@ -727,9 +727,9 @@ public class Checker {
 			p.shutdown();
 		}
 		Log.info("\tResult:  " + result);
-		if (result==ProverResult.Sat) {
+		if (result == ProverResult.Sat) {
 			return true;
-		} else if (result==ProverResult.Unsat) {
+		} else if (result == ProverResult.Unsat) {
 			return false;
 		}
 		throw new RuntimeException("Verification failed with prover code " + result);
