@@ -29,21 +29,22 @@ import org.kohsuke.args4j.Option;
 public class Options {
 
 	
-	@Option(name = "-android-jars", usage = "Path to the jars that stub the android platform.")
-	private String androidStubPath=null;
-	
-	public String getAndroidStubPath() {
-		return androidStubPath;
-	}
-
-	public void setAndroidStubPath(String path) {
-		this.androidStubPath = path;
-	}
+//	@Option(name = "-android-jars", usage = "Path to the jars that stub the android platform.")
+//	private String androidStubPath=null;
+//	
+//	public String getAndroidStubPath() {
+//		return androidStubPath;
+//	}
+//
+//	public void setAndroidStubPath(String path) {
+//		this.androidStubPath = path;
+//	}
 	
 	/**
 	 * JAR file
 	 */
 	@Option(name = "-checker", usage = "Select a checker [inconsistency, or safety]", required = false)
+	//@Option(name = "-checker", usage = "Select a checker [safety]", required = false)
 	private String checker = "safety";
 	public String getChecker() {
 		return checker;
@@ -59,7 +60,7 @@ public class Options {
 	/**
 	 * JAR file
 	 */
-	@Option(name = "-j", usage = "JAR file, class folder, or apk", required = false)
+	@Option(name = "-j", usage = "JAR file, class folder, or apk", required = true)
 	private String javaInput;
 	
 	public String getJavaInput() {		

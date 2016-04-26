@@ -168,8 +168,8 @@ public class Checker {
 			makeBlockPredicates(liveVariables);
 
 			if (method.getSource() == null) {
-				System.err.println("Warning: no implementation available for " + method.getMethodName());
-
+				//System.err.println("Warning: no implementation available for " + method.getMethodName());
+                Log.debug("No implementation available for " + method.getMethodName());
 				final List<ProverExpr> entryVars = new ArrayList<ProverExpr>();
 				final List<ProverExpr> exitVars = new ArrayList<ProverExpr>();
 				final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
@@ -710,9 +710,11 @@ public class Checker {
 
 				p.addAssertion(p.mkHornClause(entryAtom, new ProverExpr[0], p.mkLiteral(true)));
 
+				System.out.println(clauses);
 				if (jayhorn.Options.v().getTimeout() > 0) {
 					int timeoutInMsec = (int) TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());
 					p.checkSat(false);
+					
 					result = p.getResult(timeoutInMsec);
 				} else {
 					result = p.checkSat(true);
