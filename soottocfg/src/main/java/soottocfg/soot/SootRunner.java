@@ -197,6 +197,8 @@ public class SootRunner {
 		}
 
 		// TODO: hack for the implicit entry points.
+		
+		
 		Scene.v().addBasicClass("java.lang.System", SootClass.SIGNATURES);
 		Scene.v().addBasicClass("java.lang.Thread", SootClass.SIGNATURES);
 		Scene.v().addBasicClass("java.lang.ThreadGroup", SootClass.SIGNATURES);
@@ -204,7 +206,7 @@ public class SootRunner {
 		Scene.v().addBasicClass("java.lang.ClassLoader", SootClass.SIGNATURES);
 		Scene.v().addBasicClass("java.security.PrivilegedActionException", SootClass.SIGNATURES);
 		Scene.v().addBasicClass("java.lang.ref.Finalizer", SootClass.SIGNATURES);
-
+		
 		createAssertionClass();
 		
 		try {
@@ -217,12 +219,13 @@ public class SootRunner {
 			if(resolvedClassNames.isEmpty()) { Scene.v().loadNecessaryClasses(); } else {
 				loadNecessaryClasses();
 			}
-
+			
 			/*
 			 * TODO: apply some preprocessing stuff like:
 			 * soot.jimple.toolkits.base or maybe the optimize option from soot.
 			 */			
 			for (SootClass sc : Scene.v().getClasses()) {
+				System.err.println(sc.getName());
 				if (sc.resolvingLevel() < SootClass.SIGNATURES) {
 					sc.setResolvingLevel(SootClass.SIGNATURES);
 				}
