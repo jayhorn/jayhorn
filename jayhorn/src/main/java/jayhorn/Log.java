@@ -47,6 +47,7 @@ public class Log {
 		return logger;
 	}
 
+	
 	/**
 	 * Log a message object with the DEBUG Level.
 	 * 

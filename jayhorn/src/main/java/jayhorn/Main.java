@@ -15,6 +15,7 @@ import soottocfg.soot.SootToCfg;
 import soottocfg.soot.SootToCfg.MemModel;
 
 public class Main {
+	
 
 	public static void main(String[] args) {
 		Options options = Options.v();
@@ -32,11 +33,23 @@ public class Main {
 			}
 			
 			if ("safety".equals(Options.v().getChecker())) {
+				System.out.println("\t\t ---   JAYHORN : Static Analayzer for Java Programs ---- ");
+				System.out.println("\t Build CFG  ... " + Options.v().getJavaInput());
+				System.out.println( "\t \t  ----------- \n");
 				SootToCfg soot2cfg = new SootToCfg(true, false, MemModel.PackUnpack);
 				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());			
 				Checker checker = new Checker(factory);
+				System.out.println( "\t \t  ----------- ");
+				System.out.println("\t Hornify and check  ... " + Options.v().getJavaInput());
+				System.out.println( "\t \t  ----------- \n");
 				boolean result = checker.checkProgram(soot2cfg.getProgram());
-				System.out.println("checker says "+ result);		
+				System.out.println( "\t \t  ----------- \n");
+				if (!result){
+					System.out.println("\t SAFETY VERIFICATION RESULT ... UNSAFE");
+				} else {
+				   System.out.println("\tSAFETY VERIFICATION RESULT ... SAFE");
+				}
+						
 			} else if ("inconsistency".equals(Options.v().getChecker())) {
 				SootToCfg soot2cfg = new SootToCfg(false, true, MemModel.BurstallBornat);
 				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());			
@@ -48,7 +61,7 @@ public class Main {
 			
 		} catch (CmdLineException e) {
 			Log.error(e.toString());
-			Log.error("java -jar joogie.jar [options...] arguments...");
+			Log.error("java -jar jayhorn.jar [options...] -j [JAR, DIR]");
 			parser.printUsage(System.err);
 		} catch (Throwable t) {
 			Log.error(t.toString());

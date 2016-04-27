@@ -3,9 +3,38 @@
  */
 package soottocfg.soot;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
 import com.google.common.base.Preconditions;
-import soot.*;
-import soot.jimple.*;
+
+import soot.Body;
+import soot.Modifier;
+import soot.PrimType;
+import soot.RefType;
+import soot.Scene;
+import soot.SootClass;
+import soot.SootField;
+import soot.SootMethod;
+import soot.Unit;
+import soot.Value;
+import soot.ValueBox;
+import soot.VoidType;
+import soot.jimple.DoubleConstant;
+import soot.jimple.FloatConstant;
+import soot.jimple.IdentityStmt;
+import soot.jimple.InstanceFieldRef;
+import soot.jimple.IntConstant;
+import soot.jimple.Jimple;
+import soot.jimple.JimpleBody;
+import soot.jimple.LongConstant;
+import soot.jimple.NullConstant;
+import soot.jimple.StaticFieldRef;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
 import soot.jimple.toolkits.scalar.UnreachableCodeEliminator;
 import soot.toolkits.graph.CompleteUnitGraph;
@@ -24,14 +53,6 @@ import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.soot.visitors.SootStmtSwitch;
 import soottocfg.soot.memory_model.*;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * This is the main class for the translation. It first invokes Soot to load all
@@ -152,7 +173,7 @@ public class SootToCfg {
 				SootTranslationHelpers.v().setCurrentMethod(sm);
 				try {
 					Body body = sm.retrieveActiveBody();
-					System.out.println(body);
+//					System.out.println(body);
 					MethodInfo mi = new MethodInfo(body.getMethod(),
 							SootTranslationHelpers.v().getCurrentSourceFileName());
 					
@@ -167,7 +188,7 @@ public class SootToCfg {
 
 					mi.finalizeAndAddToProgram();
 					Method m = mi.getMethod();
-					System.err.println(m);
+//					System.err.println(m);
 					if (debug) {
 						// System.out.println("adding method: " +
 						// m.getMethodName());

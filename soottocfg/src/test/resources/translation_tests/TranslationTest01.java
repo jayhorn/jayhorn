@@ -1,5 +1,7 @@
 package translation_tests;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+
 public class TranslationTest01 {
 	
 //	public void assertions(Object partitioner) {
@@ -36,15 +38,15 @@ public class TranslationTest01 {
 //	public void foo() {
 //	}
 
-	public int withException(int a[]) {
-		int b;
-		try {
-			b = a[3];
-		} catch (ArrayIndexOutOfBoundsException e) {
-			b = 20;
-		}
-		b = 30;
-		return b;
+	public static void main ( @CheckForNull String a[]) {
+//		int b;
+//		try {
+//			b = a[3];
+//		} catch (ArrayIndexOutOfBoundsException e) {
+//			b = 20;
+//		}
+//		b = 30;
+//		return b;
 	}
 
 	// public void excpetions02() {

@@ -85,6 +85,7 @@ public class Z3Prover implements Prover {
 			// params.add(":xform.inline-linear", false);
 			// params.add(":xform.inline-eager", false);
 			// params.add(":pdr.utvpi", false);
+	
 			if (Options.v().getTimeout() > 0) {
 				Params params = this.ctx.mkParams();
 				int timeoutInMsec = (int)TimeUnit.SECONDS.toMillis(Options.v().getTimeout());
