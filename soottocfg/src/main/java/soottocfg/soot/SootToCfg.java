@@ -13,6 +13,7 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.Method;
+import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.transformers.ArrayAbstraction;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
@@ -22,6 +23,7 @@ import soottocfg.soot.util.DuplicatedCatchDetection;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.soot.visitors.SootStmtSwitch;
+import soottocfg.soot.memory_model.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -153,6 +155,13 @@ public class SootToCfg {
 					System.out.println(body);
 					MethodInfo mi = new MethodInfo(body.getMethod(),
 							SootTranslationHelpers.v().getCurrentSourceFileName());
+					
+					//pre-calculate when to pack / unpack
+					MemoryModel mm = SootTranslationHelpers.v().getMemoryModel();
+					if (mm instanceof NewMemoryModel) {
+						((NewMemoryModel) mm).updatePackUnpack();
+					}
+					
 					SootStmtSwitch ss = new SootStmtSwitch(body, mi);
 					mi.setSource(ss.getEntryBlock());
 
