@@ -296,11 +296,16 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	}
 
 	
+	private String classNameToSootName(String className) {
+		return className.replace('/', '.');
+	}
+	
 	public ClassVariable lookupClassVariable(ClassConstant cc) {
 		if (!this.constantDictionary.containsKey(cc)) {
 			final String name = cc.getValue();
-			if (Scene.v().containsClass(cc.getValue())) {
-				SootClass c = Scene.v().getSootClass(cc.getValue());
+			final String sootClassName = classNameToSootName(cc.getValue());
+			if (Scene.v().containsClass(sootClassName)) {
+				SootClass c = Scene.v().getSootClass(sootClassName);
 				Collection<ClassVariable> parents = new HashSet<ClassVariable>();
 				if (c.resolvingLevel() >= SootClass.HIERARCHY) {
 					if (c.hasSuperclass()) {
@@ -316,8 +321,12 @@ public abstract class BasicMemoryModel extends MemoryModel {
 				}
 				cv.setAssociatedFields(fields);
 			} else {
-				System.err.println("Class not in scene: "+cc);
+//				System.err.println("Class not in scene: "+sootClassName);
 				this.constantDictionary.put(cc, new ClassVariable(name, new HashSet<ClassVariable>()));
+				
+//				sc.addField(new SootField(SootTranslationHelpers.typeFieldName,
+//						RefType.v(Scene.v().getSootClass("java.lang.Class"))));
+
 			}
 		}
 		this.program.addClassVariable((ClassVariable) this.constantDictionary.get(cc));

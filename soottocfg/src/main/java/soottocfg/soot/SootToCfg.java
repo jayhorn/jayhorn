@@ -42,6 +42,7 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.Method;
+import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.transformers.ArrayAbstraction;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
@@ -51,6 +52,7 @@ import soottocfg.soot.util.DuplicatedCatchDetection;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.soot.visitors.SootStmtSwitch;
+import soottocfg.soot.memory_model.*;
 
 /**
  * This is the main class for the translation. It first invokes Soot to load all
@@ -174,6 +176,13 @@ public class SootToCfg {
 //					System.out.println(body);
 					MethodInfo mi = new MethodInfo(body.getMethod(),
 							SootTranslationHelpers.v().getCurrentSourceFileName());
+					
+					//pre-calculate when to pack / unpack
+					MemoryModel mm = SootTranslationHelpers.v().getMemoryModel();
+					if (mm instanceof NewMemoryModel) {
+						((NewMemoryModel) mm).updatePackUnpack();
+					}
+					
 					SootStmtSwitch ss = new SootStmtSwitch(body, mi);
 					mi.setSource(ss.getEntryBlock());
 
@@ -259,17 +268,18 @@ public class SootToCfg {
 	 * - de-virtualization.
 	 */
 	private void performBehaviorPreservingTransformations() {
-		Variable exceptionGlobal = this.program
-				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
-						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
-		program.setExceptionGlobal(exceptionGlobal);
 		// add a field for the dynamic type of an object to each class.
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
 			sc.addField(new SootField(SootTranslationHelpers.typeFieldName,
-					RefType.v(Scene.v().getSootClass("java.lang.Class"))));
+					RefType.v(Scene.v().getSootClass("java.lang.Class")),Modifier.PUBLIC));
 		}
 
+		Variable exceptionGlobal = this.program
+				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
+						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
+		program.setExceptionGlobal(exceptionGlobal);
+		
 		for (SootClass sc : classes) {
 			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
 				continue; // no need to process this guy.
