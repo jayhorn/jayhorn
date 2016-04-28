@@ -16,7 +16,26 @@ import soottocfg.soot.SootToCfg.MemModel;
 
 public class Main {
 	
-
+    private static String parseResult(String solver, boolean result)
+    {
+    	switch (solver){
+    	case "z3":
+    		if (result){
+    			return "UNSAFE";
+    		}else{
+    			return "SAFE";
+    		}
+    	case "princess":
+    		if (result){
+    			return "SAFE";
+    		}else{
+    			return "UNSAFE";
+    		}
+    		default:
+    			return "UNKNOWN";
+    	}
+    }
+    
 	public static void main(String[] args) {
 		Options options = Options.v();
 		CmdLineParser parser = new CmdLineParser(options);
@@ -44,12 +63,9 @@ public class Main {
 				System.out.println( "\t \t  ----------- \n");
 				boolean result = checker.checkProgram(soot2cfg.getProgram());
 				System.out.println( "\t \t  ----------- \n");
-				if (!result){
-					System.out.println("\t SAFETY VERIFICATION RESULT ... UNSAFE");
-				} else {
-				   System.out.println("\tSAFETY VERIFICATION RESULT ... SAFE");
-				}
-						
+		
+				System.out.println("\t SAFETY VERIFICATION RESULT ... " + parseResult(Options.v().getSolver(), result));
+				
 			} else if ("inconsistency".equals(Options.v().getChecker())) {
 				SootToCfg soot2cfg = new SootToCfg(false, true, MemModel.BurstallBornat);
 				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());			

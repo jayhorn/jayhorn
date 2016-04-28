@@ -710,7 +710,7 @@ public class Checker {
 
 				p.addAssertion(p.mkHornClause(entryAtom, new ProverExpr[0], p.mkLiteral(true)));
 
-				System.out.println(clauses);
+				result = p.checkSat(true);
 				if (jayhorn.Options.v().getTimeout() > 0) {
 					int timeoutInMsec = (int) TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());
 					p.checkSat(false);
@@ -720,7 +720,7 @@ public class Checker {
 					result = p.checkSat(true);
 				}
 
-				p.pop();
+			p.pop();
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();
