@@ -14,12 +14,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Verify;
-import com.microsoft.z3.Params;
-
-import java.util.Set;
 
 import jayhorn.Log;
 import jayhorn.solver.Prover;
@@ -29,13 +27,13 @@ import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverType;
-import soot.options.Options;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
@@ -698,6 +696,27 @@ public class Checker {
 									program.createFreshGlobal("havoc", program.getExceptionGlobal().getType())));
 					PackStatement pack = new PackStatement(loc, c, new IdentifierExpression(loc, program.getExceptionGlobal()), rhs);
 					block.addStatement(pack);
+					
+					Verify.verifyNotNull(method.getSource());
+				} else if (method.isProgramEntryPoint()) {
+					if (method.getInParams().size()==1 && method.getMethodName().contains("main")) {
+						Variable argsParam = method.getInParams().get(0);
+						CfgBlock entry = method.getSource();						
+						SourceLocation loc = method.getLocation();
+						Variable sizeLocal = new Variable("undef_size", IntType.instance());
+						AssumeStatement asm = new AssumeStatement(loc, new BinaryExpression(loc, BinaryOperator.Ge, new IdentifierExpression(loc, sizeLocal), IntegerLiteral.zero()));
+						entry.addStatement(0, asm);
+						
+						//pack(JayHornArr12, r0, [JayHornArr12.$length, JayHornArr12.$elType, JayHornArr12.$dynamicType])
+						List<Expression> rhs = new LinkedList<Expression>();
+						rhs.add(new IdentifierExpression(loc, sizeLocal));						
+						ClassVariable stringClassVar = program.findClassVariableByName("java/lang/String");
+						rhs.add(new IdentifierExpression(loc, stringClassVar));
+						ClassVariable c = ((ReferenceType)argsParam.getType()).getClassVariable();						
+						rhs.add(new IdentifierExpression(loc, c));
+						PackStatement pack = new PackStatement(loc, c, new IdentifierExpression(loc, argsParam), rhs);
+						entry.addStatement(1, pack);
+					}
 				}
 
 				final MethodEncoder encoder = new MethodEncoder(p, program, method);

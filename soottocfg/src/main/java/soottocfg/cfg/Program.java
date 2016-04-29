@@ -55,12 +55,21 @@ public class Program {
 
 	public void addClassVariable(ClassVariable cv) {
 		if (!this.typeGraph.containsVertex(cv)) {
-			this.typeGraph.addVertex(cv);
+			this.typeGraph.addVertex(cv);			
 			for (ClassVariable parent : cv.getParents()) {
 				addClassVariable(parent);
 				this.typeGraph.addEdge(parent, cv);
 			}			
 		}
+	}
+	
+	public ClassVariable findClassVariableByName(final String name) {
+		for (ClassVariable cv : this.typeGraph.vertexSet()) {
+			if (name.equals(cv.variableName)) {
+				return cv;
+			}
+		}
+		return null;
 	}
 	
 	public DirectedGraph<ClassVariable, DefaultEdge> getTypeGraph() {
