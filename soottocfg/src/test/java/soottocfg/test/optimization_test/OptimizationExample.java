@@ -34,7 +34,7 @@ public class OptimizationExample {
 
 		final Program p = new Program();
 		final Optional<soottocfg.cfg.type.Type> rettype = Optional.absent();
-		final Method m = Method.createMethodInProgram(p, "testM", new LinkedList<Variable>(), rettype); 
+		final Method m = Method.createMethodInProgram(p, "testM", new LinkedList<Variable>(), rettype, null); 
 		final SourceLocation fakeSl = new SourceLocation("fake", 0);
 
 		final Collection<Variable> localVars = new HashSet<Variable>();
@@ -80,7 +80,7 @@ public class OptimizationExample {
 		SootTranslationHelpers.v().reset();
 		final Program p = new Program();				
 		final Optional<soottocfg.cfg.type.Type> rettype = Optional.absent();
-		final Method m = Method.createMethodInProgram(p, "testM", new LinkedList<Variable>(), rettype); 
+		final Method m = Method.createMethodInProgram(p, "testM", new LinkedList<Variable>(), rettype, null); 
 
 		/*
 		 * Create a dummy block to increase the counter for the block label.

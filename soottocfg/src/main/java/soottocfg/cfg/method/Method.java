@@ -45,7 +45,8 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	 * 
 	 */
 	private static final long serialVersionUID = 3367382274895641548L;
-
+	
+	private final transient SourceLocation location; //TODO remove the transient
 	private final String methodName;
 	private final Optional<Type> returnType;
 	private Variable thisVariable, returnVariable;
@@ -56,15 +57,16 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	
 
 	
-	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, Optional<Type> retType) {
+	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, Optional<Type> retType, SourceLocation sourceLocation) {
 		Preconditions.checkArgument(p.loopupMethod(uniqueName)==null, "Method with name "+uniqueName + " already exists");		
-		Method m = new Method(uniqueName, params, retType);
+		Method m = new Method(sourceLocation, uniqueName, params, retType);
 		p.addMethod(m);
 		return m;
 	}
 	
-	private Method(String uniqueName, List<Variable> params, Optional<Type> retType) {
+	private Method(SourceLocation loc, String uniqueName, List<Variable> params, Optional<Type> retType) {
 		super(new ClassBasedEdgeFactory<CfgBlock, CfgEdge>(CfgEdge.class), true, true);
+		location = loc;
 		methodName = uniqueName;
 		returnType = retType;
 		this.parameterList = Collections.unmodifiableList(params);
@@ -72,7 +74,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 
 	public Method createMethodFromSubgraph(DirectedGraph<CfgBlock, CfgEdge> subgraph, String newMethodName) {
 		Preconditions.checkArgument(vertexSet().containsAll(subgraph.vertexSet()), "Method does not contain all nodes from subgraph.");
-		Method subgraphMethod = new Method(newMethodName, this.parameterList, this.returnType);
+		Method subgraphMethod = new Method(location, newMethodName, this.parameterList, this.returnType);
 		
 		for (CfgBlock v : subgraph.vertexSet()) {
 			subgraphMethod.addVertex(v);
@@ -86,6 +88,10 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	
 	public String getMethodName() {
 		return this.methodName;
+	}
+	
+	public SourceLocation getLocation() {
+		return location;
 	}
 
 	public void initialize(Variable thisVariable, Variable returnVariable,

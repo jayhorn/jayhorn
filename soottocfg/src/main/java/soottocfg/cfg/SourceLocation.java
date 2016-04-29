@@ -8,7 +8,7 @@ package soottocfg.cfg;
  *
  */
 public class SourceLocation {
-
+	
 	private final String sourceFileName;
 	private final int lineNumber;
 

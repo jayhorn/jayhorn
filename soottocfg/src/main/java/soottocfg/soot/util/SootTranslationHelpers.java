@@ -135,8 +135,8 @@ public enum SootTranslationHelpers {
 		Optional<soottocfg.cfg.type.Type> optRetType = Optional.absent();
 		if (!m.getReturnType().equals(VoidType.v())) {
 			optRetType = Optional.of(memoryModel.lookupType(m.getReturnType()));
-		} 
-		return Method.createMethodInProgram(program, m.getSignature(), parameterList, optRetType);
+		} 		
+		return Method.createMethodInProgram(program, m.getSignature(), parameterList, optRetType, SootTranslationHelpers.v().getSourceLocation(m));
 	}
 
 	public Stmt getDefaultReturnStatement(Type returnType, Host createdFrom) {
