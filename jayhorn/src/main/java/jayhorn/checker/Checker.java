@@ -33,6 +33,7 @@ import soot.options.Options;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Program;
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BooleanLiteral;
@@ -151,7 +152,7 @@ public class Checker {
 		private final List<ProverExpr> methodPreExprs;
 
 		public MethodEncoder(Prover p, Program program, Method method) {
-			System.err.println("Method "+method.toString());
+			System.err.println("Method " + method.toString());
 			this.p = p;
 			this.program = program;
 			this.method = method;
@@ -164,13 +165,14 @@ public class Checker {
 		}
 
 		public void encode() {
-//			Log.info("\tEncoding method " + method.getMethodName());
+			// Log.info("\tEncoding method " + method.getMethodName());
 			LiveVars<CfgBlock> liveVariables = method.computeBlockLiveVariables();
 			makeBlockPredicates(liveVariables);
 
 			if (method.getSource() == null) {
-				//System.err.println("Warning: no implementation available for " + method.getMethodName());
-                Log.debug("No implementation available for " + method.getMethodName());
+				// System.err.println("Warning: no implementation available for
+				// " + method.getMethodName());
+				Log.debug("No implementation available for " + method.getMethodName());
 				final List<ProverExpr> entryVars = new ArrayList<ProverExpr>();
 				final List<ProverExpr> exitVars = new ArrayList<ProverExpr>();
 				final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
@@ -216,7 +218,7 @@ public class Checker {
 			// translate reachable blocks
 			while (!todo.isEmpty()) {
 				CfgBlock current = todo.remove(0);
-//				Log.info("\tEncoding block " + current);
+				// Log.info("\tEncoding block " + current);
 
 				done.add(current);
 				final HornPredicate exitPred = blockToHorn(current, liveVariables);
@@ -598,9 +600,10 @@ public class Checker {
 				case BAnd:
 				case BOr:
 				case Xor:
-					return p.mkVariable("HACK_FreeVar"+hack_counter++, p.getIntType());
-//					Verify.verify(left.getType()==p.getIntType() && right.getType()==p.getIntType());
-//					return binopFun.mkExpr(new ProverExpr[]{left, right});				
+					return p.mkVariable("HACK_FreeVar" + hack_counter++, p.getIntType());
+				// Verify.verify(left.getType()==p.getIntType() &&
+				// right.getType()==p.getIntType());
+				// return binopFun.mkExpr(new ProverExpr[]{left, right});
 				default: {
 					throw new RuntimeException("Not implemented for " + be.getOp());
 				}
@@ -632,8 +635,8 @@ public class Checker {
 		}
 	}
 
-	private int hack_counter=0;
-	
+	private int hack_counter = 0;
+
 	////////////////////////////////////////////////////////////////////////////
 
 	public boolean checkProgram(Program program) {
@@ -642,7 +645,7 @@ public class Checker {
 		Prover p = factory.spawn();
 		p.setHornLogic(true);
 		ProverResult result = ProverResult.Unknown;
-		
+
 		try {
 			Log.info("Building type hierarchy");
 
@@ -680,18 +683,30 @@ public class Checker {
 			List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
 			for (Method method : program.getMethods()) {
-
 				// hack
-				// if (method.getMethodName().contains("init"))
-				// continue;
+				if (method.getSource() == null) {
+					CfgBlock block = new CfgBlock(method);
+					SourceLocation loc = method.getLocation();
+					AssignStatement asn = new AssignStatement(loc,
+							new IdentifierExpression(loc, program.getExceptionGlobal()), new IdentifierExpression(loc,
+									program.createFreshGlobal("havoc", program.getExceptionGlobal().getType())));
+					block.addStatement(asn);
+
+					ClassVariable c = ((ReferenceType)program.getExceptionGlobal().getType()).getClassVariable();
+					List<Expression> rhs = new LinkedList<Expression>();
+					rhs.add(new IdentifierExpression(loc,
+									program.createFreshGlobal("havoc", program.getExceptionGlobal().getType())));
+					PackStatement pack = new PackStatement(loc, c, new IdentifierExpression(loc, program.getExceptionGlobal()), rhs);
+					block.addStatement(pack);
+				}
 
 				final MethodEncoder encoder = new MethodEncoder(p, program, method);
 				encoder.encode();
 				clauses.addAll(encoder.clauses);
 
-//				Log.info("\tNumber of clauses:  " + encoder.clauses.size());
-//				for (ProverHornClause clause : encoder.clauses)
-//					Log.info("\t\t" + clause);
+				// Log.info("\tNumber of clauses: " + encoder.clauses.size());
+				// for (ProverHornClause clause : encoder.clauses)
+				// Log.info("\t\t" + clause);
 			}
 
 			for (Method method : program.getEntryPoints()) {
@@ -715,7 +730,7 @@ public class Checker {
 				if (jayhorn.Options.v().getTimeout() > 0) {
 					int timeoutInMsec = (int) TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());
 					p.checkSat(false);
-					
+
 					result = p.getResult(timeoutInMsec);
 				} else {
 					result = p.checkSat(true);
