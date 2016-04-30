@@ -173,7 +173,6 @@ public class SootToCfg {
 				SootTranslationHelpers.v().setCurrentMethod(sm);
 				try {
 					Body body = sm.retrieveActiveBody();
-//					System.out.println(body);
 					MethodInfo mi = new MethodInfo(body.getMethod(),
 							SootTranslationHelpers.v().getCurrentSourceFileName());
 					
@@ -290,7 +289,7 @@ public class SootToCfg {
 				initializeStaticFields(sc);
 
 				SootTranslationHelpers.v().setCurrentClass(sc);
-				for (SootMethod sm : sc.getMethods()) {
+				for (SootMethod sm : sc.getMethods()) {					
 					if (sm.isConcrete()) {
 						addDefaultInitializers(sm, sc);
 
