@@ -18,22 +18,27 @@ public class Main {
 	
     private static String parseResult(String solver, boolean result)
     {
-    	switch (solver){
-    	case "z3":
-    		if (result){
-    			return "UNSAFE";
-    		}else{
-    			return "SAFE";
-    		}
-    	case "princess":
-    		if (result){
-    			return "SAFE";
-    		}else{
-    			return "UNSAFE";
-    		}
-    		default:
-    			return "UNKNOWN";
-    	}
+    	if (result){
+			return "SAFE";
+		}else{
+			return "UNSAFE";
+		}
+//    	switch (solver){
+//    	case "z3":
+//    		if (result){
+//    			return "UNSAFE";
+//    		}else{
+//    			return "SAFE";
+//    		}
+//    	case "princess":
+//    		if (result){
+//    			return "SAFE";
+//    		}else{
+//    			return "UNSAFE";
+//    		}
+//    		default:
+//    			return "UNKNOWN";
+//    	}
     }
     
 	public static void main(String[] args) {

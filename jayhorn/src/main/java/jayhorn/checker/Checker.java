@@ -723,9 +723,9 @@ public class Checker {
 				encoder.encode();
 				clauses.addAll(encoder.clauses);
 
-				// Log.info("\tNumber of clauses: " + encoder.clauses.size());
-				// for (ProverHornClause clause : encoder.clauses)
-				// Log.info("\t\t" + clause);
+				 Log.info("\tNumber of clauses: " + encoder.clauses.size());
+				 for (ProverHornClause clause : encoder.clauses)
+				 Log.info("\t\t" + clause);
 			}
 
 			for (Method method : program.getEntryPoints()) {
