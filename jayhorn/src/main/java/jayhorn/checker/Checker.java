@@ -150,7 +150,7 @@ public class Checker {
 		private final List<ProverExpr> methodPreExprs;
 
 		public MethodEncoder(Prover p, Program program, Method method) {
-			System.err.println("Method " + method.toString());
+			System.err.println(method.toString());
 			this.p = p;
 			this.program = program;
 			this.method = method;

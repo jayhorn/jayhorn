@@ -61,8 +61,8 @@ public class PackingList {
 
 		// for now, don't do anything for constructors
 		// TODO should probably do something more subtle
-		if (m.isConstructor())
-			return;
+//		if (m.isConstructor())
+//			return;
 
 		UnitGraph graph = new CompleteUnitGraph(m.getActiveBody());
 		for (Unit u : graph) {

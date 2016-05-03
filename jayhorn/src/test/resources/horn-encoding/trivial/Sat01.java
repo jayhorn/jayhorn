@@ -1,14 +1,8 @@
-class A
-{
-  public static int i;
-};
-
-class Sat01
-{
-  public static void main(String[] args)
-  {
-    assert A.i == 0;
-//    A.i = 999;
-//    assert A.i == 999;
-  }
+public class Sat01 {
+	public static void main(final java.lang.String[] args) {
+		int N = 4;
+		char[] input = new char[N];
+		int x=input.length;
+		assert (N < 4);
+	}
 }
