@@ -15,12 +15,16 @@ import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
 import soot.ValueBox;
+import soot.jimple.AnyNewExpr;
 import soot.jimple.ArrayRef;
+import soot.jimple.DefinitionStmt;
 import soot.jimple.FieldRef;
+import soot.jimple.InstanceFieldRef;
 import soot.jimple.Stmt;
 import soot.jimple.spark.geom.geomPA.GeomPointsTo;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soot.toolkits.graph.UnitGraph;
+import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
  * 
@@ -58,20 +62,50 @@ public class PackingList {
 	 * Over-estimate the packing list. Do not do any aliasing analysis, but unpack and pack on every FieldRef.
 	 */
 	private void buildOverestimatedLists() {
-
-		// for now, don't do anything for constructors
-		// TODO should probably do something more subtle
-//		if (m.isConstructor())
-//			return;
-
 		UnitGraph graph = new CompleteUnitGraph(m.getActiveBody());
 		for (Unit u : graph) {
 			Stmt s = (Stmt) u;
 			if (s.containsFieldRef()) {
 				FieldRef f = s.getFieldRef();
-				PackUnpackPair pup = new PackUnpackPair(f,f);
-				addPair(pup);
-				System.out.println("Added pack/unpack pair at " + s);
+				if (f instanceof InstanceFieldRef) {
+					InstanceFieldRef ifr = (InstanceFieldRef) f;
+					if (!(m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal()))) { // do not pack/unpack 'this' in constructor
+//						if (!(u instanceof DefinitionStmt	&& ((DefinitionStmt) u).getRightOp() instanceof AnyNewExpr
+//								&& f.getField().getName().contains(SootTranslationHelpers.typeFieldName))) {
+//						if ((u instanceof DefinitionStmt	&& ((DefinitionStmt) u).getRightOp() instanceof AnyNewExpr
+//						&& f.getField().getName().contains(SootTranslationHelpers.typeFieldName))) {
+//							System.out.println("After new: " + u);
+//						}
+						PackUnpackPair pup = new PackUnpackPair(f,f);
+						addPair(pup);
+						System.out.println("Added pack/unpack pair at " + s);
+//						}
+					}
+				} // else ignore (static field ref)
+			}
+		}
+		
+		// add pack at the last access to 'this' for all tails in a constructor
+		if (m.isConstructor()) {
+			List<Unit> todo = new LinkedList<Unit>(graph.getTails());
+			while (!todo.isEmpty()) {
+				Unit u = todo.remove(0);;
+				Stmt s = (Stmt) u;
+				if (s.containsFieldRef()) {
+					FieldRef f = s.getFieldRef();
+					if (f instanceof InstanceFieldRef) {
+						InstanceFieldRef ifr = (InstanceFieldRef) f;
+						if (ifr.getBase().equals(m.getActiveBody().getThisLocal())) {
+							if (!packAt(f)) {
+								PackUnpackPair pup = new PackUnpackPair(f,null);
+								addPair(pup);
+								System.out.println("Added pack at end of constructor, at " + s);
+							}
+							continue;
+						}
+					}
+				}
+				todo.addAll(graph.getPredsOf(u));
 			}
 		}
 	}
@@ -134,7 +168,7 @@ findloop:				for (PackUnpackPair pup : lists.get(fr.getField())) {
 						for (PackUnpackPair pup : open) {
 							PointsToSet pointsTo2 = pta.reachingObjects(pup.packAt.getField());
 							if (pointsTo.hasNonEmptyIntersection(pointsTo2)) {
-								System.out.println("Points to same location as " + pup.packAt.getField());
+								System.out.println(fr.getField() + " points to same location as " + pup.packAt.getField());
 								open.remove(pup);
 							}
 						}
@@ -145,7 +179,7 @@ findloop:				for (PackUnpackPair pup : lists.get(fr.getField())) {
 				for (ValueBox vb : s.getUseAndDefBoxes()) {
 					Value v = vb.getValue();
 					if (v instanceof Local) {
-						System.out.println("LOCAL FOUND: " + v);
+//						System.out.println("LOCAL FOUND: " + v);
 						PointsToSet pointsTo = pta.reachingObjects((Local) v);
 						for (PackUnpackPair pup : open) {
 							PointsToSet pointsTo2 = pta.reachingObjects(pup.packAt.getField());

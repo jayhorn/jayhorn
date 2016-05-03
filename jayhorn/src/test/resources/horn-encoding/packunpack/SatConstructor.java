@@ -10,7 +10,7 @@ class AAAA
 };
 
 
-class ConstructorSat 
+class SatConstructor 
 {
 	  public static void main(String[] args)
 	  {

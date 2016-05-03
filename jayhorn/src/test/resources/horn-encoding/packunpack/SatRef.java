@@ -10,7 +10,7 @@ class B
 }
 
 
-class RefSat 
+class SatRef
 {
 	  public static void main(String[] args)
 	  {

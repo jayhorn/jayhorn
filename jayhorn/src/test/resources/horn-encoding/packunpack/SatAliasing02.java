@@ -4,7 +4,7 @@ class A
   public int i;
 };
 
-class AliasingSat01
+class SatAliasing02 
 {
 
 	public void m(A a1, A a2) {
@@ -17,11 +17,8 @@ class AliasingSat01
 	    A a1 = new A();
 	    A a2 = new A();
 
-	AliasingSat01 as = new AliasingSat01();
-
-	    as.m(a1,a2);
-	    assert a1.i < a2.i;
+	SatAliasing02 as = new SatAliasing02();
+	    as.m(a2,a2);
+	    assert a2.i == 42;
 	  }
-
-	// pack before method calls?
 }

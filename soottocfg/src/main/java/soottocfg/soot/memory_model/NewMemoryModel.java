@@ -91,7 +91,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			
 			// ------------- unpack ---------------
 //			if (!skipUnpack) {
-			if (plists.get(sm)!=null && plists.get(sm).packAt(ifr)) {
+			if (plists.get(sm)!=null && plists.get(sm).unpackAt(ifr)) {
 				List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 				for (int i = 0; i < vars.length; i++) {
 					unpackedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
@@ -103,7 +103,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 					new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar), value));
 			// ------------- pack -----------------
 //			if (!skipPack) {
-			if (plists.get(sm)!=null && plists.get(sm).unpackAt(ifr)) {
+			if (plists.get(sm)!=null && plists.get(sm).packAt(ifr)) {
 				List<Expression> packedVars = new LinkedList<Expression>();
 				for (int i = 0; i < vars.length; i++) {
 					packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
@@ -134,24 +134,31 @@ public class NewMemoryModel extends BasicMemoryModel {
 			ifr.getBase().apply(valueSwitch);
 			IdentifierExpression base = (IdentifierExpression) valueSwitch.popExpression();
 
-			// ------------- unpack ---------------
+
 			ClassVariable c = lookupClassVariable(
 					SootTranslationHelpers.v().getClassConstant(field.getField().getDeclaringClass().getType()));
-			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			Variable[] vars = c.getAssociatedFields();
-			for (int i = 0; i < vars.length; i++) {
-				unpackedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
+			SootMethod sm = SootTranslationHelpers.v().getCurrentMethod();
+			
+			// ------------- unpack ---------------
+			if (plists.get(sm)!=null && plists.get(sm).unpackAt(ifr)) {
+				List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
+				for (int i = 0; i < vars.length; i++) {
+					unpackedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
+				}
+				this.statementSwitch.push(new UnPackStatement(loc, c, base, unpackedVars));
 			}
-			this.statementSwitch.push(new UnPackStatement(loc, c, base, unpackedVars));
 			// ------------------------------------
 			this.statementSwitch.push(new AssignStatement(loc, left,
 					new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar)));
 			// ------------- pack -----------------
-			List<Expression> packedVars = new LinkedList<Expression>();
-			for (int i = 0; i < vars.length; i++) {
-				packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
+			if (plists.get(sm)!=null && plists.get(sm).packAt(ifr)) {
+				List<Expression> packedVars = new LinkedList<Expression>();
+				for (int i = 0; i < vars.length; i++) {
+					packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
+				}
+				this.statementSwitch.push(new PackStatement(loc, c, base, packedVars));
 			}
-			this.statementSwitch.push(new PackStatement(loc, c, base, packedVars));
 			// ------------------------------------
 		} else if (field instanceof StaticFieldRef) {
 			lhs.apply(valueSwitch);
