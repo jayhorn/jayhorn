@@ -45,8 +45,8 @@ public class PackingList {
 		this.m = m;
 		this.lists = new HashMap<SootField,List<PackUnpackPair>>();
 		buildOverestimatedLists();
-		int merged = minimize();
-		System.out.println("Minimization step removed " + merged + " pack-unpack pairs.");
+//		int merged = minimize();
+//		System.out.println("Minimization step removed " + merged + " pack-unpack pairs.");
 	}
 	
 	private boolean addPair(PackUnpackPair pup) {
@@ -70,16 +70,9 @@ public class PackingList {
 				if (f instanceof InstanceFieldRef) {
 					InstanceFieldRef ifr = (InstanceFieldRef) f;
 					if (!(m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal()))) { // do not pack/unpack 'this' in constructor
-//						if (!(u instanceof DefinitionStmt	&& ((DefinitionStmt) u).getRightOp() instanceof AnyNewExpr
-//								&& f.getField().getName().contains(SootTranslationHelpers.typeFieldName))) {
-//						if ((u instanceof DefinitionStmt	&& ((DefinitionStmt) u).getRightOp() instanceof AnyNewExpr
-//						&& f.getField().getName().contains(SootTranslationHelpers.typeFieldName))) {
-//							System.out.println("After new: " + u);
-//						}
 						PackUnpackPair pup = new PackUnpackPair(f,f);
 						addPair(pup);
 						System.out.println("Added pack/unpack pair at " + s);
-//						}
 					}
 				} // else ignore (static field ref)
 			}
@@ -137,6 +130,7 @@ public class PackingList {
 				if (s.containsFieldRef()) {
 					FieldRef fr = s.getFieldRef();
 					boolean merged = false;
+					PackUnpackPair justAdded = null;
 					
 					// if minimization may be possible
 					if (unpackAt(fr) && lists.get(fr.getField()).size() > 1) {
@@ -158,6 +152,8 @@ findloop:				for (PackUnpackPair pup : lists.get(fr.getField())) {
 								}
 								// not found -> add to list to minimize
 								open.add(pup);
+								justAdded=pup;
+								break findloop;
 							}
 						}
 					}
@@ -166,42 +162,45 @@ findloop:				for (PackUnpackPair pup : lists.get(fr.getField())) {
 					if (!merged) {
 						PointsToSet pointsTo = pta.reachingObjects(fr.getField());
 						for (PackUnpackPair pup : open) {
-							PointsToSet pointsTo2 = pta.reachingObjects(pup.packAt.getField());
-							if (pointsTo.hasNonEmptyIntersection(pointsTo2)) {
-								System.out.println(fr.getField() + " points to same location as " + pup.packAt.getField());
-								open.remove(pup);
-							}
+//							if (pup != justAdded) {
+								PointsToSet pointsTo2 = pta.reachingObjects(pup.packAt.getField());
+								if (pointsTo.hasNonEmptyIntersection(pointsTo2)) {
+									System.out.println(fr.getField() + " may point to same location as " + pup.packAt.getField());
+									open.remove(pup);
+								}
+//							}
 						}
 					}
 				}
 
 				// use points to analysis to check which objects may remain unpacked
-				for (ValueBox vb : s.getUseAndDefBoxes()) {
-					Value v = vb.getValue();
-					if (v instanceof Local) {
-//						System.out.println("LOCAL FOUND: " + v);
-						PointsToSet pointsTo = pta.reachingObjects((Local) v);
-						for (PackUnpackPair pup : open) {
-							PointsToSet pointsTo2 = pta.reachingObjects(pup.packAt.getField());
-							if (pointsTo.hasNonEmptyIntersection(pointsTo2)) {
-								System.out.println("May point to the same location as " + pup.packAt.getField());
-								open.remove(pup);
-							}
-						}
-					}
-				}
-				
-				// TODO not sure if necessary, can array values point to the same memory location as fields in Jimple?
-				if (s.containsArrayRef()) {
-					ArrayRef ar = s.getArrayRef();
-					for (ValueBox vb : ar.getUseBoxes()) {
-						Value v = vb.getValue();
-						if (v instanceof Local) {
-							System.out.println("AN ARRAY VALUE CAN BE A LOCAL !!!! " + v);
-							// looks like this is not needed
-						}
-					}
-				}
+				// TODO it seems this captures the same locations as above, so probably not needed
+//				for (ValueBox vb : s.getUseAndDefBoxes()) {
+//					Value v = vb.getValue();
+//					if (v instanceof Local) {
+////						System.out.println("LOCAL FOUND: " + v);
+//						PointsToSet pointsTo = pta.reachingObjects((Local) v);
+//						for (PackUnpackPair pup : open) {
+//							PointsToSet pointsTo2 = pta.reachingObjects(pup.packAt.getField());
+//							if (pointsTo.hasNonEmptyIntersection(pointsTo2)) {
+//								System.out.println("May point to the same location as " + pup.packAt.getField());
+//								open.remove(pup);
+//							}
+//						}
+//					}
+//				}
+//				
+//				// TODO not sure if necessary, can array values point to the same memory location as fields in Jimple?
+//				if (s.containsArrayRef()) {
+//					ArrayRef ar = s.getArrayRef();
+//					for (ValueBox vb : ar.getUseBoxes()) {
+//						Value v = vb.getValue();
+//						if (v instanceof Local) {
+//							System.out.println("AN ARRAY VALUE CAN BE A LOCAL !!!! " + v);
+//							// looks like this is not needed
+//						}
+//					}
+//				}
 				
 				done.add(current);
 				for (Unit next : graph.getSuccsOf(current)) {
@@ -258,7 +257,7 @@ findloop:				for (PackUnpackPair pup : lists.get(fr.getField())) {
 		FieldRef unpackAt;
 
 		PackUnpackPair(FieldRef packAt, FieldRef unpackAt) {
-			assert(packAt.getField()==unpackAt.getField());
+			assert(unpackAt==null || packAt.getField()==unpackAt.getField());
 			this.f = packAt.getField();
 			this.packAt = packAt;
 			this.unpackAt = unpackAt;
