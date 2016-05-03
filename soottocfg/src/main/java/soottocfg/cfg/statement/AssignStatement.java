@@ -48,7 +48,7 @@ public class AssignStatement extends Statement {
 				} else if (((IntegerLiteral) rhs).getValue() == 1L) {
 					rhs = BooleanLiteral.trueLiteral();
 				} else {
-					throw new RuntimeException();
+					throw new RuntimeException("Assignment statement not implemented for bool/int mix.");
 				}
 			}
 		}

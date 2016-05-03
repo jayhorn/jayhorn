@@ -15,7 +15,6 @@ import com.google.common.base.Preconditions;
 
 import soot.Body;
 import soot.Modifier;
-import soot.PrimType;
 import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
@@ -25,15 +24,10 @@ import soot.Unit;
 import soot.Value;
 import soot.ValueBox;
 import soot.VoidType;
-import soot.jimple.DoubleConstant;
-import soot.jimple.FloatConstant;
 import soot.jimple.IdentityStmt;
 import soot.jimple.InstanceFieldRef;
-import soot.jimple.IntConstant;
 import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
-import soot.jimple.LongConstant;
-import soot.jimple.NullConstant;
 import soot.jimple.StaticFieldRef;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
 import soot.jimple.toolkits.scalar.UnreachableCodeEliminator;
@@ -42,6 +36,7 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.Method;
+import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.transformers.ArrayAbstraction;
 import soottocfg.soot.transformers.AssertionReconstruction;
@@ -52,7 +47,6 @@ import soottocfg.soot.util.DuplicatedCatchDetection;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.soot.visitors.SootStmtSwitch;
-import soottocfg.soot.memory_model.*;
 
 /**
  * This is the main class for the translation. It first invokes Soot to load all
@@ -195,8 +189,9 @@ public class SootToCfg {
 					}
 				} catch (RuntimeException e) {
 					System.err.println("Soot failed to parse " + sm.getSignature());
-					e.printStackTrace();
-					return;
+					e.printStackTrace(System.err);
+//					return;
+					throw e;
 				}
 			}
 		}
@@ -242,13 +237,18 @@ public class SootToCfg {
 				for (SootMethod sm : sc.getMethods()) {
 					if (sm.isConcrete()) {
 						SootTranslationHelpers.v().setCurrentMethod(sm);
+						Body body;
 						try {
-							Body body = sm.retrieveActiveBody();
+							if (sm.hasActiveBody()) {
+								body = sm.getActiveBody();
+							} else {
+								body = sm.retrieveActiveBody();
+							}							
 							ArrayAbstraction abstraction = new ArrayAbstraction();
 							abstraction.transform(body);
 						} catch (RuntimeException e) {
-							System.err.println("Soot failed to parse " + sm.getSignature());
-							return;
+							System.err.println("Abstraction transformation failed" + sm.getSignature());
+							throw e;
 						}
 					}
 				}
@@ -329,7 +329,7 @@ public class SootToCfg {
 						} catch (RuntimeException e) {
 							e.printStackTrace();
 							throw new RuntimeException(
-									"Soot failed to parse " + sm.getSignature() + " " + e.toString());
+									"Behavior preserving transformation failed " + sm.getSignature() + " " + e.toString());
 						}
 					}
 				}
@@ -399,7 +399,7 @@ public class SootToCfg {
 
 		for (SootField f : staticFields) {
 			Unit init = Jimple.v().newAssignStmt(Jimple.v().newStaticFieldRef(f.makeRef()),
-					getDefaultValue(f.getType()));
+					SootTranslationHelpers.v().getDefaultValue(f.getType()));
 			staticInit.getActiveBody().getUnits().addFirst(init);
 		}
 
@@ -443,7 +443,7 @@ public class SootToCfg {
 				} else {
 					init = Jimple.v().newAssignStmt(
 							Jimple.v().newInstanceFieldRef(constructor.getActiveBody().getThisLocal(), f.makeRef()),
-							getDefaultValue(f.getType()));
+							SootTranslationHelpers.v().getDefaultValue(f.getType()));
 				}
 				constructor.getActiveBody().getUnits().insertAfter(init, insertPos);
 			}
@@ -451,31 +451,4 @@ public class SootToCfg {
 		}
 	}
 
-	private Value getDefaultValue(soot.Type t) {
-		Value rhs = null;
-		if (t instanceof PrimType) {
-			if (t instanceof soot.BooleanType) {
-				rhs = IntConstant.v(0);
-			} else if (t instanceof soot.ByteType) {
-				rhs = IntConstant.v(0);
-			} else if (t instanceof soot.CharType) {
-				rhs = IntConstant.v(0);
-			} else if (t instanceof soot.DoubleType) {
-				rhs = DoubleConstant.v(0);
-			} else if (t instanceof soot.FloatType) {
-				rhs = FloatConstant.v(0);
-			} else if (t instanceof soot.IntType) {
-				rhs = IntConstant.v(0);
-			} else if (t instanceof soot.LongType) {
-				rhs = LongConstant.v(0);
-			} else if (t instanceof soot.ShortType) {
-				rhs = IntConstant.v(0);
-			} else {
-				throw new RuntimeException("Unknown type " + t);
-			}
-		} else {
-			rhs = NullConstant.v();
-		}
-		return rhs;
-	}
 }

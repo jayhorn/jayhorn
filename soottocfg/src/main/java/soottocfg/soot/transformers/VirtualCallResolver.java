@@ -137,7 +137,7 @@ public class VirtualCallResolver extends AbstractTransformer {
 					Jimple.v().newVirtualInvokeExpr(l, callee.makeRef(), ivk.getArgs()), s);
 			units.add(newAssign);
 		} else if (originalCall instanceof IdentityStmt) {
-			throw new RuntimeException();
+			throw new RuntimeException("Not imeplemented "+originalCall);
 		}
 		// jump back to the statement after the original call.
 		Unit succ = body.getUnits().getSuccOf(originalCall);
