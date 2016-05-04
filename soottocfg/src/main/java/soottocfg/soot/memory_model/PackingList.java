@@ -6,25 +6,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import soot.Local;
 import soot.PointsToAnalysis;
 import soot.PointsToSet;
 import soot.Scene;
 import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
-import soot.Value;
-import soot.ValueBox;
-import soot.jimple.AnyNewExpr;
-import soot.jimple.ArrayRef;
-import soot.jimple.DefinitionStmt;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.Stmt;
-import soot.jimple.spark.geom.geomPA.GeomPointsTo;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soot.toolkits.graph.UnitGraph;
-import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
  * 
@@ -45,8 +37,8 @@ public class PackingList {
 		this.m = m;
 		this.lists = new HashMap<SootField,List<PackUnpackPair>>();
 		buildOverestimatedLists();
-//		int merged = minimize();
-//		System.out.println("Minimization step removed " + merged + " pack-unpack pairs.");
+		int merged = minimize();
+		System.out.println("Minimization step removed " + merged + " pack-unpack pairs.");
 	}
 	
 	private boolean addPair(PackUnpackPair pup) {
@@ -142,7 +134,7 @@ findloop:				for (PackUnpackPair pup : lists.get(fr.getField())) {
 								for (PackUnpackPair pup2 : open) {
 									if (pup2.unpackAt.getField()==fr.getField()) {
 										//merge
-										pup2.unpackAt = fr;
+										pup2.packAt = fr;
 										lists.get(fr.getField()).remove(pup);
 										count++;
 										merged = true;
@@ -161,15 +153,18 @@ findloop:				for (PackUnpackPair pup : lists.get(fr.getField())) {
 					// use points to analysis to check which objects may remain unpacked
 					if (!merged) {
 						PointsToSet pointsTo = pta.reachingObjects(fr.getField());
+						Set<PackUnpackPair> toRemove = new HashSet<PackUnpackPair>();
 						for (PackUnpackPair pup : open) {
-//							if (pup != justAdded) {
+							if (pup != justAdded) {
 								PointsToSet pointsTo2 = pta.reachingObjects(pup.packAt.getField());
 								if (pointsTo.hasNonEmptyIntersection(pointsTo2)) {
 									System.out.println(fr.getField() + " may point to same location as " + pup.packAt.getField());
-									open.remove(pup);
+//									open.remove(pup);
+									toRemove.add(pup);
 								}
-//							}
+							}
 						}
+						open.removeAll(toRemove);
 					}
 				}
 
