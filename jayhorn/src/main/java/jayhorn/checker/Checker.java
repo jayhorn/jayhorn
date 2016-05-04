@@ -723,9 +723,9 @@ public class Checker {
 				encoder.encode();
 				clauses.addAll(encoder.clauses);
 
-				 Log.info("\tNumber of clauses: " + encoder.clauses.size());
-				 for (ProverHornClause clause : encoder.clauses)
-				 Log.info("\t\t" + clause);
+//				 Log.info("\tNumber of clauses: " + encoder.clauses.size());
+//				 for (ProverHornClause clause : encoder.clauses)
+//				 Log.info("\t\t" + clause);
 			}
 
 			for (Method method : program.getEntryPoints()) {
@@ -745,7 +745,7 @@ public class Checker {
 
 				p.addAssertion(p.mkHornClause(entryAtom, new ProverExpr[0], p.mkLiteral(true)));
 
-				result = p.checkSat(true);
+//				result = p.checkSat(true);
 				if (jayhorn.Options.v().getTimeout() > 0) {
 					int timeoutInMsec = (int) TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());
 					p.checkSat(false);
