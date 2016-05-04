@@ -66,6 +66,21 @@ public class Options {
 	public String getJavaInput() {		
 		return this.javaInput;
 	}
+	
+	
+	/**
+	 * Print Horn clauses
+	 */
+	@Option(name = "-h", usage = "Print horn clauses", required = false)
+	private boolean printHorn = false;
+	
+	public boolean getPrintHorn() {		
+		return this.printHorn;
+	}
+	
+	public void setPrintHorn(boolean b) {		
+		this.printHorn = b;
+	}	
 
 	/**
 	 * Classpath

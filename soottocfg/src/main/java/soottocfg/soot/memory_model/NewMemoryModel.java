@@ -35,14 +35,11 @@ public class NewMemoryModel extends BasicMemoryModel {
 	}
 
 	public void updatePackUnpack() {
-		
-		System.out.println("Determining when to PACK / UNPACK");
-		
+//		System.out.println("Determining when to PACK / UNPACK");
 		SootMethod m = SootTranslationHelpers.v().getCurrentMethod();
 		PackingList pl = new PackingList(m);
 		plists.put(m, pl);
-		
-		System.out.println("Done.");
+//		System.out.println("Done.");
 	}
 	
 	@Override

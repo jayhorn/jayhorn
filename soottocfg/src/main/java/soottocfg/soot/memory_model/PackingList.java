@@ -12,6 +12,9 @@ import soot.Scene;
 import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
+import soot.Value;
+import soot.ValueBox;
+import soot.jimple.ArrayRef;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.Stmt;
@@ -38,7 +41,8 @@ public class PackingList {
 		this.lists = new HashMap<SootField,List<PackUnpackPair>>();
 		buildOverestimatedLists();
 		int merged = minimize();
-		System.out.println("Minimization step removed " + merged + " pack-unpack pairs.");
+		if (merged>0)
+			System.out.println("Minimization step removed " + merged + " pack-unpack pairs in " + m.getName());
 	}
 	
 	private boolean addPair(PackUnpackPair pup) {
@@ -57,6 +61,17 @@ public class PackingList {
 		UnitGraph graph = new CompleteUnitGraph(m.getActiveBody());
 		for (Unit u : graph) {
 			Stmt s = (Stmt) u;
+			
+			// test code for lengthof expr
+			List<ValueBox> vbs = u.getUseBoxes();
+			for (ValueBox vb : vbs) {
+				Value v = vb.getValue();
+				if (s.toString().contains("lengthof")) {
+					System.out.println("CLASS" + v.getClass());
+				}
+				
+			}
+			
 			if (s.containsFieldRef()) {
 				FieldRef f = s.getFieldRef();
 				if (f instanceof InstanceFieldRef) {
@@ -84,7 +99,7 @@ public class PackingList {
 							if (!packAt(f)) {
 								PackUnpackPair pup = new PackUnpackPair(f,null);
 								addPair(pup);
-								System.out.println("Added pack at end of constructor, at " + s);
+//								System.out.println("Added pack at end of constructor, at " + s);
 							}
 							continue;
 						}
@@ -133,13 +148,26 @@ findloop:				for (PackUnpackPair pup : lists.get(fr.getField())) {
 								// if in list of currently unpacked fields, merge PackUnpackPairs
 								for (PackUnpackPair pup2 : open) {
 									if (pup2.unpackAt.getField()==fr.getField()) {
-										//merge
-										pup2.packAt = fr;
-										lists.get(fr.getField()).remove(pup);
-										count++;
-										merged = true;
-										System.out.println("MERGE! Pack at " + pup2.packAt + " unpack at " + pup2.unpackAt);
-										break findloop;
+										// check  if variable names are equal, otherwise should not merge
+										boolean sameVar = true;
+										List<ValueBox> vbs1 = pup.packAt.getUseBoxes();
+										List<ValueBox> vbs2 = pup2.packAt.getUseBoxes();
+										for (ValueBox vb1 : vbs1) {
+											for (ValueBox vb2 : vbs2) {
+												if(!vb1.getValue().equals(vb2.getValue()))
+													sameVar = false;
+											}
+										}
+
+										if (sameVar) {
+											//merge
+											pup2.packAt = fr;
+											lists.get(fr.getField()).remove(pup);
+											count++;
+											merged = true;
+											System.out.println("MERGE! Pack at " + pup2.packAt + " unpack at " + pup2.unpackAt);
+											break findloop;
+										}
 									}
 								}
 								// not found -> add to list to minimize

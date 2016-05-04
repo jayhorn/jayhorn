@@ -17,6 +17,4 @@ class SatConstructor
 	    AAAA a = new AAAA(42);
 	    assert a.i == 42;
 	  }
-
-	// pack everything after constructor?
 }

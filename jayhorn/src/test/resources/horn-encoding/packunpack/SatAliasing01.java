@@ -22,6 +22,4 @@ class SatAliasing01
 	    as.m(a1,a2);
 	    assert a1.i < a2.i;
 	  }
-
-	// pack before method calls?
 }
