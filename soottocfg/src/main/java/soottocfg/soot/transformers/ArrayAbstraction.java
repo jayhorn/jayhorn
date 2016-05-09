@@ -4,6 +4,7 @@
 package soottocfg.soot.transformers;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ import soot.IntType;
 import soot.Local;
 import soot.RefType;
 import soot.SootClass;
+import soot.SootField;
 import soot.SootMethod;
 import soot.SootMethodRef;
 import soot.Type;
@@ -24,6 +26,7 @@ import soot.jimple.ArrayRef;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.InvokeExpr;
 import soot.jimple.Jimple;
+import soot.jimple.LengthExpr;
 import soot.jimple.NewArrayExpr;
 import soot.jimple.Stmt;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -36,7 +39,16 @@ public class ArrayAbstraction extends AbstractTransformer {
 	
 	private static final String getterMethodName = "get";
 	private static final String setterMethodName = "set";
+	private final Map<SootField, SootField> globalArrayFields;
+	private final Map<Local, Local>	localArrayFields;
 	
+	public ArrayAbstraction(Map<SootField, SootField> globalArrayFields) {
+		this.globalArrayFields = globalArrayFields; 
+		localArrayFields = new HashMap<Local, Local>();		
+	}
+
+
+
 	@Override
 	protected void internalTransform(Body b, String arg1, Map<String, String> arg2) {
 		/*
@@ -87,7 +99,12 @@ public class ArrayAbstraction extends AbstractTransformer {
 				Unit constructorCall = Jimple.v().newInvokeStmt(ivk);
 				constructorCall.addAllTagsOf(u);
 				b.getUnits().insertAfter(constructorCall, replacement);
-				b.getUnits().remove(u);				
+				b.getUnits().remove(u);
+			} else if (s instanceof DefinitionStmt && ((DefinitionStmt)s).getRightOp() instanceof LengthExpr) {
+				LengthExpr le = (LengthExpr)((DefinitionStmt)s).getRightOp();
+				SootClass arrayClass = SootTranslationHelpers.v().getFakeArrayClass((ArrayType)le.getOp().getType());
+				SootField lengthField = arrayClass.getFieldByName(SootTranslationHelpers.lengthFieldName);
+				
 			}
 		}
 		/*
