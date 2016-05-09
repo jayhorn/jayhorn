@@ -9,9 +9,12 @@ import java.util.Set;
 import soot.PointsToAnalysis;
 import soot.PointsToSet;
 import soot.Scene;
+import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
+import soot.Value;
+import soot.ValueBox;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.Stmt;
@@ -27,7 +30,7 @@ import soot.toolkits.graph.UnitGraph;
 public class PackingList {
 
 	SootMethod m;
-	HashMap<SootField,List<PackUnpackPair>> lists;
+	HashMap<SootClass,List<PackUnpackPair>> lists;
 	
 	/**
 	 * Construct new PackingList.
@@ -35,17 +38,18 @@ public class PackingList {
 	 */
 	public PackingList(SootMethod m) {
 		this.m = m;
-		this.lists = new HashMap<SootField,List<PackUnpackPair>>();
+		this.lists = new HashMap<SootClass,List<PackUnpackPair>>();
 		buildOverestimatedLists();
 		int merged = minimize();
-		System.out.println("Minimization step removed " + merged + " pack-unpack pairs.");
+		if (merged>0)
+			System.out.println("Minimization step removed " + merged + " pack-unpack pairs in " + m.getName());
 	}
 	
 	private boolean addPair(PackUnpackPair pup) {
-		List<PackUnpackPair> list = lists.get(pup.f);
+		List<PackUnpackPair> list = lists.get(pup.f.getDeclaringClass());
 		if (list==null) {
 			list = new LinkedList<PackUnpackPair>();
-			lists.put(pup.f,list);
+			lists.put(pup.f.getDeclaringClass(),list);
 		}
 		return list.add(pup);
 	}
@@ -57,6 +61,17 @@ public class PackingList {
 		UnitGraph graph = new CompleteUnitGraph(m.getActiveBody());
 		for (Unit u : graph) {
 			Stmt s = (Stmt) u;
+			
+			// test code for lengthof expr
+//			List<ValueBox> vbs = u.getUseBoxes();
+//			for (ValueBox vb : vbs) {
+//				Value v = vb.getValue();
+//				if (s.toString().contains("lengthof")) {
+//					System.out.println("CLASS" + v.getClass());
+//				}
+//				
+//			}
+			
 			if (s.containsFieldRef()) {
 				FieldRef f = s.getFieldRef();
 				if (f instanceof InstanceFieldRef) {
@@ -84,7 +99,7 @@ public class PackingList {
 							if (!packAt(f)) {
 								PackUnpackPair pup = new PackUnpackPair(f,null);
 								addPair(pup);
-								System.out.println("Added pack at end of constructor, at " + s);
+//								System.out.println("Added pack at end of constructor, at " + s);
 							}
 							continue;
 						}
@@ -125,21 +140,34 @@ public class PackingList {
 					PackUnpackPair justAdded = null;
 					
 					// if minimization may be possible
-					if (unpackAt(fr) && lists.get(fr.getField()).size() > 1) {
+					if (unpackAt(fr) && lists.get(fr.getField().getDeclaringClass()).size() > 1) {
 						
 						// find the pair
-findloop:				for (PackUnpackPair pup : lists.get(fr.getField())) {
+findloop:				for (PackUnpackPair pup : lists.get(fr.getField().getDeclaringClass())) {
 							if (pup.unpackAt==fr) {
 								// if in list of currently unpacked fields, merge PackUnpackPairs
 								for (PackUnpackPair pup2 : open) {
-									if (pup2.unpackAt.getField()==fr.getField()) {
-										//merge
-										pup2.packAt = fr;
-										lists.get(fr.getField()).remove(pup);
-										count++;
-										merged = true;
-										System.out.println("MERGE! Pack at " + pup2.packAt + " unpack at " + pup2.unpackAt);
-										break findloop;
+									if (pup2.unpackAt.getField().getDeclaringClass().equals(fr.getField().getDeclaringClass())) {
+										// check  if variable names are equal, otherwise should not merge
+										boolean sameVar = true;
+										List<ValueBox> vbs1 = pup.packAt.getUseBoxes();
+										List<ValueBox> vbs2 = pup2.packAt.getUseBoxes();
+										for (ValueBox vb1 : vbs1) {
+											for (ValueBox vb2 : vbs2) {
+												if(!vb1.getValue().equals(vb2.getValue()))
+													sameVar = false;
+											}
+										}
+
+										if (sameVar) {
+											//merge
+											pup2.packAt = fr;
+											lists.get(fr.getField().getDeclaringClass()).remove(pup);
+											count++;
+											merged = true;
+											System.out.println("MERGE! Pack at " + pup2.packAt + " unpack at " + pup2.unpackAt);
+											break findloop;
+										}
 									}
 								}
 								// not found -> add to list to minimize
@@ -159,7 +187,6 @@ findloop:				for (PackUnpackPair pup : lists.get(fr.getField())) {
 								PointsToSet pointsTo2 = pta.reachingObjects(pup.packAt.getField());
 								if (pointsTo.hasNonEmptyIntersection(pointsTo2)) {
 									System.out.println(fr.getField() + " may point to same location as " + pup.packAt.getField());
-//									open.remove(pup);
 									toRemove.add(pup);
 								}
 							}
@@ -215,7 +242,7 @@ findloop:				for (PackUnpackPair pup : lists.get(fr.getField())) {
 	 * @return true if we should pack at fr
 	 */
 	public boolean packAt(FieldRef fr) {
-		List<PackUnpackPair> list = lists.get(fr.getField());
+		List<PackUnpackPair> list = lists.get(fr.getField().getDeclaringClass());
 		if (list != null) {
 			for (PackUnpackPair pup : list) {
 				if (pup.packAt==fr)
@@ -231,7 +258,7 @@ findloop:				for (PackUnpackPair pup : lists.get(fr.getField())) {
 	 * @return true if we should unpack at fr
 	 */
 	public boolean unpackAt(FieldRef fr) {
-		List<PackUnpackPair> list = lists.get(fr.getField());
+		List<PackUnpackPair> list = lists.get(fr.getField().getDeclaringClass());
 		if (list != null) {
 			for (PackUnpackPair pup : list) {
 				if (pup.unpackAt==fr)
@@ -252,7 +279,7 @@ findloop:				for (PackUnpackPair pup : lists.get(fr.getField())) {
 		FieldRef unpackAt;
 
 		PackUnpackPair(FieldRef packAt, FieldRef unpackAt) {
-			assert(unpackAt==null || packAt.getField()==unpackAt.getField());
+//			assert(unpackAt==null || packAt.getField()==unpackAt.getField());
 			this.f = packAt.getField();
 			this.packAt = packAt;
 			this.unpackAt = unpackAt;
