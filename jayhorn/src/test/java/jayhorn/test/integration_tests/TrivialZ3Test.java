@@ -36,7 +36,7 @@ public class TrivialZ3Test {
 	@Parameterized.Parameters(name = "{index}: check ({1})")
 	public static Collection<Object[]> data() {
 		List<Object[]> filenames = new LinkedList<Object[]>();
-		final File source_dir = new File(testRoot + "horn-encoding/trivial");
+		final File source_dir = new File(testRoot + "horn-encoding/arrays");
 		collectFileNamesRecursively(source_dir, filenames);
 		if (filenames.isEmpty()) {
 			throw new RuntimeException("Test data not found!");
