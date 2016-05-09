@@ -4,6 +4,7 @@
 package soottocfg.soot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -227,6 +228,7 @@ public class SootToCfg {
 	}
 
 	private void performAbstractionTransformations() {
+		Map<SootField, SootField> globalArrayFields = new HashMap<SootField, SootField>(); 
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
 			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
@@ -244,7 +246,7 @@ public class SootToCfg {
 							} else {
 								body = sm.retrieveActiveBody();
 							}							
-							ArrayAbstraction abstraction = new ArrayAbstraction();
+							ArrayAbstraction abstraction = new ArrayAbstraction(globalArrayFields);
 							abstraction.transform(body);
 						} catch (RuntimeException e) {
 							System.err.println("Abstraction transformation failed" + sm.getSignature());

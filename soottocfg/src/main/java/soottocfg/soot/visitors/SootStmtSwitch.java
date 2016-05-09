@@ -661,6 +661,7 @@ public class SootStmtSwitch implements StmtSwitch {
 					// first make a heap-read of the type filed.
 					dynTypeField = ((RefType) t).getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
 				} else if (t instanceof ArrayType) {
+					//TODO: is this correct?
 					dynTypeField = SootTranslationHelpers.v().getFakeArrayClass((ArrayType)t)
 							.getFieldByName(SootTranslationHelpers.typeFieldName);
 				} else {
