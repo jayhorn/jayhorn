@@ -109,6 +109,7 @@ public class ArrayAbstraction extends AbstractTransformer {
 				Unit replacement = this.assignStmtFor(ds.getLeftOp(), Jimple.v().newInstanceFieldRef(le.getOp(), lengthField.makeRef()), ds);
 				b.getUnits().insertAfter(replacement, u);
 				replacement.addAllTagsOf(u);
+				b.getUnits().remove(u);
 			}
 		}
 		/*
