@@ -101,10 +101,14 @@ public class ArrayAbstraction extends AbstractTransformer {
 				b.getUnits().insertAfter(constructorCall, replacement);
 				b.getUnits().remove(u);
 			} else if (s instanceof DefinitionStmt && ((DefinitionStmt)s).getRightOp() instanceof LengthExpr) {
-				LengthExpr le = (LengthExpr)((DefinitionStmt)s).getRightOp();
+				DefinitionStmt ds = (DefinitionStmt)s;
+				LengthExpr le = (LengthExpr) ds.getRightOp();
 				SootClass arrayClass = SootTranslationHelpers.v().getFakeArrayClass((ArrayType)le.getOp().getType());
 				SootField lengthField = arrayClass.getFieldByName(SootTranslationHelpers.lengthFieldName);
 				
+				Unit replacement = this.assignStmtFor(ds.getLeftOp(), Jimple.v().newInstanceFieldRef(le.getOp(), lengthField.makeRef()), ds);
+				b.getUnits().insertAfter(replacement, u);
+				replacement.addAllTagsOf(u);
 			}
 		}
 		/*
