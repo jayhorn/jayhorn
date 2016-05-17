@@ -115,8 +115,9 @@ public class SootToCfg {
 		SootRunner runner = new SootRunner();
 		runner.run(input, classPath);
 
+		
 		performBehaviorPreservingTransformations();
-		performAbstractionTransformations();
+		//performAbstractionTransformations();
 
 		constructCfg();
 		// reset all the soot stuff.
@@ -132,7 +133,7 @@ public class SootToCfg {
 	public void runForSingleClass(SootClass sc) {
 		SootRunner.createAssertionClass();
 		performBehaviorPreservingTransformations();
-		performAbstractionTransformations();
+		//performAbstractionTransformations();
 		constructCfg(sc);
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
@@ -219,7 +220,7 @@ public class SootToCfg {
 				}
 				Method m = program.loopupMethod(entryPoint.getSignature());
 				if (m != null) {
-					System.out.println("Adding entry point " + m.getMethodName());
+					//System.out.println("Adding entry point " + m.getMethodName());
 					// TODO
 					program.addEntryPoint(m);
 				}
@@ -348,14 +349,14 @@ public class SootToCfg {
 					continue;
 				}
 				if (entry != null) {
-					System.err.println("Found more than one main. Not adding static initializers to main :(");
+					//System.err.println("Found more than one main. Not adding static initializers to main :(");
 					return;
 				}
 				entry = entryPoint;
 			}
 		}
 		if (entry != null) {
-			System.out.println("Adding " + staticInitializers.size() + " static init calls to " + entry.getSignature());
+			//System.out.println("Adding " + staticInitializers.size() + " static init calls to " + entry.getSignature());
 			for (SootMethod initializer : staticInitializers) {
 				Unit initCall = Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(initializer.makeRef()));
 				entry.getActiveBody().getUnits().addFirst(initCall);

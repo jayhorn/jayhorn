@@ -151,7 +151,7 @@ public class Checker {
 		private final List<ProverExpr> methodPreExprs;
 
 		public MethodEncoder(Prover p, Program program, Method method) {
-			System.err.println(method.toString());
+			//System.err.println(method.toString());
 			this.p = p;
 			this.program = program;
 			this.method = method;
@@ -639,6 +639,8 @@ public class Checker {
 	////////////////////////////////////////////////////////////////////////////
 
 	public boolean checkProgram(Program program) {
+		
+		
 		Log.info("Starting verification for " + program.getEntryPoints().length + " entry points.");
 
 		Prover p = factory.spawn();
@@ -724,17 +726,18 @@ public class Checker {
 				encoder.encode();
 				clauses.addAll(encoder.clauses);
 
-				if (jayhorn.Options.v().getPrintHorn()) {
-					Log.info("\tNumber of clauses: " + encoder.clauses.size());
-					for (ProverHornClause clause : encoder.clauses)
-						Log.info("\t\t" + clause);
-				}
+//				if (jayhorn.Options.v().getPrintHorn()) {
+//					//Log.info("\tNumber of clauses: " + encoder.clauses.size());
+//					for (ProverHornClause clause : encoder.clauses)
+//						Log.info("\t\t" + clause);
+//				}
 			}
 
 			for (Method method : program.getEntryPoints()) {
 				Log.info("\tVerification from entry " + method.getMethodName());
-
+				//Log.info("\t Number of clauses: " + clauses.size());
 				p.push();
+				
 				for (ProverHornClause clause : clauses)
 					p.addAssertion(clause);
 
@@ -766,7 +769,7 @@ public class Checker {
 		} finally {
 			p.shutdown();
 		}
-		Log.info("\tResult:  " + result);
+		//Log.info("\tResult:  " + result);
 		if (result == ProverResult.Sat) {
 			return true;
 		} else if (result == ProverResult.Unsat) {
@@ -805,7 +808,7 @@ public class Checker {
 			return p.getIntType();
 		}
 		if (t instanceof MapType) {
-			System.err.println("Warning: translating " + t + " as prover type int");
+			//System.err.println("Warning: translating " + t + " as prover type int");
 			return p.getIntType();
 		}
 		throw new IllegalArgumentException("don't know what to do with " + t);

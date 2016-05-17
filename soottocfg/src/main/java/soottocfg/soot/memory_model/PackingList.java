@@ -41,8 +41,8 @@ public class PackingList {
 		this.lists = new HashMap<SootClass,List<PackUnpackPair>>();
 		buildOverestimatedLists();
 		int merged = minimize();
-		if (merged>0)
-			System.out.println("Minimization step removed " + merged + " pack-unpack pairs in " + m.getName());
+//		if (merged>0)
+//			System.out.println("Minimization step removed " + merged + " pack-unpack pairs in " + m.getName());
 	}
 	
 	private boolean addPair(PackUnpackPair pup) {
@@ -79,7 +79,7 @@ public class PackingList {
 					if (!(m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal()))) { // do not pack/unpack 'this' in constructor
 						PackUnpackPair pup = new PackUnpackPair(f,f);
 						addPair(pup);
-						System.out.println("Added pack/unpack pair at " + s);
+						//System.out.println("Added pack/unpack pair at " + s);
 					}
 				} // else ignore (static field ref)
 			}
@@ -165,7 +165,7 @@ findloop:				for (PackUnpackPair pup : lists.get(fr.getField().getDeclaringClass
 											lists.get(fr.getField().getDeclaringClass()).remove(pup);
 											count++;
 											merged = true;
-											System.out.println("MERGE! Pack at " + pup2.packAt + " unpack at " + pup2.unpackAt);
+											//System.out.println("MERGE! Pack at " + pup2.packAt + " unpack at " + pup2.unpackAt);
 											break findloop;
 										}
 									}
@@ -186,7 +186,7 @@ findloop:				for (PackUnpackPair pup : lists.get(fr.getField().getDeclaringClass
 							if (pup != justAdded) {
 								PointsToSet pointsTo2 = pta.reachingObjects(pup.packAt.getField());
 								if (pointsTo.hasNonEmptyIntersection(pointsTo2)) {
-									System.out.println(fr.getField() + " may point to same location as " + pup.packAt.getField());
+									//System.out.println(fr.getField() + " may point to same location as " + pup.packAt.getField());
 									toRemove.add(pup);
 								}
 							}

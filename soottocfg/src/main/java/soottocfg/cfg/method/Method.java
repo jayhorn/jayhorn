@@ -174,7 +174,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 				}
 			}
 			if (currentSinks.isEmpty()) {
-				System.err.println("No exit for " + this.methodName);
+				//System.err.println("No exit for " + this.methodName);
 				sink = null;
 			} else if (currentSinks.size() == 1) {
 				sink = currentSinks.iterator().next();

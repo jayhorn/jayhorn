@@ -638,6 +638,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 		} else if (rhs instanceof LengthExpr) {
 			LengthExpr le = (LengthExpr)rhs;
+			
 			SootField lengthField = SootTranslationHelpers.v().getFakeArrayClass((ArrayType)le.getOp().getType())
 					.getFieldByName(SootTranslationHelpers.lengthFieldName);
 			FieldRef lengthFieldRef = Jimple.v().newInstanceFieldRef(le.getOp(), lengthField.makeRef());			
@@ -662,6 +663,7 @@ public class SootStmtSwitch implements StmtSwitch {
 					dynTypeField = ((RefType) t).getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
 				} else if (t instanceof ArrayType) {
 					//TODO: is this correct?
+					
 					dynTypeField = SootTranslationHelpers.v().getFakeArrayClass((ArrayType)t)
 							.getFieldByName(SootTranslationHelpers.typeFieldName);
 				} else {

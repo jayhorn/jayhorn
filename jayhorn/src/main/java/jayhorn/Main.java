@@ -50,15 +50,15 @@ public class Main {
 			ProverFactory factory = null;
 			if ("z3".equals(Options.v().getSolver())) {
 				factory = new Z3ProverFactory();
-			} else if ("princess".equals(Options.v().getSolver())) {
+			} else if ("eldarica".equals(Options.v().getSolver())) {
 				factory = new PrincessProverFactory();
 			} else {
-				throw new RuntimeException("Don't know solver " + Options.v().getSolver() + ". Using Princess instead.");
+				throw new RuntimeException("Don't know solver " + Options.v().getSolver() + ". Using Eldarica instead.");
 			}
 			
-			if ("safety".equals(Options.v().getChecker())) {
+//			if ("safety".equals(Options.v().getChecker())) {
 				System.out.println("\t\t ---   JAYHORN : Static Analayzer for Java Programs ---- ");
-				System.out.println("\t Build CFG  ... " + Options.v().getJavaInput());
+				System.out.println("\t Building CFG  ... " + Options.v().getJavaInput());
 				System.out.println( "\t \t  ----------- \n");
 				SootToCfg soot2cfg = new SootToCfg(true, false, MemModel.PackUnpack);
 				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());			
@@ -67,18 +67,19 @@ public class Main {
 				System.out.println("\t Hornify and check  ... " + Options.v().getJavaInput());
 				System.out.println( "\t \t  ----------- \n");
 				boolean result = checker.checkProgram(soot2cfg.getProgram());
+				
 				System.out.println( "\t \t  ----------- \n");
 		
 				System.out.println("\t SAFETY VERIFICATION RESULT ... " + parseResult(Options.v().getSolver(), result));
 				
-			} else if ("inconsistency".equals(Options.v().getChecker())) {
-				SootToCfg soot2cfg = new SootToCfg(false, true, MemModel.BurstallBornat);
-				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());			
-				InconsistencyChecker checker = new InconsistencyChecker(factory);
-				checker.checkProgram(soot2cfg.getProgram());				
-			} else {
-				Log.error(String.format("Checker %s is unknown", Options.v().getChecker()) );
-			}
+//			} else if ("inconsistency".equals(Options.v().getChecker())) {
+//				SootToCfg soot2cfg = new SootToCfg(false, true, MemModel.BurstallBornat);
+//				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());			
+//				InconsistencyChecker checker = new InconsistencyChecker(factory);
+//				checker.checkProgram(soot2cfg.getProgram());				
+//			} else {
+//				Log.error(String.format("Checker %s is unknown", Options.v().getChecker()) );
+//			}
 			
 		} catch (CmdLineException e) {
 			Log.error(e.toString());

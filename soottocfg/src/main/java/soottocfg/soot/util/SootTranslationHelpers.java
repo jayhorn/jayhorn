@@ -200,6 +200,7 @@ public enum SootTranslationHelpers {
 			final String className = ((RefType) t).getClassName().replace(".", "/");
 			return ClassConstant.v(className);
 		} else if (t instanceof ArrayType) {
+			assert(false);
 			final String className = getFakeArrayClass((ArrayType)t).getName().replace(".", "/");
 			return ClassConstant.v(className);
 		} else if (t instanceof PrimType) {

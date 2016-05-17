@@ -39,19 +39,19 @@ public class Options {
 //	public void setAndroidStubPath(String path) {
 //		this.androidStubPath = path;
 //	}
+//	
+//	/**
+//	 * JAR file
+//	 */
+//	@Option(name = "-checker", usage = "Select a checker [inconsistency, or safety]", required = false)
+//	//@Option(name = "-checker", usage = "Select a checker [safety]", required = false)
+//	private String checker = "safety";
+//	public String getChecker() {
+//		return checker;
+//	}
 	
-	/**
-	 * JAR file
-	 */
-	@Option(name = "-checker", usage = "Select a checker [inconsistency, or safety]", required = false)
-	//@Option(name = "-checker", usage = "Select a checker [safety]", required = false)
-	private String checker = "safety";
-	public String getChecker() {
-		return checker;
-	}
-	
-	@Option(name = "-solver", usage = "Select a solver [princess or z3]", required = false)
-	private String solver = "princess";
+	@Option(name = "-solver", usage = "Select a solver [eldarica or z3]", required = false)
+	private String solver = "eldarica";
 	public String getSolver() {
 		return solver;
 	}
@@ -68,19 +68,19 @@ public class Options {
 	}
 	
 	
-	/**
-	 * Print Horn clauses
-	 */
-	@Option(name = "-h", usage = "Print horn clauses", required = false)
-	private boolean printHorn = false;
+//	/**
+//	 * Print Horn clauses
+//	 */
+//	@Option(name = "-h", usage = "Print horn clauses", required = false)
+//	private boolean printHorn = false;
+//	
+//	public boolean getPrintHorn() {		
+//		return this.printHorn;
+//	}
 	
-	public boolean getPrintHorn() {		
-		return this.printHorn;
-	}
-	
-	public void setPrintHorn(boolean b) {		
-		this.printHorn = b;
-	}	
+//	public void setPrintHorn(boolean b) {		
+//		this.printHorn = b;
+//	}	
 
 	/**
 	 * Classpath

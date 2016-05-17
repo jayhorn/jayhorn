@@ -333,7 +333,7 @@ public class PrincessProver implements Prover {
 
 				final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
 						scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(), false, false);
-
+				//System.out.println(result);
 				if (result.isLeft())
 					return ProverResult.Sat;
 				else

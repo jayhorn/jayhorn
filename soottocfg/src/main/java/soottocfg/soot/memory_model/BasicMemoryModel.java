@@ -286,6 +286,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 			// }
 			// return new MapType(ids, baseType);
 			// TODO test!
+			
 			SootClass fakeArrayClass = SootTranslationHelpers.v().getFakeArrayClass(at);
 			return lookupRefLikeType(RefType.v(fakeArrayClass));
 		} else if (t instanceof RefType) {
