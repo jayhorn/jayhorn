@@ -117,7 +117,7 @@ public class SootToCfg {
 
 		
 		performBehaviorPreservingTransformations();
-		//performAbstractionTransformations();
+		performAbstractionTransformations();
 
 		constructCfg();
 		// reset all the soot stuff.
@@ -133,7 +133,7 @@ public class SootToCfg {
 	public void runForSingleClass(SootClass sc) {
 		SootRunner.createAssertionClass();
 		performBehaviorPreservingTransformations();
-		//performAbstractionTransformations();
+		performAbstractionTransformations();
 		constructCfg(sc);
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
