@@ -41,8 +41,8 @@ public class PackingList {
 		this.lists = new HashMap<SootClass,List<PackUnpackPair>>();
 		buildOverestimatedLists();
 		int merged = minimize();
-//		if (merged>0)
-//			System.out.println("Minimization step removed " + merged + " pack-unpack pairs in " + m.getName());
+		if (merged>0)
+			System.out.println("Minimization step removed " + merged + " pack-unpack pairs in " + m.getName());
 	}
 	
 	private boolean addPair(PackUnpackPair pup) {
