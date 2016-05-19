@@ -43,12 +43,12 @@ public class Options {
 //	/**
 //	 * JAR file
 //	 */
-//	@Option(name = "-checker", usage = "Select a checker [inconsistency, or safety]", required = false)
+	@Option(name = "-checker", usage = "Select a checker [inconsistency, or safety]", required = false)
 //	//@Option(name = "-checker", usage = "Select a checker [safety]", required = false)
-//	private String checker = "safety";
-//	public String getChecker() {
-//		return checker;
-//	}
+	private String checker = "safety";
+	public String getChecker() {
+		return checker;
+	}
 	
 	@Option(name = "-solver", usage = "Select a solver [eldarica or z3]", required = false)
 	private String solver = "eldarica";
@@ -71,16 +71,16 @@ public class Options {
 //	/**
 //	 * Print Horn clauses
 //	 */
-//	@Option(name = "-h", usage = "Print horn clauses", required = false)
-//	private boolean printHorn = false;
-//	
-//	public boolean getPrintHorn() {		
-//		return this.printHorn;
-//	}
+	@Option(name = "-h", usage = "Print horn clauses", required = false)
+	private boolean printHorn = false;
 	
-//	public void setPrintHorn(boolean b) {		
-//		this.printHorn = b;
-//	}	
+	public boolean getPrintHorn() {		
+		return this.printHorn;
+	}
+	
+	public void setPrintHorn(boolean b) {		
+		this.printHorn = b;
+	}	
 
 	/**
 	 * Classpath

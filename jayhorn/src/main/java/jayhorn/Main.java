@@ -56,7 +56,7 @@ public class Main {
 				throw new RuntimeException("Don't know solver " + Options.v().getSolver() + ". Using Eldarica instead.");
 			}
 			
-//			if ("safety".equals(Options.v().getChecker())) {
+			if ("safety".equals(Options.v().getChecker())) {
 				System.out.println("\t\t ---   JAYHORN : Static Analayzer for Java Programs ---- ");
 				System.out.println("\t Building CFG  ... " + Options.v().getJavaInput());
 				System.out.println( "\t \t  ----------- \n");
@@ -72,14 +72,14 @@ public class Main {
 		
 				System.out.println("\t SAFETY VERIFICATION RESULT ... " + parseResult(Options.v().getSolver(), result));
 				
-//			} else if ("inconsistency".equals(Options.v().getChecker())) {
-//				SootToCfg soot2cfg = new SootToCfg(false, true, MemModel.BurstallBornat);
-//				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());			
-//				InconsistencyChecker checker = new InconsistencyChecker(factory);
-//				checker.checkProgram(soot2cfg.getProgram());				
-//			} else {
-//				Log.error(String.format("Checker %s is unknown", Options.v().getChecker()) );
-//			}
+			} else if ("inconsistency".equals(Options.v().getChecker())) {
+				SootToCfg soot2cfg = new SootToCfg(false, true, MemModel.BurstallBornat);
+				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());			
+				InconsistencyChecker checker = new InconsistencyChecker(factory);
+				checker.checkProgram(soot2cfg.getProgram());				
+			} else {
+				Log.error(String.format("Checker %s is unknown", Options.v().getChecker()) );
+			}
 			
 		} catch (CmdLineException e) {
 			Log.error(e.toString());
