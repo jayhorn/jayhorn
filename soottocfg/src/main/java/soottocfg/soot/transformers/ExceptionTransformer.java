@@ -277,6 +277,8 @@ public class ExceptionTransformer extends AbstractTransformer {
 			Local exceptionVarLocal = getFreshLocal(body, throwableClass.getType());
 			toInsert.add(assignStmtFor(exceptionVarLocal, SootTranslationHelpers.v().getExceptionGlobalRef(), u));
 
+			boolean throwsUncaughtException = false;
+
 			for (SootClass exception : possibleExceptions) {
 				Trap trap = null;
 				for (Trap t : surroundingTraps) {
@@ -289,6 +291,11 @@ public class ExceptionTransformer extends AbstractTransformer {
 					}
 				}
 
+				if (trap == null) {
+					throwsUncaughtException = true;
+					continue;
+				}
+
 				Value instOf = Jimple.v().newInstanceOfExpr(exceptionVarLocal, RefType.v(exception));
 				// TODO hack
 				// toInsert.add(Jimple.v().newAssignStmt(exceptionVariable,
@@ -297,24 +304,32 @@ public class ExceptionTransformer extends AbstractTransformer {
 				toInsert.add(assignStmtFor(l, instOf, u));
 				Unit target;
 
-				if (trap == null) {
-					List<Unit> units = updateExceptionVariableAndReturn(body, exceptionVarLocal, u);
-					body.getUnits().addAll(units);
-					target = units.get(0);
-				} else {
-					usedTraps.add(trap);
-					if (!caughtExceptionLocal.containsKey(trap.getHandlerUnit())) {
-						// only create one local per trap so that we can
-						// replace the CaughtExceptionRef later.
-						caughtExceptionLocal.put(trap.getHandlerUnit(), getFreshLocal(body, throwableClass.getType()));
-					}
-					toInsert.add(assignStmtFor(caughtExceptionLocal.get(trap.getHandlerUnit()), exceptionVarLocal, u));
-					target = trap.getHandlerUnit();
+				usedTraps.add(trap);
+				if (!caughtExceptionLocal.containsKey(trap.getHandlerUnit())) {
+					// only create one local per trap so that we can
+					// replace the CaughtExceptionRef later.
+					caughtExceptionLocal.put(trap.getHandlerUnit(), getFreshLocal(body, throwableClass.getType()));
 				}
+				toInsert.add(assignStmtFor(caughtExceptionLocal.get(trap.getHandlerUnit()), exceptionVarLocal, u));
+				target = trap.getHandlerUnit();
+
 				toInsert.add(ifStmtFor(jimpleNeZero(l), target, u));
 			}
+			
+			if (throwsUncaughtException) {
+				//check if the exception global is non-null and return.				
+				Unit defaultReturn = SootTranslationHelpers.v().getDefaultReturnStatement(body.getMethod().getReturnType(), u);
+				body.getUnits().add(defaultReturn);				
+				toInsert.add(ifStmtFor(Jimple.v().newNeExpr(exceptionVarLocal, NullConstant.v()), defaultReturn, u));
+//					
+//					target = units.get(0);
+//								
+			}
+			
 			// now insert everything after the call
-			body.getUnits().insertAfter(toInsert, u);
+			if (toInsert.size() > 1) {
+				body.getUnits().insertAfter(toInsert, u);
+			}
 		}
 		return usedTraps;
 	}
@@ -361,10 +376,6 @@ public class ExceptionTransformer extends AbstractTransformer {
 			// insert a jump for each possible exception.
 			List<Unit> toInsert = new LinkedList<Unit>();
 			boolean caughtThrowable = false;
-
-			Local exceptionVarLocal = getFreshLocal(body, throwableClass.getType());
-			toInsert.add(assignStmtFor(exceptionVarLocal, SootTranslationHelpers.v().getExceptionGlobalRef(), u));
-
 			for (SootClass exception : possibleExceptions) {
 				Trap trap = null;
 				for (Trap t : surroundingTraps) {
@@ -383,7 +394,7 @@ public class ExceptionTransformer extends AbstractTransformer {
 					usedTraps.add(trap);
 					Unit newTarget = updateExceptionVariableAndGoToTrap(u, ((ThrowStmt) u).getOp(), trap);
 					Local l = getFreshLocal(body, BooleanType.v());
-					Value instOf = Jimple.v().newInstanceOfExpr(exceptionVarLocal, RefType.v(exception));
+					Value instOf = Jimple.v().newInstanceOfExpr(((ThrowStmt) u).getOp(), RefType.v(exception));
 					toInsert.add(assignStmtFor(l, instOf, u));
 					toInsert.add(ifStmtFor(jimpleNeZero(l), newTarget, u));
 				}
@@ -399,6 +410,8 @@ public class ExceptionTransformer extends AbstractTransformer {
 				// TODO: more testing here please.
 				toInsert.addAll(updateExceptionVariableAndReturn(body, ((ThrowStmt) u).getOp(), u));
 			}
+			// check if toInsert only contains the assignment to the
+			// exception local. If so, we do not need to add it.
 			if (!toInsert.isEmpty()) {
 				body.getUnits().insertBefore(toInsert, u);
 			}
@@ -545,7 +558,9 @@ public class ExceptionTransformer extends AbstractTransformer {
 
 	protected List<Unit> updateExceptionVariableAndReturn(Body b, Value v, Host createdFrom) {
 		List<Unit> result = new LinkedList<Unit>();
-		result.add(assignStmtFor(SootTranslationHelpers.v().getExceptionGlobalRef(), v, createdFrom));
+		if (!SootTranslationHelpers.v().getExceptionGlobalRef().equals(v)) {
+			result.add(assignStmtFor(SootTranslationHelpers.v().getExceptionGlobalRef(), v, createdFrom));
+		}
 		result.add(SootTranslationHelpers.v().getDefaultReturnStatement(b.getMethod().getReturnType(), createdFrom));
 		// result.add(throwStmtFor(l, createdFrom));
 		return result;
@@ -631,8 +646,9 @@ public class ExceptionTransformer extends AbstractTransformer {
 					result.add(new Pair<Value, List<Unit>>(jimpleNeZero(helperLocal), helperStatements));
 				}
 			} else {
-				//TODO:
-				System.err.println("Not guarding cast from "+e.getOp().getType() + " to " + e.getCastType()+". This should be done by the compiler.");
+				// TODO:
+				System.err.println("Not guarding cast from " + e.getOp().getType() + " to " + e.getCastType()
+						+ ". This should be done by the compiler.");
 			}
 			return result;
 		}
