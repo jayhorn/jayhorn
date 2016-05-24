@@ -24,9 +24,9 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
-import soottocfg.cfg.statement.PackStatement;
+import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.statement.UnPackStatement;
+import soottocfg.cfg.statement.PullStatement;
 
 /**
  * @author schaef
@@ -130,9 +130,9 @@ public class SsaPrinter {
 				printExpression(sb, e);
 			}
 			sb.append(")");
-		} else if (s instanceof PackStatement) {
+		} else if (s instanceof PushStatement) {
 			sb.append("PackStatement-not implemented");
-		} else if (s instanceof UnPackStatement) {
+		} else if (s instanceof PullStatement) {
 			sb.append("UnPackStatement-not implemented");
 		} else if (s instanceof PhiStatement) {
 			//phi can only be introduced by ssa

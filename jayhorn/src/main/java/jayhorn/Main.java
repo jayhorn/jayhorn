@@ -60,7 +60,7 @@ public class Main {
 				System.out.println("\t\t ---   JAYHORN : Static Analayzer for Java Programs ---- ");
 				System.out.println("\t Building CFG  ... " + Options.v().getJavaInput());
 				System.out.println( "\t \t  ----------- \n");
-				SootToCfg soot2cfg = new SootToCfg(true, false, MemModel.PackUnpack);
+				SootToCfg soot2cfg = new SootToCfg(true, false, MemModel.PullPush);
 				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());			
 				Checker checker = new Checker(factory);
 				System.out.println( "\t \t  ----------- ");

@@ -17,7 +17,7 @@ import soottocfg.cfg.expression.Expression;
  * @author schaef
  *
  */
-public class UnPackStatement extends Statement {
+public class PullStatement extends Statement {
 
 	/**
 	 * 
@@ -30,7 +30,7 @@ public class UnPackStatement extends Statement {
 	/**
 	 * @param loc
 	 */
-	public UnPackStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj,
+	public PullStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj,
 			List<IdentifierExpression> lhs) {
 		super(loc);
 		classConstant = c;
@@ -75,7 +75,7 @@ public class UnPackStatement extends Statement {
 			sb.append(v);
 			comma = ", ";
 		}
-		sb.append(" := unpack(");
+		sb.append(" := pull(");
 		sb.append(classConstant.getName());
 		sb.append(", ");
 		sb.append(object);
@@ -89,7 +89,7 @@ public class UnPackStatement extends Statement {
 		for (IdentifierExpression e : left) {
 			leftCopy.add(e.deepCopy());
 		}
-		return new UnPackStatement(getSourceLocation(), classConstant, object.deepCopy(), leftCopy);
+		return new PullStatement(getSourceLocation(), classConstant, object.deepCopy(), leftCopy);
 	}
 
 }

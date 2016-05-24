@@ -18,8 +18,8 @@ import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.statement.AssignStatement;
-import soottocfg.cfg.statement.PackStatement;
-import soottocfg.cfg.statement.UnPackStatement;
+import soottocfg.cfg.statement.PushStatement;
+import soottocfg.cfg.statement.PullStatement;
 import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
@@ -34,7 +34,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 		plists = new HashMap<SootMethod,PackingList>();
 	}
 
-	public void updatePackUnpack() {
+	public void updatePullPush() {
 //		System.out.println("Determining when to PACK / UNPACK");
 		SootMethod m = SootTranslationHelpers.v().getCurrentMethod();
 		PackingList pl = new PackingList(m);
@@ -93,7 +93,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 				for (int i = 0; i < vars.length; i++) {
 					unpackedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
 				}
-				this.statementSwitch.push(new UnPackStatement(loc, c, base, unpackedVars));
+				this.statementSwitch.push(new PullStatement(loc, c, base, unpackedVars));
 			}
 			// ------------------------------------
 			this.statementSwitch.push(new AssignStatement(loc,
@@ -105,7 +105,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 				for (int i = 0; i < vars.length; i++) {
 					packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
 				}
-				this.statementSwitch.push(new PackStatement(loc, c, base, packedVars));
+				this.statementSwitch.push(new PushStatement(loc, c, base, packedVars));
 			}
 			// ------------------------------------
 
@@ -143,7 +143,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 				for (int i = 0; i < vars.length; i++) {
 					unpackedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
 				}
-				this.statementSwitch.push(new UnPackStatement(loc, c, base, unpackedVars));
+				this.statementSwitch.push(new PullStatement(loc, c, base, unpackedVars));
 			}
 			// ------------------------------------
 			this.statementSwitch.push(new AssignStatement(loc, left,
@@ -154,7 +154,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 				for (int i = 0; i < vars.length; i++) {
 					packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
 				}
-				this.statementSwitch.push(new PackStatement(loc, c, base, packedVars));
+				this.statementSwitch.push(new PushStatement(loc, c, base, packedVars));
 			}
 			// ------------------------------------
 		} else if (field instanceof StaticFieldRef) {

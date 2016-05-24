@@ -60,7 +60,7 @@ import soottocfg.soot.visitors.SootStmtSwitch;
 public class SootToCfg {
 
 	public enum MemModel {
-		BurstallBornat, PackUnpack
+		BurstallBornat, PullPush
 	}
 
 	private final List<String> resolvedClassNames;
@@ -79,11 +79,11 @@ public class SootToCfg {
 	}
 
 	public SootToCfg(List<String> resolvedClassNames) {
-		this(true, false, MemModel.PackUnpack, resolvedClassNames);
+		this(true, false, MemModel.PullPush, resolvedClassNames);
 	}
 
 	public SootToCfg(boolean resolveVCalls, boolean excAsAssert) {
-		this(resolveVCalls, excAsAssert, MemModel.PackUnpack);
+		this(resolveVCalls, excAsAssert, MemModel.PullPush);
 	}
 
 	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel) {
@@ -172,10 +172,10 @@ public class SootToCfg {
 					MethodInfo mi = new MethodInfo(body.getMethod(),
 							SootTranslationHelpers.v().getCurrentSourceFileName());
 					
-					//pre-calculate when to pack / unpack
+					//pre-calculate when to pull/push
 					MemoryModel mm = SootTranslationHelpers.v().getMemoryModel();
 					if (mm instanceof NewMemoryModel) {
-						((NewMemoryModel) mm).updatePackUnpack();
+						((NewMemoryModel) mm).updatePullPush();
 					}
 					
 					SootStmtSwitch ss = new SootStmtSwitch(body, mi);

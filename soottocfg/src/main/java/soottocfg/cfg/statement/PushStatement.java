@@ -17,7 +17,7 @@ import soottocfg.cfg.expression.IdentifierExpression;
  * @author schaef
  *
  */
-public class PackStatement extends Statement {
+public class PushStatement extends Statement {
 
 	private static final long serialVersionUID = 5776310555422969945L;
 	private final ClassVariable classConstant;
@@ -27,7 +27,7 @@ public class PackStatement extends Statement {
 	/**
 	 * @param loc
 	 */
-	public PackStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj, List<Expression> rhs) {
+	public PushStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj, List<Expression> rhs) {
 		super(loc);
 		classConstant = c;
 		object = obj;
@@ -67,7 +67,7 @@ public class PackStatement extends Statement {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("pack(");
+		sb.append("push(");
 		sb.append(classConstant.getName());
 		sb.append(", ");
 		sb.append(object);
@@ -89,7 +89,7 @@ public class PackStatement extends Statement {
 		for (Expression e : right) {
 			rightCopy.add(e.deepCopy());
 		}
-		return new PackStatement(getSourceLocation(), classConstant, object.deepCopy(), rightCopy);
+		return new PushStatement(getSourceLocation(), classConstant, object.deepCopy(), rightCopy);
 	}
 
 }

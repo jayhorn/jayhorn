@@ -80,7 +80,7 @@ public enum SootTranslationHelpers {
 	private transient String currentSourceFileName;
 
 	private transient MemoryModel memoryModel;
-	private MemModel memoryModelKind = MemModel.PackUnpack;
+	private MemModel memoryModelKind = MemModel.PullPush;
 
 	private transient Program program;
 
@@ -306,7 +306,7 @@ public enum SootTranslationHelpers {
 	public MemoryModel getMemoryModel() {
 		if (this.memoryModel == null) {
 			// TODO:
-			if (memoryModelKind == MemModel.PackUnpack) {
+			if (memoryModelKind == MemModel.PullPush) {
 				this.memoryModel = new NewMemoryModel();
 			} else if (memoryModelKind == MemModel.BurstallBornat) {
 				this.memoryModel = new SimpleBurstallBornatModel();

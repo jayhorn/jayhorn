@@ -48,9 +48,9 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
-import soottocfg.cfg.statement.PackStatement;
+import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.statement.UnPackStatement;
+import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.MapType;
@@ -479,9 +479,9 @@ public class Checker {
 
 				clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom, postCondAtom }, p.mkLiteral(true)));
 
-			} else if (s instanceof UnPackStatement) {
+			} else if (s instanceof PullStatement) {
 
-				final UnPackStatement us = (UnPackStatement) s;
+				final PullStatement us = (PullStatement) s;
 				final ClassVariable sig = us.getClassSignature();
 				final List<IdentifierExpression> lhss = us.getLeft();
 				final ProverFun inv = getClassInvariant(p, sig);
@@ -505,9 +505,9 @@ public class Checker {
 
 				clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom }, p.mkLiteral(true)));
 
-			} else if (s instanceof PackStatement) {
+			} else if (s instanceof PushStatement) {
 
-				final PackStatement ps = (PackStatement) s;
+				final PushStatement ps = (PushStatement) s;
 				final ClassVariable sig = ps.getClassSignature();
 				final List<Expression> rhss = ps.getRight();
 				final ProverFun inv = getClassInvariant(p, sig);
@@ -697,7 +697,7 @@ public class Checker {
 					List<Expression> rhs = new LinkedList<Expression>();
 					rhs.add(new IdentifierExpression(loc,
 									program.createFreshGlobal("havoc", program.getExceptionGlobal().getType())));
-					PackStatement pack = new PackStatement(loc, c, new IdentifierExpression(loc, program.getExceptionGlobal()), rhs);
+					PushStatement pack = new PushStatement(loc, c, new IdentifierExpression(loc, program.getExceptionGlobal()), rhs);
 					block.addStatement(pack);
 					
 					Verify.verifyNotNull(method.getSource());
@@ -717,7 +717,7 @@ public class Checker {
 						rhs.add(new IdentifierExpression(loc, stringClassVar));
 						ClassVariable c = ((ReferenceType)argsParam.getType()).getClassVariable();						
 						rhs.add(new IdentifierExpression(loc, c));
-						PackStatement pack = new PackStatement(loc, c, new IdentifierExpression(loc, argsParam), rhs);
+						PushStatement pack = new PushStatement(loc, c, new IdentifierExpression(loc, argsParam), rhs);
 						entry.addStatement(1, pack);
 					}
 				}
