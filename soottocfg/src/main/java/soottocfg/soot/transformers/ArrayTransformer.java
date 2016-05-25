@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 import soot.ArrayType;
-import soot.Body;
 import soot.IntType;
 import soot.Local;
 import soot.Modifier;
@@ -24,15 +23,20 @@ import soot.SootMethod;
 import soot.Type;
 import soot.Unit;
 import soot.Value;
+import soot.ValueBox;
 import soot.VoidType;
 import soot.jimple.ArrayRef;
 import soot.jimple.DefinitionStmt;
+import soot.jimple.FieldRef;
+import soot.jimple.IdentityStmt;
 import soot.jimple.IntConstant;
+import soot.jimple.InvokeExpr;
 import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
 import soot.jimple.LengthExpr;
 import soot.jimple.NewArrayExpr;
 import soot.jimple.NewMultiArrayExpr;
+import soot.jimple.ParameterRef;
 import soot.jimple.Stmt;
 import soottocfg.soot.util.SootTranslationHelpers;
 
@@ -46,22 +50,48 @@ public class ArrayTransformer {
 	public static final String arrayGetName = "get";
 	public static final String arrayTypeName = "JayArray";
 	public static final String lengthFieldName = "$length";
-	
+
 	public ArrayTransformer() {
 
 	}
 
+	private final Map<String, SootField> fieldSubstitutionMap = new HashMap<String, SootField>();
+	private final Map<String, SootMethod> methodSubstitutionMap = new HashMap<String, SootMethod>();
+
 	public void substituteAllArrayTypes() {
-		for (SootClass sc : new LinkedList<SootClass>(Scene.v().getClasses())) {
+		/*
+		 * We have to do two passes. In the first pass, we update all fields and
+		 * method signatures
+		 * but not the method bodies. This will break all MethodsRefs and
+		 * FieldRefs in the bodies.
+		 * In the second pass, we update the body and replace newarray,
+		 * newmultiarray, fieldrefs and
+		 * lengthexpr by the appropriate expressions.
+		 * For the broken FieldRefs and MethodRefs, the toString will not
+		 * change, so we can do a
+		 * lookup to find the original field/method that we created in the first
+		 * pass and create a fresh
+		 * refs.
+		 */
+		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
+		List<JimpleBody> bodies = new LinkedList<JimpleBody>();
+		for (SootClass sc : classes) {
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES) {
 				// change the type of all array fields.
 				for (SootField f : sc.getFields()) {
 					if (f.getType() instanceof ArrayType) {
+						final String oldSignature = f.getSignature();
 						f.setType(arrayTypeToRefType(f.getType()));
+						fieldSubstitutionMap.put(oldSignature, f);
 					}
 				}
-				// change the type retrun type and param types of all methods.
 				for (SootMethod sm : sc.getMethods()) {
+					final String oldSignature = sm.getSignature();
+					
+					if (sc.resolvingLevel() >= SootClass.BODIES && sm.isConcrete()) {
+						//record all methods for which we found a body.						
+						bodies.add((JimpleBody) sm.retrieveActiveBody());
+					}
 					// update return type
 					sm.setReturnType(arrayTypeToRefType(sm.getReturnType()));
 					// update parameter types
@@ -70,83 +100,111 @@ public class ArrayTransformer {
 						newParamTypes.add(arrayTypeToRefType(t));
 					}
 					sm.setParameterTypes(newParamTypes);
-					// now check if the method has a body. If so replace the
-					// arrays there as well.
-					if (sc.resolvingLevel() >= SootClass.BODIES) {
-						Body body = sm.retrieveActiveBody();
-						for (Local local : body.getLocals()) {
-							local.setType(arrayTypeToRefType(local.getType()));
-						}
-						// now replace ArrayRefs and NewArray, NewMulitArray
-						// statements.
-						
-						for (Unit u : new LinkedList<Unit>(body.getUnits())) {							
-							if (((Stmt)u).containsArrayRef()) {								
-								ArrayRef aref = ((Stmt)u).getArrayRef();
-								//Note that the baseType has already been replaced, so it is
-								// a RefType not an ArrayType!
-								RefType refType = (RefType)aref.getBase().getType();								
-								//check if its an array write or read.
-								if (u instanceof DefinitionStmt
-									&& ((DefinitionStmt) u).getLeftOp() instanceof ArrayRef) {
-									//replace the a[i]=x by a.set(i,x);
-									SootMethod am = refType.getSootClass().getMethodByName(arraySetName);
-									Stmt ivk = Jimple.v().newInvokeStmt(Jimple.v().newVirtualInvokeExpr((Local)aref.getBase(), am.makeRef(), Arrays.asList(new Value[]{aref.getIndex(), ((DefinitionStmt) u).getRightOp()})));
-									ivk.addAllTagsOf(u);
-									//replace u by ivk
-									body.getUnits().insertAfter(ivk, u);
-									body.getUnits().remove(u);
-								} else {
-									SootMethod am = refType.getSootClass().getMethodByName(arrayGetName);
-									//replace the x = a[i] by x = a.get(i)
-									Value ivk = Jimple.v().newVirtualInvokeExpr((Local)aref.getBase(), am.makeRef(), aref.getIndex());
-									((Stmt)u).getArrayRefBox().setValue(ivk);
-								}
-							}
-							
-							if (u instanceof DefinitionStmt
-									&& ((DefinitionStmt) u).getRightOp() instanceof NewArrayExpr) {
-								NewArrayExpr na = (NewArrayExpr) ((DefinitionStmt) u).getRightOp();
-								// replace the NewArrayExpr by a NewExpr of
-								// appropriate type.
-								RefType refType = getArrayReplacementType((ArrayType) na.getType());
-								((DefinitionStmt) u).getRightOpBox().setValue(
-										Jimple.v().newNewExpr(refType));
-								//now add a constructor call where we pass the size of the array.
-								SootClass arrClass = refType.getSootClass();
-								SootMethod constructor = arrClass.getMethod(SootMethod.constructorName, Arrays.asList(new Type[]{IntType.v()}));
-								Local lhs = (Local)((DefinitionStmt) u).getLeftOp();
-								Stmt ccall = Jimple.v().newInvokeStmt(Jimple.v().newSpecialInvokeExpr(lhs, constructor.makeRef(), na.getSize()));
-								ccall.addAllTagsOf(u);
-								body.getUnits().insertAfter(ccall, u);
-							} else if (u instanceof DefinitionStmt
-									&& ((DefinitionStmt) u).getRightOp() instanceof NewMultiArrayExpr) {
-								NewMultiArrayExpr na = (NewMultiArrayExpr) ((DefinitionStmt) u).getRightOp();
-								RefType refType = getArrayReplacementType((ArrayType) na.getType());
-								((DefinitionStmt) u).getRightOpBox().setValue(
-										Jimple.v().newNewExpr(refType));
-								SootClass arrClass = refType.getSootClass();
-								List<Type> paramTypes = new ArrayList<Type>(Collections.nCopies(((ArrayType)na.getType()).numDimensions, IntType.v()));
-								SootMethod constructor = arrClass.getMethod(SootMethod.constructorName, paramTypes);
-								List<Value> args = new LinkedList<Value>(na.getSizes());
-								while (args.size()<paramTypes.size()) {
-									args.add(IntConstant.v(0));
-								}
-								Local lhs = (Local)((DefinitionStmt) u).getLeftOp();
-								Stmt ccall = Jimple.v().newInvokeStmt(Jimple.v().newSpecialInvokeExpr(lhs, constructor.makeRef(), args));
-								ccall.addAllTagsOf(u);
-								body.getUnits().insertAfter(ccall, u);		
-							} else if (u instanceof DefinitionStmt
-									&& ((DefinitionStmt) u).getRightOp() instanceof LengthExpr) {
-								LengthExpr le = (LengthExpr)((DefinitionStmt) u).getRightOp();
-								SootClass arrayClass = ((RefType)le.getOp().getType()).getSootClass();
-								Value fieldRef = Jimple.v().newInstanceFieldRef(le.getOp(), arrayClass.getFieldByName(lengthFieldName).makeRef());
-								((DefinitionStmt) u).getRightOpBox().setValue(fieldRef);
-							}
-						}
-					}
+					methodSubstitutionMap.put(oldSignature, sm);
 				}
 			}
+		}
+
+		for (JimpleBody body : bodies) {			
+			for (Local local : body.getLocals()) {
+				local.setType(arrayTypeToRefType(local.getType()));
+			}
+			
+			// now replace ArrayRefs and NewArray, NewMulitArray
+			// statements.
+
+			for (Unit u : new LinkedList<Unit>(body.getUnits())) {
+
+				/*
+				 * Changing the types from ArrayType to RefType breaks the soot 'references', FieldRef, MethodRef, 
+				 * and ParameterRef since they do not get updated automatically. Hence, we need to re-build these
+				 * Refs by hand: 
+				 */
+				if (((Stmt) u).containsFieldRef() && ((Stmt) u).getFieldRef().getType() instanceof ArrayType) {
+					FieldRef fr = ((Stmt) u).getFieldRef();
+					fr.setFieldRef(fieldSubstitutionMap.get(fr.toString()).makeRef());
+				} else if (((Stmt) u).containsInvokeExpr()) {
+					InvokeExpr ive = ((Stmt) u).getInvokeExpr();
+					final String oldSignature = ive.getMethodRef().toString();
+					if (methodSubstitutionMap.containsKey(oldSignature)) {
+						ive.setMethodRef(methodSubstitutionMap.get(oldSignature).makeRef());
+					} 
+				} else if (((Stmt)u) instanceof IdentityStmt && ((IdentityStmt)u).getRightOp() instanceof ParameterRef) {
+					ParameterRef pr = (ParameterRef)((IdentityStmt)u).getRightOp();					
+					((IdentityStmt)u).getRightOpBox().setValue(Jimple.v().newParameterRef(body.getMethod().getParameterType(pr.getIndex()), pr.getIndex()));
+				}
+				
+					
+					
+				if (((Stmt) u).containsArrayRef()) {
+					ArrayRef aref = ((Stmt) u).getArrayRef();
+					// Note that the baseType has already been replaced, so it
+					// is
+					// a RefType not an ArrayType!
+					RefType refType = (RefType) aref.getBase().getType();
+					// check if its an array write or read.
+					if (u instanceof DefinitionStmt && ((DefinitionStmt) u).getLeftOp() instanceof ArrayRef) {
+						// replace the a[i]=x by a.set(i,x);
+						SootMethod am = refType.getSootClass().getMethodByName(arraySetName);
+						Stmt ivk = Jimple.v().newInvokeStmt(Jimple.v().newVirtualInvokeExpr((Local) aref.getBase(),
+								am.makeRef(),
+								Arrays.asList(new Value[] { aref.getIndex(), ((DefinitionStmt) u).getRightOp() })));
+						ivk.addAllTagsOf(u);
+						// replace u by ivk
+						body.getUnits().insertAfter(ivk, u);
+						body.getUnits().remove(u);
+					} else {
+						SootMethod am = refType.getSootClass().getMethodByName(arrayGetName);
+						// replace the x = a[i] by x = a.get(i)
+						Value ivk = Jimple.v().newVirtualInvokeExpr((Local) aref.getBase(), am.makeRef(),
+								aref.getIndex());
+						((Stmt) u).getArrayRefBox().setValue(ivk);
+					}
+				}
+
+				if (u instanceof DefinitionStmt && ((DefinitionStmt) u).getRightOp() instanceof NewArrayExpr) {
+					NewArrayExpr na = (NewArrayExpr) ((DefinitionStmt) u).getRightOp();
+					// replace the NewArrayExpr by a NewExpr of
+					// appropriate type.
+					RefType refType = getArrayReplacementType((ArrayType) na.getType());
+					((DefinitionStmt) u).getRightOpBox().setValue(Jimple.v().newNewExpr(refType));
+					// now add a constructor call where we pass the size of the
+					// array.
+					SootClass arrClass = refType.getSootClass();
+					SootMethod constructor = arrClass.getMethod(SootMethod.constructorName,
+							Arrays.asList(new Type[] { IntType.v() }));
+					Local lhs = (Local) ((DefinitionStmt) u).getLeftOp();
+					Stmt ccall = Jimple.v()
+							.newInvokeStmt(Jimple.v().newSpecialInvokeExpr(lhs, constructor.makeRef(), na.getSize()));
+					ccall.addAllTagsOf(u);
+					body.getUnits().insertAfter(ccall, u);
+				} else if (u instanceof DefinitionStmt
+						&& ((DefinitionStmt) u).getRightOp() instanceof NewMultiArrayExpr) {
+					NewMultiArrayExpr na = (NewMultiArrayExpr) ((DefinitionStmt) u).getRightOp();
+					RefType refType = getArrayReplacementType((ArrayType) na.getType());
+					((DefinitionStmt) u).getRightOpBox().setValue(Jimple.v().newNewExpr(refType));
+					SootClass arrClass = refType.getSootClass();
+					List<Type> paramTypes = new ArrayList<Type>(
+							Collections.nCopies(((ArrayType) na.getType()).numDimensions, IntType.v()));
+					SootMethod constructor = arrClass.getMethod(SootMethod.constructorName, paramTypes);
+					List<Value> args = new LinkedList<Value>(na.getSizes());
+					while (args.size() < paramTypes.size()) {
+						args.add(IntConstant.v(0));
+					}
+					Local lhs = (Local) ((DefinitionStmt) u).getLeftOp();
+					Stmt ccall = Jimple.v()
+							.newInvokeStmt(Jimple.v().newSpecialInvokeExpr(lhs, constructor.makeRef(), args));
+					ccall.addAllTagsOf(u);
+					body.getUnits().insertAfter(ccall, u);
+				} else if (u instanceof DefinitionStmt && ((DefinitionStmt) u).getRightOp() instanceof LengthExpr) {
+					LengthExpr le = (LengthExpr) ((DefinitionStmt) u).getRightOp();
+					SootClass arrayClass = ((RefType) le.getOp().getType()).getSootClass();
+					Value fieldRef = Jimple.v().newInstanceFieldRef(le.getOp(),
+							arrayClass.getFieldByName(lengthFieldName).makeRef());
+					((DefinitionStmt) u).getRightOpBox().setValue(fieldRef);
+				}
+			}
+			body.validate();
 		}
 	}
 
@@ -169,39 +227,36 @@ public class ArrayTransformer {
 	}
 
 	protected SootClass createArrayClass(Type elementType, int numDimensions) {
-		SootClass arrayClass = new SootClass(arrayTypeName + this.arrayTypeMap.size(), Modifier.PUBLIC | Modifier.FINAL);
+		SootClass arrayClass = new SootClass(arrayTypeName + this.arrayTypeMap.size(),
+				Modifier.PUBLIC | Modifier.FINAL);
 		// set the superclass to object
 		arrayClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
 		// add the new class to the scene
 		Scene.v().addClass(arrayClass);
-		// add a field for array.length		
-		SootField lengthField = new SootField(lengthFieldName,
-				RefType.v(Scene.v().getSootClass("java.lang.Integer")), Modifier.PUBLIC | Modifier.FINAL);
+		// add a field for array.length
+		SootField lengthField = new SootField(lengthFieldName, RefType.v(Scene.v().getSootClass("java.lang.Integer")),
+				Modifier.PUBLIC | Modifier.FINAL);
 		arrayClass.addField(lengthField);
 
 		// TODO create some fields of t.getElementType()
-		SootMethod getElement = new SootMethod(arrayGetName,                 
-			    Arrays.asList(new Type[] {IntType.v()}),
-			    elementType, Modifier.PUBLIC);
+		SootMethod getElement = new SootMethod(arrayGetName, Arrays.asList(new Type[] { IntType.v() }), elementType,
+				Modifier.PUBLIC);
 		arrayClass.addMethod(getElement);
 		JimpleBody body = Jimple.v().newBody(getElement);
-		body.insertIdentityStmts();			
-		//TODO: add body
+		body.insertIdentityStmts();
+		// TODO: add body
 		body.getUnits().add(Jimple.v().newReturnStmt(SootTranslationHelpers.v().getDefaultValue(elementType)));
-
 		getElement.setActiveBody(body);
-		
-		SootMethod setElement = new SootMethod(arraySetName,                 
-			    Arrays.asList(new Type[] {elementType, IntType.v()}),
-			    VoidType.v(), Modifier.PUBLIC);
+
+		SootMethod setElement = new SootMethod(arraySetName, Arrays.asList(new Type[] { elementType, IntType.v() }),
+				VoidType.v(), Modifier.PUBLIC);
 		arrayClass.addMethod(setElement);
 		body = Jimple.v().newBody(setElement);
-		body.insertIdentityStmts();			
-		//TODO: add body
+		body.insertIdentityStmts();
+		// TODO: add body
 		body.getUnits().add(Jimple.v().newReturnVoidStmt());
 		setElement.setActiveBody(body);
-		
-		
+
 		// add a constructor
 		// Now create a constructor that takes the array size as input
 		List<Type> argTypes = new ArrayList<Type>(Collections.nCopies(numDimensions, IntType.v()));
@@ -212,8 +267,9 @@ public class ArrayTransformer {
 		body = Jimple.v().newBody(constructor);
 		// add a local for the first param
 		body.insertIdentityStmts();
-		//set the length field.
-		body.getUnits().add(Jimple.v().newAssignStmt(Jimple.v().newInstanceFieldRef(body.getThisLocal(), lengthField.makeRef()), body.getParameterLocal(0)));
+		// set the length field.
+		body.getUnits().add(Jimple.v().newAssignStmt(
+				Jimple.v().newInstanceFieldRef(body.getThisLocal(), lengthField.makeRef()), body.getParameterLocal(0)));
 
 		return arrayClass;
 	}
