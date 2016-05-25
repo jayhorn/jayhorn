@@ -12,23 +12,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import soot.Body;
 import soot.SootMethod;
-import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
-import soot.toolkits.graph.CompleteUnitGraph;
-import soottocfg.soot.transformers.ExceptionTransformer;
+import soottocfg.soot.transformers.ArrayTransformer;
 
 /**
  * @author schaef
  *
  */
 @RunWith(Parameterized.class)
-public class ExceptionTransformerTest extends AbstractTransformerTest {
+public class ArrayTransformerTest extends AbstractTransformerTest {
 
 		@Parameterized.Parameters(name = "{index}: check ({1})")
 		public static Collection<Object[]> data() {
 			List<Object[]> filenames = new LinkedList<Object[]>();
-			final File source_dir = new File(testRoot + "transformation_tests/exceptions/");
+			final File source_dir = new File(testRoot + "transformation_tests/arrays/");
 			File[] directoryListing = source_dir.listFiles();
 			if (directoryListing != null) {
 				for (File child : directoryListing) {
@@ -40,20 +37,19 @@ public class ExceptionTransformerTest extends AbstractTransformerTest {
 			return filenames;
 		}
 
-		public ExceptionTransformerTest(File source, String name) {
+		public ArrayTransformerTest(File source, String name) {
 			this.sourceFile = source;
 		}
 		
 		@Test
 		public void test() {
-			for (SootMethod sm : loadSootMethods()) {
-				System.out.println("Transforming " + sm.getSignature());
-				Body body = sm.retrieveActiveBody();
-				ExceptionTransformer em = new ExceptionTransformer(
-						new NullnessAnalysis(new CompleteUnitGraph(body)),
-						false);
-				em.transform(body);
-				System.out.println(body);				
+			List<SootMethod> methods = loadSootMethods();
+			ArrayTransformer arr = new ArrayTransformer();
+			arr.substituteAllArrayTypes();
+			for (SootMethod sm : methods) {
+				if (sm.hasActiveBody()) {
+					System.out.println(sm.getActiveBody());
+				}
 			}
 		}
 		

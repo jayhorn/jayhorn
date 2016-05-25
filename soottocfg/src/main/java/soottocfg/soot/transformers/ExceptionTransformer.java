@@ -63,7 +63,9 @@ import soottocfg.util.Pair;
 
 /**
  * @author schaef
- *
+ * TODO: we should do a fixed point iteration over all methods
+ * and add throws clauses to all those that can throw user created
+ * RuntimeExceptions.
  */
 public class ExceptionTransformer extends AbstractTransformer {
 
@@ -297,9 +299,6 @@ public class ExceptionTransformer extends AbstractTransformer {
 				}
 
 				Value instOf = Jimple.v().newInstanceOfExpr(exceptionVarLocal, RefType.v(exception));
-				// TODO hack
-				// toInsert.add(Jimple.v().newAssignStmt(exceptionVariable,
-				// NullConstant.v()));
 				Local l = getFreshLocal(body, BooleanType.v());
 				toInsert.add(assignStmtFor(l, instOf, u));
 				Unit target;
@@ -321,9 +320,6 @@ public class ExceptionTransformer extends AbstractTransformer {
 				Unit defaultReturn = SootTranslationHelpers.v().getDefaultReturnStatement(body.getMethod().getReturnType(), u);
 				body.getUnits().add(defaultReturn);				
 				toInsert.add(ifStmtFor(Jimple.v().newNeExpr(exceptionVarLocal, NullConstant.v()), defaultReturn, u));
-//					
-//					target = units.get(0);
-//								
 			}
 			
 			// now insert everything after the call
@@ -407,7 +403,6 @@ public class ExceptionTransformer extends AbstractTransformer {
 			if (!removeThrowStatements.contains(u)) {
 				// If the throw was not caught, replace it by a return.
 				removeThrowStatements.add(u);
-				// TODO: more testing here please.
 				toInsert.addAll(updateExceptionVariableAndReturn(body, ((ThrowStmt) u).getOp(), u));
 			}
 			// check if toInsert only contains the assignment to the
@@ -646,7 +641,6 @@ public class ExceptionTransformer extends AbstractTransformer {
 					result.add(new Pair<Value, List<Unit>>(jimpleNeZero(helperLocal), helperStatements));
 				}
 			} else {
-				// TODO:
 				System.err.println("Not guarding cast from " + e.getOp().getType() + " to " + e.getCastType()
 						+ ". This should be done by the compiler.");
 			}
