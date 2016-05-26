@@ -4,7 +4,6 @@
 package soottocfg.soot;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,7 +38,7 @@ import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.Method;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.memory_model.NewMemoryModel;
-import soottocfg.soot.transformers.ArrayAbstraction;
+import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.SwitchStatementRemover;
@@ -119,6 +118,12 @@ public class SootToCfg {
 		performBehaviorPreservingTransformations();
 		performAbstractionTransformations();
 
+		Variable exceptionGlobal = this.program
+				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
+						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
+		program.setExceptionGlobal(exceptionGlobal);
+
+		
 		constructCfg();
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
@@ -134,6 +139,11 @@ public class SootToCfg {
 		SootRunner.createAssertionClass();
 		performBehaviorPreservingTransformations();
 		performAbstractionTransformations();
+		Variable exceptionGlobal = this.program
+				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
+						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
+		program.setExceptionGlobal(exceptionGlobal);
+		
 		constructCfg(sc);
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
@@ -150,7 +160,7 @@ public class SootToCfg {
 	public void runPreservingTransformationOnly(String input, String classPath) {
 		SootRunner runner = new SootRunner(this.resolvedClassNames);
 		runner.run(input, classPath);
-		performBehaviorPreservingTransformations();
+		performBehaviorPreservingTransformations();		
 		SootTranslationHelpers.v().reset();
 	}
 
@@ -167,7 +177,7 @@ public class SootToCfg {
 		for (SootMethod sm : sc.getMethods()) {
 			if (sm.isConcrete()) {
 				SootTranslationHelpers.v().setCurrentMethod(sm);
-				try {
+				try {					
 					Body body = sm.retrieveActiveBody();
 					MethodInfo mi = new MethodInfo(body.getMethod(),
 							SootTranslationHelpers.v().getCurrentSourceFileName());
@@ -229,34 +239,35 @@ public class SootToCfg {
 	}
 
 	private void performAbstractionTransformations() {
-		Map<SootField, SootField> globalArrayFields = new HashMap<SootField, SootField>(); 
-		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
-		for (SootClass sc : classes) {
-			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
-				continue; // no need to process this guy.
-			}
-			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
-				SootTranslationHelpers.v().setCurrentClass(sc);
-				for (SootMethod sm : sc.getMethods()) {
-					if (sm.isConcrete()) {
-						SootTranslationHelpers.v().setCurrentMethod(sm);
-						Body body;
-						try {
-							if (sm.hasActiveBody()) {
-								body = sm.getActiveBody();
-							} else {
-								body = sm.retrieveActiveBody();
-							}							
-							ArrayAbstraction abstraction = new ArrayAbstraction(globalArrayFields);
-							abstraction.transform(body);
-						} catch (RuntimeException e) {
-							System.err.println("Abstraction transformation failed" + sm.getSignature());
-							throw e;
-						}
-					}
-				}
-			}
-		}
+		ArrayTransformer atrans = new ArrayTransformer();
+		atrans.substituteAllArrayTypes();
+
+//		Map<SootField, SootField> globalArrayFields = new HashMap<SootField, SootField>(); 
+//		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
+//		for (SootClass sc : classes) {
+//			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
+//				continue; // no need to process this guy.
+//			}
+//			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
+//				SootTranslationHelpers.v().setCurrentClass(sc);
+//				for (SootMethod sm : sc.getMethods()) {
+//					if (sm.isConcrete()) {
+//						SootTranslationHelpers.v().setCurrentMethod(sm);
+//						Body body;
+//						try {
+//							if (sm.hasActiveBody()) {
+//								body = sm.getActiveBody();
+//							} else {
+//								body = sm.retrieveActiveBody();
+//							}							
+//						} catch (RuntimeException e) {
+//							System.err.println("Abstraction transformation failed" + sm.getSignature());
+//							throw e;
+//						}
+//					}
+//				}
+//			}
+//		}
 	}
 
 	private Set<SootMethod> staticInitializers = new HashSet<SootMethod>();
@@ -276,11 +287,6 @@ public class SootToCfg {
 			sc.addField(new SootField(SootTranslationHelpers.typeFieldName,
 					RefType.v(Scene.v().getSootClass("java.lang.Class")),Modifier.PUBLIC));
 		}
-
-		Variable exceptionGlobal = this.program
-				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
-						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
-		program.setExceptionGlobal(exceptionGlobal);
 		
 		for (SootClass sc : classes) {
 			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
@@ -359,7 +365,8 @@ public class SootToCfg {
 			//System.out.println("Adding " + staticInitializers.size() + " static init calls to " + entry.getSignature());
 			for (SootMethod initializer : staticInitializers) {
 				Unit initCall = Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(initializer.makeRef()));
-				entry.getActiveBody().getUnits().addFirst(initCall);
+				JimpleBody jb = (JimpleBody)entry.getActiveBody();
+				jb.getUnits().insertBefore(initCall, jb.getFirstNonIdentityStmt());
 			}
 		}
 	}

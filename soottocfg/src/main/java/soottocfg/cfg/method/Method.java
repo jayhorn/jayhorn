@@ -133,6 +133,10 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	public boolean isProgramEntryPoint() {
 		return this.isProgramEntry;
 	}
+	
+	public void isProgramEntryPoint(boolean b) {
+		this.isProgramEntry = b;
+	}
 
 	public CfgBlock getSource() {
 		if (source==null) {

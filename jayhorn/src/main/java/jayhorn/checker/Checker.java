@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.base.Verify;
 
 import jayhorn.Log;
-import jayhorn.Options;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFactory;
@@ -48,9 +47,9 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.MapType;
@@ -704,7 +703,8 @@ public class Checker {
 				} else if (method.isProgramEntryPoint()) {
 					if (method.getInParams().size()==1 && method.getMethodName().contains("main")) {
 						Variable argsParam = method.getInParams().get(0);
-						CfgBlock entry = method.getSource();						
+						ReferenceType argsType = (ReferenceType)argsParam.getType();						
+						CfgBlock entry = method.getSource();
 						SourceLocation loc = method.getLocation();
 						Variable sizeLocal = new Variable("undef_size", IntType.instance());
 						AssumeStatement asm = new AssumeStatement(loc, new BinaryExpression(loc, BinaryOperator.Ge, new IdentifierExpression(loc, sizeLocal), IntegerLiteral.zero()));
@@ -713,15 +713,14 @@ public class Checker {
 						//pack(JayHornArr12, r0, [JayHornArr12.$length, JayHornArr12.$elType, JayHornArr12.$dynamicType])
 						List<Expression> rhs = new LinkedList<Expression>();
 						rhs.add(new IdentifierExpression(loc, sizeLocal));						
-						ClassVariable stringClassVar = program.findClassVariableByName("java/lang/String");
-						rhs.add(new IdentifierExpression(loc, stringClassVar));
+						rhs.add(new IdentifierExpression(loc, argsType.getClassVariable()));
 						ClassVariable c = ((ReferenceType)argsParam.getType()).getClassVariable();						
 						rhs.add(new IdentifierExpression(loc, c));
 						PushStatement pack = new PushStatement(loc, c, new IdentifierExpression(loc, argsParam), rhs);
 						entry.addStatement(1, pack);
 					}
 				}
-
+				System.err.println(method);
 				final MethodEncoder encoder = new MethodEncoder(p, program, method);
 				encoder.encode();
 				clauses.addAll(encoder.clauses);

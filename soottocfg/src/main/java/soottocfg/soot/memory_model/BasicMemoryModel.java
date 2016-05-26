@@ -278,7 +278,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 
 	protected ReferenceLikeType lookupRefLikeType(RefLikeType t) {
 		if (t instanceof ArrayType) {
-			ArrayType at = (ArrayType) t;
+//			ArrayType at = (ArrayType) t;
 			// Type baseType = lookupType(at.baseType);
 			// List<Type> ids = new LinkedList<Type>();
 			// for (int i = 0; i < at.numDimensions; i++) {
@@ -286,9 +286,10 @@ public abstract class BasicMemoryModel extends MemoryModel {
 			// }
 			// return new MapType(ids, baseType);
 			// TODO test!
-			
-			SootClass fakeArrayClass = SootTranslationHelpers.v().getFakeArrayClass(at);
-			return lookupRefLikeType(RefType.v(fakeArrayClass));
+//			
+//			SootClass fakeArrayClass = SootTranslationHelpers.v().getFakeArrayClass(at);
+//			return lookupRefLikeType(RefType.v(fakeArrayClass));
+			throw new RuntimeException("Remove Arrays first.");
 		} else if (t instanceof RefType) {
 			return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)));
 		} else if (t instanceof NullType) {

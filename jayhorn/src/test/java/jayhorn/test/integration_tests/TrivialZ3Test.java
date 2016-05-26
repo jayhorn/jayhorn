@@ -65,6 +65,7 @@ public class TrivialZ3Test {
 
 	@Test
 	public void testWithPrincess() {
+		if (this.sourceFile.getName().contains("Unsat01"))
 		verifyAssertions(new PrincessProverFactory());
 	}
 

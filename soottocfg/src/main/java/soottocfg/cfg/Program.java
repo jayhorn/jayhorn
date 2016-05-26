@@ -99,6 +99,7 @@ public class Program {
 	}
 
 	public void addEntryPoint(Method entry) {
+		entry.isProgramEntryPoint(true);
 		this.entryPoints.add(entry);
 	}
 

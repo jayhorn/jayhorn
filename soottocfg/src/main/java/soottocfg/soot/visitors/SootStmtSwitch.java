@@ -637,12 +637,13 @@ public class SootStmtSwitch implements StmtSwitch {
 				SootTranslationHelpers.v().getMemoryModel().mkArrayReadStatement(def, (ArrayRef)rhs, lhs);
 			}
 		} else if (rhs instanceof LengthExpr) {
-			LengthExpr le = (LengthExpr)rhs;
-			
-			SootField lengthField = SootTranslationHelpers.v().getFakeArrayClass((ArrayType)le.getOp().getType())
-					.getFieldByName(SootTranslationHelpers.lengthFieldName);
-			FieldRef lengthFieldRef = Jimple.v().newInstanceFieldRef(le.getOp(), lengthField.makeRef());			
-			SootTranslationHelpers.v().getMemoryModel().mkHeapReadStatement(def, lengthFieldRef, lhs);
+//			LengthExpr le = (LengthExpr)rhs;
+//			
+//			SootField lengthField = SootTranslationHelpers.v().getFakeArrayClass((ArrayType)le.getOp().getType())
+//					.getFieldByName(SootTranslationHelpers.lengthFieldName);
+//			FieldRef lengthFieldRef = Jimple.v().newInstanceFieldRef(le.getOp(), lengthField.makeRef());			
+//			SootTranslationHelpers.v().getMemoryModel().mkHeapReadStatement(def, lengthFieldRef, lhs);
+			throw new RuntimeException("Remove Arrays first.");
 		} else {
 			// local to local assignment.
 			lhs.apply(valueSwitch);
@@ -664,8 +665,9 @@ public class SootStmtSwitch implements StmtSwitch {
 				} else if (t instanceof ArrayType) {
 					//TODO: is this correct?
 					
-					dynTypeField = SootTranslationHelpers.v().getFakeArrayClass((ArrayType)t)
-							.getFieldByName(SootTranslationHelpers.typeFieldName);
+//					dynTypeField = SootTranslationHelpers.v().getFakeArrayClass((ArrayType)t)
+//							.getFieldByName(SootTranslationHelpers.typeFieldName);
+					throw new RuntimeException("Remove Arrays first");
 				} else {
 					throw new RuntimeException("Not implemented. " + t + ", " + t.getClass());
 				}

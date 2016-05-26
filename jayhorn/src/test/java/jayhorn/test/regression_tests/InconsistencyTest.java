@@ -104,7 +104,7 @@ public class InconsistencyTest {
 			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
 			
 			check = 0; goal = 2;
-			methodName = "<inconsistencies.TruePositives01: int infeasible0(int[])>";
+			methodName = "<inconsistencies.TruePositives01: int infeasible0(JayArray_int)>";
 			for (CfgBlock b :  result.get(methodName)) {
 				if ("Block0".equals(b.getLabel())) check++;
 				if ("Block1".equals(b.getLabel())) check++;				
@@ -120,7 +120,7 @@ public class InconsistencyTest {
 			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
 
 			check = 0; goal = 3;
-			methodName = "<inconsistencies.TruePositives01: void infeasible2(int[])>";
+			methodName = "<inconsistencies.TruePositives01: void infeasible2(JayArray_int)>";
 			for (CfgBlock b :  result.get(methodName)) {
 				if ("Block4".equals(b.getLabel())) check++;
 				if ("Block6".equals(b.getLabel())) check++;
@@ -137,7 +137,7 @@ public class InconsistencyTest {
 			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
 
 			check = 0; goal = 1;
-			methodName = "<inconsistencies.TruePositives01: int infeasible6(int[])>";
+			methodName = "<inconsistencies.TruePositives01: int infeasible6(JayArray_int)>";
 			for (CfgBlock b :  result.get(methodName)) {
 				if ("Block0".equals(b.getLabel())) check++;
 			}			
