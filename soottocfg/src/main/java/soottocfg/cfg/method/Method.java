@@ -48,7 +48,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	
 	private final transient SourceLocation location; //TODO remove the transient
 	private final String methodName;
-	private final Optional<Type> returnType;
+	private final List<Type> returnType;
 	private Variable thisVariable, returnVariable;
 	private final List<Variable> parameterList;
 	private Set<Variable> locals;
@@ -57,14 +57,14 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	
 
 	
-	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, Optional<Type> retType, SourceLocation sourceLocation) {
+	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, List<Type> retType, SourceLocation sourceLocation) {
 		Preconditions.checkArgument(p.loopupMethod(uniqueName)==null, "Method with name "+uniqueName + " already exists");		
 		Method m = new Method(sourceLocation, uniqueName, params, retType);
 		p.addMethod(m);
 		return m;
 	}
 	
-	private Method(SourceLocation loc, String uniqueName, List<Variable> params, Optional<Type> retType) {
+	private Method(SourceLocation loc, String uniqueName, List<Variable> params, List<Type> retType) {
 		super(new ClassBasedEdgeFactory<CfgBlock, CfgEdge>(CfgEdge.class), true, true);
 		location = loc;
 		methodName = uniqueName;
@@ -237,7 +237,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	 * I.e., either a type or None if the method returns void
 	 * @return Optional return type.
 	 */
-	public Optional<Type> getReturnType() {
+	public List<Type> getReturnType() {
 		return this.returnType;
 	}
 

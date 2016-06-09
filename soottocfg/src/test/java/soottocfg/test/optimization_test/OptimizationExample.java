@@ -5,8 +5,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.google.common.base.Optional;
-
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
@@ -33,7 +31,7 @@ public class OptimizationExample {
 		SootTranslationHelpers.v().reset();
 
 		final Program p = new Program();
-		final Optional<soottocfg.cfg.type.Type> rettype = Optional.absent();
+		final List<soottocfg.cfg.type.Type> rettype = new LinkedList<soottocfg.cfg.type.Type>();
 		final Method m = Method.createMethodInProgram(p, "testM", new LinkedList<Variable>(), rettype, null); 
 		final SourceLocation fakeSl = new SourceLocation("fake", 0);
 
@@ -79,7 +77,7 @@ public class OptimizationExample {
 	public Method getMethod2() {
 		SootTranslationHelpers.v().reset();
 		final Program p = new Program();				
-		final Optional<soottocfg.cfg.type.Type> rettype = Optional.absent();
+		final List<soottocfg.cfg.type.Type> rettype = new LinkedList<soottocfg.cfg.type.Type>();
 		final Method m = Method.createMethodInProgram(p, "testM", new LinkedList<Variable>(), rettype, null); 
 
 		/*

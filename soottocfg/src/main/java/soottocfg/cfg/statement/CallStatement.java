@@ -8,7 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 import soottocfg.cfg.SourceLocation;
@@ -25,12 +24,10 @@ public class CallStatement extends Statement {
 	private static final long serialVersionUID = 7267962774002374725L;
 	private final Method method;
 	private final List<Expression> arguments;
-	private final Optional<Expression> returnReceiver;
+	private final List<Expression> returnReceiver;
 
-	/**
-	 * @param createdFrom
-	 */
-	public CallStatement(SourceLocation loc, Method method, List<Expression> arguments, Optional<Expression> returnReceiver) {
+
+	public CallStatement(SourceLocation loc, Method method, List<Expression> arguments, List<Expression> returnReceiver) {
 		super(loc);
 		Preconditions.checkArgument(method.getInParams().size()==arguments.size());
 		this.method = method;
@@ -46,7 +43,7 @@ public class CallStatement extends Statement {
 		return arguments;
 	}
 
-	public Optional<Expression> getReceiver() {
+	public List<Expression> getReceiver() {
 		return returnReceiver;
 	}
 
@@ -54,8 +51,13 @@ public class CallStatement extends Statement {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		
-		if (returnReceiver.isPresent()) {		
-			sb.append(returnReceiver.get());
+		if (!returnReceiver.isEmpty()) {
+			String delim = "";
+			for (Expression e : returnReceiver) {
+				sb.append(delim);
+				sb.append(e);
+				delim = ", ";
+			}			
 			sb.append(" := ");
 		}
 		sb.append("call ");
@@ -83,8 +85,10 @@ public class CallStatement extends Statement {
 	@Override
 	public Set<IdentifierExpression> getDefIdentifierExpressions() {
 		Set<IdentifierExpression> res = new HashSet<IdentifierExpression>();
-		if (returnReceiver.isPresent() && returnReceiver.get() instanceof IdentifierExpression) {
-			res.add((IdentifierExpression)returnReceiver.get());
+		for (Expression e : returnReceiver) {
+			if (e instanceof IdentifierExpression) {
+				res.add((IdentifierExpression)e);
+			}
 		}
 		return res;
 	}
@@ -95,10 +99,10 @@ public class CallStatement extends Statement {
 		for (Expression e : arguments) {
 			argCopy.add(e.deepCopy());
 		}
-		Optional<Expression> left = Optional.absent();
-		if (returnReceiver.isPresent()) {
-			left = Optional.of(returnReceiver.get().deepCopy());
+		List<Expression> rec = new LinkedList<Expression>();
+		for (Expression e : returnReceiver) {
+			rec.add(e.deepCopy());
 		}
-		return new CallStatement(getSourceLocation(), method, argCopy, left);
+		return new CallStatement(getSourceLocation(), method, argCopy, rec);
 	}
 }

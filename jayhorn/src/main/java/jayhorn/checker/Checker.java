@@ -150,7 +150,7 @@ public class Checker {
 		private final List<ProverExpr> methodPreExprs;
 
 		public MethodEncoder(Prover p, Program program, Method method) {
-			//System.err.println(method.toString());
+			// System.err.println(method.toString());
 			this.p = p;
 			this.program = program;
 			this.method = method;
@@ -428,18 +428,18 @@ public class Checker {
 
 				assert (calledMethod.getInParams().size() == cs.getArguments().size()
 						&& calledMethod.getInParams().size() == contract.precondition.variables.size());
-				assert (!cs.getReceiver().isPresent() || calledMethod.getReturnType().isPresent());
+				assert (!cs.getReceiver().isEmpty() || calledMethod.getReturnType().isEmpty());
 
 				final List<Variable> receiverVars = new ArrayList<Variable>();
-				if (cs.getReceiver().isPresent())
-					receiverVars.add(((IdentifierExpression) cs.getReceiver().get()).getVariable());
-
+				for (Expression e : cs.getReceiver()) {
+					receiverVars.add(((IdentifierExpression) e).getVariable());
+				}
 				final List<ProverExpr> receiverExprs = new ArrayList<ProverExpr>();
 				createVarMap(receiverVars, receiverExprs, varMap);
 
 				final ProverExpr[] actualInParams = new ProverExpr[calledMethod.getInParams().size()];
 				final ProverExpr[] actualPostParams = new ProverExpr[calledMethod.getInParams().size()
-						+ (calledMethod.getReturnType().isPresent() ? 1 : 0)];
+						+ calledMethod.getReturnType().size()];
 
 				int cnt = 0;
 				for (Expression e : cs.getArguments()) {
@@ -449,24 +449,28 @@ public class Checker {
 					++cnt;
 				}
 
-				if (cs.getReceiver().isPresent()) {
-					final Expression lhs = cs.getReceiver().get();
+				if (!cs.getReceiver().isEmpty()) {
+					for (Expression lhs : cs.getReceiver()) {
 
-					final ProverExpr callRes = p.mkHornVariable("callRes_" + newVarNum(), getProverType(lhs.getType()));
-					actualPostParams[cnt++] = callRes;
+						final ProverExpr callRes = p.mkHornVariable("callRes_" + newVarNum(),
+								getProverType(lhs.getType()));
+						actualPostParams[cnt++] = callRes;
 
-					if (lhs instanceof IdentifierExpression) {
-						final IdentifierExpression idLhs = (IdentifierExpression) lhs;
-						final int lhsIndex = postPred.variables.indexOf(idLhs.getVariable());
-						if (lhsIndex >= 0)
-							postVars.set(lhsIndex, callRes);
-					} else {
-						throw new RuntimeException("only assignments to variables are supported, " + "not to " + lhs);
+						if (lhs instanceof IdentifierExpression) {
+							final IdentifierExpression idLhs = (IdentifierExpression) lhs;
+							final int lhsIndex = postPred.variables.indexOf(idLhs.getVariable());
+							if (lhsIndex >= 0)
+								postVars.set(lhsIndex, callRes);
+						} else {
+							throw new RuntimeException(
+									"only assignments to variables are supported, " + "not to " + lhs);
+						}
 					}
-				} else if (calledMethod.getReturnType().isPresent()) {
-					final ProverExpr callRes = p.mkHornVariable("callRes_" + newVarNum(),
-							getProverType(calledMethod.getReturnType().get()));
-					actualPostParams[cnt++] = callRes;
+				} else if (!calledMethod.getReturnType().isEmpty()) {
+					for (Type tp : calledMethod.getReturnType()) {
+						final ProverExpr callRes = p.mkHornVariable("callRes_" + newVarNum(), getProverType(tp));
+						actualPostParams[cnt++] = callRes;
+					}
 				}
 
 				final ProverExpr preCondAtom = contract.precondition.predicate.mkExpr(actualInParams);
@@ -638,8 +642,7 @@ public class Checker {
 	////////////////////////////////////////////////////////////////////////////
 
 	public boolean checkProgram(Program program) {
-		
-		
+
 		Log.info("Starting verification for " + program.getEntryPoints().length + " entry points.");
 
 		Prover p = factory.spawn();
@@ -661,8 +664,11 @@ public class Checker {
 				postParams.addAll(method.getInParams());
 				if (method.getOutParam().isPresent()) {
 					postParams.add(method.getOutParam().get());
-				} else if (method.getReturnType().isPresent()) {
-					postParams.add(new Variable("resultVar", method.getReturnType().get()));
+				} else if (!method.getReturnType().isEmpty()) {
+					int ctr =0;
+					for (Type tp : method.getReturnType()) {
+						postParams.add(new Variable("resultVar"+(ctr++), tp));
+					}
 				}
 
 				final ProverFun prePred = freshHornPredicate(p, method.getMethodName() + "_pre", inParams);
@@ -692,29 +698,32 @@ public class Checker {
 									program.createFreshGlobal("havoc", program.getExceptionGlobal().getType())));
 					block.addStatement(asn);
 
-					ClassVariable c = ((ReferenceType)program.getExceptionGlobal().getType()).getClassVariable();
+					ClassVariable c = ((ReferenceType) program.getExceptionGlobal().getType()).getClassVariable();
 					List<Expression> rhs = new LinkedList<Expression>();
 					rhs.add(new IdentifierExpression(loc,
-									program.createFreshGlobal("havoc", program.getExceptionGlobal().getType())));
-					PushStatement pack = new PushStatement(loc, c, new IdentifierExpression(loc, program.getExceptionGlobal()), rhs);
+							program.createFreshGlobal("havoc", program.getExceptionGlobal().getType())));
+					PushStatement pack = new PushStatement(loc, c,
+							new IdentifierExpression(loc, program.getExceptionGlobal()), rhs);
 					block.addStatement(pack);
-					
+
 					Verify.verifyNotNull(method.getSource());
 				} else if (method.isProgramEntryPoint()) {
-					if (method.getInParams().size()==1 && method.getMethodName().contains("main")) {
+					if (method.getInParams().size() == 1 && method.getMethodName().contains("main")) {
 						Variable argsParam = method.getInParams().get(0);
-						ReferenceType argsType = (ReferenceType)argsParam.getType();						
+						ReferenceType argsType = (ReferenceType) argsParam.getType();
 						CfgBlock entry = method.getSource();
 						SourceLocation loc = method.getLocation();
 						Variable sizeLocal = new Variable("undef_size", IntType.instance());
-						AssumeStatement asm = new AssumeStatement(loc, new BinaryExpression(loc, BinaryOperator.Ge, new IdentifierExpression(loc, sizeLocal), IntegerLiteral.zero()));
+						AssumeStatement asm = new AssumeStatement(loc, new BinaryExpression(loc, BinaryOperator.Ge,
+								new IdentifierExpression(loc, sizeLocal), IntegerLiteral.zero()));
 						entry.addStatement(0, asm);
-						
-						//pack(JayHornArr12, r0, [JayHornArr12.$length, JayHornArr12.$elType, JayHornArr12.$dynamicType])
+
+						// pack(JayHornArr12, r0, [JayHornArr12.$length,
+						// JayHornArr12.$elType, JayHornArr12.$dynamicType])
 						List<Expression> rhs = new LinkedList<Expression>();
-						rhs.add(new IdentifierExpression(loc, sizeLocal));						
+						rhs.add(new IdentifierExpression(loc, sizeLocal));
 						rhs.add(new IdentifierExpression(loc, argsType.getClassVariable()));
-						ClassVariable c = ((ReferenceType)argsParam.getType()).getClassVariable();						
+						ClassVariable c = ((ReferenceType) argsParam.getType()).getClassVariable();
 						rhs.add(new IdentifierExpression(loc, c));
 						PushStatement pack = new PushStatement(loc, c, new IdentifierExpression(loc, argsParam), rhs);
 						entry.addStatement(1, pack);
@@ -725,18 +734,19 @@ public class Checker {
 				encoder.encode();
 				clauses.addAll(encoder.clauses);
 
-//				if (jayhorn.Options.v().getPrintHorn()) {
-//					//Log.info("\tNumber of clauses: " + encoder.clauses.size());
-//					for (ProverHornClause clause : encoder.clauses)
-//						Log.info("\t\t" + clause);
-//				}
+				if (jayhorn.Options.v().getPrintHorn()) {
+					// Log.info("\tNumber of clauses: " +
+					// encoder.clauses.size());
+					for (ProverHornClause clause : encoder.clauses)
+						Log.info("\t\t" + clause);
+				}
 			}
 
 			for (Method method : program.getEntryPoints()) {
 				Log.info("\tVerification from entry " + method.getMethodName());
-				//Log.info("\t Number of clauses: " + clauses.size());
+				// Log.info("\t Number of clauses: " + clauses.size());
 				p.push();
-				
+
 				for (ProverHornClause clause : clauses)
 					p.addAssertion(clause);
 
@@ -750,7 +760,7 @@ public class Checker {
 
 				p.addAssertion(p.mkHornClause(entryAtom, new ProverExpr[0], p.mkLiteral(true)));
 
-//				result = p.checkSat(true);
+				// result = p.checkSat(true);
 				if (jayhorn.Options.v().getTimeout() > 0) {
 					int timeoutInMsec = (int) TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());
 					p.checkSat(false);
@@ -760,7 +770,7 @@ public class Checker {
 					result = p.checkSat(true);
 				}
 
-			p.pop();
+				p.pop();
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -768,7 +778,7 @@ public class Checker {
 		} finally {
 			p.shutdown();
 		}
-		//Log.info("\tResult:  " + result);
+		// Log.info("\tResult: " + result);
 		if (result == ProverResult.Sat) {
 			return true;
 		} else if (result == ProverResult.Unsat) {
@@ -807,7 +817,8 @@ public class Checker {
 			return p.getIntType();
 		}
 		if (t instanceof MapType) {
-			//System.err.println("Warning: translating " + t + " as prover type int");
+			// System.err.println("Warning: translating " + t + " as prover type
+			// int");
 			return p.getIntType();
 		}
 		throw new IllegalArgumentException("don't know what to do with " + t);

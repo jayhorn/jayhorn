@@ -6,8 +6,6 @@ package soottocfg.soot.util;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.google.common.base.Optional;
-
 import soot.ArrayType;
 import soot.PrimType;
 import soot.RefType;
@@ -217,9 +215,9 @@ public enum SootTranslationHelpers {
 					getMemoryModel().lookupType(m.getParameterType(i))));
 		}
 		
-		Optional<soottocfg.cfg.type.Type> optRetType = Optional.absent();
+		List<soottocfg.cfg.type.Type> optRetType = new LinkedList<soottocfg.cfg.type.Type>();
 		if (!m.getReturnType().equals(VoidType.v())) {
-			optRetType = Optional.of(memoryModel.lookupType(m.getReturnType()));
+			optRetType.add(memoryModel.lookupType(m.getReturnType()));
 		} 		
 		return Method.createMethodInProgram(program, m.getSignature(), parameterList, optRetType, SootTranslationHelpers.v().getSourceLocation(m));
 	}

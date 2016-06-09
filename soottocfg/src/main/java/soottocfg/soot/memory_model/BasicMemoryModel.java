@@ -12,8 +12,6 @@ import java.util.Map;
 
 import javax.lang.model.type.NullType;
 
-import com.google.common.base.Verify;
-
 import soot.ArrayType;
 import soot.RefLikeType;
 import soot.RefType;
@@ -145,7 +143,8 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		// newLocal)),
 		// sizeExpression)));
 
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
+//		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
+		throw new RuntimeException("This should have been removed by the array abstraction.");
 	}
 
 	/*
@@ -158,9 +157,10 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkNewMultiArrayExpr(NewMultiArrayExpr arg0) {
 		// TODO Auto-generated method stub
-		System.err.println("New Multi-Array still not implemented");
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
-				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", lookupType(arg0.getType())));
+//		System.err.println("New Multi-Array still not implemented");
+//		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
+//				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", lookupType(arg0.getType())));
+		throw new RuntimeException("This should have been removed by the array abstraction.");
 	}
 
 	/*
@@ -320,7 +320,9 @@ public abstract class BasicMemoryModel extends MemoryModel {
 				List<Variable> fields = new LinkedList<Variable>();
 				if (c.resolvingLevel() > SootClass.DANGLING) {
 					for (SootField f : c.getFields()) {
-						fields.add(lookupField(f));
+						if (!f.isStatic()) {
+							fields.add(lookupField(f));
+						}
 					}
 				}
 				cv.setAssociatedFields(fields);
@@ -338,42 +340,13 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		return (ClassVariable) this.constantDictionary.get(cc);
 	}
 
-	// public ClassVariable lookupClassVariable(RefType t) {
-	// if (!classVariables.containsKey(t)) {
-	// SootClass c = t.getSootClass();
-	// Collection<ClassVariable> parents = new HashSet<ClassVariable>();
-	// if (c.resolvingLevel() >= SootClass.HIERARCHY) {
-	// if (c.hasSuperclass()) {
-	// parents.add(lookupClassVariable(c.getSuperclass().getType()));
-	// }
-	// }
-	// classVariables.put(t, new ClassVariable(c.getJavaStyleName(), parents));
-	// // add the fields after that to avoid endless loop.
-	// if (c.resolvingLevel() >= SootClass.SIGNATURES) {
-	// List<Variable> fields = new LinkedList<Variable>();
-	// for (SootField f : c.getFields()) {
-	// fields.add(lookupField(f));
-	// }
-	// classVariables.get(t).setAssociatedFields(fields);
-	// } else {
-	// // TODO
-	// }
-	//
-	// }
-	// return classVariables.get(t);
-	// }
-
 	protected Variable lookupField(SootField field) {
 		if (!this.fieldGlobals.containsKey(field)) {
 			final String fieldName = field.getDeclaringClass().getName() + "." + field.getName();
-			Variable fieldVar = this.program.lookupGlobalVariable(fieldName, this.lookupType(field.getType()));
+			Variable fieldVar = this.program.lookupGlobalVariable(fieldName, this.lookupType(field.getType()), field.isFinal(), field.isStatic());
 			this.fieldGlobals.put(field, fieldVar);
 		}
 		return this.fieldGlobals.get(field);
 	}
 
-	protected Variable lookupStaticField(SootField field) {
-		Verify.verify(false);
-		return this.program.lookupGlobalVariable(field.getName(), lookupType(field.getType()));
-	}
 }

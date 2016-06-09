@@ -13,7 +13,6 @@ import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
-import soot.Value;
 import soot.ValueBox;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
