@@ -38,6 +38,7 @@ import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.Method;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.memory_model.NewMemoryModel;
+import soottocfg.soot.memory_model.PushPullSimplifier;
 import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
@@ -125,6 +126,11 @@ public class SootToCfg {
 
 		
 		constructCfg();
+		
+		// simplify push-pull
+		PushPullSimplifier pps = new PushPullSimplifier();
+		pps.simplify(program);
+		
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
 	}

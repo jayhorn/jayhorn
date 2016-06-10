@@ -95,6 +95,10 @@ public class CfgBlock implements Node, Serializable {
 		return Collections.unmodifiableList(this.statements);
 	}
 	
+	public void removeStatement(Statement toRemove) {
+		this.statements.remove(toRemove);
+	}
+	
 	public void removeStatements(Set<Statement> toRemove) {
 		this.statements.removeAll(toRemove);
 	}
