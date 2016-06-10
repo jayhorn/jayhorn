@@ -720,7 +720,7 @@ public class Checker {
 						entry.addStatement(1, pack);
 					}
 				}
-				System.err.println(method);
+//				System.err.println(method);
 				final MethodEncoder encoder = new MethodEncoder(p, program, method);
 				encoder.encode();
 				clauses.addAll(encoder.clauses);

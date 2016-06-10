@@ -102,6 +102,10 @@ public class CfgBlock implements Node, Serializable {
 	public void removeStatements(Set<Statement> toRemove) {
 		this.statements.removeAll(toRemove);
 	}
+	
+	public void swapStatements(int i, int j) {
+		Collections.swap(this.statements, i, j);
+	}
 
 	/**
 	 * Replaces the statements inside the block by the statements in 
