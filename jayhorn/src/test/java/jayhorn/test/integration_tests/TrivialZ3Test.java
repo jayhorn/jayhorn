@@ -35,7 +35,7 @@ public class TrivialZ3Test {
 	@Parameterized.Parameters(name = "{index}: check ({1})")
 	public static Collection<Object[]> data() {
 		List<Object[]> filenames = new LinkedList<Object[]>();
-		final File source_dir = new File(testRoot + "horn-encoding/arrays");
+		final File source_dir = new File(testRoot + "horn-encoding/new_encoding");
 		collectFileNamesRecursively(source_dir, filenames);
 		if (filenames.isEmpty()) {
 			throw new RuntimeException("Test data not found!");
@@ -64,7 +64,6 @@ public class TrivialZ3Test {
 
 	@Test
 	public void testWithPrincess() {
-		if (this.sourceFile.getName().contains("Unsat01"))
 		verifyAssertions(new PrincessProverFactory());
 	}
 
