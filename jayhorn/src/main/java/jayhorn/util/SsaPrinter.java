@@ -45,9 +45,14 @@ public class SsaPrinter {
 			comma = ", ";
 		}
 		sb.append(")\n");
-		if (m.getOutParam().isPresent()) {
+		if (!m.getOutParam().isEmpty()) {
 			sb.append("\treturns: ");
-			sb.append(m.getOutParam().get());
+			comma = "";			
+			for (Variable v : m.getOutParam()) {
+				sb.append(comma);
+				sb.append(v.getName());
+				comma = ", ";
+			}
 			sb.append("\n");
 		}
 		comma = "";

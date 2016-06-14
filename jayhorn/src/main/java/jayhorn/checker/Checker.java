@@ -662,8 +662,8 @@ public class Checker {
 				inParams.addAll(method.getInParams());
 				final List<Variable> postParams = new ArrayList<Variable>();
 				postParams.addAll(method.getInParams());
-				if (method.getOutParam().isPresent()) {
-					postParams.add(method.getOutParam().get());
+				if (!method.getOutParam().isEmpty()) {
+					postParams.addAll(method.getOutParam());
 				} else if (!method.getReturnType().isEmpty()) {
 					int ctr =0;
 					for (Type tp : method.getReturnType()) {

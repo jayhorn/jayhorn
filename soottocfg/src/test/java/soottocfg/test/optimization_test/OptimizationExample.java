@@ -1,5 +1,6 @@
 package soottocfg.test.optimization_test;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -42,6 +43,7 @@ public class OptimizationExample {
 		final Expression notB = new UnaryExpression(null, UnaryOperator.LNot, b);
 
 		final Variable rval = new Variable("rval", BoolType.instance());
+		
 		final Expression rvalIdent = new IdentifierExpression(null, rval);
 
 		final Expression one = new UnaryExpression(null, UnaryOperator.Neg, IntegerLiteral.minusOne());
@@ -68,7 +70,7 @@ public class OptimizationExample {
 		m.addEdge(b1, b2).setLabel(b);
 		m.addEdge(b1, b3).setLabel(notB);
 
-		m.initialize(null, rval, localVars, b1, true);
+		m.initialize(null, Arrays.asList(rval), localVars, b1, true);
 		return m;
 	}
 

@@ -291,7 +291,7 @@ public class SootToCfg {
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
 			sc.addField(new SootField(SootTranslationHelpers.typeFieldName,
-					RefType.v(Scene.v().getSootClass("java.lang.Class")),Modifier.PUBLIC));
+					RefType.v(Scene.v().getSootClass("java.lang.Class")),Modifier.PUBLIC | Modifier.FINAL));
 		}
 		
 		for (SootClass sc : classes) {
