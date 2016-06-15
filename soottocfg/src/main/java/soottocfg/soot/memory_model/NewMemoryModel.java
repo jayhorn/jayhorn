@@ -4,9 +4,11 @@
 package soottocfg.soot.memory_model;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.base.Verify;
 
@@ -19,6 +21,7 @@ import soot.Value;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.StaticFieldRef;
+import soot.jimple.Stmt;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
@@ -172,17 +175,34 @@ public class NewMemoryModel extends BasicMemoryModel {
 	protected Variable getStaticFieldContainerVariable() {
 		if (staticFieldContainerVariable == null) {
 			ClassVariable classVar = new ClassVariable(gloablsClassVarName, new LinkedList<ClassVariable>());
-			List<Variable> fields = new LinkedList<Variable>();
+			Set<Variable> fields = new LinkedHashSet<Variable>();
 			for (SootClass sc : Scene.v().getClasses()) {
-				if (sc.resolvingLevel() >= SootClass.SIGNATURES) {
-					for (SootField sf : sc.getFields()) {
-						if (sf.isStatic()) {
-							fields.add(this.lookupField(sf));
+				if (sc.resolvingLevel() >= SootClass.BODIES) {
+					for (SootMethod sm : sc.getMethods()) {
+						try {
+							for (Unit u : sm.retrieveActiveBody().getUnits()) {
+								Stmt st = (Stmt)u;
+								if (st.containsFieldRef()) {
+									SootField sf = st.getFieldRef().getField();
+									if (sf.isStatic()) {
+										fields.add(this.lookupField(sf));
+									}
+								}
+							}
+						} catch (Exception e) {
+							
 						}
 					}
+//					for (SootField sf : sc.getFields()) {
+//						if (sf.isStatic()) {
+//							fields.add(this.lookupField(sf));
+//						}
+//					}
 				}
 			}
-			classVar.setAssociatedFields(fields);
+			List<Variable> fieldList = new LinkedList<Variable>();
+			fieldList.addAll(fields);
+			classVar.setAssociatedFields(fieldList);
 			staticFieldContainerVariable = new Variable(gloablsClassName, new ReferenceType(classVar), true, true);
 		}
 		return staticFieldContainerVariable;
