@@ -13,12 +13,15 @@ import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
+import soot.Value;
 import soot.ValueBox;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
+import soot.jimple.StaticFieldRef;
 import soot.jimple.Stmt;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soot.toolkits.graph.UnitGraph;
+import soottocfg.cfg.expression.IdentifierExpression;
 
 /**
  * 
@@ -73,14 +76,19 @@ public class PackingList {
 			
 			if (s.containsFieldRef()) {
 				FieldRef f = s.getFieldRef();
+				
+				// do not pull/push 'this' in constructor
+				boolean inconstr = false;
 				if (f instanceof InstanceFieldRef) {
 					InstanceFieldRef ifr = (InstanceFieldRef) f;
-					if (!(m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal()))) { // do not pack/unpack 'this' in constructor
-						PackUnpackPair pup = new PackUnpackPair(f,f);
-						addPair(pup);
-						//System.out.println("Added pack/unpack pair at " + s);
-					}
-				} // else ignore (static field ref)
+					inconstr = m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal());
+				}
+				
+				if (!inconstr) { 
+					PackUnpackPair pup = new PackUnpackPair(f,f);
+					addPair(pup);
+					//System.out.println("Added pack/unpack pair at " + s);
+				} 
 			}
 		}
 		

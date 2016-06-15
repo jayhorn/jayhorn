@@ -40,11 +40,9 @@ public class NewMemoryModel extends BasicMemoryModel {
 	}
 
 	public void updatePullPush() {
-		// System.out.println("Determining when to PACK / UNPACK");
 		SootMethod m = SootTranslationHelpers.v().getCurrentMethod();
 		PackingList pl = new PackingList(m);
 		plists.put(m, pl);
-		// System.out.println("Done.");
 	}
 
 	@Override
@@ -78,7 +76,6 @@ public class NewMemoryModel extends BasicMemoryModel {
 		Variable[] vars = classVar.getAssociatedFields();
 		SootMethod sm = SootTranslationHelpers.v().getCurrentMethod();
 		// ------------- unpack ---------------
-		// if (!skipUnpack) {
 		if (plists.get(sm) != null && plists.get(sm).unpackAt(fieldRef)) {
 			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			for (int i = 0; i < vars.length; i++) {
@@ -90,7 +87,6 @@ public class NewMemoryModel extends BasicMemoryModel {
 		this.statementSwitch.push(new AssignStatement(loc,
 				new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar), value));
 		// ------------- pack -----------------
-		// if (!skipPack) {
 		if (plists.get(sm) != null && plists.get(sm).packAt(fieldRef)) {
 			List<Expression> packedVars = new LinkedList<Expression>();
 			for (int i = 0; i < vars.length; i++) {
