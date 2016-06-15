@@ -184,7 +184,13 @@ public class SootToCfg {
 			if (sm.isConcrete()) {
 				SootTranslationHelpers.v().setCurrentMethod(sm);
 				try {					
-					Body body = sm.retrieveActiveBody();
+					Body body = null;
+					try {
+						body = sm.retrieveActiveBody();
+					} catch (RuntimeException e) {
+						//TODO: print warning that body couldn't be retrieved.
+						continue;
+					}
 					MethodInfo mi = new MethodInfo(body.getMethod(),
 							SootTranslationHelpers.v().getCurrentSourceFileName());
 					

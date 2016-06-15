@@ -223,19 +223,19 @@ public enum SootTranslationHelpers {
 			 * that are assigned in this constructor and the parent constructors.
 			 */
 			SootClass cl = m.getDeclaringClass();
-			while (cl != null) {
+//			while (cl != null) {
+			//TODO: what do we do about fields from supertypes?
 				for (SootField sf : cl.getFields()) {
 					if (sf.isFinal()) {
 						optRetType.add(memoryModel.lookupType(sf.getType()));
 					}
 				}
-				if (cl.hasSuperclass()) {
-					cl = cl.getSuperclass();
-				} else {
-					cl = null;
-				}
-			}
-			
+//				if (cl.hasSuperclass()) {
+//					cl = cl.getSuperclass();
+//				} else {
+//					cl = null;
+//				}
+//			}			
 		}
 		return Method.createMethodInProgram(program, m.getSignature(), parameterList, optRetType, SootTranslationHelpers.v().getSourceLocation(m));
 	}

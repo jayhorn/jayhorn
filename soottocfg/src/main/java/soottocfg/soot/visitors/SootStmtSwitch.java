@@ -28,8 +28,6 @@ import com.google.common.base.Verify;
 
 import soot.ArrayType;
 import soot.Body;
-import soot.IntType;
-import soot.Local;
 import soot.PatchingChain;
 import soot.RefType;
 import soot.Scene;
@@ -60,6 +58,7 @@ import soot.jimple.NopStmt;
 import soot.jimple.RetStmt;
 import soot.jimple.ReturnStmt;
 import soot.jimple.ReturnVoidStmt;
+import soot.jimple.SpecialInvokeExpr;
 import soot.jimple.StaticInvokeExpr;
 import soot.jimple.Stmt;
 import soot.jimple.StmtSwitch;
@@ -76,7 +75,6 @@ import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
-import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.soot.util.MethodInfo;
@@ -143,7 +141,7 @@ public class SootStmtSwitch implements StmtSwitch {
 		return this.exitBlock;
 	}
 
-	public MethodInfo getMethodInto() {
+	public MethodInfo getMethodInfo() {
 		return this.methodInfo;
 	}
 
@@ -416,10 +414,16 @@ public class SootStmtSwitch implements StmtSwitch {
 			optionalLhs.apply(valueSwitch);
 			receiver.add(valueSwitch.popExpression());
 		}
-
-		Method method = SootTranslationHelpers.v().lookupOrCreateMethod(call.getMethod());
-		CallStatement stmt = new CallStatement(SootTranslationHelpers.v().getSourceLocation(u), method, args, receiver);
-		this.currentBlock.addStatement(stmt);
+		
+		if (call instanceof SpecialInvokeExpr) {
+			/* For our new memory model, we need special treatment of constructor invoke
+			 */
+			SootTranslationHelpers.v().getMemoryModel().mkConstructorCall(u, call.getMethod(), args);
+		} else {
+			Method method = SootTranslationHelpers.v().lookupOrCreateMethod(call.getMethod());
+			CallStatement stmt = new CallStatement(SootTranslationHelpers.v().getSourceLocation(u), method, args, receiver);
+			this.currentBlock.addStatement(stmt);			
+		}
 	}
 
 	/**
@@ -656,37 +660,23 @@ public class SootStmtSwitch implements StmtSwitch {
 
 			if (rhs instanceof AnyNewExpr) { // TODO: this should be implemented
 												// in the memory model.
-				AnyNewExpr anyNew = (AnyNewExpr) rhs;
-				soot.Type t = anyNew.getType();
-				SootField dynTypeField = null;
-				if (t instanceof RefType) {
-					// first make a heap-read of the type filed.
-					dynTypeField = ((RefType) t).getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
-				} else if (t instanceof ArrayType) {
-					//TODO: is this correct?
-					
-//					dynTypeField = SootTranslationHelpers.v().getFakeArrayClass((ArrayType)t)
-//							.getFieldByName(SootTranslationHelpers.typeFieldName);
-					throw new RuntimeException("Remove Arrays first");
-				} else {
-					throw new RuntimeException("Not implemented. " + t + ", " + t.getClass());
-				}
-				FieldRef fieldRef = Jimple.v().newInstanceFieldRef(lhs, dynTypeField.makeRef());
-				SootTranslationHelpers.v().getMemoryModel().mkHeapWriteStatement(getCurrentStmt(), fieldRef,
-						SootTranslationHelpers.v().getClassConstant(t));
+//				AnyNewExpr anyNew = (AnyNewExpr) rhs;
+//				soot.Type t = anyNew.getType();
+//				SootField dynTypeField = null;
+//				if (t instanceof RefType) {
+//					// first make a heap-read of the type filed.
+//					dynTypeField = ((RefType) t).getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
+//				} else if (t instanceof ArrayType) {
+//					throw new RuntimeException("Remove Arrays first");
+//				} else {
+//					throw new RuntimeException("Not implemented. " + t + ", " + t.getClass());
+//				}
+//				FieldRef fieldRef = Jimple.v().newInstanceFieldRef(lhs, dynTypeField.makeRef());
+//				SootTranslationHelpers.v().getMemoryModel().mkHeapWriteStatement(getCurrentStmt(), fieldRef,
+//						SootTranslationHelpers.v().getClassConstant(t));
 								
 				if (rhs instanceof NewArrayExpr) {
-					//assert the length of the new array.
-					Local sizeLocal = Jimple.v().newLocal("$arrSizeLocal"+this.sootMethod.getActiveBody().getLocalCount(), IntType.v());
-					this.sootMethod.getActiveBody().getLocals().add(sizeLocal);
-					//create a temporary lengthof expression and translate it.
-					translateDefinitionStmt(Jimple.v().newAssignStmt(sizeLocal, Jimple.v().newLengthExpr(lhs)));
-					
-					((NewArrayExpr)rhs).getSize().apply(valueSwitch);
-					Expression arraySizeExpr = valueSwitch.popExpression();
-					sizeLocal.apply(valueSwitch);
-					Expression arraySizeLhs = valueSwitch.popExpression();
-					currentBlock.addStatement(new AssumeStatement(getCurrentLoc(), new BinaryExpression(getCurrentLoc(), BinaryOperator.Eq, arraySizeLhs, arraySizeExpr)));
+					throw new RuntimeException("Remove Arrays first.");
 				}
 			}
 		}

@@ -3,6 +3,9 @@
  */
 package soottocfg.soot.memory_model;
 
+import java.util.List;
+
+import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
 import soot.jimple.ArrayRef;
@@ -63,6 +66,8 @@ public abstract class MemoryModel {
 	public abstract Expression mkDoubleConstant(DoubleConstant arg0);
 
 	public abstract Expression mkFloatConstant(FloatConstant arg0);
+	
+	public abstract void mkConstructorCall(Unit u, SootMethod constructor, List<Expression> args);
 
 	public abstract ClassVariable lookupClassVariable(ClassConstant t);
 

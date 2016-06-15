@@ -6,6 +6,9 @@ package soottocfg.soot.memory_model;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
+import com.google.common.base.Verify;
 
 import soot.Scene;
 import soot.SootClass;
@@ -21,10 +24,13 @@ import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
+import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.type.ReferenceType;
+import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
@@ -34,12 +40,18 @@ import soottocfg.soot.util.SootTranslationHelpers;
 public class NewMemoryModel extends BasicMemoryModel {
 
 	private HashMap<SootMethod, PackingList> plists;
+	
+	
+	private Map<Variable, Map<SootField, Variable>> fieldToLocalMap = new HashMap<Variable, Map<SootField, Variable>>(); 
 
 	public NewMemoryModel() {
 		plists = new HashMap<SootMethod, PackingList>();
 	}
 
 	public void updatePullPush() {
+		//TODO: this is only here because we know it's only called once per method:
+		fieldToLocalMap.clear();
+		
 		// System.out.println("Determining when to PACK / UNPACK");
 		SootMethod m = SootTranslationHelpers.v().getCurrentMethod();
 		PackingList pl = new PackingList(m);
@@ -75,6 +87,8 @@ public class NewMemoryModel extends BasicMemoryModel {
 			throw new RuntimeException("not implemented");
 		}
 
+		lookupFieldLocal(fieldRef); //TODO
+		
 		Variable[] vars = classVar.getAssociatedFields();
 		SootMethod sm = SootTranslationHelpers.v().getCurrentMethod();
 		// ------------- unpack ---------------
@@ -179,4 +193,85 @@ public class NewMemoryModel extends BasicMemoryModel {
 		return staticFieldContainerVariable;
 	}
 
+	/**
+	 * If e is an identifier expression for a var of
+	 * ReferenceType, return the classvariable otherwise
+	 * throw an exception.
+	 * @param e
+	 * @return
+	 */
+//	private ClassVariable getClassVarFromExpression(Expression e) {
+//		return getClassVariableFromVar(getVarFromExpression(e));
+//	}
+	
+	private Variable getVarFromExpression(Expression e) {
+		IdentifierExpression base = (IdentifierExpression)e;
+		return base.getVariable();		
+	}
+	
+//	private ClassVariable getClassVariableFromVar(Variable v) {
+//		ReferenceType baseType =(ReferenceType)v.getType();
+//		return baseType.getClassVariable();		
+//	}
+	
+	@Override
+	public void mkConstructorCall(Unit u, SootMethod constructor, List<Expression> args) {
+		SourceLocation loc = SootTranslationHelpers.v().getSourceLocation(u);
+		Method method = SootTranslationHelpers.v().lookupOrCreateMethod(constructor);
+		
+		
+		List<Expression> receiver = new LinkedList<Expression>();
+		for (SootField sf : constructor.getDeclaringClass().getFields()) {
+			if (sf.isFinal()) {
+				Variable v = lookupFieldLocal(getVarFromExpression(args.get(0)), sf);
+				receiver.add(new IdentifierExpression(loc, v));
+			}
+		}
+		if (method.getReturnType().size()!=receiver.size()){
+			System.err.println(method.getReturnType());
+			System.err.println(receiver);
+		}
+		
+		Verify.verify(method.getReturnType().size()==receiver.size(), method.getReturnType().size()+"!="+receiver.size());
+		
+//		MethodInfo currentMethodInfo = this.statementSwitch.getMethodInfo();
+//		for (soottocfg.cfg.type.Type tp : method.getReturnType()) {				
+//			Variable lhs = currentMethodInfo.createFreshLocal("foo", tp, true, false);
+//			receiver.add(new IdentifierExpression(loc, lhs));
+//		}
+		//TODO: keep a map between the locals and the fields of this class.
+		CallStatement stmt = new CallStatement(loc, method, args, receiver);
+		this.statementSwitch.push(stmt);
+	}
+
+	
+	private Variable lookupFieldLocal(Variable baseVar, SootField sf) {
+		if (!fieldToLocalMap.containsKey(baseVar)) {
+			fieldToLocalMap.put(baseVar, new HashMap<SootField, Variable>());			
+		}
+		Map<SootField, Variable> f2l = fieldToLocalMap.get(baseVar);		
+		if (!f2l.containsKey(sf)) {
+			MethodInfo currentMethodInfo = this.statementSwitch.getMethodInfo();
+			soottocfg.cfg.type.Type tp = this.lookupType(sf.getType());
+			Variable l = currentMethodInfo.createFreshLocal(baseVar.getName()+"_"+sf.getName()+"_"+sf.getNumber(), tp, sf.isFinal(), false);
+			f2l.put(sf, l);
+		}
+		return f2l.get(sf);
+	}
+	
+	private Variable lookupFieldLocal(FieldRef fieldRef) {
+		Variable baseVar = null;
+		if (fieldRef instanceof InstanceFieldRef) {
+			InstanceFieldRef ifr = (InstanceFieldRef) fieldRef;
+			ifr.getBase().apply(valueSwitch);
+			IdentifierExpression base = (IdentifierExpression) valueSwitch.popExpression();
+			baseVar = base.getVariable();
+			
+		} else if (fieldRef instanceof StaticFieldRef) {
+			baseVar = getStaticFieldContainerVariable();
+		} else {
+			throw new RuntimeException("not implemented");
+		}
+		return lookupFieldLocal(baseVar, fieldRef.getField());
+	}
 }

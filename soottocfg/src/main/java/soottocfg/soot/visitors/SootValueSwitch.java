@@ -113,7 +113,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 		this.memoryModel = SootTranslationHelpers.v().getMemoryModel();
 		this.memoryModel.setStmtSwitch(this.statementSwitch);
 		this.memoryModel.setValueSwitch(this);
-		this.methodInfo = this.statementSwitch.getMethodInto();
+		this.methodInfo = this.statementSwitch.getMethodInfo();
 	}
 
 	public Expression popExpression() {
