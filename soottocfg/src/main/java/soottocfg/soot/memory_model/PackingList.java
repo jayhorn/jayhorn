@@ -13,15 +13,12 @@ import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
-import soot.Value;
 import soot.ValueBox;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
-import soot.jimple.StaticFieldRef;
 import soot.jimple.Stmt;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soot.toolkits.graph.UnitGraph;
-import soottocfg.cfg.expression.IdentifierExpression;
 
 /**
  * 

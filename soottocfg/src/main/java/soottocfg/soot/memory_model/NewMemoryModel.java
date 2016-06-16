@@ -12,7 +12,6 @@ import java.util.Set;
 
 import com.google.common.base.Verify;
 
-import soot.PointsToAnalysis;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
@@ -46,19 +45,19 @@ import soottocfg.soot.util.SootTranslationHelpers;
 public class NewMemoryModel extends BasicMemoryModel {
 
 	private HashMap<SootMethod, PackingList> plists;
-	
-	
-	private Map<Variable, Map<SootField, Variable>> fieldToLocalMap = new HashMap<Variable, Map<SootField, Variable>>(); 
+
+	private Map<Variable, Map<String, Variable>> fieldToLocalMap = new HashMap<Variable, Map<String, Variable>>();
 
 	public NewMemoryModel() {
 		plists = new HashMap<SootMethod, PackingList>();
-		
+
 		// load points to analysis
 		setGeomPointsToAnalysis();
 	}
 
 	public void updatePullPush() {
-		//TODO: this is only here because we know it's only called once per method:
+		// TODO: this is only here because we know it's only called once per
+		// method:
 		fieldToLocalMap.clear();
 		SootMethod m = SootTranslationHelpers.v().getCurrentMethod();
 		PackingList pl = new PackingList(m);
@@ -68,12 +67,13 @@ public class NewMemoryModel extends BasicMemoryModel {
 	@Override
 	public void mkHeapWriteStatement(Unit u, FieldRef fieldRef, Value rhs) {
 		SourceLocation loc = SootTranslationHelpers.v().getSourceLocation(u);
-		Variable fieldVar = lookupField(fieldRef.getField());
+
 		rhs.apply(valueSwitch);
 		Expression value = valueSwitch.popExpression();
 
 		ClassVariable classVar;
 		IdentifierExpression base;
+		List<Variable> fieldLocals = new LinkedList<Variable>();
 
 		if (fieldRef instanceof InstanceFieldRef) {
 			InstanceFieldRef ifr = (InstanceFieldRef) fieldRef;
@@ -81,6 +81,12 @@ public class NewMemoryModel extends BasicMemoryModel {
 			base = (IdentifierExpression) valueSwitch.popExpression();
 			classVar = lookupClassVariable(
 					SootTranslationHelpers.v().getClassConstant(fieldRef.getField().getDeclaringClass().getType()));
+
+			for (SootField sf : fieldRef.getField().getDeclaringClass().getFields()) {
+				if (!sf.isStatic()) {
+					fieldLocals.add(lookupFieldLocal(base.getVariable(), sf));
+				}
+			}
 		} else if (fieldRef instanceof StaticFieldRef) {
 			/*
 			 * For static fields, we use the artificial global class
@@ -89,13 +95,21 @@ public class NewMemoryModel extends BasicMemoryModel {
 			Variable glob = getStaticFieldContainerVariable();
 			classVar = ((ReferenceType) glob.getType()).getClassVariable();
 			base = new IdentifierExpression(loc, glob);
+
+			for (SootField sf : usedStaticFields) {
+				fieldLocals.add(lookupFieldLocal(glob, sf));
+			}
+
 		} else {
 			throw new RuntimeException("not implemented");
 		}
 
-		lookupFieldLocal(fieldRef); //TODO
-		
-		Variable[] vars = classVar.getAssociatedFields();
+		Variable fieldVar = lookupFieldLocal(fieldRef); // TODO
+
+		Verify.verify(fieldLocals.contains(fieldVar), fieldLocals.toString() + "\ndoesn't contain " + fieldVar);
+
+		// Variable[] vars = classVar.getAssociatedFields();
+		Variable[] vars = fieldLocals.toArray(new Variable[fieldLocals.size()]);
 		SootMethod sm = SootTranslationHelpers.v().getCurrentMethod();
 		// ------------- unpack ---------------
 		if (plists.get(sm) != null && plists.get(sm).unpackAt(fieldRef)) {
@@ -123,20 +137,25 @@ public class NewMemoryModel extends BasicMemoryModel {
 	@Override
 	public void mkHeapReadStatement(Unit u, FieldRef fieldRef, Value lhs) {
 		SourceLocation loc = SootTranslationHelpers.v().getSourceLocation(u);
-		Variable fieldVar = lookupField(fieldRef.getField());
+		// Variable fieldVar = lookupField(fieldRef.getField());
 
 		lhs.apply(valueSwitch);
 		IdentifierExpression left = (IdentifierExpression) valueSwitch.popExpression();
 
 		ClassVariable classVar;
 		IdentifierExpression base;
-
+		List<Variable> fieldLocals = new LinkedList<Variable>();
 		if (fieldRef instanceof InstanceFieldRef) {
 			InstanceFieldRef ifr = (InstanceFieldRef) fieldRef;
 			ifr.getBase().apply(valueSwitch);
 			base = (IdentifierExpression) valueSwitch.popExpression();
 			classVar = lookupClassVariable(
 					SootTranslationHelpers.v().getClassConstant(fieldRef.getField().getDeclaringClass().getType()));
+			for (SootField sf : fieldRef.getField().getDeclaringClass().getFields()) {
+				if (!sf.isStatic()) {
+					fieldLocals.add(lookupFieldLocal(base.getVariable(), sf));
+				}
+			}
 		} else if (fieldRef instanceof StaticFieldRef) {
 			/*
 			 * For static fields, we use the artificial global class
@@ -145,11 +164,20 @@ public class NewMemoryModel extends BasicMemoryModel {
 			Variable glob = getStaticFieldContainerVariable();
 			classVar = ((ReferenceType) glob.getType()).getClassVariable();
 			base = new IdentifierExpression(loc, glob);
+			for (SootField sf : usedStaticFields) {
+				fieldLocals.add(lookupFieldLocal(glob, sf));
+			}
+
 		} else {
 			throw new RuntimeException("not implemented");
 		}
 
-		Variable[] vars = classVar.getAssociatedFields();
+		Variable fieldVar = lookupFieldLocal(fieldRef); // TODO
+		Verify.verify(fieldLocals.contains(fieldVar));
+
+		// Variable[] vars = classVar.getAssociatedFields();
+		Variable[] vars = fieldLocals.toArray(new Variable[fieldLocals.size()]);
+
 		SootMethod sm = SootTranslationHelpers.v().getCurrentMethod();
 
 		// ------------- unpack ---------------
@@ -175,11 +203,13 @@ public class NewMemoryModel extends BasicMemoryModel {
 	}
 
 	private static Variable staticFieldContainerVariable = null;
+	private static List<SootField> usedStaticFields = null;
 	private static final String gloablsClassName = "JayhornGlobals";
 	private static final String gloablsClassVarName = "JayhornGlobalsClassVar";
 
 	protected Variable getStaticFieldContainerVariable() {
 		if (staticFieldContainerVariable == null) {
+			usedStaticFields = new LinkedList<SootField>();
 			ClassVariable classVar = new ClassVariable(gloablsClassVarName, new LinkedList<ClassVariable>());
 			Set<Variable> fields = new LinkedHashSet<Variable>();
 			for (SootClass sc : Scene.v().getClasses()) {
@@ -187,23 +217,24 @@ public class NewMemoryModel extends BasicMemoryModel {
 					for (SootMethod sm : sc.getMethods()) {
 						try {
 							for (Unit u : sm.retrieveActiveBody().getUnits()) {
-								Stmt st = (Stmt)u;
+								Stmt st = (Stmt) u;
 								if (st.containsFieldRef()) {
 									SootField sf = st.getFieldRef().getField();
-									if (sf.isStatic()) {
+									if (sf.isStatic() && !usedStaticFields.contains(sf)) {
 										fields.add(this.lookupField(sf));
+										usedStaticFields.add(sf);
 									}
 								}
 							}
 						} catch (Exception e) {
-							
+
 						}
 					}
-//					for (SootField sf : sc.getFields()) {
-//						if (sf.isStatic()) {
-//							fields.add(this.lookupField(sf));
-//						}
-//					}
+					// for (SootField sf : sc.getFields()) {
+					// if (sf.isStatic()) {
+					// fields.add(this.lookupField(sf));
+					// }
+					// }
 				}
 			}
 			List<Variable> fieldList = new LinkedList<Variable>();
@@ -218,29 +249,29 @@ public class NewMemoryModel extends BasicMemoryModel {
 	 * If e is an identifier expression for a var of
 	 * ReferenceType, return the classvariable otherwise
 	 * throw an exception.
+	 * 
 	 * @param e
 	 * @return
 	 */
-//	private ClassVariable getClassVarFromExpression(Expression e) {
-//		return getClassVariableFromVar(getVarFromExpression(e));
-//	}
-	
+	// private ClassVariable getClassVarFromExpression(Expression e) {
+	// return getClassVariableFromVar(getVarFromExpression(e));
+	// }
+
 	private Variable getVarFromExpression(Expression e) {
-		IdentifierExpression base = (IdentifierExpression)e;
-		return base.getVariable();		
+		IdentifierExpression base = (IdentifierExpression) e;
+		return base.getVariable();
 	}
-	
-//	private ClassVariable getClassVariableFromVar(Variable v) {
-//		ReferenceType baseType =(ReferenceType)v.getType();
-//		return baseType.getClassVariable();		
-//	}
-	
+
+	// private ClassVariable getClassVariableFromVar(Variable v) {
+	// ReferenceType baseType =(ReferenceType)v.getType();
+	// return baseType.getClassVariable();
+	// }
+
 	@Override
 	public void mkConstructorCall(Unit u, SootMethod constructor, List<Expression> args) {
 		SourceLocation loc = SootTranslationHelpers.v().getSourceLocation(u);
 		Method method = SootTranslationHelpers.v().lookupOrCreateMethod(constructor);
-		
-		
+
 		List<Expression> receiver = new LinkedList<Expression>();
 		for (SootField sf : constructor.getDeclaringClass().getFields()) {
 			if (sf.isFinal()) {
@@ -248,38 +279,46 @@ public class NewMemoryModel extends BasicMemoryModel {
 				receiver.add(new IdentifierExpression(loc, v));
 			}
 		}
-		if (method.getReturnType().size()!=receiver.size()){
+		if (method.getReturnType().size() != receiver.size()) {
 			System.err.println(method.getReturnType());
 			System.err.println(receiver);
 		}
-		
-		Verify.verify(method.getReturnType().size()==receiver.size(), method.getReturnType().size()+"!="+receiver.size());
-		
-//		MethodInfo currentMethodInfo = this.statementSwitch.getMethodInfo();
-//		for (soottocfg.cfg.type.Type tp : method.getReturnType()) {				
-//			Variable lhs = currentMethodInfo.createFreshLocal("foo", tp, true, false);
-//			receiver.add(new IdentifierExpression(loc, lhs));
-//		}
-		//TODO: keep a map between the locals and the fields of this class.
+
+		Verify.verify(method.getReturnType().size() == receiver.size(),
+				method.getReturnType().size() + "!=" + receiver.size());
+
+		// MethodInfo currentMethodInfo = this.statementSwitch.getMethodInfo();
+		// for (soottocfg.cfg.type.Type tp : method.getReturnType()) {
+		// Variable lhs = currentMethodInfo.createFreshLocal("foo", tp, true,
+		// false);
+		// receiver.add(new IdentifierExpression(loc, lhs));
+		// }
+		// TODO: keep a map between the locals and the fields of this class.
 		CallStatement stmt = new CallStatement(loc, method, args, receiver);
 		this.statementSwitch.push(stmt);
 	}
 
-	
 	private Variable lookupFieldLocal(Variable baseVar, SootField sf) {
-		if (!fieldToLocalMap.containsKey(baseVar)) {
-			fieldToLocalMap.put(baseVar, new HashMap<SootField, Variable>());			
+		if (sf.isStatic()) {
+		System.err.println(fieldToLocalMap);
 		}
-		Map<SootField, Variable> f2l = fieldToLocalMap.get(baseVar);		
-		if (!f2l.containsKey(sf)) {
+		if (!fieldToLocalMap.containsKey(baseVar)) {
+			fieldToLocalMap.put(baseVar, new HashMap<String, Variable>());
+		}
+		Map<String, Variable> f2l = fieldToLocalMap.get(baseVar);
+		if (!f2l.containsKey(sf.getDeclaration())) {
 			MethodInfo currentMethodInfo = this.statementSwitch.getMethodInfo();
 			soottocfg.cfg.type.Type tp = this.lookupType(sf.getType());
-			Variable l = currentMethodInfo.createFreshLocal(baseVar.getName()+"_"+sf.getName()+"_"+sf.getNumber(), tp, sf.isFinal(), false);
-			f2l.put(sf, l);
+			String name = baseVar.getName() + "_" + sf.getName() + "_" + sf.getNumber();
+			if (sf.isStatic()) {
+				name = sf.getDeclaringClass().getName() + "_" + sf.getName();
+			}
+			Variable l = currentMethodInfo.createFreshLocal(name, tp, sf.isFinal(), false);
+			f2l.put(sf.getDeclaration(), l);
 		}
-		return f2l.get(sf);
+		return f2l.get(sf.getDeclaration());
 	}
-	
+
 	private Variable lookupFieldLocal(FieldRef fieldRef) {
 		Variable baseVar = null;
 		if (fieldRef instanceof InstanceFieldRef) {
@@ -287,7 +326,6 @@ public class NewMemoryModel extends BasicMemoryModel {
 			ifr.getBase().apply(valueSwitch);
 			IdentifierExpression base = (IdentifierExpression) valueSwitch.popExpression();
 			baseVar = base.getVariable();
-			
 		} else if (fieldRef instanceof StaticFieldRef) {
 			baseVar = getStaticFieldContainerVariable();
 		} else {
@@ -295,41 +333,41 @@ public class NewMemoryModel extends BasicMemoryModel {
 		}
 		return lookupFieldLocal(baseVar, fieldRef.getField());
 	}
-	
-	private void setGeomPointsToAnalysis() {
-		HashMap<String,String> opt = new HashMap<String,String>();
-		opt.put("enabled","true");
-		opt.put("verbose","true");
-		opt.put("ignore-types","false");
-		opt.put("force-gc","false");
-//         opt.put("pre-jimplify","false");
-//         opt.put("vta","false");
-//         opt.put("rta","false");
-//         opt.put("field-based","false");
-//         opt.put("types-for-sites","false");
-//         opt.put("merge-stringbuffer","true");
-//         opt.put("string-constants","false");
-//         opt.put("simulate-natives","true");
-//         opt.put("simple-edges-bidirectional","false");
-//         opt.put("on-fly-cg","true");
-//         opt.put("simplify-offline","false");
-//         opt.put("simplify-sccs","false");
-//         opt.put("ignore-types-for-sccs","false");
-//         opt.put("propagator","worklist");
-		opt.put("set-impl","double");
-		opt.put("double-set-old","hybrid");
-		opt.put("double-set-new","hybrid");
-//         opt.put("dump-html","false");
-//         opt.put("dump-pag","false");
-//         opt.put("dump-solution","false");
-//         opt.put("topo-sort","false");
-//         opt.put("dump-types","true");
-//         opt.put("class-method-var","true");
-//         opt.put("dump-answer","false");
-//         opt.put("add-tags","false");
-//         opt.put("set-mass","false");     
 
-//         SparkTransformer.v().transform("",opt);
+	private void setGeomPointsToAnalysis() {
+		HashMap<String, String> opt = new HashMap<String, String>();
+		opt.put("enabled", "true");
+		opt.put("verbose", "true");
+		opt.put("ignore-types", "false");
+		opt.put("force-gc", "false");
+		// opt.put("pre-jimplify","false");
+		// opt.put("vta","false");
+		// opt.put("rta","false");
+		// opt.put("field-based","false");
+		// opt.put("types-for-sites","false");
+		// opt.put("merge-stringbuffer","true");
+		// opt.put("string-constants","false");
+		// opt.put("simulate-natives","true");
+		// opt.put("simple-edges-bidirectional","false");
+		// opt.put("on-fly-cg","true");
+		// opt.put("simplify-offline","false");
+		// opt.put("simplify-sccs","false");
+		// opt.put("ignore-types-for-sccs","false");
+		// opt.put("propagator","worklist");
+		opt.put("set-impl", "double");
+		opt.put("double-set-old", "hybrid");
+		opt.put("double-set-new", "hybrid");
+		// opt.put("dump-html","false");
+		// opt.put("dump-pag","false");
+		// opt.put("dump-solution","false");
+		// opt.put("topo-sort","false");
+		// opt.put("dump-types","true");
+		// opt.put("class-method-var","true");
+		// opt.put("dump-answer","false");
+		// opt.put("add-tags","false");
+		// opt.put("set-mass","false");
+
+		// SparkTransformer.v().transform("",opt);
 		SparkOptions so = new SparkOptions(opt);
 		GeomPointsTo gpt = new GeomPointsTo(so);
 		Scene.v().setPointsToAnalysis(gpt);
