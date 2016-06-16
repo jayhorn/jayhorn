@@ -16,6 +16,7 @@ import soot.Unit;
 import soot.ValueBox;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
+import soot.jimple.StaticFieldRef;
 import soot.jimple.Stmt;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soot.toolkits.graph.UnitGraph;
@@ -79,13 +80,15 @@ public class PackingList {
 				if (f instanceof InstanceFieldRef) {
 					InstanceFieldRef ifr = (InstanceFieldRef) f;
 					inconstr = m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal());
-				}
-				
-				if (!inconstr) { 
-					PackUnpackPair pup = new PackUnpackPair(f,f);
+					if (!inconstr) { 
+						PackUnpackPair pup = new PackUnpackPair(f,f);
+						addPair(pup);
+						//System.out.println("Added pack/unpack pair at " + s);
+					} 
+				} else if (f instanceof StaticFieldRef) {
+					PackUnpackPair pup = new PackUnpackPair(f,null);
 					addPair(pup);
-					//System.out.println("Added pack/unpack pair at " + s);
-				} 
+				}
 			}
 		}
 		
