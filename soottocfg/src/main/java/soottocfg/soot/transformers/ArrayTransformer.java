@@ -265,8 +265,7 @@ public class ArrayTransformer {
 			}
 			try {
 				body.validate();
-			} catch (RuntimeException e) {
-				System.err.println(body);
+			} catch (RuntimeException e) {				
 				throw e;
 			}
 		}

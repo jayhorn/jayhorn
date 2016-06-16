@@ -279,11 +279,6 @@ public class NewMemoryModel extends BasicMemoryModel {
 				receiver.add(new IdentifierExpression(loc, v));
 			}
 		}
-		if (method.getReturnType().size() != receiver.size()) {
-			System.err.println(method.getReturnType());
-			System.err.println(receiver);
-		}
-
 		Verify.verify(method.getReturnType().size() == receiver.size(),
 				method.getReturnType().size() + "!=" + receiver.size());
 
@@ -299,9 +294,6 @@ public class NewMemoryModel extends BasicMemoryModel {
 	}
 
 	private Variable lookupFieldLocal(Variable baseVar, SootField sf) {
-		if (sf.isStatic()) {
-		System.err.println(fieldToLocalMap);
-		}
 		if (!fieldToLocalMap.containsKey(baseVar)) {
 			fieldToLocalMap.put(baseVar, new HashMap<String, Variable>());
 		}

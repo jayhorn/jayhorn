@@ -87,10 +87,7 @@ public class MethodInfo {
 					cl = null;
 				}
 			}
-			System.err.println("FINAL FIELDS FOR : " + sm.getDeclaringClass() + " "+finalFields.size());
-			for (SootField sf : finalFields) {
-				System.err.println(sf.toString());
-			}
+			//TODO
 		} else {
 			this.returnVariables = null;
 		}
