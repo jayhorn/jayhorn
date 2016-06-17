@@ -111,8 +111,8 @@ public class NewMemoryModel extends BasicMemoryModel {
 		// Variable[] vars = classVar.getAssociatedFields();
 		Variable[] vars = fieldLocals.toArray(new Variable[fieldLocals.size()]);
 		SootMethod sm = SootTranslationHelpers.v().getCurrentMethod();
-		// ------------- unpack ---------------
-		if (plists.get(sm) != null && plists.get(sm).unpackAt(fieldRef)) {
+		// ------------- pull ---------------
+		if (plists.get(sm) != null && plists.get(sm).pullAt(fieldRef)) {
 			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			for (int i = 0; i < vars.length; i++) {
 				unpackedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
@@ -122,8 +122,8 @@ public class NewMemoryModel extends BasicMemoryModel {
 		// ------------------------------------
 		this.statementSwitch.push(new AssignStatement(loc,
 				new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar), value));
-		// ------------- pack -----------------
-		if (plists.get(sm) != null && plists.get(sm).packAt(fieldRef)) {
+		// ------------- push -----------------
+		if (plists.get(sm) != null && plists.get(sm).pushAt(fieldRef)) {
 			List<Expression> packedVars = new LinkedList<Expression>();
 			for (int i = 0; i < vars.length; i++) {
 				packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
@@ -180,8 +180,8 @@ public class NewMemoryModel extends BasicMemoryModel {
 
 		SootMethod sm = SootTranslationHelpers.v().getCurrentMethod();
 
-		// ------------- unpack ---------------
-		if (plists.get(sm) != null && plists.get(sm).unpackAt(fieldRef)) {
+		// ------------- pull ---------------
+		if (plists.get(sm) != null && plists.get(sm).pullAt(fieldRef)) {
 			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			for (int i = 0; i < vars.length; i++) {
 				unpackedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
@@ -191,8 +191,8 @@ public class NewMemoryModel extends BasicMemoryModel {
 		// ------------------------------------
 		this.statementSwitch.push(new AssignStatement(loc, left,
 				new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar)));
-		// ------------- pack -----------------
-		if (plists.get(sm) != null && plists.get(sm).packAt(fieldRef)) {
+		// ------------- push -----------------
+		if (plists.get(sm) != null && plists.get(sm).pushAt(fieldRef)) {
 			List<Expression> packedVars = new LinkedList<Expression>();
 			for (int i = 0; i < vars.length; i++) {
 				packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));

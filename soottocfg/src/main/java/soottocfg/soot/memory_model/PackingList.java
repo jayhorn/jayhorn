@@ -1,19 +1,13 @@
 package soottocfg.soot.memory_model;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
-import soot.PointsToAnalysis;
-import soot.PointsToSet;
-import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
-import soot.ValueBox;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.StaticFieldRef;
@@ -30,7 +24,7 @@ import soot.toolkits.graph.UnitGraph;
 public class PackingList {
 
 	SootMethod m;
-	HashMap<SootClass,List<PackUnpackPair>> lists;
+	HashMap<SootClass,List<PushPullPair>> lists;
 	
 	/**
 	 * Construct new PackingList.
@@ -38,17 +32,14 @@ public class PackingList {
 	 */
 	public PackingList(SootMethod m) {
 		this.m = m;
-		this.lists = new HashMap<SootClass,List<PackUnpackPair>>();
+		this.lists = new HashMap<SootClass,List<PushPullPair>>();
 		buildOverestimatedLists();
-//		int merged = minimize();
-//		if (merged>0)
-//			System.out.println("Minimization step removed " + merged + " pack-unpack pairs in " + m.getName());
 	}
 	
-	private boolean addPair(PackUnpackPair pup) {
-		List<PackUnpackPair> list = lists.get(pup.f.getDeclaringClass());
+	private boolean addPair(PushPullPair pup) {
+		List<PushPullPair> list = lists.get(pup.f.getDeclaringClass());
 		if (list==null) {
-			list = new LinkedList<PackUnpackPair>();
+			list = new LinkedList<PushPullPair>();
 			lists.put(pup.f.getDeclaringClass(),list);
 		}
 		return list.add(pup);
@@ -62,32 +53,23 @@ public class PackingList {
 		for (Unit u : graph) {
 			Stmt s = (Stmt) u;
 			
-			// test code for lengthof expr
-//			List<ValueBox> vbs = u.getUseBoxes();
-//			for (ValueBox vb : vbs) {
-//				Value v = vb.getValue();
-//				if (s.toString().contains("lengthof")) {
-//					System.out.println("CLASS" + v.getClass());
-//				}
-//				
-//			}
-			
 			if (s.containsFieldRef()) {
 				FieldRef f = s.getFieldRef();
 				
 				// do not pull/push 'this' in constructor
-				boolean inconstr = false;
 				if (f instanceof InstanceFieldRef) {
 					InstanceFieldRef ifr = (InstanceFieldRef) f;
-					inconstr = m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal());
+					boolean inconstr = m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal());
 					if (!inconstr) { 
-						PackUnpackPair pup = new PackUnpackPair(f,f);
+						PushPullPair pup = new PushPullPair(f,f);
 						addPair(pup);
-						//System.out.println("Added pack/unpack pair at " + s);
 					} 
 				} else if (f instanceof StaticFieldRef) {
-					PackUnpackPair pup = new PackUnpackPair(f,null);
-					addPair(pup);
+					// in static initializer only push at the end
+					if (!m.isStaticInitializer()) {
+						PushPullPair pup = new PushPullPair(f,f);
+						addPair(pup);
+					}
 				}
 			}
 		}
@@ -96,15 +78,15 @@ public class PackingList {
 		if (m.isConstructor()) {
 			List<Unit> todo = new LinkedList<Unit>(graph.getTails());
 			while (!todo.isEmpty()) {
-				Unit u = todo.remove(0);;
+				Unit u = todo.remove(0);
 				Stmt s = (Stmt) u;
 				if (s.containsFieldRef()) {
 					FieldRef f = s.getFieldRef();
 					if (f instanceof InstanceFieldRef) {
 						InstanceFieldRef ifr = (InstanceFieldRef) f;
 						if (ifr.getBase().equals(m.getActiveBody().getThisLocal())) {
-							if (!packAt(f)) {
-								PackUnpackPair pup = new PackUnpackPair(f,null);
+							if (!pushAt(f)) {
+								PushPullPair pup = new PushPullPair(f,null);
 								addPair(pup);
 //								System.out.println("Added pack at end of constructor, at " + s);
 							}
@@ -115,144 +97,39 @@ public class PackingList {
 				todo.addAll(graph.getPredsOf(u));
 			}
 		}
-	}
 
-	/**
-	 * Minimize the packing list with respect to an alias analysis.
-	 * @return the number of removed pairs.
-	 */
-	// TODO use intelligent points-to-analysis
-	private int minimize() {
-		
-		// count merged pairs
-		int count = 0;
-		
-		// get points-to-analysis
-		PointsToAnalysis pta = Scene.v().getPointsToAnalysis();
-//		GeomPointsTo geomPTA = (GeomPointsTo) pta;
-		
-		// traverse UnitGraph
-		UnitGraph graph = new CompleteUnitGraph(m.getActiveBody());
-		List<Unit> heads = graph.getHeads();
-		Set<PackUnpackPair> open = new HashSet<PackUnpackPair>();
-		for (Unit head : heads) {			
-			List<Unit> todo = new LinkedList<Unit>(graph.getSuccsOf(head));
-			Set<Unit> done = new HashSet<Unit>();
+		// add push at the end of static initializer
+		if (m.isStaticInitializer()) {
+			List<Unit> todo = new LinkedList<Unit>(graph.getTails());
 			while (!todo.isEmpty()) {
-				Unit current = todo.remove(0);
-				Stmt s = (Stmt)current;
+				Unit u = todo.remove(0);
+				Stmt s = (Stmt) u;
 				if (s.containsFieldRef()) {
-					FieldRef fr = s.getFieldRef();
-					boolean merged = false;
-					PackUnpackPair justAdded = null;
-					
-					// if minimization may be possible
-					if (unpackAt(fr) && lists.get(fr.getField().getDeclaringClass()).size() > 1) {
-						
-						// find the pair
-findloop:				for (PackUnpackPair pup : lists.get(fr.getField().getDeclaringClass())) {
-							if (pup.unpackAt==fr) {
-								// if in list of currently unpacked fields, merge PackUnpackPairs
-								for (PackUnpackPair pup2 : open) {
-									if (pup2.unpackAt.getField().getDeclaringClass().equals(fr.getField().getDeclaringClass())) {
-										// check  if variable names are equal, otherwise should not merge
-										boolean sameVar = true;
-										List<ValueBox> vbs1 = pup.packAt.getUseBoxes();
-										List<ValueBox> vbs2 = pup2.packAt.getUseBoxes();
-										for (ValueBox vb1 : vbs1) {
-											for (ValueBox vb2 : vbs2) {
-												if(!vb1.getValue().equals(vb2.getValue()))
-													sameVar = false;
-											}
-										}
-
-										if (sameVar) {
-											//merge
-											pup2.packAt = fr;
-											lists.get(fr.getField().getDeclaringClass()).remove(pup);
-											count++;
-											merged = true;
-											//System.out.println("MERGE! Pack at " + pup2.packAt + " unpack at " + pup2.unpackAt);
-											break findloop;
-										}
-									}
-								}
-								// not found -> add to list to minimize
-								open.add(pup);
-								justAdded=pup;
-								break findloop;
-							}
+					FieldRef f = s.getFieldRef();
+					if (f instanceof StaticFieldRef) {
+						if (!pushAt(f)) {
+							PushPullPair pup = new PushPullPair(f,null);
+							addPair(pup);
+//							System.out.println("Added push at end of static initializer, at " + s);
 						}
-					}
-					
-					// use points to analysis to check which objects may remain unpacked
-					if (!merged) {
-						PointsToSet pointsTo = pta.reachingObjects(fr.getField());
-						Set<PackUnpackPair> toRemove = new HashSet<PackUnpackPair>();
-						for (PackUnpackPair pup : open) {
-							if (pup != justAdded) {
-								PointsToSet pointsTo2 = pta.reachingObjects(pup.packAt.getField());
-								if (pointsTo.hasNonEmptyIntersection(pointsTo2)) {
-									//System.out.println(fr.getField() + " may point to same location as " + pup.packAt.getField());
-									toRemove.add(pup);
-								}
-							}
-						}
-						open.removeAll(toRemove);
+						continue;
 					}
 				}
-
-				// use points to analysis to check which objects may remain unpacked
-				// TODO it seems this captures the same locations as above, so probably not needed
-//				for (ValueBox vb : s.getUseAndDefBoxes()) {
-//					Value v = vb.getValue();
-//					if (v instanceof Local) {
-////						System.out.println("LOCAL FOUND: " + v);
-//						PointsToSet pointsTo = pta.reachingObjects((Local) v);
-//						for (PackUnpackPair pup : open) {
-//							PointsToSet pointsTo2 = pta.reachingObjects(pup.packAt.getField());
-//							if (pointsTo.hasNonEmptyIntersection(pointsTo2)) {
-//								System.out.println("May point to the same location as " + pup.packAt.getField());
-//								open.remove(pup);
-//							}
-//						}
-//					}
-//				}
-//				
-//				// TODO not sure if necessary, can array values point to the same memory location as fields in Jimple?
-//				if (s.containsArrayRef()) {
-//					ArrayRef ar = s.getArrayRef();
-//					for (ValueBox vb : ar.getUseBoxes()) {
-//						Value v = vb.getValue();
-//						if (v instanceof Local) {
-//							System.out.println("AN ARRAY VALUE CAN BE A LOCAL !!!! " + v);
-//							// looks like this is not needed
-//						}
-//					}
-//				}
-				
-				done.add(current);
-				for (Unit next : graph.getSuccsOf(current)) {
-					if (!todo.contains(next) && !done.contains(next)) {
-						todo.add(next);
-					}
-				}
+				todo.addAll(graph.getPredsOf(u));
 			}
 		}
-		
-		return count;
 	}
-	
+
 	/**
 	 * Find out whether to pack at a FieldRef. 
 	 * @param fr
 	 * @return true if we should pack at fr
 	 */
-	public boolean packAt(FieldRef fr) {
-		List<PackUnpackPair> list = lists.get(fr.getField().getDeclaringClass());
+	public boolean pushAt(FieldRef fr) {
+		List<PushPullPair> list = lists.get(fr.getField().getDeclaringClass());
 		if (list != null) {
-			for (PackUnpackPair pup : list) {
-				if (pup.packAt==fr)
+			for (PushPullPair pup : list) {
+				if (pup.pushAt==fr)
 					return true;
 			}
 		}
@@ -264,11 +141,11 @@ findloop:				for (PackUnpackPair pup : lists.get(fr.getField().getDeclaringClass
 	 * @param fr
 	 * @return true if we should unpack at fr
 	 */
-	public boolean unpackAt(FieldRef fr) {
-		List<PackUnpackPair> list = lists.get(fr.getField().getDeclaringClass());
+	public boolean pullAt(FieldRef fr) {
+		List<PushPullPair> list = lists.get(fr.getField().getDeclaringClass());
 		if (list != null) {
-			for (PackUnpackPair pup : list) {
-				if (pup.unpackAt==fr)
+			for (PushPullPair pup : list) {
+				if (pup.pullAt==fr)
 					return true;
 			}
 		}
@@ -280,16 +157,15 @@ findloop:				for (PackUnpackPair pup : lists.get(fr.getField().getDeclaringClass
 	 * @author rodykers
 	 *
 	 */
-	static private class PackUnpackPair {
+	static private class PushPullPair {
 		SootField f;
-		FieldRef packAt;
-		FieldRef unpackAt;
+		FieldRef pushAt;
+		FieldRef pullAt;
 
-		PackUnpackPair(FieldRef packAt, FieldRef unpackAt) {
-//			assert(unpackAt==null || packAt.getField()==unpackAt.getField());
-			this.f = packAt.getField();
-			this.packAt = packAt;
-			this.unpackAt = unpackAt;
+		PushPullPair(FieldRef pushAt, FieldRef pullAt) {
+			this.f = pushAt.getField();
+			this.pushAt = pushAt;
+			this.pullAt = pullAt;
 		}
 	}
 }
