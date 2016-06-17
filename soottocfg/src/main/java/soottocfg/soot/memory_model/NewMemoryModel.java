@@ -48,7 +48,15 @@ public class NewMemoryModel extends BasicMemoryModel {
 
 	private Map<Variable, Map<String, Variable>> fieldToLocalMap = new HashMap<Variable, Map<String, Variable>>();
 
+	private static Variable staticFieldContainerVariable;
+	private static List<SootField> usedStaticFields;
+	private static final String gloablsClassName = "JayhornGlobals";
+	private static final String gloablsClassVarName = "JayhornGlobalsClassVar";
+	
 	public NewMemoryModel() {
+		staticFieldContainerVariable = null;
+		usedStaticFields = null;
+		
 		plists = new HashMap<SootMethod, PackingList>();
 
 		// load points to analysis
@@ -201,11 +209,6 @@ public class NewMemoryModel extends BasicMemoryModel {
 		}
 		// ------------------------------------
 	}
-
-	private static Variable staticFieldContainerVariable = null;
-	private static List<SootField> usedStaticFields = null;
-	private static final String gloablsClassName = "JayhornGlobals";
-	private static final String gloablsClassVarName = "JayhornGlobalsClassVar";
 
 	protected Variable getStaticFieldContainerVariable() {
 		if (staticFieldContainerVariable == null) {
