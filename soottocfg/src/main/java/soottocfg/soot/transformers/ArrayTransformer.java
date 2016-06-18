@@ -353,7 +353,8 @@ public class ArrayTransformer {
 				.add(Jimple.v().newAssignStmt(
 						Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemTypeField.makeRef()),
 						ClassConstant.v(elementTypeName)));
-
+		body.getUnits()
+		.add(Jimple.v().newReturnVoidStmt());
 		constructor.setActiveBody(body);
 		
 		return arrayClass;

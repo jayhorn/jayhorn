@@ -53,10 +53,13 @@ public class NewMemoryModel extends BasicMemoryModel {
 	private static final String gloablsClassName = "JayhornGlobals";
 	private static final String gloablsClassVarName = "JayhornGlobalsClassVar";
 	
+	protected static void resetGlobalState() {
+		NewMemoryModel.staticFieldContainerVariable = null;
+		NewMemoryModel.usedStaticFields = null;		
+	}
+	
 	public NewMemoryModel() {
-		staticFieldContainerVariable = null;
-		usedStaticFields = null;
-		
+		NewMemoryModel.resetGlobalState();
 		plists = new HashMap<SootMethod, PackingList>();
 
 		// load points to analysis

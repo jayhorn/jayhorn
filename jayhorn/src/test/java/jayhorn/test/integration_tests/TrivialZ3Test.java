@@ -72,7 +72,6 @@ public class TrivialZ3Test {
 //		verifyAssertions(new Z3ProverFactory());
 //	}
 
-	
 	protected void verifyAssertions(ProverFactory factory) {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
