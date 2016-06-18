@@ -48,10 +48,13 @@ public class NewMemoryModel extends BasicMemoryModel {
 
 	private Map<Variable, Map<String, Variable>> fieldToLocalMap = new HashMap<Variable, Map<String, Variable>>();
 
+	// This one sticks around between method calls...
+	private Map<Variable, SootField> localToFieldMap = new HashMap<Variable, SootField>();
+
 	private static Variable staticFieldContainerVariable;
 	private static List<SootField> usedStaticFields;
-	private static final String gloablsClassName = "JayhornGlobals";
-	private static final String gloablsClassVarName = "JayhornGlobalsClassVar";
+	private static final String globalsClassName = "JayhornGlobals";
+	private static final String globalsClassVarName = "JayhornGlobalsClassVar";
 	
 	protected static void resetGlobalState() {
 		NewMemoryModel.staticFieldContainerVariable = null;
@@ -70,6 +73,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 		// TODO: this is only here because we know it's only called once per
 		// method:
 		fieldToLocalMap.clear();
+		
 		SootMethod m = SootTranslationHelpers.v().getCurrentMethod();
 		PackingList pl = new PackingList(m);
 		plists.put(m, pl);
@@ -216,7 +220,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 	protected Variable getStaticFieldContainerVariable() {
 		if (staticFieldContainerVariable == null) {
 			usedStaticFields = new LinkedList<SootField>();
-			ClassVariable classVar = new ClassVariable(gloablsClassVarName, new LinkedList<ClassVariable>());
+			ClassVariable classVar = new ClassVariable(globalsClassVarName, new LinkedList<ClassVariable>());
 			Set<Variable> fields = new LinkedHashSet<Variable>();
 			for (SootClass sc : Scene.v().getClasses()) {
 				if (sc.resolvingLevel() >= SootClass.BODIES) {
@@ -246,7 +250,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			List<Variable> fieldList = new LinkedList<Variable>();
 			fieldList.addAll(fields);
 			classVar.setAssociatedFields(fieldList);
-			staticFieldContainerVariable = new Variable(gloablsClassName, new ReferenceType(classVar), true, true);
+			staticFieldContainerVariable = new Variable(globalsClassName, new ReferenceType(classVar), true, true);
 		}
 		return staticFieldContainerVariable;
 	}
@@ -313,6 +317,9 @@ public class NewMemoryModel extends BasicMemoryModel {
 			}
 			Variable l = currentMethodInfo.createFreshLocal(name, tp, sf.isFinal(), false);
 			f2l.put(sf.getDeclaration(), l);
+			
+			// also add it to the localToFieldMap
+			localToFieldMap.put(l, sf);
 		}
 		return f2l.get(sf.getDeclaration());
 	}
@@ -330,6 +337,10 @@ public class NewMemoryModel extends BasicMemoryModel {
 			throw new RuntimeException("not implemented");
 		}
 		return lookupFieldLocal(baseVar, fieldRef.getField());
+	}
+	
+	public SootField lookupField(Variable local) {
+		return localToFieldMap.get(local);
 	}
 
 	private void setGeomPointsToAnalysis() {
