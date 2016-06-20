@@ -206,7 +206,7 @@ public class SootToCfg {
 					mi.finalizeAndAddToProgram();
 					Method m = mi.getMethod();
 										
-//					System.err.println(m);
+//					System.out.println(body);
 					if (debug) {
 						// System.out.println("adding method: " +
 						// m.getMethodName());
@@ -254,33 +254,6 @@ public class SootToCfg {
 	private void performAbstractionTransformations() {
 		ArrayTransformer atrans = new ArrayTransformer();
 		atrans.substituteAllArrayTypes();
-
-//		Map<SootField, SootField> globalArrayFields = new HashMap<SootField, SootField>(); 
-//		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
-//		for (SootClass sc : classes) {
-//			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
-//				continue; // no need to process this guy.
-//			}
-//			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
-//				SootTranslationHelpers.v().setCurrentClass(sc);
-//				for (SootMethod sm : sc.getMethods()) {
-//					if (sm.isConcrete()) {
-//						SootTranslationHelpers.v().setCurrentMethod(sm);
-//						Body body;
-//						try {
-//							if (sm.hasActiveBody()) {
-//								body = sm.getActiveBody();
-//							} else {
-//								body = sm.retrieveActiveBody();
-//							}							
-//						} catch (RuntimeException e) {
-//							System.err.println("Abstraction transformation failed" + sm.getSignature());
-//							throw e;
-//						}
-//					}
-//				}
-//			}
-//		}
 	}
 
 	private Set<SootMethod> staticInitializers = new HashSet<SootMethod>();
@@ -318,6 +291,7 @@ public class SootToCfg {
 						SootTranslationHelpers.v().setCurrentMethod(sm);
 						try {
 							Body body = sm.retrieveActiveBody();
+//							System.out.println(body);
 							UnreachableCodeEliminator.v().transform(body);
 							// detect duplicated finally blocks
 							DuplicatedCatchDetection duplicatedUnits = new DuplicatedCatchDetection();

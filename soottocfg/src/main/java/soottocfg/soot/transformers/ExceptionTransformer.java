@@ -261,19 +261,8 @@ public class ExceptionTransformer extends AbstractTransformer {
 				}
 			}
 			// now sort the classes.
-			Collections.sort(possibleExceptions, new Comparator<SootClass>() {
-				@Override
-				public int compare(final SootClass a, final SootClass b) {
-					if (a == b)
-						return 0;
-					hierarchy = Scene.v().getActiveHierarchy();
-					if (hierarchy.isClassSubclassOf(a, b))
-						return -1;
-					if (hierarchy.isClassSuperclassOf(a, b))
-						return 1;
-					return 0;
-				}
-			});
+			sortExceptionsTightestFirst(possibleExceptions);
+			
 			// create the exception handling statements
 			List<Unit> toInsert = new LinkedList<Unit>();
 			Local exceptionVarLocal = getFreshLocal(body, throwableClass.getType());
@@ -330,6 +319,22 @@ public class ExceptionTransformer extends AbstractTransformer {
 		return usedTraps;
 	}
 
+	private void sortExceptionsTightestFirst(List<SootClass> exceptions) {
+		Collections.sort(exceptions, new Comparator<SootClass>() {
+			@Override
+			public int compare(final SootClass a, final SootClass b) {
+				if (a == b)
+					return 0;
+				hierarchy = Scene.v().getActiveHierarchy();
+				if (hierarchy.isClassSubclassOf(a, b))
+					return 1;
+				if (hierarchy.isClassSuperclassOf(a, b))
+					return -1;
+				return 0;
+			}
+		});
+	}
+	
 	private Set<Trap> handleThrowStatements() {
 		Set<Trap> usedTraps = new HashSet<Trap>();
 		// last but not least eliminate all throw statements that are caught.
@@ -342,33 +347,31 @@ public class ExceptionTransformer extends AbstractTransformer {
 			List<Trap> surroundingTraps = getTrapsGuardingUnit(u, body);
 
 			List<SootClass> possibleExceptions = new LinkedList<SootClass>();
-			possibleExceptions.add(thrownException);
+			
 			// TODO: maybe we should treat the case where thrownException
 			// is Throwable as a special case because then we have a
 			// finally block.
+			boolean catchesThrownException = false;
 			for (Trap t : surroundingTraps) {
 				// find any trap that is sub- or super-class
 				if (hierarchy.isClassSubclassOfIncluding(t.getException(), thrownException)
 						|| hierarchy.isClassSubclassOfIncluding(thrownException, t.getException())) {
 					if (!possibleExceptions.contains(t.getException())) {
 						possibleExceptions.add(t.getException());
+						if (hierarchy.isClassSubclassOf(thrownException, t.getException())) {
+							catchesThrownException = true;
+						}
 					}
 				}
 			}
+			
+			if (!catchesThrownException) {
+				possibleExceptions.add(thrownException);	
+			}
+			
 			// now sort the classes.
-			Collections.sort(possibleExceptions, new Comparator<SootClass>() {
-				@Override
-				public int compare(final SootClass a, final SootClass b) {
-					if (a == b)
-						return 0;
-					hierarchy = Scene.v().getActiveHierarchy();
-					if (hierarchy.isClassSubclassOf(a, b))
-						return -1;
-					if (hierarchy.isClassSuperclassOf(a, b))
-						return 1;
-					return 0;
-				}
-			});
+			sortExceptionsTightestFirst(possibleExceptions);
+			
 			// insert a jump for each possible exception.
 			List<Unit> toInsert = new LinkedList<Unit>();
 			boolean caughtThrowable = false;
