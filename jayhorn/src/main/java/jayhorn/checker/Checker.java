@@ -4,6 +4,10 @@
 package jayhorn.checker;
 
 import java.math.BigInteger;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -20,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.base.Verify;
 
 import jayhorn.Log;
+import jayhorn.Options;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFactory;
@@ -733,11 +738,31 @@ public class Checker {
 				encoder.encode();
 				clauses.addAll(encoder.clauses);
 
+				// print Horn clauses
 				if (jayhorn.Options.v().getPrintHorn()) {
 					// Log.info("\tNumber of clauses: " +
 					// encoder.clauses.size());
 					for (ProverHornClause clause : encoder.clauses)
 						Log.info("\t\t" + clause);
+				}
+				
+				// write Horn clauses to file
+				String out = jayhorn.Options.v().getOut();
+				if(out != null) {
+					if (!out.endsWith("/"))
+						out += "/";
+					String in = Options.v().getJavaInput();
+					String outName = in.substring(in.lastIndexOf('/'), in.length()).replace(".java", "").replace(".class", "");
+					Path file = Paths.get(out+outName+".horn");
+					LinkedList<String> it = new LinkedList<String>();
+					for (ProverHornClause clause : encoder.clauses)
+						it.add("\t\t" + clause);
+					try {
+						Files.createDirectories(file.getParent());
+						Files.write(file, it, Charset.forName("UTF-8"));
+					} catch (Exception e) {
+						System.err.println("Error writing file " + file);
+					}
 				}
 			}
 

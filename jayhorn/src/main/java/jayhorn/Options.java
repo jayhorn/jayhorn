@@ -82,6 +82,20 @@ public class Options {
 		this.printHorn = b;
 	}	
 
+//	/**
+//	 * Output intermediate representations
+//	 */
+	@Option(name = "-out", usage = "Output directory for intermediate represenations", required = false)
+	private String out = null;
+	
+	public String getOut() {		
+		return this.out;
+	}
+	
+	public void setOut(String s) {		
+		this.out = s;
+	}	
+	
 	/**
 	 * Classpath
 	 */

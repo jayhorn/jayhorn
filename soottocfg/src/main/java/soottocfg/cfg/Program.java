@@ -176,4 +176,21 @@ public class Program {
 		}
 		return modifiedGlobals;
 	}
+	
+	public String toString() {
+		StringBuilder prog = new StringBuilder();
+		
+		// global variables
+		for (Variable g : globalVariables.values()) {
+			prog.append(g+";\n");
+		}
+		prog.append("\n");
+		
+		// methods
+		for (Method m : methods.values()) {
+			prog.append(m+"\n");
+		}
+		
+		return prog.toString();
+	}
 }

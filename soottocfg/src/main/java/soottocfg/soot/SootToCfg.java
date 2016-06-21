@@ -3,6 +3,10 @@
  */
 package soottocfg.soot;
 
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -70,6 +74,9 @@ public class SootToCfg {
 	private final boolean createAssertionsForUncaughtExceptions;
 
 	private final Set<SourceLocation> locations = new HashSet<SourceLocation>();
+	
+	private String outDir = null;
+	private String outName = null;
 
 	// Create a new program
 	private final Program program = new Program();
@@ -90,7 +97,19 @@ public class SootToCfg {
 		this(resolveVCalls, excAsAssert, memModel, new ArrayList<String>());
 	}
 
+	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel, String outDir, String outName) {
+		this(resolveVCalls, excAsAssert, memModel, new ArrayList<String>(), outDir, outName);
+	}
+
 	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel, List<String> resolvedClassNames) {
+		this(resolveVCalls, excAsAssert, memModel, resolvedClassNames, null, null);
+	}
+	
+	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel, List<String> resolvedClassNames, String outDir, String outName) {
+		if (!outDir.endsWith("/"))
+			outDir += "/";
+		this.outDir = outDir;
+		this.outName = outName;
 		this.resolvedClassNames = resolvedClassNames;
 		// first reset everything:
 		soot.G.reset();
@@ -126,10 +145,12 @@ public class SootToCfg {
 
 		
 		constructCfg();
+		writeFile(".cfg", program.toString());
 		
 		// simplify push-pull
 		PushPullSimplifier pps = new PushPullSimplifier();
 		pps.simplify(program);
+		writeFile(".simpl.cfg", program.toString());
 		
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
@@ -445,6 +466,18 @@ public class SootToCfg {
 				constructor.getActiveBody().getUnits().insertAfter(init, insertPos);
 			}
 
+		}
+	}
+	
+	private void writeFile(String extension, String text) {
+		Path file = Paths.get(outDir+outName+extension);
+		LinkedList<String> it = new LinkedList<String>();
+		it.add(text);
+		try {
+			Files.createDirectories(file.getParent());
+			Files.write(file, it, Charset.forName("UTF-8"));
+		} catch (Exception e) {
+			System.err.println("Error writing file " + file);
 		}
 	}
 
