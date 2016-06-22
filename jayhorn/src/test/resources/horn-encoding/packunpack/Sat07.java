@@ -5,7 +5,7 @@ class A
   public int i;
 };
 
-class Sat06
+class Sat07
 {
 	  public static void main(String[] args)
 	  {

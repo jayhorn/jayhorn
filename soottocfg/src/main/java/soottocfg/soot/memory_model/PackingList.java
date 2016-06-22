@@ -1,11 +1,10 @@
 package soottocfg.soot.memory_model;
 
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
-import soot.SootClass;
-import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.FieldRef;
@@ -24,7 +23,8 @@ import soot.toolkits.graph.UnitGraph;
 public class PackingList {
 
 	SootMethod m;
-	HashMap<SootClass,List<PushPullPair>> lists;
+	Set<Stmt> pushes;
+	Set<Stmt> pulls;
 	
 	/**
 	 * Construct new PackingList.
@@ -32,21 +32,25 @@ public class PackingList {
 	 */
 	public PackingList(SootMethod m) {
 		this.m = m;
-		this.lists = new HashMap<SootClass,List<PushPullPair>>();
+		this.pushes = new HashSet<Stmt>();
+		this.pulls = new HashSet<Stmt>();
 		buildOverestimatedLists();
 	}
 	
-	private boolean addPair(PushPullPair pup) {
-		List<PushPullPair> list = lists.get(pup.f.getDeclaringClass());
-		if (list==null) {
-			list = new LinkedList<PushPullPair>();
-			lists.put(pup.f.getDeclaringClass(),list);
-		}
-		return list.add(pup);
+	private boolean addPush(Stmt s) {
+		return pushes.add(s);
+	}
+	
+	private boolean addPull(Stmt s) {
+		return pulls.add(s);
+	}
+	
+	private boolean addPair(Stmt s) {
+		return addPush(s) && addPull(s);
 	}
 	
 	/**
-	 * Over-estimate the packing list. Do not do any aliasing analysis, but unpack and pack on every FieldRef.
+	 * Over-estimate the packing list. Do not do any aliasing analysis, but pull and push on every FieldRef.
 	 */
 	private void buildOverestimatedLists() {
 		UnitGraph graph = new CompleteUnitGraph(m.getActiveBody());
@@ -60,21 +64,17 @@ public class PackingList {
 				if (f instanceof InstanceFieldRef) {
 					InstanceFieldRef ifr = (InstanceFieldRef) f;
 					boolean inconstr = m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal());
-					if (!inconstr) { 
-						PushPullPair pup = new PushPullPair(f,f);
-						addPair(pup);
-					} 
+					if (!inconstr)
+						addPair(s);
 				} else if (f instanceof StaticFieldRef) {
 					// in static initializer only push at the end
-					if (!m.isStaticInitializer()) {
-						PushPullPair pup = new PushPullPair(f,f);
-						addPair(pup);
-					}
+					if (!m.isStaticInitializer())
+						addPair(s);
 				}
 			}
 		}
 		
-		// add pack at the last access to 'this' for all tails in a constructor
+		// add push at the last access to 'this' for all tails in a constructor
 		if (m.isConstructor()) {
 			List<Unit> todo = new LinkedList<Unit>(graph.getTails());
 			while (!todo.isEmpty()) {
@@ -85,11 +85,8 @@ public class PackingList {
 					if (f instanceof InstanceFieldRef) {
 						InstanceFieldRef ifr = (InstanceFieldRef) f;
 						if (ifr.getBase().equals(m.getActiveBody().getThisLocal())) {
-							if (!pushAt(f)) {
-								PushPullPair pup = new PushPullPair(f,null);
-								addPair(pup);
-//								System.out.println("Added pack at end of constructor, at " + s);
-							}
+							addPush(s);
+//							System.out.println("Added push at end of constructor, at " + s);
 							continue;
 						}
 					}
@@ -107,11 +104,8 @@ public class PackingList {
 				if (s.containsFieldRef()) {
 					FieldRef f = s.getFieldRef();
 					if (f instanceof StaticFieldRef) {
-						if (!pushAt(f)) {
-							PushPullPair pup = new PushPullPair(f,null);
-							addPair(pup);
-//							System.out.println("Added push at end of static initializer, at " + s);
-						}
+						addPush(s);
+//						System.out.println("Added push at end of static initializer, at " + s);
 						continue;
 					}
 				}
@@ -125,15 +119,8 @@ public class PackingList {
 	 * @param fr
 	 * @return true if we should pack at fr
 	 */
-	public boolean pushAt(FieldRef fr) {
-		List<PushPullPair> list = lists.get(fr.getField().getDeclaringClass());
-		if (list != null) {
-			for (PushPullPair pup : list) {
-				if (pup.pushAt==fr)
-					return true;
-			}
-		}
-		return false;
+	public boolean pushAt(Stmt s) {
+		return pushes.contains(s);
 	}
 	
 	/**
@@ -141,31 +128,7 @@ public class PackingList {
 	 * @param fr
 	 * @return true if we should unpack at fr
 	 */
-	public boolean pullAt(FieldRef fr) {
-		List<PushPullPair> list = lists.get(fr.getField().getDeclaringClass());
-		if (list != null) {
-			for (PushPullPair pup : list) {
-				if (pup.pullAt==fr)
-					return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Stores a pair of pack and unpack operations.
-	 * @author rodykers
-	 *
-	 */
-	static private class PushPullPair {
-		SootField f;
-		FieldRef pushAt;
-		FieldRef pullAt;
-
-		PushPullPair(FieldRef pushAt, FieldRef pullAt) {
-			this.f = pushAt.getField();
-			this.pushAt = pushAt;
-			this.pullAt = pullAt;
-		}
+	public boolean pullAt(Stmt s) {
+		return pulls.contains(s);
 	}
 }

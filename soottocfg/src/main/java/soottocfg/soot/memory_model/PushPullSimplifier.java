@@ -19,7 +19,7 @@ import soottocfg.soot.util.SootTranslationHelpers;
 
 public class PushPullSimplifier {
 	
-	private static boolean debug = false;
+	private static boolean debug = true;
 	
 	public PushPullSimplifier() {
 	}

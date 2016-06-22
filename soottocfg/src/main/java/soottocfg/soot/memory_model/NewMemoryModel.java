@@ -127,7 +127,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 		Variable[] vars = fieldLocals.toArray(new Variable[fieldLocals.size()]);
 		SootMethod sm = SootTranslationHelpers.v().getCurrentMethod();
 		// ------------- pull ---------------
-		if (plists.get(sm) != null && plists.get(sm).pullAt(fieldRef)) {
+		if (plists.get(sm) != null && plists.get(sm).pullAt((Stmt) u)) {
 			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			for (int i = 0; i < vars.length; i++) {
 				unpackedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
@@ -138,7 +138,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 		this.statementSwitch.push(new AssignStatement(loc,
 				new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar), value));
 		// ------------- push -----------------
-		if (plists.get(sm) != null && plists.get(sm).pushAt(fieldRef)) {
+		if (plists.get(sm) != null && plists.get(sm).pushAt((Stmt) u)) {
 			List<Expression> packedVars = new LinkedList<Expression>();
 			for (int i = 0; i < vars.length; i++) {
 				packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
@@ -196,7 +196,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 		SootMethod sm = SootTranslationHelpers.v().getCurrentMethod();
 
 		// ------------- pull ---------------
-		if (plists.get(sm) != null && plists.get(sm).pullAt(fieldRef)) {
+		if (plists.get(sm) != null && plists.get(sm).pullAt((Stmt) u)) {
 			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			for (int i = 0; i < vars.length; i++) {
 				unpackedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
@@ -207,7 +207,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 		this.statementSwitch.push(new AssignStatement(loc, left,
 				new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar)));
 		// ------------- push -----------------
-		if (plists.get(sm) != null && plists.get(sm).pushAt(fieldRef)) {
+		if (plists.get(sm) != null && plists.get(sm).pushAt((Stmt) u)) {
 			List<Expression> packedVars = new LinkedList<Expression>();
 			for (int i = 0; i < vars.length; i++) {
 				packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
