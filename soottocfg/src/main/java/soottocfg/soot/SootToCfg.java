@@ -106,7 +106,7 @@ public class SootToCfg {
 	}
 	
 	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel, List<String> resolvedClassNames, String outDir, String outName) {
-		if (!outDir.endsWith("/"))
+		if (outDir != null && !outDir.endsWith("/"))
 			outDir += "/";
 		this.outDir = outDir;
 		this.outName = outName;
@@ -145,12 +145,14 @@ public class SootToCfg {
 
 		
 		constructCfg();
-		writeFile(".cfg", program.toString());
+		if (outDir!=null)
+			writeFile(".cfg", program.toString());
 		
 		// simplify push-pull
 		PushPullSimplifier pps = new PushPullSimplifier();
 		pps.simplify(program);
-		writeFile(".simpl.cfg", program.toString());
+		if (outDir!=null)
+			writeFile(".simpl.cfg", program.toString());
 		
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
