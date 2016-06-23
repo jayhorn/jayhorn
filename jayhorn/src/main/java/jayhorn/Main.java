@@ -7,6 +7,7 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
 import jayhorn.checker.Checker;
+import jayhorn.hornify.Hornify;
 import jayhorn.old_inconsistency_check.InconsistencyChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
@@ -23,22 +24,6 @@ public class Main {
 		}else{
 			return "UNSAFE";
 		}
-//    	switch (solver){
-//    	case "z3":
-//    		if (result){
-//    			return "UNSAFE";
-//    		}else{
-//    			return "SAFE";
-//    		}
-//    	case "princess":
-//    		if (result){
-//    			return "SAFE";
-//    		}else{
-//    			return "UNSAFE";
-//    		}
-//    		default:
-//    			return "UNKNOWN";
-//    	}
     }
     
 	public static void main(String[] args) {
@@ -67,17 +52,21 @@ public class Main {
 					outName = in.substring(in.lastIndexOf('/'), in.length()).replace(".java", "").replace(".class", "");
 				}
 				SootToCfg soot2cfg = new SootToCfg(true, false, MemModel.PullPush, outDir, outName);
-				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());			
-				Checker checker = new Checker(factory);
+				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());	
+				
 				System.out.println( "\t \t  ----------- ");
-				System.out.println("\t Hornify and check  ... " + Options.v().getJavaInput());
+				System.out.println("\t Hornify  ... " + Options.v().getJavaInput());
 				System.out.println( "\t \t  ----------- \n");
-				boolean result = checker.checkProgram(soot2cfg.getProgram());
 				
-				System.out.println( "\t \t  ----------- \n");
-		
-				System.out.println("\t SAFETY VERIFICATION RESULT ... " + parseResult(Options.v().getSolver(), result));
+				Hornify hornify = new Hornify(factory);
+				hornify.toHorn(soot2cfg.getProgram());
 				
+				//System.out.println(hornify.writeHorn());
+//				
+//				System.out.println( "\t \t  ----------- \n");
+//		
+//				System.out.println("\t SAFETY VERIFICATION RESULT ... " + parseResult(Options.v().getSolver(), result));
+//				
 			} else if ("inconsistency".equals(Options.v().getChecker())) {
 				SootToCfg soot2cfg = new SootToCfg(false, true, MemModel.BurstallBornat);
 				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());			
