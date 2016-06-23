@@ -19,10 +19,8 @@ import soottocfg.cfg.type.Type;
 
 public class ClassInvariant {
 	
-	Prover p;
 	
 	public ClassInvariant(Prover p){
-		this.p = p; 
 	}
 
 	private Map<ClassVariable, ProverFun> classInvariants = new LinkedHashMap<ClassVariable, ProverFun>();

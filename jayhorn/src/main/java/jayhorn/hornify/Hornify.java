@@ -59,7 +59,7 @@ public class Hornify {
 		private Map<ClassVariable, Integer> typeIds = new LinkedHashMap<ClassVariable, Integer>();
 		private Prover prover;
 		private List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
-		private Map<Method, List<ProverHornClause>> mclause = new HashMap<Method, List<ProverHornClause>>();
+		//private Map<Method, List<ProverHornClause>> mclause = new HashMap<Method, List<ProverHornClause>>();
 		
 		public Hornify(ProverFactory fac) {
 			this.prover = fac.spawn();
