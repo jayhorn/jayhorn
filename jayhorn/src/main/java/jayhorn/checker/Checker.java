@@ -745,24 +745,24 @@ public class Checker {
 					for (ProverHornClause clause : encoder.clauses)
 						Log.info("\t\t" + clause);
 				}
-				
-				// write Horn clauses to file
-				String out = jayhorn.Options.v().getOut();
-				if(out != null) {
-					if (!out.endsWith("/"))
-						out += "/";
-					String in = Options.v().getJavaInput();
-					String outName = in.substring(in.lastIndexOf('/'), in.length()).replace(".java", "").replace(".class", "");
-					Path file = Paths.get(out+outName+".horn");
-					LinkedList<String> it = new LinkedList<String>();
-					for (ProverHornClause clause : encoder.clauses)
-						it.add("\t\t" + clause);
-					try {
-						Files.createDirectories(file.getParent());
-						Files.write(file, it, Charset.forName("UTF-8"));
-					} catch (Exception e) {
-						System.err.println("Error writing file " + file);
-					}
+			}
+			
+			// write Horn clauses to file
+			String out = jayhorn.Options.v().getOut();
+			if(out != null) {
+				if (!out.endsWith("/"))
+					out += "/";
+				String in = Options.v().getJavaInput();
+				String outName = in.substring(in.lastIndexOf('/'), in.length()).replace(".java", "").replace(".class", "");
+				Path file = Paths.get(out+outName+".horn");
+				LinkedList<String> it = new LinkedList<String>();
+				for (ProverHornClause clause : clauses)
+					it.add("\t\t" + clause);
+				try {
+					Files.createDirectories(file.getParent());
+					Files.write(file, it, Charset.forName("UTF-8"));
+				} catch (Exception e) {
+					System.err.println("Error writing file " + file);
 				}
 			}
 
