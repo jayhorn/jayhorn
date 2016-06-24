@@ -388,7 +388,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			}
 		}
 		Verify.verify(method.getReturnType().size() == receiver.size(),
-				method.getReturnType().size() + "!=" + receiver.size());
+				method.getMethodName() + " -> " + method.getReturnType().size() + "!=" + receiver.size());
 
 		// MethodInfo currentMethodInfo = this.statementSwitch.getMethodInfo();
 		// for (soottocfg.cfg.type.Type tp : method.getReturnType()) {

@@ -415,7 +415,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			receiver.add(valueSwitch.popExpression());
 		}
 		
-		if (call instanceof SpecialInvokeExpr) {
+		if (call.getMethod().isConstructor() && call instanceof SpecialInvokeExpr) {
 			/* For our new memory model, we need special treatment of constructor invoke
 			 */
 			SootTranslationHelpers.v().getMemoryModel().mkConstructorCall(u, call.getMethod(), args);
