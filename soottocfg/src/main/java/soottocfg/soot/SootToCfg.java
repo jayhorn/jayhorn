@@ -220,7 +220,7 @@ public class SootToCfg {
 					//pre-calculate when to pull/push
 					MemoryModel mm = SootTranslationHelpers.v().getMemoryModel();
 					if (mm instanceof NewMemoryModel) {
-						((NewMemoryModel) mm).updatePullPush();
+						((NewMemoryModel) mm).clearFieldToLocalMap();
 					}
 					
 					SootStmtSwitch ss = new SootStmtSwitch(body, mi);

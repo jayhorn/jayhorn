@@ -24,6 +24,8 @@ import soot.jimple.StaticFieldRef;
 import soot.jimple.Stmt;
 import soot.jimple.spark.geom.geomPA.GeomPointsTo;
 import soot.options.SparkOptions;
+import soot.toolkits.graph.CompleteUnitGraph;
+import soot.toolkits.graph.UnitGraph;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
@@ -44,8 +46,6 @@ import soottocfg.soot.util.SootTranslationHelpers;
  */
 public class NewMemoryModel extends BasicMemoryModel {
 
-	private HashMap<SootMethod, PackingList> plists;
-
 	private Map<Variable, Map<String, Variable>> fieldToLocalMap = new HashMap<Variable, Map<String, Variable>>();
 
 	// This one sticks around between method calls...
@@ -63,20 +63,121 @@ public class NewMemoryModel extends BasicMemoryModel {
 	
 	public NewMemoryModel() {
 		NewMemoryModel.resetGlobalState();
-		plists = new HashMap<SootMethod, PackingList>();
-
+		
 		// load points to analysis
 		setGeomPointsToAnalysis();
 	}
 
-	public void updatePullPush() {
+	public void clearFieldToLocalMap() {
 		// TODO: this is only here because we know it's only called once per
 		// method:
 		fieldToLocalMap.clear();
-		
+	}
+	
+	private boolean pullAt(Unit u, FieldRef fr) {
 		SootMethod m = SootTranslationHelpers.v().getCurrentMethod();
-		PackingList pl = new PackingList(m);
-		plists.put(m, pl);
+		
+		if (fr instanceof InstanceFieldRef) {
+			InstanceFieldRef ifr = (InstanceFieldRef) fr;
+			
+			// in constructor never pull 'this'
+			if (m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal()))
+				return false;
+		} else if (fr instanceof StaticFieldRef) {	
+			
+			// in static initializer never pull static field
+			if (m.isStaticInitializer())
+				return false;
+		}
+		return true;
+	}
+	
+	private boolean pushAt(Unit u, FieldRef fr) {
+		SootMethod m = SootTranslationHelpers.v().getCurrentMethod();
+		UnitGraph graph = new CompleteUnitGraph(m.getActiveBody());
+		
+		if (fr instanceof InstanceFieldRef) {
+			InstanceFieldRef ifr = (InstanceFieldRef) fr;
+			
+			// in constructor only push 'this' after the last access
+			if (m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal())) {
+				
+				//check if there is any path from 'u' to the tail(s) that does not contain an access to 'this'
+				List<Unit> tails = graph.getTails();
+				List<Unit> todo = new LinkedList<Unit>();
+				todo.add(u);
+				boolean foundPathWithoutAccess = false;
+				while (!todo.isEmpty()) {
+					Unit unit = todo.remove(0);
+					
+					// if it contains another access to 'this', stop exploring this path
+					Stmt s = (Stmt) u;
+					if (s.containsFieldRef()) {
+						FieldRef fr2 = s.getFieldRef();
+						if (fr2 instanceof InstanceFieldRef) {
+							InstanceFieldRef ifr2 = (InstanceFieldRef) fr2;
+							if (ifr2.getBase().equals(m.getActiveBody().getThisLocal()) && !ifr2.equals(ifr)) {
+								continue;
+							}
+						}
+					}
+					
+					if (tails.contains(unit))
+						foundPathWithoutAccess = true; // at the end of this path
+					else
+						todo.addAll(graph.getSuccsOf(unit));
+				}
+				return foundPathWithoutAccess;
+			}
+		} else if (fr instanceof StaticFieldRef) {
+			// in static initializer only push at the end
+			if (m.isStaticInitializer()) {
+				
+				//check if there is any path from 'u' to the tail(s) that does not contain an access to 'this'
+				List<Unit> tails = graph.getTails();
+				List<Unit> todo = new LinkedList<Unit>();
+				todo.add(u);
+				boolean foundPathWithoutAccess = false;
+				while (!todo.isEmpty()) {
+					Unit unit = todo.remove(0);
+					
+					// if it contains another access to a static field, stop exploring this path
+					Stmt s = (Stmt) u;
+					if (s.containsFieldRef()) {
+						FieldRef fr2 = s.getFieldRef();
+						if (fr2 instanceof StaticFieldRef && !fr2.equals(fr))
+								continue;
+					}
+					
+					if (tails.contains(unit))
+						foundPathWithoutAccess = true; // at the end of this path
+					else
+						todo.addAll(graph.getSuccsOf(unit));
+				}
+				return foundPathWithoutAccess;
+//				
+//				
+//				
+//				List<Unit> todo = new LinkedList<Unit>(graph.getSuccsOf(u));
+//				while (!todo.isEmpty()) {
+//					Unit unit = todo.remove(0);
+//					Stmt s = (Stmt) u;
+//					if (s.containsFieldRef()) {
+//						FieldRef fr2 = s.getFieldRef();
+//						if (fr2 instanceof StaticFieldRef)
+//								continue;
+//					}
+//					
+//					List<Unit> succs = graph.getSuccsOf(unit);
+//					if (succs.isEmpty())
+//						return true;
+//					else
+//						todo.addAll(succs);
+//				}
+//				return false;
+			}
+		}	
+		return true;
 	}
 
 	@Override
@@ -125,9 +226,8 @@ public class NewMemoryModel extends BasicMemoryModel {
 
 		// Variable[] vars = classVar.getAssociatedFields();
 		Variable[] vars = fieldLocals.toArray(new Variable[fieldLocals.size()]);
-		SootMethod sm = SootTranslationHelpers.v().getCurrentMethod();
 		// ------------- pull ---------------
-		if (plists.get(sm) != null && plists.get(sm).pullAt((Stmt) u)) {
+		if (pullAt(u, fieldRef)) {
 			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			for (int i = 0; i < vars.length; i++) {
 				unpackedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
@@ -138,7 +238,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 		this.statementSwitch.push(new AssignStatement(loc,
 				new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar), value));
 		// ------------- push -----------------
-		if (plists.get(sm) != null && plists.get(sm).pushAt((Stmt) u)) {
+		if (pushAt(u, fieldRef)) {
 			List<Expression> packedVars = new LinkedList<Expression>();
 			for (int i = 0; i < vars.length; i++) {
 				packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
@@ -193,10 +293,8 @@ public class NewMemoryModel extends BasicMemoryModel {
 		// Variable[] vars = classVar.getAssociatedFields();
 		Variable[] vars = fieldLocals.toArray(new Variable[fieldLocals.size()]);
 
-		SootMethod sm = SootTranslationHelpers.v().getCurrentMethod();
-
 		// ------------- pull ---------------
-		if (plists.get(sm) != null && plists.get(sm).pullAt((Stmt) u)) {
+		if (pullAt(u, fieldRef)) {
 			List<IdentifierExpression> unpackedVars = new LinkedList<IdentifierExpression>();
 			for (int i = 0; i < vars.length; i++) {
 				unpackedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
@@ -207,7 +305,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 		this.statementSwitch.push(new AssignStatement(loc, left,
 				new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar)));
 		// ------------- push -----------------
-		if (plists.get(sm) != null && plists.get(sm).pushAt((Stmt) u)) {
+		if (pushAt(u, fieldRef)) {
 			List<Expression> packedVars = new LinkedList<Expression>();
 			for (int i = 0; i < vars.length; i++) {
 				packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));

@@ -37,7 +37,7 @@ public class PushPullSimplifier {
 			}
 			
 			if (debug)
-				System.err.println(m);
+				System.out.println("SIMPLIFIED:\n"+m);
 		}
 	}
 	
