@@ -119,6 +119,15 @@ public class MethodEncoder {
 			}
 			
 		}
+		
+		/**
+		 * Return the method contract
+		 * @param methodName
+		 * @return
+		 */
+		public MethodContract getMethodContract(String methodName){
+			return methodContracts.get(methodName);
+		}
 		/**
 		 * Main encoder 
 		 * @param method
@@ -644,17 +653,17 @@ public class MethodEncoder {
 		throw new IllegalArgumentException("don't know what to do with " + t);
 	}
 
-//	private void createVarMap(Prover p, List<Variable> cfgVars, List<ProverExpr> proverVars,
-//			Map<Variable, ProverExpr> varMap) {
-//		for (Variable v : cfgVars) {
-//			ProverExpr e = varMap.get(v);
-//			if (e == null) {
-//				e = p.mkHornVariable(v.getName() + "_" + newVarNum(), getProverType(p, v.getType()));
-//				varMap.put(v, e);
-//			}
-//			proverVars.add(e);
-//		}
-//	}
+	public void createVarMap(Prover p, List<Variable> cfgVars, List<ProverExpr> proverVars,
+			Map<Variable, ProverExpr> varMap) {
+		for (Variable v : cfgVars) {
+			ProverExpr e = varMap.get(v);
+			if (e == null) {
+				e = p.mkHornVariable(v.getName() + "_" + newVarNum(), getProverType(p, v.getType()));
+				varMap.put(v, e);
+			}
+			proverVars.add(e);
+		}
+	}
 
 	private List<Variable> setToSortedList(Set<Variable> set) {
 		List<Variable> res = new LinkedList<Variable>(set);

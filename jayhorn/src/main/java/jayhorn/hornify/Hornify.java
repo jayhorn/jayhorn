@@ -1,36 +1,23 @@
 package jayhorn.hornify;
 
-import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Verify;
 
 import jayhorn.Log;
 import jayhorn.Options;
 import jayhorn.solver.Prover;
-import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFactory;
-import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
-import jayhorn.solver.ProverResult;
-import jayhorn.solver.ProverType;
 import soottocfg.cfg.ClassVariable;
-import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
@@ -59,13 +46,22 @@ public class Hornify {
 		private Map<ClassVariable, Integer> typeIds = new LinkedHashMap<ClassVariable, Integer>();
 		private Prover prover;
 		private List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
-		//private Map<Method, List<ProverHornClause>> mclause = new HashMap<Method, List<ProverHornClause>>();
+		//private Map<Method, List<ProverHornClause>> methodClauses = new HashMap<Method, List<ProverHornClause>>();
+		
+		private MethodEncoder mEncoder;
 		
 		public Hornify(ProverFactory fac) {
-			this.prover = fac.spawn();
-			
+			this.prover = fac.spawn();			
 		}
-
+		
+		/**
+		 * Get the MethodEncoder
+		 * @return
+		 */
+		public MethodEncoder getMethodEncoder(){
+			return mEncoder;
+		}
+		
 		/**
 		 * Main method to encode into Horn
 		 * @param program
@@ -80,6 +76,7 @@ public class Hornify {
 				cType.addClassVar(var, typeIds.size());
 			
 			MethodEncoder mEncoder = new MethodEncoder(this.prover, program, cType);
+			this.mEncoder = mEncoder;
 			
 			Log.info("Generating Method Contract ... ");
 			mEncoder.mkMethodContract();
@@ -118,8 +115,7 @@ public class Hornify {
 						AssumeStatement asm = new AssumeStatement(loc, new BinaryExpression(loc, BinaryOperator.Ge,
 								new IdentifierExpression(loc, sizeLocal), IntegerLiteral.zero()));
 						entry.addStatement(0, asm);
-
-
+						
 						List<Expression> rhs = new LinkedList<Expression>();
 						rhs.add(new IdentifierExpression(loc, sizeLocal));
 						rhs.add(new IdentifierExpression(loc, argsType.getClassVariable()));
@@ -129,25 +125,62 @@ public class Hornify {
 						entry.addStatement(1, pack);
 					}
 				}
+				// @TODO This is ugly each encoding of a method should return a list of clauses
 				mEncoder.encode(method);
-				System.out.println(method.getMethodName());
-				clauses.addAll(mEncoder.clauses);
-				//mclause.put(method, clauses);
-			}		
+//				List<ProverHornClause> methodHorn = mEncoder.encode(method);
+//				clauses.addAll(methodHorn);
+//				methodClauses.put(method, methodHorn);
+			}	
+			
+			clauses.addAll(mEncoder.clauses);
 		}
 		
+		/**
+		 * Return the list of Horn Clauses
+		 */
+		public List<ProverHornClause> getClauses(){
+			return clauses;
+		}
 		
-//		public String writeHorn(){
-//			StringBuilder st = new StringBuilder();
-//			for (Map.Entry<Method, List<ProverHornClause>> mc : mclause.entrySet()) {
-//				st.append("\t\t-------------\n");
-//				st.append("Method Name: " + mc.getKey().getMethodName() + "\n");
-//				for (ProverHornClause clause : mc.getValue())
-//					st.append("\t\t" + clause + "\n");
-//				st.append("\t\t-------------\n");
-//			}
-//			return st.toString();
-//		}
+		/**
+		 * 
+		 */
+		
+		/**
+		 * Write clauses
+		 * @return
+		 */
+		public String writeHorn(){
+			StringBuilder st = new StringBuilder();
+			for (ProverHornClause clause : clauses)
+				st.append("\t\t" + clause + "\n");
+				st.append("\t\t-------------\n");
+			return st.toString();
+		}
+
+		/**
+		 * Write Horn clauses to file
+		 */
+		public void hornToFile(){
+			// write Horn clauses to file
+			String out = jayhorn.Options.v().getOut();
+			if(out != null) {
+				if (!out.endsWith("/"))
+					out += "/";
+				String in = Options.v().getJavaInput();
+				String outName = in.substring(in.lastIndexOf('/'), in.length()).replace(".java", "").replace(".class", "");
+				Path file = Paths.get(out+outName+".horn");
+				LinkedList<String> it = new LinkedList<String>();
+				for (ProverHornClause clause : clauses)
+					it.add("\t\t" + clause);
+				try {
+					Files.createDirectories(file.getParent());
+					Files.write(file, it, Charset.forName("UTF-8"));
+				} catch (Exception e) {
+					System.err.println("Error writing file " + file);
+				}
+			}
+		}
 
 	}
 
