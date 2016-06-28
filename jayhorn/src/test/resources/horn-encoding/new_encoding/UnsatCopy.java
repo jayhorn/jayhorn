@@ -1,10 +1,10 @@
-class SatCopy {
+class UnsatCopy {
   int i;
 
   public static void main(String[] args)  { 
-    SatCopy a = new SatCopy();
+    UnsatCopy a = new UnsatCopy();
     a.i = 42;
-    SatCopy b = a;
+    UnsatCopy b = a;
     assert b.i==41;
   }
 }
