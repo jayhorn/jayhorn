@@ -101,11 +101,17 @@ public class Checker {
 	}
 
 	private final ProverFactory factory;
+	private final String hornOut;
 
 	public Checker(ProverFactory fac) {
-		this.factory = fac;
+		this(fac,null);
 	}
 
+	public Checker(ProverFactory fac, String hornOut) {
+		this.factory = fac;
+		this.hornOut = hornOut;
+	}
+	
 	private final Map<CfgBlock, HornPredicate> blockPredicates = new LinkedHashMap<CfgBlock, HornPredicate>();
 	private Map<String, MethodContract> methodContracts = new LinkedHashMap<String, MethodContract>();
 	private Map<ClassVariable, Integer> typeIds = new LinkedHashMap<ClassVariable, Integer>();
@@ -750,13 +756,8 @@ public class Checker {
 			}
 			
 			// write Horn clauses to file
-			String out = jayhorn.Options.v().getOut();
-			if(out != null) {
-				if (!out.endsWith("/"))
-					out += "/";
-				String in = Options.v().getJavaInput();
-				String outName = in.substring(in.lastIndexOf('/'), in.length()).replace(".java", "").replace(".class", "");
-				Path file = Paths.get(out+outName+".horn");
+			if(hornOut != null) {
+				Path file = Paths.get(hornOut);
 				LinkedList<String> it = new LinkedList<String>();
 				for (ProverHornClause clause : clauses)
 					it.add("\t\t" + clause);

@@ -64,11 +64,15 @@ public class Main {
 				String outName = null;
 				if (outDir!=null) {
 					String in = Options.v().getJavaInput();
+					if (in.endsWith("/"))
+						in = in.substring(0, in.length()-1);
 					outName = in.substring(in.lastIndexOf('/'), in.length()).replace(".java", "").replace(".class", "");
+					if (outName.equals(""))
+						outName = "noname";
 				}
 				SootToCfg soot2cfg = new SootToCfg(true, false, MemModel.PullPush, outDir, outName);
 				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());			
-				Checker checker = new Checker(factory);
+				Checker checker = new Checker(factory, outDir + outName + ".horn");
 				System.out.println( "\t \t  ----------- ");
 				System.out.println("\t Hornify and check  ... " + Options.v().getJavaInput());
 				System.out.println( "\t \t  ----------- \n");
