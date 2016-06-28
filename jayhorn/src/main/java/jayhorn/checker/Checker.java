@@ -596,7 +596,6 @@ public class Checker {
 						ProverExpr disj = p.mkLiteral(false);
 						for (ClassVariable st : subTypes)
 							disj = p.mkOr(disj, p.mkEq(left, p.mkLiteral(typeIds.get(st))));
-
 						return disj;
 					} else {
 						throw new RuntimeException("instanceof is only supported for concrete types");
@@ -693,10 +692,12 @@ public class Checker {
 			List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
 			for (Method method : program.getMethods()) {
-				// hack
+				//Stub all methods for which we don't have a body
+				// TODO: hack - this has to be done as a program transformation. 
 				if (method.getSource() == null) {
 					CfgBlock block = new CfgBlock(method);
 					SourceLocation loc = method.getLocation();
+					
 					AssignStatement asn = new AssignStatement(loc,
 							new IdentifierExpression(loc, program.getExceptionGlobal()), new IdentifierExpression(loc,
 									program.createFreshGlobal("havoc", program.getExceptionGlobal().getType())));
@@ -711,6 +712,7 @@ public class Checker {
 					block.addStatement(pack);
 
 					Verify.verifyNotNull(method.getSource());
+//					throw new RuntimeException("The checker currently expects that all methods have a body. Go and create a stub during translation for "+method.getMethodName());
 				} else if (method.isProgramEntryPoint()) {
 					if (method.getInParams().size() == 1 && method.getMethodName().contains("main")) {
 						Variable argsParam = method.getInParams().get(0);

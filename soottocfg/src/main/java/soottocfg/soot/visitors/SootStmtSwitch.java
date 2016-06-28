@@ -31,6 +31,7 @@ import soot.Body;
 import soot.PatchingChain;
 import soot.RefType;
 import soot.Scene;
+import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
@@ -414,7 +415,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			optionalLhs.apply(valueSwitch);
 			receiver.add(valueSwitch.popExpression());
 		}
-		
+		System.err.println(call);
 		if (call.getMethod().isConstructor() && call instanceof SpecialInvokeExpr) {
 			/* For our new memory model, we need special treatment of constructor invoke
 			 */

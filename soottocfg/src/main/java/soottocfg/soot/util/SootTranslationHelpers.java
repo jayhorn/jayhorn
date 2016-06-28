@@ -215,9 +215,9 @@ public enum SootTranslationHelpers {
 					getMemoryModel().lookupType(m.getParameterType(i))));
 		}
 		
-		List<soottocfg.cfg.type.Type> optRetType = new LinkedList<soottocfg.cfg.type.Type>();
+		List<soottocfg.cfg.type.Type> outVarTypes = new LinkedList<soottocfg.cfg.type.Type>();
 		if (!m.getReturnType().equals(VoidType.v())) {
-			optRetType.add(memoryModel.lookupType(m.getReturnType()));
+			outVarTypes.add(memoryModel.lookupType(m.getReturnType()));
 		} else if (m.isConstructor()) {
 			/* For constructors, we assume that they return all final fields
 			 * that are assigned in this constructor and the parent constructors.
@@ -227,7 +227,7 @@ public enum SootTranslationHelpers {
 			//TODO: what do we do about fields from supertypes?
 				for (SootField sf : cl.getFields()) {
 					if (sf.isFinal()) {
-						optRetType.add(memoryModel.lookupType(sf.getType()));
+						outVarTypes.add(memoryModel.lookupType(sf.getType()));
 					}
 				}
 //				if (cl.hasSuperclass()) {
@@ -237,9 +237,9 @@ public enum SootTranslationHelpers {
 //				}
 //			}			
 		}
-		return Method.createMethodInProgram(program, m.getSignature(), parameterList, optRetType, SootTranslationHelpers.v().getSourceLocation(m));
+		return Method.createMethodInProgram(program, m.getSignature(), parameterList, outVarTypes, SootTranslationHelpers.v().getSourceLocation(m));
 	}
-
+	
 	public Stmt getDefaultReturnStatement(Type returnType, Host createdFrom) {
 		Stmt stmt;
 		if (returnType instanceof VoidType) {

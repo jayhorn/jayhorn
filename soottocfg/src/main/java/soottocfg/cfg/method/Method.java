@@ -59,18 +59,18 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	
 
 	
-	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, List<Type> retType, SourceLocation sourceLocation) {
+	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, List<Type> outTypes, SourceLocation sourceLocation) {
 		Preconditions.checkArgument(p.loopupMethod(uniqueName)==null, "Method with name "+uniqueName + " already exists");		
-		Method m = new Method(sourceLocation, uniqueName, params, retType);
+		Method m = new Method(sourceLocation, uniqueName, params, outTypes);
 		p.addMethod(m);
 		return m;
 	}
 	
-	private Method(SourceLocation loc, String uniqueName, List<Variable> params, List<Type> retType) {
+	private Method(SourceLocation loc, String uniqueName, List<Variable> params, List<Type> outTypes) {
 		super(new ClassBasedEdgeFactory<CfgBlock, CfgEdge>(CfgEdge.class), true, true);
 		location = loc;
 		methodName = uniqueName;
-		returnTypes = retType;
+		returnTypes = outTypes;
 		this.parameterList = Collections.unmodifiableList(params);
 	}
 

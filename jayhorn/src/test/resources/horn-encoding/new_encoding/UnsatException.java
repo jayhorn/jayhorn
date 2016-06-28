@@ -1,17 +1,11 @@
 //class A extends Exception {
+//	public A() {}
 //}
 
 class UnsatException {
 	public static void main(String[] args) {
-		Exception a = new RuntimeException();
-		try {
-			throw a;
-		} catch (Exception e) {
-			/* The catch block becomes:
-			 * if (e <: Exception) {assert false;}
-			 * However, some bug prevents e from being set.
-			 */
-			assert false;
-		}
+		RuntimeException a = new RuntimeException();	
+		if (a instanceof RuntimeException) {} else {}
+		assert false;
 	}
 }
