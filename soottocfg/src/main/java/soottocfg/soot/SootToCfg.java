@@ -34,6 +34,7 @@ import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
 import soot.jimple.StaticFieldRef;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
+import soot.jimple.toolkits.scalar.CopyPropagator;
 import soot.jimple.toolkits.scalar.UnreachableCodeEliminator;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.cfg.Program;
@@ -210,6 +211,7 @@ public class SootToCfg {
 					Body body = null;
 					try {
 						body = sm.retrieveActiveBody();
+						CopyPropagator.v().transform(body);
 					} catch (RuntimeException e) {
 						// TODO: print warning that body couldn't be retrieved.
 						continue;

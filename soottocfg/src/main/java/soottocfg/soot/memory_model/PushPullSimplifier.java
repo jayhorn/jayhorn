@@ -188,17 +188,20 @@ public class PushPullSimplifier {
 				PushStatement push = (PushStatement) stmts.get(i);
 				Statement s = stmts.get(i+1);
 				if (s instanceof AssignStatement || s instanceof AssertStatement || s instanceof AssumeStatement) {
-					//only swap if none of the vars in s point to the same location as any of the fields
-					Set<IdentifierExpression> pushvars = push.getIdentifierExpressions();
+
+					// I don't think this check is needed. In SatStatic2 example,
+					// it prevents a push to move past an assignment, while there is an identical
+					// push later (there always is, if the assigned vars are not distinct).
 					
-					// only check if assigned?
-					Set<IdentifierExpression> svars = s.getDefIdentifierExpressions();
-					if (distinct(svars,pushvars)) {
+					//only swap if none of the vars in s point to the same location as any of the fields
+//					Set<IdentifierExpression> pushvars = push.getIdentifierExpressions();
+//					Set<IdentifierExpression> svars = s.getDefIdentifierExpressions();
+//					if (distinct(svars,pushvars)) { 
 						b.swapStatements(i, i+1);
 						if (debug)
 							System.out.println("Applied rule (VI); swapped " + push + " and " + s);
 						moved++;
-					}
+//					}
 				}
 			}
 		}

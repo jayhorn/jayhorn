@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.base.Verify;
 
 import jayhorn.Log;
-import jayhorn.Options;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFactory;
