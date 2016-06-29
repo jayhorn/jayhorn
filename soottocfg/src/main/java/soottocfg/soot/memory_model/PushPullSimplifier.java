@@ -1,5 +1,6 @@
 package soottocfg.soot.memory_model;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -13,6 +14,7 @@ import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.method.CfgBlock;
+import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.*;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -27,14 +29,22 @@ public class PushPullSimplifier {
 	public void simplify(Program p) {
 		Method[] ms = p.getMethods();
 		for (Method m : ms) {
-			if (debug)
+			if (debug) {
 				System.out.println("Simplifying method " + m.getMethodName());
-			Set<CfgBlock> blocks = m.vertexSet();
-			for (CfgBlock block : blocks) {
-				if (debug)
-					System.out.println("Simplifying block " + block);
-				simplify(block);
+				System.out.println(m);
 			}
+			Set<CfgBlock> blocks = m.vertexSet();
+			int moves;
+			do {
+				// intra-block simplification
+				for (CfgBlock block : blocks)
+					simplify(block);
+				
+				// move pulls and pushes between blocks
+				moves = 0;
+				moves += movePullsUp(blocks);
+				moves += movePushesDown(blocks);
+			} while (moves > 0);
 			
 			if (debug)
 				System.out.println("SIMPLIFIED:\n"+m);
@@ -261,5 +271,47 @@ public class PushPullSimplifier {
 			}
 		}
 		return true;
+	}
+	
+	private int movePullsUp(Set<CfgBlock> blocks) {
+		int moves = 0;
+		for (CfgBlock b : blocks) {
+			List<Statement> stmts = b.getStatements();
+			int s = 0;
+			Set<Statement> toRemove = new HashSet<Statement>();
+			while (s < stmts.size() && stmts.get(s) instanceof PullStatement) {
+				Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
+				for (CfgEdge in : incoming) {
+					CfgBlock prev = b.getMethod().getEdgeSource(in);
+					prev.addStatement(stmts.get(s));
+				}
+				toRemove.add(stmts.get(s));
+				s++;
+			}
+			b.removeStatements(toRemove);
+			moves += s;
+		}
+		return moves;
+	}
+	
+	private int movePushesDown(Set<CfgBlock> blocks) {
+		int moves = 0;
+		for (CfgBlock b : blocks) {
+			List<Statement> stmts = b.getStatements();
+			int s = 0;
+			Set<Statement> toRemove = new HashSet<Statement>();
+			while (s < stmts.size() && stmts.get(s) instanceof PushStatement) {
+				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
+				for (CfgEdge out : outgoing) {
+					CfgBlock next = b.getMethod().getEdgeTarget(out);
+					next.addStatement(0,stmts.get(s));
+				}
+				toRemove.add(stmts.get(s));
+				s++;
+			}
+			b.removeStatements(toRemove);
+			moves += s;
+		}
+		return moves;
 	}
 }
