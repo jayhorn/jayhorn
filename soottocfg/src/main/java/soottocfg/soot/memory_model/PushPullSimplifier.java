@@ -21,7 +21,7 @@ import soottocfg.soot.util.SootTranslationHelpers;
 
 public class PushPullSimplifier {
 	
-	private static boolean debug = true;
+	private static boolean debug = false;
 	
 	public PushPullSimplifier() {
 	}
@@ -42,8 +42,8 @@ public class PushPullSimplifier {
 				
 				// move pulls and pushes between blocks
 				moves = 0;
-				moves += movePullsUp(blocks);
-				moves += movePushesDown(blocks);
+				moves += movePullsUpInCFG(blocks);
+				moves += movePushesDownInCFG(blocks);
 			} while (moves > 0);
 			
 			if (debug)
@@ -123,8 +123,7 @@ public class PushPullSimplifier {
 			if (stmts.get(i) instanceof PushStatement && stmts.get(i+1) instanceof PullStatement) {
 				PushStatement push = (PushStatement) stmts.get(i);
 				PullStatement pull = (PullStatement) stmts.get(i+1);
-				// TODO not the nicest way to compare these...
-				if (push.getObject().toString().equals(pull.getObject().toString())) {
+				if (sameVars(push,pull)) {
 					if (debug)
 						System.out.println("Applied rule (III); removed " + pull);
 					b.removeStatement(pull);
@@ -153,8 +152,7 @@ public class PushPullSimplifier {
 			if (stmts.get(i) instanceof PullStatement && stmts.get(i+1) instanceof PushStatement) {
 				PullStatement pull = (PullStatement) stmts.get(i);
 				PushStatement push = (PushStatement) stmts.get(i+1);
-				// TODO not the nicest way to compare these...
-				if (push.getObject().toString().equals(pull.getObject().toString())) {
+				if (sameVars(push,pull)) {
 					if (debug)
 						System.out.println("Applied rule (IV); removed " + push);
 					b.removeStatement(push);
@@ -273,7 +271,7 @@ public class PushPullSimplifier {
 		return true;
 	}
 	
-	private int movePullsUp(Set<CfgBlock> blocks) {
+	private int movePullsUpInCFG(Set<CfgBlock> blocks) {
 		int moves = 0;
 		for (CfgBlock b : blocks) {
 			List<Statement> stmts = b.getStatements();
@@ -283,18 +281,26 @@ public class PushPullSimplifier {
 				Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
 				for (CfgEdge in : incoming) {
 					CfgBlock prev = b.getMethod().getEdgeSource(in);
-					prev.addStatement(stmts.get(s));
+					// only move up in source
+					int linecur = getSourceLine(b);
+					int lineprev = getSourceLine(prev);
+					if (linecur > -1 && lineprev > -1 && linecur > lineprev) {
+						prev.addStatement(stmts.get(s));
+						toRemove.add(stmts.get(s));
+						moves++;
+
+						if (debug)
+							System.out.println("Moved " + stmts.get(s) + " up in CFG.");
+					}
 				}
-				toRemove.add(stmts.get(s));
 				s++;
 			}
 			b.removeStatements(toRemove);
-			moves += s;
 		}
 		return moves;
 	}
 	
-	private int movePushesDown(Set<CfgBlock> blocks) {
+	private int movePushesDownInCFG(Set<CfgBlock> blocks) {
 		int moves = 0;
 		for (CfgBlock b : blocks) {
 			List<Statement> stmts = b.getStatements();
@@ -304,14 +310,49 @@ public class PushPullSimplifier {
 				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
 				for (CfgEdge out : outgoing) {
 					CfgBlock next = b.getMethod().getEdgeTarget(out);
-					next.addStatement(0,stmts.get(s));
+					// only move down in source
+					int linecur = getSourceLine(b);
+					int linenext = getSourceLine(next);
+					if (linecur > -1 && linenext > -1 && linecur < linenext) {
+						next.addStatement(0,stmts.get(s));
+						toRemove.add(stmts.get(s));
+						moves++;
+
+						if (debug)
+							System.out.println("Moved " + stmts.get(s) + " down in CFG.");
+					}
 				}
-				toRemove.add(stmts.get(s));
 				s++;
 			}
 			b.removeStatements(toRemove);
-			moves += s;
 		}
 		return moves;
+	}
+	
+	// returns the first actual java source line found (i.e. the first that is not -1)
+	// returns -1 if none found
+	private int getSourceLine(CfgBlock block) {
+		List<Statement> stmts = block.getStatements();
+		for (Statement s : stmts) {
+			int line = s.getJavaSourceLine();
+			if (line > -1)
+				return line;
+		}
+		return -1;
+	}
+	
+	private boolean sameVars(PushStatement push, PullStatement pull) {
+		List<Expression> pushvars = push.getRight();
+		List<IdentifierExpression> pullvars = pull.getLeft();
+		if (pushvars.size() != pullvars.size())
+			return false;
+		
+		for (int i = 0; i < pushvars.size(); i++) {
+			// TODO build equals methods
+			if (!pushvars.get(i).toString().equals(pullvars.get(i).toString()))
+				return false;
+		}
+		
+		return true;
 	}
 }

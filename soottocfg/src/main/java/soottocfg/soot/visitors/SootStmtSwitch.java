@@ -28,10 +28,10 @@ import com.google.common.base.Verify;
 
 import soot.ArrayType;
 import soot.Body;
+import soot.Local;
 import soot.PatchingChain;
 import soot.RefType;
 import soot.Scene;
-import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
@@ -650,6 +650,11 @@ public class SootStmtSwitch implements StmtSwitch {
 //			SootTranslationHelpers.v().getMemoryModel().mkHeapReadStatement(def, lengthFieldRef, lhs);
 			throw new RuntimeException("Remove Arrays first.");
 		} else {
+			
+			// first tell memory model to copy all fields
+			if (lhs instanceof Local && rhs instanceof Local)
+				SootTranslationHelpers.v().getMemoryModel().mkCopy((Local) lhs, (Local) rhs);
+			
 			// local to local assignment.
 			lhs.apply(valueSwitch);
 			Expression left = valueSwitch.popExpression();

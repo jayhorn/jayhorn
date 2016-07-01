@@ -368,5 +368,4 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		}
 		return this.fieldGlobals.get(field);
 	}
-
 }

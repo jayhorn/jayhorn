@@ -5,6 +5,7 @@ package soottocfg.soot.memory_model;
 
 import java.util.List;
 
+import soot.Local;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
@@ -50,6 +51,8 @@ public abstract class MemoryModel {
 	public abstract void mkArrayWriteStatement(Unit u, ArrayRef arrayRef, Value rhs);
 
 	public abstract void mkArrayReadStatement(Unit u, ArrayRef arrayRef, Value lhs);
+	
+	public void mkCopy(Local lhs, Local rhs) { }
 	
 	public abstract Expression mkNewExpr(NewExpr arg0);
 

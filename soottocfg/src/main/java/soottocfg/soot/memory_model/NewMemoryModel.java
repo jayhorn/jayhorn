@@ -12,6 +12,7 @@ import java.util.Set;
 
 import com.google.common.base.Verify;
 
+import soot.Local;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
@@ -155,26 +156,6 @@ public class NewMemoryModel extends BasicMemoryModel {
 						todo.addAll(graph.getSuccsOf(unit));
 				}
 				return foundPathWithoutAccess;
-//				
-//				
-//				
-//				List<Unit> todo = new LinkedList<Unit>(graph.getSuccsOf(u));
-//				while (!todo.isEmpty()) {
-//					Unit unit = todo.remove(0);
-//					Stmt s = (Stmt) u;
-//					if (s.containsFieldRef()) {
-//						FieldRef fr2 = s.getFieldRef();
-//						if (fr2 instanceof StaticFieldRef)
-//								continue;
-//					}
-//					
-//					List<Unit> succs = graph.getSuccsOf(unit);
-//					if (succs.isEmpty())
-//						return true;
-//					else
-//						todo.addAll(succs);
-//				}
-//				return false;
 			}
 		}	
 		return true;
@@ -399,6 +380,19 @@ public class NewMemoryModel extends BasicMemoryModel {
 		// TODO: keep a map between the locals and the fields of this class.
 		CallStatement stmt = new CallStatement(loc, method, args, receiver);
 		this.statementSwitch.push(stmt);
+	}
+	
+	@Override
+	public void mkCopy(Local lhs, Local rhs) {
+//		System.out.println("Copying " + rhs + " into " + lhs);
+		lhs.apply(valueSwitch);
+		IdentifierExpression base = (IdentifierExpression) valueSwitch.popExpression();
+		for (Variable v : fieldToLocalMap.keySet()) {
+			if (v.getName().equals(rhs.getName())) {
+				fieldToLocalMap.put(base.getVariable(), fieldToLocalMap.get(v));
+				return;
+			}
+		}
 	}
 
 	private Variable lookupFieldLocal(Variable baseVar, SootField sf) {
