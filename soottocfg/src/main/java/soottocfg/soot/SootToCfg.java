@@ -211,7 +211,7 @@ public class SootToCfg {
 					Body body = null;
 					try {
 						body = sm.retrieveActiveBody();
-						CopyPropagator.v().transform(body);
+//						CopyPropagator.v().transform(body);
 					} catch (RuntimeException e) {
 						// TODO: print warning that body couldn't be retrieved.
 						continue;
