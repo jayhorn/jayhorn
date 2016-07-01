@@ -76,85 +76,12 @@ public enum SootTranslationHelpers {
 
 	public void reset() {
 		currentMethod = null;
-//		currentClass = null;
 		currentSourceFileName = null;
 		memoryModel = null;
 		program = null;
-//		arrayTypes.clear();
 	}
 
-//	private transient Map<soot.ArrayType, SootClass> arrayTypes = new HashMap<soot.ArrayType, SootClass>();
-//
-//	public SootClass getFakeArrayClass(soot.ArrayType t) {
-//		if (!arrayTypes.containsKey(t)) {
-//			SootClass arrayClass = new SootClass("JayHornArr" + arrayTypes.size(), Modifier.PUBLIC);
-//			arrayClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
-//			SootField lengthField = new SootField(SootTranslationHelpers.lengthFieldName,
-//					RefType.v(Scene.v().getSootClass("java.lang.Integer")));
-//			arrayClass.addField(lengthField);
-//			
-//			SootField elemTypeField = new SootField(SootTranslationHelpers.arrayElementTypeFieldName,
-//					RefType.v(Scene.v().getSootClass("java.lang.Class")));
-//			arrayClass.addField(elemTypeField);
-//			
-//			SootField typeField = new SootField(SootTranslationHelpers.typeFieldName,
-//					RefType.v(Scene.v().getSootClass("java.lang.Class")));
-//			arrayClass.addField(typeField);
-//			
-//			// TODO create some fields of t.getElementType()
-//			SootMethod getElement = new SootMethod("get",                 
-//				    Arrays.asList(new Type[] {IntType.v()}),
-//				    t.getArrayElementType(), Modifier.PUBLIC);
-//			arrayClass.addMethod(getElement);
-//			JimpleBody body = Jimple.v().newBody(getElement);
-//			body.insertIdentityStmts();			
-//			//TODO: add body
-//			body.getUnits().add(Jimple.v().newReturnStmt(getDefaultValue(t.getArrayElementType())));
-//
-//			getElement.setActiveBody(body);
-//			
-//			SootMethod setElement = new SootMethod("set",                 
-//				    Arrays.asList(new Type[] {t.getArrayElementType(), IntType.v()}),
-//				    VoidType.v(), Modifier.PUBLIC);
-//			arrayClass.addMethod(setElement);
-//			body = Jimple.v().newBody(setElement);
-//			body.insertIdentityStmts();			
-//			//TODO: add body
-//			body.getUnits().add(Jimple.v().newReturnVoidStmt());
-//			setElement.setActiveBody(body);
-//			
-//			//Now create a constructor that takes the array size as input
-//			SootMethod constructor = new SootMethod("<init>", Arrays.asList(new Type[] {IntType.v()}), VoidType.v(),
-//	                Modifier.PUBLIC);
-//			//add the constructor to the class.
-//			arrayClass.addMethod(constructor);
-//		
-//			body = Jimple.v().newBody(constructor);			
-//			//add a local for the first param
-//			body.insertIdentityStmts();
-//			Local thisLocal = body.getThisLocal();
-//			body.getUnits().add(Jimple.v().newAssignStmt(Jimple.v().newInstanceFieldRef(thisLocal, lengthField.makeRef()), body.getParameterLocal(0)));
-//			//TODO: test the two lines below:
-//			String elementTypeName = t.getArrayElementType().toString();
-//			if (t.getArrayElementType() instanceof RefType) {
-//				elementTypeName = ((RefType)t.getArrayElementType()).getSootClass().getJavaStyleName();
-//			}
-//			elementTypeName = elementTypeName.replace('.', '/');
-//			body.getUnits().add(Jimple.v().newAssignStmt(Jimple.v().newInstanceFieldRef(thisLocal, elemTypeField.makeRef()), ClassConstant.v(elementTypeName)));
-//			//TODO
-//			//			body.getUnits().add(Jimple.v().newAssignStmt(Jimple.v().newInstanceFieldRef(thisLocal, typeField.makeRef()), ClassConstant.v(t.toString())));
-//			body.getUnits().add(Jimple.v().newReturnVoidStmt());
-//			constructor.setActiveBody(body);
-//			Verify.verify(constructor.isConstructor());		
-//			
-//			//done adding methods
-//			Scene.v().addClass(arrayClass);
-//			arrayClass.setApplicationClass();
-//			
-//			arrayTypes.put(t, arrayClass);
-//		}
-//		return arrayTypes.get(t);
-//	}
+
 
 	public Value getDefaultValue(soot.Type t) {
 		Value rhs = null;
@@ -245,11 +172,7 @@ public enum SootTranslationHelpers {
 		if (returnType instanceof VoidType) {
 			stmt = Jimple.v().newReturnVoidStmt();
 		} else {
-			Value retVal = NullConstant.v();
-			if (returnType instanceof PrimType) {
-				retVal = IntConstant.v(0);
-			}
-			stmt = Jimple.v().newReturnStmt(retVal);
+			stmt = Jimple.v().newReturnStmt(getDefaultValue(returnType));
 		}
 		stmt.addAllTagsOf(createdFrom);
 		return stmt;

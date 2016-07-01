@@ -111,13 +111,13 @@ public class InconsistencyTest {
 			}
 			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
 
-			check = 0; goal = 2;
-			methodName = "<inconsistencies.TruePositives01: boolean stringCompare()>";
-			for (CfgBlock b :  result.get(methodName)) {
-				if ("Block5".equals(b.getLabel())) check++;
-				if ("Block3".equals(b.getLabel())) check++;				
-			}			
-			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
+//			check = 0; goal = 2;
+//			methodName = "<inconsistencies.TruePositives01: boolean stringCompare()>";
+//			for (CfgBlock b :  result.get(methodName)) {
+//				if ("Block5".equals(b.getLabel())) check++;
+//				if ("Block3".equals(b.getLabel())) check++;				
+//			}			
+//			Assert.assertTrue("For "+methodName+": should be "+goal+" but is " + check, check==goal);
 
 			check = 0; goal = 3;
 			methodName = "<inconsistencies.TruePositives01: void infeasible2(JayArray_int)>";

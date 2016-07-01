@@ -19,8 +19,6 @@ import org.junit.runners.Parameterized;
 import jayhorn.checker.Checker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
-import jayhorn.solver.z3.Z3ProverFactory;
-import soot.options.Options;
 import soottocfg.soot.SootToCfg;
 
 @RunWith(Parameterized.class)
