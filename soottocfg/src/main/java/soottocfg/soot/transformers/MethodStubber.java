@@ -3,7 +3,6 @@
  */
 package soottocfg.soot.transformers;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
@@ -15,7 +14,6 @@ import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
-import soot.Type;
 import soot.Unit;
 import soot.VoidType;
 import soot.jimple.Jimple;
@@ -38,29 +36,6 @@ import soottocfg.soot.util.SootTranslationHelpers;
  * 
  */
 public class MethodStubber {
-
-	public static final String HavocClassName = "Havoc_Class";
-
-	/**
-	 * Get a method that returns an unknown value of type t.
-	 * @param t
-	 * @return
-	 */
-	private SootMethod getHavocMethod(soot.Type t) {
-		if (!Scene.v().containsClass(HavocClassName)) {
-			SootClass sClass = new SootClass(HavocClassName, Modifier.PUBLIC | Modifier.PUBLIC);
-			sClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
-			sClass.setResolvingLevel(SootClass.SIGNATURES);
-			Scene.v().addClass(sClass);			
-		}
-		SootClass cls = Scene.v().getSootClass(HavocClassName);
-		final String havocMethodName = "havoc_" + t.toString();
-		if (!cls.declaresMethodByName(havocMethodName)) {
-			cls.addMethod(new SootMethod(havocMethodName, Arrays.asList(new Type[] {}), t,
-					Modifier.PUBLIC | Modifier.STATIC));
-		}
-		return cls.getMethodByName("havoc_" + t.toString());
-	}
 
 	public void stubUsedLibraryMethods() {
 		Set<SootMethod> invokedLibraryMethods = getInvokedLibraryMethods();
@@ -85,7 +60,7 @@ public class MethodStubber {
 			if (m.getReturnType() instanceof VoidType) {
 				body.getUnits().add(SootTranslationHelpers.v().getDefaultReturnStatement(m.getReturnType(), m));
 			} else {
-				SootMethod havoc = getHavocMethod(m.getReturnType());
+				SootMethod havoc = SootTranslationHelpers.v().getHavocMethod(m.getReturnType());
 				Local ret = Jimple.v().newLocal("havoc", m.getReturnType());
 				body.getLocals().add(ret);
 				body.getUnits().add(Jimple.v().newAssignStmt(ret, Jimple.v().newStaticInvokeExpr(havoc.makeRef())));

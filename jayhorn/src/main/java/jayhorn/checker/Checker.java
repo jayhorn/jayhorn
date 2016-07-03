@@ -736,6 +736,13 @@ public class Checker {
 						rhs.add(new IdentifierExpression(loc, argsType.getClassVariable()));
 						ClassVariable c = ((ReferenceType) argsParam.getType()).getClassVariable();
 						rhs.add(new IdentifierExpression(loc, c));
+						//this is an array, so initialize the remaining fields with sth as well
+						//TODO:
+						int i=0;
+						while (rhs.size()<c.getAssociatedFields().length) {
+							Variable undefLocal = new Variable("undef_field"+(i++), IntType.instance());
+							rhs.add(new IdentifierExpression(loc, undefLocal));
+						}
 						PushStatement pack = new PushStatement(loc, c, new IdentifierExpression(loc, argsParam), rhs);
 						entry.addStatement(1, pack);
 					}

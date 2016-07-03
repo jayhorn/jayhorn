@@ -78,7 +78,11 @@ public class ArrayTransformer {
 	public static final String arraySetName = "set";
 	public static final String arrayGetName = "get";
 	public static final String arrayTypeName = "JayArray";
+	public static final String arrayElementPrefix = "atIndex";
 
+	
+	private static final int NumberOfModeledElements = 5;	
+	
 	public ArrayTransformer() {
 
 	}
@@ -312,12 +316,37 @@ public class ArrayTransformer {
 				RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC | Modifier.FINAL);
 		arrayClass.addField(typeField);
 
+		//create one field for the first N elements of the array which we
+		//model precisely:
+		SootField[] arrFields = new SootField[ArrayTransformer.NumberOfModeledElements];
+		for (int i=0; i<ArrayTransformer.NumberOfModeledElements; i++) {
+			arrFields[i] = new SootField(ArrayTransformer.arrayElementPrefix+"_"+i,
+					elementType, Modifier.PUBLIC);
+			arrayClass.addField(arrFields[i]);			
+		}
+		
 		SootMethod getElement = new SootMethod(arrayGetName, Arrays.asList(new Type[] { IntType.v() }), elementType,
 				Modifier.PUBLIC);
 		arrayClass.addMethod(getElement);
 		JimpleBody body = Jimple.v().newBody(getElement);
 		body.insertIdentityStmts();
-		// TODO: add body
+		Local retLocal = Jimple.v().newLocal("retVal", elementType);
+		body.getLocals().add(retLocal);
+		List<Unit> retStmts = new LinkedList<Unit>();
+		for (int i=0; i<ArrayTransformer.NumberOfModeledElements; i++) {
+			Unit ret = Jimple.v().newAssignStmt(retLocal, Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[i].makeRef()));
+			retStmts.add(ret);
+			retStmts.add(Jimple.v().newReturnStmt(retLocal));			
+			Value cond = Jimple.v().newEqExpr(body.getParameterLocal(0), IntConstant.v(i));
+			body.getUnits().add(Jimple.v().newIfStmt(cond, ret));
+		}
+		//if none of the modeled fields was requested, add return havoc as fall through case.
+		//ret = havoc; return ret;				
+		body.getUnits().add(Jimple.v().newAssignStmt(retLocal, Jimple.v().newStaticInvokeExpr(SootTranslationHelpers.v().getHavocMethod(elementType).makeRef())));
+		body.getUnits().add(Jimple.v().newReturnStmt(retLocal));
+		//now add all the return statements
+		body.getUnits().addAll(retStmts);
+		
 		body.getUnits().add(Jimple.v().newReturnStmt(SootTranslationHelpers.v().getDefaultValue(elementType)));
 		getElement.setActiveBody(body);
 
@@ -326,7 +355,17 @@ public class ArrayTransformer {
 		arrayClass.addMethod(setElement);
 		body = Jimple.v().newBody(setElement);
 		body.insertIdentityStmts();
-		// TODO: add body
+
+		List<Unit> updates = new LinkedList<Unit>();
+		for (int i=0; i<ArrayTransformer.NumberOfModeledElements; i++) {			
+			Unit asn = Jimple.v().newAssignStmt(Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[i].makeRef()), body.getParameterLocal(0));
+			updates.add(asn);
+			updates.add(Jimple.v().newReturnVoidStmt());
+			Value cond = Jimple.v().newEqExpr(body.getParameterLocal(1), IntConstant.v(i));
+			body.getUnits().add(Jimple.v().newIfStmt(cond, asn));
+		}
+		body.getUnits().addAll(updates);
+		
 		body.getUnits().add(Jimple.v().newReturnVoidStmt());
 		setElement.setActiveBody(body);
 

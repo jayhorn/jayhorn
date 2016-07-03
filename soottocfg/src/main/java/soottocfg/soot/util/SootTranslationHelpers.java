@@ -3,10 +3,12 @@
  */
 package soottocfg.soot.util;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import soot.ArrayType;
+import soot.Modifier;
 import soot.PrimType;
 import soot.RefType;
 import soot.Scene;
@@ -51,6 +53,29 @@ public enum SootTranslationHelpers {
 		return INSTANCE;
 	}
 
+	
+	public static final String HavocClassName = "Havoc_Class";
+	/**
+	 * Get a method that returns an unknown value of type t.
+	 * @param t
+	 * @return
+	 */
+	public SootMethod getHavocMethod(soot.Type t) {
+		if (!Scene.v().containsClass(HavocClassName)) {
+			SootClass sClass = new SootClass(HavocClassName, Modifier.PUBLIC | Modifier.PUBLIC);
+			sClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
+			sClass.setResolvingLevel(SootClass.SIGNATURES);
+			Scene.v().addClass(sClass);			
+		}
+		SootClass cls = Scene.v().getSootClass(HavocClassName);
+		final String havocMethodName = "havoc_" + t.toString();
+		if (!cls.declaresMethodByName(havocMethodName)) {
+			cls.addMethod(new SootMethod(havocMethodName, Arrays.asList(new Type[] {}), t,
+					Modifier.PUBLIC | Modifier.STATIC));
+		}
+		return cls.getMethodByName("havoc_" + t.toString());
+	}
+	
 	public static SootTranslationHelpers v(Program program, MemModel kind){
 		final SootTranslationHelpers instance = INSTANCE;
 		instance.setMemoryModelKind(kind);
