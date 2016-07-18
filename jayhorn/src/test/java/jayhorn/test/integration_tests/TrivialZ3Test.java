@@ -93,6 +93,6 @@ public class TrivialZ3Test {
 			}
 		}	
 	}
-		
+
 
 }

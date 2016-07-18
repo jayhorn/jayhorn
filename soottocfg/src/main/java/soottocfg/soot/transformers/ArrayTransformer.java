@@ -73,7 +73,7 @@ import soottocfg.soot.util.SootTranslationHelpers;
  *         args), so
  *         the program cannot be run from main after this transformation.
  */
-public class ArrayTransformer {
+public class ArrayTransformer extends AbstractSceneTransformer {
 
 	public static final String arraySetName = "set";
 	public static final String arrayGetName = "get";
@@ -90,7 +90,7 @@ public class ArrayTransformer {
 	private final Map<String, SootField> fieldSubstitutionMap = new HashMap<String, SootField>();
 	private final Map<String, SootMethod> methodSubstitutionMap = new HashMap<String, SootMethod>();
 
-	public void substituteAllArrayTypes() {
+	public void applyTransformation() {
 		/*
 		 * We have to do two passes. In the first pass, we update all fields and
 		 * method signatures

@@ -35,9 +35,9 @@ import soottocfg.soot.util.SootTranslationHelpers;
  *         class.
  * 
  */
-public class MethodStubber {
+public class MethodStubber extends AbstractSceneTransformer {
 
-	public void stubUsedLibraryMethods() {
+	public void applyTransformation() {
 		Set<SootMethod> invokedLibraryMethods = getInvokedLibraryMethods();
 		Set<SootClass> modifiedClasses = new HashSet<SootClass>();
 		for (SootMethod m : invokedLibraryMethods) {
@@ -110,4 +110,5 @@ public class MethodStubber {
 		}
 		return invokedLibraryMethods;
 	}
+	
 }

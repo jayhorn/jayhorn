@@ -3,11 +3,15 @@
  */
 package soottocfg.soot.transformers;
 
-import java.util.Map;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.Set;
 
 import soot.Body;
-import soot.BodyTransformer;
 import soot.Local;
+import soot.Scene;
+import soot.SootClass;
+import soot.SootMethod;
 import soot.Type;
 import soot.Unit;
 import soot.Value;
@@ -16,32 +20,40 @@ import soot.jimple.IfStmt;
 import soot.jimple.IntConstant;
 import soot.jimple.InvokeStmt;
 import soot.jimple.Jimple;
+import soot.jimple.JimpleBody;
 import soot.tagkit.Host;
 
 /**
  * @author schaef
  *
  */
-public abstract class AbstractTransformer extends BodyTransformer {
+public abstract class AbstractSceneTransformer {
+
+	public abstract void applyTransformation();
+
+	protected Set<JimpleBody> getSceneBodies() {
+		Set<JimpleBody> bodies = new LinkedHashSet<JimpleBody>();
+		for (SootClass sc : new LinkedList<SootClass>(Scene.v().getClasses())) {
+			if (sc.resolvingLevel() >= SootClass.BODIES) {
+				for (SootMethod sm : sc.getMethods()) {
+					if (sm.isConcrete()) {
+						bodies.add((JimpleBody) sm.retrieveActiveBody());
+					}
+				}
+			}
+		}
+		return bodies;
+	}
 
 	/**
+	 * Creates a jimple AssingStmt left:=right and copies the tags
+	 * from createdFrom.
 	 * 
+	 * @param left
+	 * @param right
+	 * @param createdFrom
+	 * @return
 	 */
-	public AbstractTransformer() {
-		// TODO Auto-generated constructor stub
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see soot.BodyTransformer#internalTransform(soot.Body, java.lang.String,
-	 * java.util.Map)
-	 */
-	@Override
-	protected void internalTransform(Body arg0, String arg1, Map<String, String> arg2) {
-		// nothing
-	}
-
 	protected Unit assignStmtFor(Value left, Value right, Host createdFrom) {
 		Unit stmt = Jimple.v().newAssignStmt(left, right);
 		stmt.addAllTagsOf(createdFrom);
@@ -98,5 +110,4 @@ public abstract class AbstractTransformer extends BodyTransformer {
 		body.getLocals().add(local);
 		return local;
 	}
-
 }

@@ -33,10 +33,7 @@ import soot.jimple.InstanceFieldRef;
 import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
 import soot.jimple.StaticFieldRef;
-import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
-import soot.jimple.toolkits.scalar.CopyPropagator;
 import soot.jimple.toolkits.scalar.UnreachableCodeEliminator;
-import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
@@ -231,7 +228,7 @@ public class SootToCfg {
 					mi.finalizeAndAddToProgram();
 					Method m = mi.getMethod();
 
-					System.err.println(body);
+//					System.err.println(body);
 					if (debug) {
 						// System.out.println("adding method: " +
 						// m.getMethodName());
@@ -280,11 +277,11 @@ public class SootToCfg {
 	private void performAbstractionTransformations() {
 		if (SootTranslationHelpers.v().getMemoryModel() instanceof NewMemoryModel) {
 			MethodStubber mstubber = new MethodStubber();
-			mstubber.stubUsedLibraryMethods();
+			mstubber.applyTransformation();
 		}
 
 		ArrayTransformer atrans = new ArrayTransformer();
-		atrans.substituteAllArrayTypes();
+		atrans.applyTransformation();
 	}
 
 	private Set<SootMethod> staticInitializers = new HashSet<SootMethod>();
@@ -313,7 +310,6 @@ public class SootToCfg {
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
 
 				initializeStaticFields(sc);
-
 				SootTranslationHelpers.v().setCurrentClass(sc);
 				for (SootMethod sm : sc.getMethods()) {
 					if (sm.isConcrete()) {
@@ -335,24 +331,24 @@ public class SootToCfg {
 								}
 							}
 
-							// first reconstruct the assertions.
-							AssertionReconstruction ar = new AssertionReconstruction();
-							ar.transform(body);
-
-							// make the exception handling explicit
-							ExceptionTransformer em = new ExceptionTransformer(
-									new NullnessAnalysis(new CompleteUnitGraph(body)),
-									createAssertionsForUncaughtExceptions);
-							em.transform(body);
-
-							// replace all switches by sets of IfStmt
-							SwitchStatementRemover so = new SwitchStatementRemover();
-							so.transform(body);
-
-							if (resolveVirtualCalls) {
-								VirtualCallResolver vc = new VirtualCallResolver();
-								vc.transform(body);
-							}
+//							// first reconstruct the assertions.
+//							AssertionReconstruction ar = new AssertionReconstruction();
+//							ar.transform(body);
+//
+//							// make the exception handling explicit
+//							ExceptionTransformer em = new ExceptionTransformer(
+//									new NullnessAnalysis(new CompleteUnitGraph(body)),
+//									createAssertionsForUncaughtExceptions);
+//							em.transform(body);
+//
+//							// replace all switches by sets of IfStmt
+//							SwitchStatementRemover so = new SwitchStatementRemover();
+//							so.transform(body);
+//
+//							if (resolveVirtualCalls) {
+//								VirtualCallResolver vc = new VirtualCallResolver();
+//								vc.transform(body);
+//							}
 						} catch (RuntimeException e) {
 							e.printStackTrace();
 							throw new RuntimeException("Behavior preserving transformation failed " + sm.getSignature()
@@ -362,6 +358,16 @@ public class SootToCfg {
 				}
 			}
 		}
+		AssertionReconstruction ar = new AssertionReconstruction();
+		ar.applyTransformation();
+		ExceptionTransformer em = new ExceptionTransformer(createAssertionsForUncaughtExceptions);
+		em.applyTransformation();
+		SwitchStatementRemover so = new SwitchStatementRemover();
+		so.applyTransformation();
+		if (resolveVirtualCalls) {
+			VirtualCallResolver vc = new VirtualCallResolver();
+			vc.applyTransformation();
+		}		
 		addStaticInitializerCallsToMain();
 	}
 

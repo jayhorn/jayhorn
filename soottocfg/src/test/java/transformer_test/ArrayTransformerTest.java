@@ -45,7 +45,7 @@ public class ArrayTransformerTest extends AbstractTransformerTest {
 		public void test() {
 			List<SootMethod> methods = loadSootMethods();
 			ArrayTransformer arr = new ArrayTransformer();
-			arr.substituteAllArrayTypes();
+			arr.applyTransformation();
 			for (SootMethod sm : methods) {
 				if (sm.hasActiveBody()) {
 					System.out.println(sm.getActiveBody());

@@ -49,6 +49,7 @@ import soot.jimple.IntConstant;
 import soot.jimple.InvokeExpr;
 import soot.jimple.InvokeStmt;
 import soot.jimple.Jimple;
+import soot.jimple.JimpleBody;
 import soot.jimple.NullConstant;
 import soot.jimple.Ref;
 import soot.jimple.ReturnStmt;
@@ -58,6 +59,7 @@ import soot.jimple.ThrowStmt;
 import soot.jimple.UnopExpr;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
 import soot.tagkit.Host;
+import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.util.Pair;
 
@@ -67,36 +69,32 @@ import soottocfg.util.Pair;
  * and add throws clauses to all those that can throw user created
  * RuntimeExceptions.
  */
-public class ExceptionTransformer extends AbstractTransformer {
+public class ExceptionTransformer extends AbstractSceneTransformer {
 
-	private NullnessAnalysis nullnessAnalysis;
+	
 	protected final SootClass exceptionClass, runtimeExceptionClass, nullPointerExceptionClass,
 			arrayIndexOutOfBoundsExceptionClass, classCastExceptionClass, errorExceptionClass, throwableClass;
-
+	private final Hierarchy hierarchy;
+	
 	private final boolean treatUncaughtExceptionsAsAssertions;
 
 	private Body body;
-
-	private Hierarchy hierarchy;
-
-	private final Map<Unit, List<Pair<Value, SootClass>>> runtimeExceptions = new HashMap<Unit, List<Pair<Value, SootClass>>>();
-
-	private final Set<Pair<Unit, InvokeExpr>> methodInvokes = new HashSet<Pair<Unit, InvokeExpr>>();
-	private final Set<Pair<Unit, Value>> throwStatements = new HashSet<Pair<Unit, Value>>();
-
-	private final Map<Unit, Local> caughtExceptionLocal = new HashMap<Unit, Local>();
-	private Map<SootClass, Unit> generatedThrowStatements = new HashMap<SootClass, Unit>();
+	private NullnessAnalysis nullnessAnalysis;
+	private Map<Unit, List<Pair<Value, SootClass>>> runtimeExceptions;
+	private Set<Pair<Unit, InvokeExpr>> methodInvokes;
+	private Set<Pair<Unit, Value>> throwStatements;
+	private Map<Unit, Local> caughtExceptionLocal;
+	private Map<SootClass, Unit> generatedThrowStatements;
 
 	/**
 	 * 
 	 */
-	public ExceptionTransformer(NullnessAnalysis nna) {
-		this(nna, true);
+	public ExceptionTransformer() {
+		this(true);
 	}
 
-	public ExceptionTransformer(NullnessAnalysis nna, boolean uncaughtAsAssertion) {
+	public ExceptionTransformer(boolean uncaughtAsAssertion) {
 		treatUncaughtExceptionsAsAssertions = uncaughtAsAssertion;
-		nullnessAnalysis = nna;
 		exceptionClass = Scene.v().getSootClass("java.lang.Exception");
 		throwableClass = Scene.v().getSootClass("java.lang.Throwable");
 		runtimeExceptionClass = Scene.v().getSootClass("java.lang.RuntimeException");
@@ -104,19 +102,24 @@ public class ExceptionTransformer extends AbstractTransformer {
 		arrayIndexOutOfBoundsExceptionClass = Scene.v().getSootClass("java.lang.ArrayIndexOutOfBoundsException");
 		classCastExceptionClass = Scene.v().getSootClass("java.lang.ClassCastException");
 		errorExceptionClass = Scene.v().getSootClass("java.lang.Error");
+		hierarchy = Scene.v().getActiveHierarchy();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see soot.BodyTransformer#internalTransform(soot.Body, java.lang.String,
-	 * java.util.Map)
-	 */
-	@Override
-	protected void internalTransform(Body b, String arg1, Map<String, String> arg2) {
-		hierarchy = Scene.v().getActiveHierarchy();
+	public void applyTransformation() {
+		for (JimpleBody body : this.getSceneBodies()) {
+			transform(body);
+		}
+	}
+	
+	private void transform(Body b) {
+		runtimeExceptions = new HashMap<Unit, List<Pair<Value, SootClass>>>();
+		methodInvokes = new HashSet<Pair<Unit, InvokeExpr>>();
+		throwStatements = new HashSet<Pair<Unit, Value>>();
+		caughtExceptionLocal = new HashMap<Unit, Local>();
+		generatedThrowStatements = new HashMap<SootClass, Unit>();
+		
 		body = b;
-
+		this.nullnessAnalysis = new NullnessAnalysis(new CompleteUnitGraph(body));
 		// first remove all the monitor related exceptions
 		removeUnreachableTraps(body);
 		removeMonitorTraps(body);
@@ -325,7 +328,6 @@ public class ExceptionTransformer extends AbstractTransformer {
 			public int compare(final SootClass a, final SootClass b) {
 				if (a == b)
 					return 0;
-				hierarchy = Scene.v().getActiveHierarchy();
 				if (hierarchy.isClassSubclassOf(a, b))
 					return 1;
 				if (hierarchy.isClassSuperclassOf(a, b))
