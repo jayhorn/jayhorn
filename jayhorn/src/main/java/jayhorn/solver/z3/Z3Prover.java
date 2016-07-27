@@ -3,18 +3,6 @@
  */
 package jayhorn.solver.z3;
 
-import com.microsoft.z3.*;
-import jayhorn.Options;
-import jayhorn.solver.BoolType;
-import jayhorn.solver.IntType;
-import jayhorn.solver.Prover;
-import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverFun;
-import jayhorn.solver.ProverHornClause;
-import jayhorn.solver.ProverListener;
-import jayhorn.solver.ProverResult;
-import jayhorn.solver.ProverType;
-
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,6 +18,33 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import com.microsoft.z3.ArithExpr;
+import com.microsoft.z3.ArrayExpr;
+import com.microsoft.z3.ArraySort;
+import com.microsoft.z3.BoolExpr;
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
+import com.microsoft.z3.FuncDecl;
+import com.microsoft.z3.IntExpr;
+import com.microsoft.z3.InterpolationContext;
+import com.microsoft.z3.Model;
+import com.microsoft.z3.Params;
+import com.microsoft.z3.Quantifier;
+import com.microsoft.z3.Solver;
+import com.microsoft.z3.Sort;
+import com.microsoft.z3.Status;
+
+import jayhorn.Options;
+import jayhorn.solver.BoolType;
+import jayhorn.solver.IntType;
+import jayhorn.solver.Prover;
+import jayhorn.solver.ProverExpr;
+import jayhorn.solver.ProverFun;
+import jayhorn.solver.ProverHornClause;
+import jayhorn.solver.ProverListener;
+import jayhorn.solver.ProverResult;
+import jayhorn.solver.ProverType;
 
 /**
  * @author schaef

@@ -15,9 +15,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import jayhorn.checker.Checker;
+import jayhorn.hornify.Hornify;
+import jayhorn.hornify.MethodEncoder;
 import jayhorn.solver.ProverFactory;
+import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.test.Util;
+import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
 
 /**
@@ -81,8 +85,17 @@ public class SimpleHornTest {
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg(false, true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
-			Checker checker = new Checker(factory);
-			boolean result = checker.checkProgram(soot2cfg.getProgram());
+			
+			Program program = soot2cfg.getProgram();
+			Hornify hornify = new Hornify(factory);
+			hornify.toHorn(program);	
+			List<ProverHornClause> clauses = hornify.getClauses();
+			MethodEncoder mEncoder = hornify.getMethodEncoder();
+			Checker hornChecker = new Checker(factory, mEncoder);
+			
+			boolean result = hornChecker.checkProgram(program, clauses);
+//			Checker checker = new Checker(factory);
+//			boolean result = checker.checkProgram(soot2cfg.getProgram());
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
 

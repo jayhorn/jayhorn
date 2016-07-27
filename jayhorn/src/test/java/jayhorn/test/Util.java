@@ -1,7 +1,5 @@
 package jayhorn.test;
 
-import com.google.common.io.Files;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -19,6 +17,8 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import com.google.common.io.Files;
 
 public final class Util {
 
