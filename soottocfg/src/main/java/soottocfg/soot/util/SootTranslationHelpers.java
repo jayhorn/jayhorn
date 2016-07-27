@@ -4,17 +4,10 @@
 package soottocfg.soot.util;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-
-import com.google.common.base.Optional;
-import com.google.common.base.Verify;
 
 import soot.ArrayType;
-import soot.IntType;
-import soot.Local;
 import soot.Modifier;
 import soot.PrimType;
 import soot.RefType;
@@ -32,7 +25,6 @@ import soot.jimple.FloatConstant;
 import soot.jimple.IntConstant;
 import soot.jimple.InvokeStmt;
 import soot.jimple.Jimple;
-import soot.jimple.JimpleBody;
 import soot.jimple.LongConstant;
 import soot.jimple.NullConstant;
 import soot.jimple.Stmt;
@@ -61,6 +53,29 @@ public enum SootTranslationHelpers {
 		return INSTANCE;
 	}
 
+	
+	public static final String HavocClassName = "Havoc_Class";
+	/**
+	 * Get a method that returns an unknown value of type t.
+	 * @param t
+	 * @return
+	 */
+	public SootMethod getHavocMethod(soot.Type t) {
+		if (!Scene.v().containsClass(HavocClassName)) {
+			SootClass sClass = new SootClass(HavocClassName, Modifier.PUBLIC | Modifier.PUBLIC);
+			sClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
+			sClass.setResolvingLevel(SootClass.SIGNATURES);
+			Scene.v().addClass(sClass);			
+		}
+		SootClass cls = Scene.v().getSootClass(HavocClassName);
+		final String havocMethodName = "havoc_" + t.toString();
+		if (!cls.declaresMethodByName(havocMethodName)) {
+			cls.addMethod(new SootMethod(havocMethodName, Arrays.asList(new Type[] {}), t,
+					Modifier.PUBLIC | Modifier.STATIC));
+		}
+		return cls.getMethodByName("havoc_" + t.toString());
+	}
+	
 	public static SootTranslationHelpers v(Program program, MemModel kind){
 		final SootTranslationHelpers instance = INSTANCE;
 		instance.setMemoryModelKind(kind);
@@ -73,7 +88,7 @@ public enum SootTranslationHelpers {
 
 	public static final String arrayElementTypeFieldName = "$elType";
 	public static final String lengthFieldName = "$length";
-	public static final String indexFieldNamePrefix = "$idx_";
+//	public static final String indexFieldNamePrefix = "$idx_";
 
 	private transient SootMethod currentMethod;
 //	private transient SootClass currentClass;
@@ -86,85 +101,12 @@ public enum SootTranslationHelpers {
 
 	public void reset() {
 		currentMethod = null;
-//		currentClass = null;
 		currentSourceFileName = null;
 		memoryModel = null;
 		program = null;
-		arrayTypes.clear();
 	}
 
-	private transient Map<soot.ArrayType, SootClass> arrayTypes = new HashMap<soot.ArrayType, SootClass>();
 
-	public SootClass getFakeArrayClass(soot.ArrayType t) {
-		if (!arrayTypes.containsKey(t)) {
-			SootClass arrayClass = new SootClass("JayHornArr" + arrayTypes.size(), Modifier.PUBLIC);
-			arrayClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
-			SootField lengthField = new SootField(SootTranslationHelpers.lengthFieldName,
-					RefType.v(Scene.v().getSootClass("java.lang.Integer")));
-			arrayClass.addField(lengthField);
-			
-			SootField elemTypeField = new SootField(SootTranslationHelpers.arrayElementTypeFieldName,
-					RefType.v(Scene.v().getSootClass("java.lang.Class")));
-			arrayClass.addField(elemTypeField);
-			
-			SootField typeField = new SootField(SootTranslationHelpers.typeFieldName,
-					RefType.v(Scene.v().getSootClass("java.lang.Class")));
-			arrayClass.addField(typeField);
-			
-			// TODO create some fields of t.getElementType()
-			SootMethod getElement = new SootMethod("get",                 
-				    Arrays.asList(new Type[] {IntType.v()}),
-				    t.getArrayElementType(), Modifier.PUBLIC);
-			arrayClass.addMethod(getElement);
-			JimpleBody body = Jimple.v().newBody(getElement);
-			body.insertIdentityStmts();			
-			//TODO: add body
-			body.getUnits().add(Jimple.v().newReturnStmt(getDefaultValue(t.getArrayElementType())));
-
-			getElement.setActiveBody(body);
-			
-			SootMethod setElement = new SootMethod("set",                 
-				    Arrays.asList(new Type[] {t.getArrayElementType(), IntType.v()}),
-				    VoidType.v(), Modifier.PUBLIC);
-			arrayClass.addMethod(setElement);
-			body = Jimple.v().newBody(setElement);
-			body.insertIdentityStmts();			
-			//TODO: add body
-			body.getUnits().add(Jimple.v().newReturnVoidStmt());
-			setElement.setActiveBody(body);
-			
-			//Now create a constructor that takes the array size as input
-			SootMethod constructor = new SootMethod("<init>", Arrays.asList(new Type[] {IntType.v()}), VoidType.v(),
-	                Modifier.PUBLIC);
-			//add the constructor to the class.
-			arrayClass.addMethod(constructor);
-		
-			body = Jimple.v().newBody(constructor);			
-			//add a local for the first param
-			body.insertIdentityStmts();
-			Local thisLocal = body.getThisLocal();
-			body.getUnits().add(Jimple.v().newAssignStmt(Jimple.v().newInstanceFieldRef(thisLocal, lengthField.makeRef()), body.getParameterLocal(0)));
-			//TODO: test the two lines below:
-			String elementTypeName = t.getArrayElementType().toString();
-			if (t.getArrayElementType() instanceof RefType) {
-				elementTypeName = ((RefType)t.getArrayElementType()).getSootClass().getJavaStyleName();
-			}
-			elementTypeName = elementTypeName.replace('.', '/');
-			body.getUnits().add(Jimple.v().newAssignStmt(Jimple.v().newInstanceFieldRef(thisLocal, elemTypeField.makeRef()), ClassConstant.v(elementTypeName)));
-			//TODO
-			//			body.getUnits().add(Jimple.v().newAssignStmt(Jimple.v().newInstanceFieldRef(thisLocal, typeField.makeRef()), ClassConstant.v(t.toString())));
-			body.getUnits().add(Jimple.v().newReturnVoidStmt());
-			constructor.setActiveBody(body);
-			Verify.verify(constructor.isConstructor());		
-			
-			//done adding methods
-			Scene.v().addClass(arrayClass);
-			arrayClass.setApplicationClass();
-			
-			arrayTypes.put(t, arrayClass);
-		}
-		return arrayTypes.get(t);
-	}
 
 	public Value getDefaultValue(soot.Type t) {
 		Value rhs = null;
@@ -200,8 +142,9 @@ public enum SootTranslationHelpers {
 			final String className = ((RefType) t).getClassName().replace(".", "/");
 			return ClassConstant.v(className);
 		} else if (t instanceof ArrayType) {
-			final String className = getFakeArrayClass((ArrayType)t).getName().replace(".", "/");
-			return ClassConstant.v(className);
+//			final String className = getFakeArrayClass((ArrayType)t).getName().replace(".", "/");
+//			return ClassConstant.v(className);
+			throw new RuntimeException("Remove Arrays first! "+t);
 		} else if (t instanceof PrimType) {
 			final String className = ((PrimType) t).toString();
 			return ClassConstant.v(className);
@@ -224,23 +167,37 @@ public enum SootTranslationHelpers {
 					getMemoryModel().lookupType(m.getParameterType(i))));
 		}
 		
-		Optional<soottocfg.cfg.type.Type> optRetType = Optional.absent();
+		List<soottocfg.cfg.type.Type> outVarTypes = new LinkedList<soottocfg.cfg.type.Type>();
 		if (!m.getReturnType().equals(VoidType.v())) {
-			optRetType = Optional.of(memoryModel.lookupType(m.getReturnType()));
-		} 		
-		return Method.createMethodInProgram(program, m.getSignature(), parameterList, optRetType, SootTranslationHelpers.v().getSourceLocation(m));
+			outVarTypes.add(memoryModel.lookupType(m.getReturnType()));
+		} else if (m.isConstructor()) {
+			/* For constructors, we assume that they return all final fields
+			 * that are assigned in this constructor and the parent constructors.
+			 */
+			SootClass cl = m.getDeclaringClass();
+//			while (cl != null) {
+			//TODO: what do we do about fields from supertypes?
+				for (SootField sf : cl.getFields()) {
+					if (sf.isFinal()) {
+						outVarTypes.add(memoryModel.lookupType(sf.getType()));
+					}
+				}
+//				if (cl.hasSuperclass()) {
+//					cl = cl.getSuperclass();
+//				} else {
+//					cl = null;
+//				}
+//			}			
+		}
+		return Method.createMethodInProgram(program, m.getSignature(), parameterList, outVarTypes, SootTranslationHelpers.v().getSourceLocation(m));
 	}
-
+	
 	public Stmt getDefaultReturnStatement(Type returnType, Host createdFrom) {
 		Stmt stmt;
 		if (returnType instanceof VoidType) {
 			stmt = Jimple.v().newReturnVoidStmt();
 		} else {
-			Value retVal = NullConstant.v();
-			if (returnType instanceof PrimType) {
-				retVal = IntConstant.v(0);
-			}
-			stmt = Jimple.v().newReturnStmt(retVal);
+			stmt = Jimple.v().newReturnStmt(getDefaultValue(returnType));
 		}
 		stmt.addAllTagsOf(createdFrom);
 		return stmt;

@@ -3,9 +3,20 @@
  */
 package jayhorn.util;
 
-import com.google.common.base.Verify;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.Set;
+import java.util.TreeSet;
+
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.CycleDetector;
+
+import com.google.common.base.Verify;
+
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.IdentifierExpression;
@@ -15,15 +26,6 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.util.Dominators;
 import soottocfg.cfg.util.LoopFinder;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Queue;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * @author schaef

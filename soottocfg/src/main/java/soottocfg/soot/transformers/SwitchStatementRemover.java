@@ -9,12 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import soot.Body;
 import soot.PatchingChain;
 import soot.Unit;
 import soot.jimple.Expr;
 import soot.jimple.IntConstant;
 import soot.jimple.Jimple;
+import soot.jimple.JimpleBody;
 import soot.jimple.LookupSwitchStmt;
 import soot.jimple.SwitchStmt;
 import soot.jimple.TableSwitchStmt;
@@ -23,38 +23,24 @@ import soot.jimple.TableSwitchStmt;
  * @author schaef
  *
  */
-public class SwitchStatementRemover extends AbstractTransformer {
+public class SwitchStatementRemover extends AbstractSceneTransformer {
 
-	/**
-	 * 
-	 */
-	public SwitchStatementRemover() {
-		// TODO Auto-generated constructor stub
-	}
+	public void applyTransformation() {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see soot.BodyTransformer#internalTransform(soot.Body, java.lang.String,
-	 * java.util.Map)
-	 */
-	@Override
-	protected void internalTransform(Body body, String arg1, Map<String, String> arg2) {
-
-		Map<Unit, List<Unit>> toReplace = new LinkedHashMap<Unit, List<Unit>>();
-
-		PatchingChain<Unit> units = body.getUnits();
-		for (Unit u : units) {
-			if (u instanceof SwitchStmt) {
-				toReplace.put(u, replaceSwitchStatement((SwitchStmt) u));
+		for (JimpleBody body : this.getSceneBodies()) {
+			Map<Unit, List<Unit>> toReplace = new LinkedHashMap<Unit, List<Unit>>();
+			PatchingChain<Unit> units = body.getUnits();
+			for (Unit u : units) {
+				if (u instanceof SwitchStmt) {
+					toReplace.put(u, replaceSwitchStatement((SwitchStmt) u));
+				}
 			}
+			for (Entry<Unit, List<Unit>> entry : toReplace.entrySet()) {
+				units.insertBefore(entry.getValue(), entry.getKey());
+				units.remove(entry.getKey());
+			}
+			body.validate();
 		}
-		for (Entry<Unit, List<Unit>> entry : toReplace.entrySet()) {
-			units.insertBefore(entry.getValue(), entry.getKey());
-			units.remove(entry.getKey());
-		}
-		body.validate();
-
 	}
 
 	/**
@@ -80,7 +66,7 @@ public class SwitchStatementRemover extends AbstractTransformer {
 				counter++;
 			}
 		} else {
-			LookupSwitchStmt arg0 = (LookupSwitchStmt) s;			
+			LookupSwitchStmt arg0 = (LookupSwitchStmt) s;
 			for (int i = 0; i < arg0.getTargetCount(); i++) {
 				cases.add(Jimple.v().newEqExpr(arg0.getKey(), IntConstant.v(arg0.getLookupValue(i))));
 				targets.add(arg0.getTarget(i));

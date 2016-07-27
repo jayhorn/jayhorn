@@ -3,8 +3,6 @@ package soottocfg.cfg.optimization;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.google.common.base.Optional;
-
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
@@ -117,11 +115,11 @@ public class CfgUpdater extends CfgVisitor {
 
 	protected Statement processStatement(CallStatement s) {
 		List<Expression> args = processExpressionList(s.getArguments());
-		Optional<Expression> receiver = Optional.absent();
-		if (s.getReceiver().isPresent()) {
-			receiver = Optional.of(processExpression(s.getReceiver().get()));
-		}		
-		return new CallStatement(s.getSourceLocation(), s.getCallTarget(), args, receiver);
+		List<Expression> rec = new LinkedList<Expression>();
+		for (Expression e : s.getReceiver()) {
+			rec.add(processExpression(e));
+		}
+		return new CallStatement(s.getSourceLocation(), s.getCallTarget(), args, rec);
 	}
 
 	/// Expressions

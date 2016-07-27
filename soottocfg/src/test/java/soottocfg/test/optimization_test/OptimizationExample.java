@@ -1,11 +1,10 @@
 package soottocfg.test.optimization_test;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-
-import com.google.common.base.Optional;
 
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
@@ -33,7 +32,7 @@ public class OptimizationExample {
 		SootTranslationHelpers.v().reset();
 
 		final Program p = new Program();
-		final Optional<soottocfg.cfg.type.Type> rettype = Optional.absent();
+		final List<soottocfg.cfg.type.Type> rettype = new LinkedList<soottocfg.cfg.type.Type>();
 		final Method m = Method.createMethodInProgram(p, "testM", new LinkedList<Variable>(), rettype, null); 
 		final SourceLocation fakeSl = new SourceLocation("fake", 0);
 
@@ -44,6 +43,7 @@ public class OptimizationExample {
 		final Expression notB = new UnaryExpression(null, UnaryOperator.LNot, b);
 
 		final Variable rval = new Variable("rval", BoolType.instance());
+		
 		final Expression rvalIdent = new IdentifierExpression(null, rval);
 
 		final Expression one = new UnaryExpression(null, UnaryOperator.Neg, IntegerLiteral.minusOne());
@@ -70,7 +70,7 @@ public class OptimizationExample {
 		m.addEdge(b1, b2).setLabel(b);
 		m.addEdge(b1, b3).setLabel(notB);
 
-		m.initialize(null, rval, localVars, b1, true);
+		m.initialize(null, Arrays.asList(rval), localVars, b1, true);
 		return m;
 	}
 
@@ -79,7 +79,7 @@ public class OptimizationExample {
 	public Method getMethod2() {
 		SootTranslationHelpers.v().reset();
 		final Program p = new Program();				
-		final Optional<soottocfg.cfg.type.Type> rettype = Optional.absent();
+		final List<soottocfg.cfg.type.Type> rettype = new LinkedList<soottocfg.cfg.type.Type>();
 		final Method m = Method.createMethodInProgram(p, "testM", new LinkedList<Variable>(), rettype, null); 
 
 		/*

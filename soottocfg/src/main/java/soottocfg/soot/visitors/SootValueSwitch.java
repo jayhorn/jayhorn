@@ -27,7 +27,6 @@ import soot.Local;
 import soot.NullType;
 import soot.PrimType;
 import soot.RefType;
-import soot.Scene;
 import soot.SootField;
 import soot.Value;
 import soot.jimple.AddExpr;
@@ -113,7 +112,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 		this.memoryModel = SootTranslationHelpers.v().getMemoryModel();
 		this.memoryModel.setStmtSwitch(this.statementSwitch);
 		this.memoryModel.setValueSwitch(this);
-		this.methodInfo = this.statementSwitch.getMethodInto();
+		this.methodInfo = this.statementSwitch.getMethodInfo();
 	}
 
 	public Expression popExpression() {
@@ -330,8 +329,8 @@ public class SootValueSwitch implements JimpleValueSwitch {
 		if (t instanceof RefType) {			
 			//first make a heap-read of the type filed.
 			typeField = ((RefType)t).getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
-		} else if (t instanceof ArrayType) {			
-			typeField = Scene.v().getSootClass("java.lang.Object").getFieldByName(SootTranslationHelpers.typeFieldName);
+		} else if (t instanceof ArrayType) {
+			throw new RuntimeException("Remove arrays first");			
 		} else if (t instanceof NullType) {
 			//TODO: Warn?
 			this.expressionStack.add(BooleanLiteral.falseLiteral());
@@ -347,19 +346,19 @@ public class SootValueSwitch implements JimpleValueSwitch {
 		} else {			
 			throw new RuntimeException("Not implemented. "+ arg0 + ", "+t.getClass());
 		}
-		final String localName = "$tmp"+this.statementSwitch.getMethod().getActiveBody().getLocals().size();
-		Local freshLocal = Jimple.v().newLocal(localName, typeField.getType());
+		final String localName = "$instof"+this.statementSwitch.getMethod().getActiveBody().getLocals().size();
+		Local freshLocal = Jimple.v().newLocal(localName, typeField.getType());		
 		this.statementSwitch.getMethod().getActiveBody().getLocals().add(freshLocal);
+		freshLocal.apply(this);
+		Expression instofLocal = this.popExpression();
+		
 		FieldRef fieldRef = Jimple.v().newInstanceFieldRef(left, typeField.makeRef());
 		memoryModel.mkHeapReadStatement(this.statementSwitch.getCurrentStmt(), fieldRef, freshLocal);			
-		freshLocal.apply(this);
-		Expression exp = this.popExpression();
 		
 		//now make the bla <: blub expression			
 		ClassVariable cv = this.memoryModel.lookupClassVariable(SootTranslationHelpers.v().getClassConstant(arg0.getCheckType()));
-		BinaryExpression instof = new BinaryExpression(loc, BinaryOperator.PoLeq, exp, new IdentifierExpression(loc, cv));
+		BinaryExpression instof = new BinaryExpression(loc, BinaryOperator.PoLeq, instofLocal, new IdentifierExpression(loc, cv));
 		this.expressionStack.add(instof);
-
 	}
 
 	@Override

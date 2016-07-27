@@ -17,10 +17,12 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import jayhorn.checker.Checker;
+import jayhorn.hornify.Hornify;
+import jayhorn.hornify.MethodEncoder;
 import jayhorn.solver.ProverFactory;
+import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.princess.PrincessProverFactory;
-import jayhorn.solver.z3.Z3ProverFactory;
-import soot.options.Options;
+import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
 
 @RunWith(Parameterized.class)
@@ -86,9 +88,19 @@ public class CbmcTest {
 		System.out.println("\texpected result: "+ expectedResult);
 
 		SootToCfg soot2cfg = new SootToCfg();
-		soot2cfg.run(classDir.getAbsolutePath(), classDir.getAbsolutePath());		
-		Checker checker = new Checker(factory);
-		boolean result = checker.checkProgram(soot2cfg.getProgram());
+		soot2cfg.run(classDir.getAbsolutePath(), classDir.getAbsolutePath());	
+		
+		Program program = soot2cfg.getProgram();
+		Hornify hornify = new Hornify(factory);
+		hornify.toHorn(program);	
+		
+		List<ProverHornClause> clauses = hornify.getClauses();
+		MethodEncoder mEncoder = hornify.getMethodEncoder();
+		Checker hornChecker = new Checker(factory, mEncoder);
+		
+		boolean result = hornChecker.checkProgram(program, clauses);
+//		Checker checker = new Checker(factory);
+//		boolean result = checker.checkProgram(soot2cfg.getProgram());
 		
 		org.junit.Assert.assertTrue("Unexpected result for "+description+". Expected: "+expectedResult+" but got "+ result, expectedResult==result);		
 	}

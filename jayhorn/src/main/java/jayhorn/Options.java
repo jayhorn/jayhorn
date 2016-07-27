@@ -24,7 +24,7 @@ import org.kohsuke.args4j.Option;
 /**
  * Options
  * 
- * @author schaef, schaef
+ * @author schaef
  */
 public class Options {
 
@@ -82,6 +82,20 @@ public class Options {
 		this.printHorn = b;
 	}	
 
+//	/**
+//	 * Output intermediate representations
+//	 */
+	@Option(name = "-out", usage = "Output directory for intermediate represenations", required = false)
+	private String out = null;
+	
+	public String getOut() {		
+		return this.out;
+	}
+	
+	public void setOut(String s) {		
+		this.out = s;
+	}	
+	
 	/**
 	 * Classpath
 	 */

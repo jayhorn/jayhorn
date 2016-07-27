@@ -140,8 +140,8 @@ public class SsaTest {
 						}
 					}
 				} else if (s instanceof CallStatement) {
-					if ( ((CallStatement)s).getReceiver().isPresent()) {
-						Expression lexp = ((CallStatement)s).getReceiver().get();
+					if ( !((CallStatement)s).getReceiver().isEmpty()) {
+						Expression lexp = ((CallStatement)s).getReceiver().get(0);
 						if (lexp instanceof IdentifierExpression) {
 							IdentifierExpression left = (IdentifierExpression)lexp;
 							if (hasAlreadyBeenAssigned(assignedSsaVars, left)) {

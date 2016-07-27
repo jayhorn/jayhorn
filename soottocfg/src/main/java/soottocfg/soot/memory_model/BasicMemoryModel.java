@@ -12,14 +12,13 @@ import java.util.Map;
 
 import javax.lang.model.type.NullType;
 
-import com.google.common.base.Verify;
-
 import soot.ArrayType;
 import soot.RefLikeType;
 import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
+import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
 import soot.jimple.ArrayRef;
@@ -38,7 +37,9 @@ import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssumeStatement;
+import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceLikeType;
@@ -92,7 +93,12 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkNewExpr(NewExpr arg0) {
 		Type newType = this.lookupType(arg0.getBaseType());
-		MethodInfo mi = this.statementSwitch.getMethodInto();
+
+		// make this an application class to make sure that we analyze the
+		// constructor
+		arg0.getBaseType().getSootClass().setApplicationClass();
+
+		MethodInfo mi = this.statementSwitch.getMethodInfo();
 		Variable newLocal = mi.createFreshLocal("$new", newType, true, true);
 		// add: assume newLocal!=null
 		this.statementSwitch.push(new AssumeStatement(statementSwitch.getCurrentLoc(),
@@ -125,7 +131,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkNewArrayExpr(NewArrayExpr arg0) {
 		Type newType = this.lookupType(arg0.getType());
-		MethodInfo mi = this.statementSwitch.getMethodInto();
+		MethodInfo mi = this.statementSwitch.getMethodInfo();
 		Variable newLocal = mi.createFreshLocal("$newArr", newType, true, true);
 
 		this.statementSwitch.push(new AssumeStatement(statementSwitch.getCurrentLoc(),
@@ -145,7 +151,9 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		// newLocal)),
 		// sizeExpression)));
 
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
+		// return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
+		// newLocal);
+		throw new RuntimeException("This should have been removed by the array abstraction.");
 	}
 
 	/*
@@ -158,9 +166,11 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkNewMultiArrayExpr(NewMultiArrayExpr arg0) {
 		// TODO Auto-generated method stub
-		System.err.println("New Multi-Array still not implemented");
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
-				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", lookupType(arg0.getType())));
+		// System.err.println("New Multi-Array still not implemented");
+		// return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
+		// SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO",
+		// lookupType(arg0.getType())));
+		throw new RuntimeException("This should have been removed by the array abstraction.");
 	}
 
 	/*
@@ -276,9 +286,17 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		return types.get(t);
 	}
 
+	@Override
+	public void mkConstructorCall(Unit u, SootMethod constructor, List<Expression> args) {
+		List<Expression> receiver = new LinkedList<Expression>();
+		Method method = SootTranslationHelpers.v().lookupOrCreateMethod(constructor);
+		CallStatement stmt = new CallStatement(SootTranslationHelpers.v().getSourceLocation(u), method, args, receiver);
+		this.statementSwitch.push(stmt);
+	}
+
 	protected ReferenceLikeType lookupRefLikeType(RefLikeType t) {
 		if (t instanceof ArrayType) {
-			ArrayType at = (ArrayType) t;
+			// ArrayType at = (ArrayType) t;
 			// Type baseType = lookupType(at.baseType);
 			// List<Type> ids = new LinkedList<Type>();
 			// for (int i = 0; i < at.numDimensions; i++) {
@@ -286,9 +304,11 @@ public abstract class BasicMemoryModel extends MemoryModel {
 			// }
 			// return new MapType(ids, baseType);
 			// TODO test!
-			
-			SootClass fakeArrayClass = SootTranslationHelpers.v().getFakeArrayClass(at);
-			return lookupRefLikeType(RefType.v(fakeArrayClass));
+			//
+			// SootClass fakeArrayClass =
+			// SootTranslationHelpers.v().getFakeArrayClass(at);
+			// return lookupRefLikeType(RefType.v(fakeArrayClass));
+			throw new RuntimeException("Remove Arrays first.");
 		} else if (t instanceof RefType) {
 			return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)));
 		} else if (t instanceof NullType) {
@@ -319,7 +339,9 @@ public abstract class BasicMemoryModel extends MemoryModel {
 				List<Variable> fields = new LinkedList<Variable>();
 				if (c.resolvingLevel() > SootClass.DANGLING) {
 					for (SootField f : c.getFields()) {
-						fields.add(lookupField(f));
+						if (!f.isStatic()) {
+							fields.add(lookupField(f));
+						}
 					}
 				}
 				cv.setAssociatedFields(fields);
@@ -337,42 +359,13 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		return (ClassVariable) this.constantDictionary.get(cc);
 	}
 
-	// public ClassVariable lookupClassVariable(RefType t) {
-	// if (!classVariables.containsKey(t)) {
-	// SootClass c = t.getSootClass();
-	// Collection<ClassVariable> parents = new HashSet<ClassVariable>();
-	// if (c.resolvingLevel() >= SootClass.HIERARCHY) {
-	// if (c.hasSuperclass()) {
-	// parents.add(lookupClassVariable(c.getSuperclass().getType()));
-	// }
-	// }
-	// classVariables.put(t, new ClassVariable(c.getJavaStyleName(), parents));
-	// // add the fields after that to avoid endless loop.
-	// if (c.resolvingLevel() >= SootClass.SIGNATURES) {
-	// List<Variable> fields = new LinkedList<Variable>();
-	// for (SootField f : c.getFields()) {
-	// fields.add(lookupField(f));
-	// }
-	// classVariables.get(t).setAssociatedFields(fields);
-	// } else {
-	// // TODO
-	// }
-	//
-	// }
-	// return classVariables.get(t);
-	// }
-
 	protected Variable lookupField(SootField field) {
 		if (!this.fieldGlobals.containsKey(field)) {
 			final String fieldName = field.getDeclaringClass().getName() + "." + field.getName();
-			Variable fieldVar = this.program.lookupGlobalVariable(fieldName, this.lookupType(field.getType()));
+			Variable fieldVar = this.program.lookupGlobalVariable(fieldName, this.lookupType(field.getType()),
+					field.isFinal(), field.isStatic());
 			this.fieldGlobals.put(field, fieldVar);
 		}
 		return this.fieldGlobals.get(field);
-	}
-
-	protected Variable lookupStaticField(SootField field) {
-		Verify.verify(false);
-		return this.program.lookupGlobalVariable(field.getName(), lookupType(field.getType()));
 	}
 }

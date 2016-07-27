@@ -53,6 +53,7 @@ public class Variable implements Serializable {
 	}
 
 	public String toString() {
-		return this.variableName + "/" + this.type;
+//		return this.variableName + "/" + this.type;
+		return this.type + " " + this.variableName;
 	}
 }

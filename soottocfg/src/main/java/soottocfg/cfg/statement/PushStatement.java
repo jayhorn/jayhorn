@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Verify;
+
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
@@ -32,7 +34,7 @@ public class PushStatement extends Statement {
 		classConstant = c;
 		object = obj;
 		right = new LinkedList<Expression>(rhs);
-		assert (c.getAssociatedFields().length == right.size());
+		Verify.verify(c.getAssociatedFields().length == right.size(), c.getAssociatedFields().length +"=="+ right.size());
 	}
 
     public ClassVariable getClassSignature() {

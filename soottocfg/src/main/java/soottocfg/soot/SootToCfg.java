@@ -3,8 +3,11 @@
  */
 package soottocfg.soot;
 
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,18 +33,18 @@ import soot.jimple.InstanceFieldRef;
 import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
 import soot.jimple.StaticFieldRef;
-import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
 import soot.jimple.toolkits.scalar.UnreachableCodeEliminator;
-import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.Method;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.memory_model.NewMemoryModel;
-import soottocfg.soot.transformers.ArrayAbstraction;
+import soottocfg.soot.memory_model.PushPullSimplifier;
+import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
+import soottocfg.soot.transformers.MethodStubber;
 import soottocfg.soot.transformers.SwitchStatementRemover;
 import soottocfg.soot.transformers.VirtualCallResolver;
 import soottocfg.soot.util.DuplicatedCatchDetection;
@@ -71,6 +74,9 @@ public class SootToCfg {
 
 	private final Set<SourceLocation> locations = new HashSet<SourceLocation>();
 
+	private String outDir = null;
+	private String outName = null;
+
 	// Create a new program
 	private final Program program = new Program();
 
@@ -90,7 +96,20 @@ public class SootToCfg {
 		this(resolveVCalls, excAsAssert, memModel, new ArrayList<String>());
 	}
 
+	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel, String outDir, String outName) {
+		this(resolveVCalls, excAsAssert, memModel, new ArrayList<String>(), outDir, outName);
+	}
+
 	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel, List<String> resolvedClassNames) {
+		this(resolveVCalls, excAsAssert, memModel, resolvedClassNames, null, null);
+	}
+
+	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel, List<String> resolvedClassNames,
+			String outDir, String outName) {
+		if (outDir != null && !outDir.endsWith("/"))
+			outDir += "/";
+		this.outDir = outDir;
+		this.outName = outName;
 		this.resolvedClassNames = resolvedClassNames;
 		// first reset everything:
 		soot.G.reset();
@@ -111,15 +130,28 @@ public class SootToCfg {
 	 *            https://github.com/Sable/android-platforms
 	 */
 	public void run(String input, String classPath) {
-		// run soot to load all classes.		
+		// run soot to load all classes.
 		SootRunner runner = new SootRunner();
 		runner.run(input, classPath);
 
-		
 		performBehaviorPreservingTransformations();
 		performAbstractionTransformations();
 
+		Variable exceptionGlobal = this.program
+				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
+						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
+		program.setExceptionGlobal(exceptionGlobal);
+
 		constructCfg();
+		if (outDir != null)
+			writeFile(".cfg", program.toString());
+
+		// simplify push-pull
+		PushPullSimplifier pps = new PushPullSimplifier();
+		pps.simplify(program);
+		if (outDir != null)
+			writeFile(".simpl.cfg", program.toString());
+
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
 	}
@@ -134,6 +166,11 @@ public class SootToCfg {
 		SootRunner.createAssertionClass();
 		performBehaviorPreservingTransformations();
 		performAbstractionTransformations();
+		Variable exceptionGlobal = this.program
+				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
+						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
+		program.setExceptionGlobal(exceptionGlobal);
+
 		constructCfg(sc);
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
@@ -168,22 +205,30 @@ public class SootToCfg {
 			if (sm.isConcrete()) {
 				SootTranslationHelpers.v().setCurrentMethod(sm);
 				try {
-					Body body = sm.retrieveActiveBody();
+					Body body = null;
+					try {
+						body = sm.retrieveActiveBody();
+//						CopyPropagator.v().transform(body);
+					} catch (RuntimeException e) {
+						// TODO: print warning that body couldn't be retrieved.
+						continue;
+					}
 					MethodInfo mi = new MethodInfo(body.getMethod(),
 							SootTranslationHelpers.v().getCurrentSourceFileName());
-					
-					//pre-calculate when to pull/push
+
+					// pre-calculate when to pull/push
 					MemoryModel mm = SootTranslationHelpers.v().getMemoryModel();
 					if (mm instanceof NewMemoryModel) {
-						((NewMemoryModel) mm).updatePullPush();
+						((NewMemoryModel) mm).clearFieldToLocalMap();
 					}
-					
+
 					SootStmtSwitch ss = new SootStmtSwitch(body, mi);
 					mi.setSource(ss.getEntryBlock());
 
 					mi.finalizeAndAddToProgram();
 					Method m = mi.getMethod();
-//					System.err.println(m);
+
+//					System.err.println(body);
 					if (debug) {
 						// System.out.println("adding method: " +
 						// m.getMethodName());
@@ -192,7 +237,7 @@ public class SootToCfg {
 				} catch (RuntimeException e) {
 					System.err.println("Soot failed to parse " + sm.getSignature());
 					e.printStackTrace(System.err);
-//					return;
+					// return;
 					throw e;
 				}
 			}
@@ -220,7 +265,8 @@ public class SootToCfg {
 				}
 				Method m = program.loopupMethod(entryPoint.getSignature());
 				if (m != null) {
-					//System.out.println("Adding entry point " + m.getMethodName());
+					// System.out.println("Adding entry point " +
+					// m.getMethodName());
 					// TODO
 					program.addEntryPoint(m);
 				}
@@ -229,34 +275,13 @@ public class SootToCfg {
 	}
 
 	private void performAbstractionTransformations() {
-		Map<SootField, SootField> globalArrayFields = new HashMap<SootField, SootField>(); 
-		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
-		for (SootClass sc : classes) {
-			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
-				continue; // no need to process this guy.
-			}
-			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
-				SootTranslationHelpers.v().setCurrentClass(sc);
-				for (SootMethod sm : sc.getMethods()) {
-					if (sm.isConcrete()) {
-						SootTranslationHelpers.v().setCurrentMethod(sm);
-						Body body;
-						try {
-							if (sm.hasActiveBody()) {
-								body = sm.getActiveBody();
-							} else {
-								body = sm.retrieveActiveBody();
-							}							
-							ArrayAbstraction abstraction = new ArrayAbstraction(globalArrayFields);
-							abstraction.transform(body);
-						} catch (RuntimeException e) {
-							System.err.println("Abstraction transformation failed" + sm.getSignature());
-							throw e;
-						}
-					}
-				}
-			}
+		if (SootTranslationHelpers.v().getMemoryModel() instanceof NewMemoryModel) {
+			MethodStubber mstubber = new MethodStubber();
+			mstubber.applyTransformation();
 		}
+
+		ArrayTransformer atrans = new ArrayTransformer();
+		atrans.applyTransformation();
 	}
 
 	private Set<SootMethod> staticInitializers = new HashSet<SootMethod>();
@@ -274,14 +299,9 @@ public class SootToCfg {
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
 			sc.addField(new SootField(SootTranslationHelpers.typeFieldName,
-					RefType.v(Scene.v().getSootClass("java.lang.Class")),Modifier.PUBLIC));
+					RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC | Modifier.FINAL));
 		}
 
-		Variable exceptionGlobal = this.program
-				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
-						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
-		program.setExceptionGlobal(exceptionGlobal);
-		
 		for (SootClass sc : classes) {
 			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
 				continue; // no need to process this guy.
@@ -290,15 +310,15 @@ public class SootToCfg {
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
 
 				initializeStaticFields(sc);
-
 				SootTranslationHelpers.v().setCurrentClass(sc);
-				for (SootMethod sm : sc.getMethods()) {					
+				for (SootMethod sm : sc.getMethods()) {
 					if (sm.isConcrete()) {
 						addDefaultInitializers(sm, sc);
 
 						SootTranslationHelpers.v().setCurrentMethod(sm);
 						try {
 							Body body = sm.retrieveActiveBody();
+							// System.out.println(body);
 							UnreachableCodeEliminator.v().transform(body);
 							// detect duplicated finally blocks
 							DuplicatedCatchDetection duplicatedUnits = new DuplicatedCatchDetection();
@@ -310,34 +330,44 @@ public class SootToCfg {
 									locations.add(SootTranslationHelpers.v().getSourceLocation(u));
 								}
 							}
-							
-							// first reconstruct the assertions.
-							AssertionReconstruction ar = new AssertionReconstruction();
-							ar.transform(body);
 
-							// make the exception handling explicit
-							ExceptionTransformer em = new ExceptionTransformer(
-									new NullnessAnalysis(new CompleteUnitGraph(body)),
-									createAssertionsForUncaughtExceptions);
-							em.transform(body);
-
-							// replace all switches by sets of IfStmt
-							SwitchStatementRemover so = new SwitchStatementRemover();
-							so.transform(body);
-
-							if (resolveVirtualCalls) {
-								VirtualCallResolver vc = new VirtualCallResolver();
-								vc.transform(body);
-							}
+//							// first reconstruct the assertions.
+//							AssertionReconstruction ar = new AssertionReconstruction();
+//							ar.transform(body);
+//
+//							// make the exception handling explicit
+//							ExceptionTransformer em = new ExceptionTransformer(
+//									new NullnessAnalysis(new CompleteUnitGraph(body)),
+//									createAssertionsForUncaughtExceptions);
+//							em.transform(body);
+//
+//							// replace all switches by sets of IfStmt
+//							SwitchStatementRemover so = new SwitchStatementRemover();
+//							so.transform(body);
+//
+//							if (resolveVirtualCalls) {
+//								VirtualCallResolver vc = new VirtualCallResolver();
+//								vc.transform(body);
+//							}
 						} catch (RuntimeException e) {
 							e.printStackTrace();
-							throw new RuntimeException(
-									"Behavior preserving transformation failed " + sm.getSignature() + " " + e.toString());
+							throw new RuntimeException("Behavior preserving transformation failed " + sm.getSignature()
+									+ " " + e.toString());
 						}
 					}
 				}
 			}
 		}
+		AssertionReconstruction ar = new AssertionReconstruction();
+		ar.applyTransformation();
+		ExceptionTransformer em = new ExceptionTransformer(createAssertionsForUncaughtExceptions);
+		em.applyTransformation();
+		SwitchStatementRemover so = new SwitchStatementRemover();
+		so.applyTransformation();
+		if (resolveVirtualCalls) {
+			VirtualCallResolver vc = new VirtualCallResolver();
+			vc.applyTransformation();
+		}		
 		addStaticInitializerCallsToMain();
 	}
 
@@ -349,17 +379,20 @@ public class SootToCfg {
 					continue;
 				}
 				if (entry != null) {
-					//System.err.println("Found more than one main. Not adding static initializers to main :(");
+					// System.err.println("Found more than one main. Not adding
+					// static initializers to main :(");
 					return;
 				}
 				entry = entryPoint;
 			}
 		}
 		if (entry != null) {
-			//System.out.println("Adding " + staticInitializers.size() + " static init calls to " + entry.getSignature());
+			// System.out.println("Adding " + staticInitializers.size() + "
+			// static init calls to " + entry.getSignature());
 			for (SootMethod initializer : staticInitializers) {
 				Unit initCall = Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(initializer.makeRef()));
-				entry.getActiveBody().getUnits().addFirst(initCall);
+				JimpleBody jb = (JimpleBody) entry.getActiveBody();
+				jb.getUnits().insertBefore(initCall, jb.getFirstNonIdentityStmt());
 			}
 		}
 	}
@@ -451,6 +484,18 @@ public class SootToCfg {
 				constructor.getActiveBody().getUnits().insertAfter(init, insertPos);
 			}
 
+		}
+	}
+
+	private void writeFile(String extension, String text) {
+		Path file = Paths.get(outDir + outName + extension);
+		LinkedList<String> it = new LinkedList<String>();
+		it.add(text);
+		try {
+			Files.createDirectories(file.getParent());
+			Files.write(file, it, Charset.forName("UTF-8"));
+		} catch (Exception e) {
+			System.err.println("Error writing file " + file);
 		}
 	}
 

@@ -1,7 +1,5 @@
 package translation_tests;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-
 public class TranslationTest01 {
 	
 //	public void assertions(Object partitioner) {
@@ -38,7 +36,7 @@ public class TranslationTest01 {
 //	public void foo() {
 //	}
 
-	public static void main ( @CheckForNull String a[]) {
+	public static void main ( String a[]) {
 //		int b;
 //		try {
 //			b = a[3];
