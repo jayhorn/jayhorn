@@ -14,6 +14,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import jayhorn.Log;
+import jayhorn.Options;
 import jayhorn.checker.Checker;
 import jayhorn.hornify.Hornify;
 import jayhorn.hornify.MethodEncoder;
