@@ -1,7 +1,7 @@
 /**
  * 
  */
-package jayhorn.test.regression_tests;
+package jayhorn.test.inconsistency_tests;
 
 import java.io.File;
 import java.io.IOException;

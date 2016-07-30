@@ -1,15 +1,13 @@
 /**
  * 
  */
-package jayhorn.test.regression_tests;
+package jayhorn.test.inconsistency_tests;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -19,8 +17,8 @@ import org.junit.runners.Parameterized;
 import jayhorn.old_inconsistency_check.InconsistencyChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
+import jayhorn.solver.z3.Z3ProverFactory;
 import jayhorn.test.Util;
-import soottocfg.cfg.method.CfgBlock;
 import soottocfg.soot.SootToCfg;
 import soottocfg.soot.SootToCfg.MemModel;
 
@@ -29,7 +27,7 @@ import soottocfg.soot.SootToCfg.MemModel;
  *
  */
 @RunWith(Parameterized.class)
-public class InstanceOfTest {
+public class FaultLocalizationTest {
 
 	private static final String userDir = System.getProperty("user.dir") + "/";
 	private static final String testRoot = userDir + "src/test/resources/";
@@ -39,7 +37,7 @@ public class InstanceOfTest {
 	@Parameterized.Parameters(name = "{index}: check ({1})")
 	public static Collection<Object[]> data() {
 		List<Object[]> filenames = new LinkedList<Object[]>();
-		final File source_dir = new File(testRoot + "instanceof_test/");
+		final File source_dir = new File(testRoot + "faultlocalization/");
 		File[] directoryListing = source_dir.listFiles();
 		if (directoryListing != null) {
 			for (File child : directoryListing) {
@@ -60,7 +58,7 @@ public class InstanceOfTest {
 		return filenames;
 	}
 
-	public InstanceOfTest(File source, String name) {
+	public FaultLocalizationTest(File source, String name) {
 		this.sourceFile = source;
 	}
 
@@ -72,26 +70,34 @@ public class InstanceOfTest {
 		oldAlgorithm(new PrincessProverFactory());
 	}
 
-//	@Test
-//	public void testOldAlgorithmWithZ3() {
-//		oldAlgorithm(new Z3ProverFactory());
-//	}
+	@Test
+	public void testOldAlgorithmWithZ3() {
+		oldAlgorithm(new Z3ProverFactory());
+	}
 
 	
 	protected void oldAlgorithm(ProverFactory factory) {
+		/**
+		 * TODO: for now, this just ensures that the interpolation
+		 * does not crash during the fault localization. 
+		 * Right now, the results of the interpolation from Z3 and
+		 * Princess are too different, so it does not make sense to
+		 * compare their output directly.
+		 * 
+		 * What we need is a better way to propagate interpolants.
+		 * Then we could ensure that the result by both solvers is
+		 * sort of minimal.
+		 */
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
-			classDir = Util.compileJavaFile(this.sourceFile);			
+			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg(false, true, MemModel.BurstallBornat);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			InconsistencyChecker checker = new InconsistencyChecker(factory);
 			checker.setDuplicatedSourceLocations(soot2cfg.getDuplicatedSourceLocations());
-			checker.checkProgram(soot2cfg.getProgram());
-			Map<String, Set<CfgBlock>> result = checker.getInconsistentBlocksPerMethod();
-			System.err.println(result.size());
 			
-
+			checker.checkProgram(soot2cfg.getProgram());
 		} catch (IOException e) {
 			e.printStackTrace();
 			Assert.fail();
