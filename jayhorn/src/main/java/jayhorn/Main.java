@@ -66,7 +66,7 @@ public class Main {
 					String in = Options.v().getJavaInput();
 					if (in.endsWith("/"))
 						in = in.substring(0, in.length()-1);
-					outName = in.substring(in.lastIndexOf('/'), in.length()).replace(".java", "").replace(".class", "");
+					outName = in.substring(in.lastIndexOf('/') + 1, in.length()).replace(".java", "").replace(".class", "");
 					if (outName.equals(""))
 						outName = "noname";
 				}
