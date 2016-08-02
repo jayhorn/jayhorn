@@ -100,17 +100,11 @@ public class Checker {
 	}
 
 	private final ProverFactory factory;
-	private final String hornOut;
 
 	public Checker(ProverFactory fac) {
-		this(fac,null);
+		this.factory = fac;
 	}
 
-	public Checker(ProverFactory fac, String hornOut) {
-		this.factory = fac;
-		this.hornOut = hornOut;
-	}
-	
 	private final Map<CfgBlock, HornPredicate> blockPredicates = new LinkedHashMap<CfgBlock, HornPredicate>();
 	private Map<String, MethodContract> methodContracts = new LinkedHashMap<String, MethodContract>();
 	private Map<ClassVariable, Integer> typeIds = new LinkedHashMap<ClassVariable, Integer>();
@@ -760,13 +754,17 @@ public class Checker {
 			}
 			
 			// write Horn clauses to file
-			if(hornOut != null) {
-				Path file = Paths.get(hornOut);
+			String outDir = jayhorn.Options.v().getOutDir();
+			if(outDir != null) {
+				String outBasename = jayhorn.Options.v().getOutBasename();
+				Path file = Paths.get(outDir+outBasename+".horn");
 				LinkedList<String> it = new LinkedList<String>();
 				for (ProverHornClause clause : clauses)
 					it.add("\t\t" + clause);
 				try {
-					Files.createDirectories(file.getParent());
+					Path parent = file.getParent();
+					if (parent != null)
+						Files.createDirectories(parent);
 					Files.write(file, it, Charset.forName("UTF-8"));
 				} catch (Exception e) {
 					System.err.println("Error writing file " + file);

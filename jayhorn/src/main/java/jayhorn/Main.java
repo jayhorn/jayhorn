@@ -60,21 +60,11 @@ public class Main {
 				System.out.println("\t\t ---   JAYHORN : Static Analayzer for Java Programs ---- ");
 				System.out.println("\t Building CFG  ... " + Options.v().getJavaInput());
 				System.out.println( "\t \t  ----------- \n");
-				String outDir = options.getOut();
-				if (!outDir.endsWith("/"))
-					outDir = outDir+"/";
-				String outName = null;
-				if (outDir!=null) {
-					String in = Options.v().getJavaInput();
-					if (in.endsWith("/"))
-						in = in.substring(0, in.length()-1);
-					outName = in.substring(in.lastIndexOf('/') + 1, in.length()).replace(".java", "").replace(".class", "");
-					if (outName.equals(""))
-						outName = "noname";
-				}
+				String outDir = options.getOutDir();
+				String outName = options.getOutBasename();
 				SootToCfg soot2cfg = new SootToCfg(true, false, MemModel.PullPush, outDir, outName);
 				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());			
-				Checker checker = outDir==null ? new Checker(factory) : new Checker(factory, outDir + outName + ".horn");
+				Checker checker = new Checker(factory);
 				System.out.println( "\t \t  ----------- ");
 				System.out.println("\t Hornify and check  ... " + Options.v().getJavaInput());
 				System.out.println( "\t \t  ----------- \n");

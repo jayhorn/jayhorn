@@ -12,7 +12,6 @@ import java.util.Map;
 import com.google.common.base.Verify;
 
 import jayhorn.Log;
-import jayhorn.Options;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverHornClause;
@@ -182,18 +181,17 @@ public class Hornify {
 	 */
 	public void hornToFile() {
 		// write Horn clauses to file
-		String out = jayhorn.Options.v().getOut();
+		String out = jayhorn.Options.v().getOutDir();
 		if (out != null) {
-			if (!out.endsWith("/"))
-				out += "/";
-			String in = Options.v().getJavaInput();
-			String outName = in.substring(in.lastIndexOf('/'), in.length()).replace(".java", "").replace(".class", "");
-			Path file = Paths.get(out + outName + ".horn");
+			String basename = jayhorn.Options.v().getOutBasename();
+			Path file = Paths.get(out + basename + ".horn");
 			LinkedList<String> it = new LinkedList<String>();
 			for (ProverHornClause clause : mEncoder.clauses)
 				it.add("\t\t" + clause);
-			try {
-				Files.createDirectories(file.getParent());
+			try {					
+				Path parent = file.getParent();
+				if (parent != null)
+					Files.createDirectories(parent);
 				Files.write(file, it, Charset.forName("UTF-8"));
 			} catch (Exception e) {
 				System.err.println("Error writing file " + file);

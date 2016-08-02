@@ -88,8 +88,24 @@ public class Options {
 	@Option(name = "-out", usage = "Output directory for intermediate represenations", required = false)
 	private String out = null;
 	
-	public String getOut() {		
+//	public String getOut() {		
+//		return this.out;
+//	}
+	
+	public String getOutDir() {
+		if (this.out != null && !this.out.endsWith("/"))
+			return this.out+"/";
 		return this.out;
+	}
+	
+	public String getOutBasename() { 
+		String in = getJavaInput();
+		if (in.endsWith("/"))
+			in = in.substring(0, in.length()-1);
+		String outName = in.substring(in.lastIndexOf('/') + 1, in.length()).replace(".java", "").replace(".class", "");
+		if (outName.equals(""))
+			outName = "noname";
+		return outName;
 	}
 	
 	public void setOut(String s) {		

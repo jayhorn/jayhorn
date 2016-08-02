@@ -106,8 +106,6 @@ public class SootToCfg {
 
 	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel, List<String> resolvedClassNames,
 			String outDir, String outName) {
-		if (outDir != null && !outDir.endsWith("/"))
-			outDir += "/";
 		this.outDir = outDir;
 		this.outName = outName;
 		this.resolvedClassNames = resolvedClassNames;
