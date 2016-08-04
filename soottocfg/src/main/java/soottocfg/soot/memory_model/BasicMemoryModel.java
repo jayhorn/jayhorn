@@ -324,15 +324,34 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public ClassVariable lookupClassVariable(ClassConstant cc) {
 		if (!this.constantDictionary.containsKey(cc)) {
 			final String name = cc.getValue();
-			final String sootClassName = classNameToSootName(cc.getValue());
+			final String sootClassName = classNameToSootName(name);
+
 			if (Scene.v().containsClass(sootClassName)) {
 				SootClass c = Scene.v().getSootClass(sootClassName);
 				Collection<ClassVariable> parents = new HashSet<ClassVariable>();
 				if (c.resolvingLevel() >= SootClass.HIERARCHY) {
 					if (c.hasSuperclass()) {
-						parents.add(lookupClassVariable(ClassConstant.v(c.getSuperclass().getJavaStyleName())));
+						/**
+						 * TODO: WARNING: we had bugs before from mixing
+						 * qualified and non-qualified class
+						 * names. E.g., we had:
+						 * java.lang.Object and Object in the class hierarchy.
+						 */
+						SootClass superClass = c.getSuperclass();
+						final String bytecodeName = superClass.getType().getClassName().replace('.', '/');
+						parents.add(lookupClassVariable(ClassConstant.v(bytecodeName)));
+					} else {
+						/*
+						 * This is a hack because, for whatever reason, Throwable and some other classes
+						 * do not have Object as their superclass.
+						 */
+						if (c!=Scene.v().getSootClass(Object.class.getName())) {
+							SootClass superClass = Scene.v().getSootClass(Object.class.getName());
+							final String bytecodeName = superClass.getType().getClassName().replace('.', '/');
+							parents.add(lookupClassVariable(ClassConstant.v(bytecodeName)));							
+						}
 					}
-				}
+				} 
 				ClassVariable cv = new ClassVariable(name, parents);
 				this.constantDictionary.put(cc, cv);
 
@@ -354,8 +373,8 @@ public abstract class BasicMemoryModel extends MemoryModel {
 				// RefType.v(Scene.v().getSootClass("java.lang.Class"))));
 
 			}
+			this.program.addClassVariable((ClassVariable) this.constantDictionary.get(cc));
 		}
-		this.program.addClassVariable((ClassVariable) this.constantDictionary.get(cc));
 		return (ClassVariable) this.constantDictionary.get(cc);
 	}
 

@@ -3,6 +3,10 @@
  */
 package jayhorn.checker;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -20,6 +24,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import org.jgrapht.DirectedGraph;
+import org.jgrapht.ext.DOTExporter;
+import org.jgrapht.ext.StringNameProvider;
+import org.jgrapht.graph.DefaultEdge;
 
 import com.google.common.base.Verify;
 
@@ -589,10 +598,12 @@ public class Checker {
 
 						final Set<ClassVariable> subTypes = GraphUtil
 								.getForwardReachableVertices(program.getTypeGraph(), var);
-
+						
 						ProverExpr disj = p.mkLiteral(false);
-						for (ClassVariable st : subTypes)
+						for (ClassVariable st : subTypes) {
 							disj = p.mkOr(disj, p.mkEq(left, p.mkLiteral(typeIds.get(st))));
+						}
+
 						return disj;
 					} else {
 						throw new RuntimeException("instanceof is only supported for concrete types");
@@ -637,6 +648,7 @@ public class Checker {
 		}
 	}
 
+	
 	private int hack_counter = 0;
 
 	////////////////////////////////////////////////////////////////////////////
