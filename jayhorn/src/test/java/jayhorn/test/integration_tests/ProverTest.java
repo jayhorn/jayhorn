@@ -1,7 +1,7 @@
 /**
  * 
  */
-package jayhorn.test.regression_tests;
+package jayhorn.test.integration_tests;
 
 import static org.junit.Assert.fail;
 

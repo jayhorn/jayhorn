@@ -3,10 +3,6 @@
  */
 package jayhorn.checker;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -24,11 +20,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import org.jgrapht.DirectedGraph;
-import org.jgrapht.ext.DOTExporter;
-import org.jgrapht.ext.StringNameProvider;
-import org.jgrapht.graph.DefaultEdge;
 
 import com.google.common.base.Verify;
 
@@ -417,8 +408,9 @@ public class Checker {
 				if (lhs instanceof IdentifierExpression) {
 					final IdentifierExpression idLhs = (IdentifierExpression) lhs;
 					final int lhsIndex = postPred.variables.indexOf(idLhs.getVariable());
-					if (lhsIndex >= 0)
+					if (lhsIndex >= 0) {
 						postVars.set(lhsIndex, exprToProverExpr(as.getRight(), varMap));
+					}
 				} else {
 					throw new RuntimeException("only assignments to variables are supported, not to " + lhs);
 				}
@@ -664,9 +656,11 @@ public class Checker {
 		try {
 			Log.info("Building type hierarchy");
 
-			for (ClassVariable var : program.getTypeGraph().vertexSet())
+			for (ClassVariable var : program.getTypeGraph().vertexSet()) {
 				typeIds.put(var, typeIds.size());
 
+			}
+			
 			Log.info("Generating method contracts");
 
 			for (Method method : program.getMethods()) {

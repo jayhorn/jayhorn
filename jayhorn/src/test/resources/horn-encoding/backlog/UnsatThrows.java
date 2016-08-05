@@ -2,17 +2,15 @@ class A extends Exception
 {
 }
 
-class B extends A {}
-
 class UnsatThrows
 {
   public static void main(String[] args)
   {
-    A a = new B();
+    A a = new A();
     try {
       throw a;
     }
-    catch (A e)
+    catch (Exception e)
     {
       assert false;
     }
