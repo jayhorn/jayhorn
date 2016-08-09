@@ -60,6 +60,7 @@ import soottocfg.cfg.type.MapType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.util.GraphUtil;
+import soottocfg.cfg.util.InterProceduralPullPushOrdering;
 
 /**
  * @author schaef
@@ -152,14 +153,14 @@ public class Checker {
 
 		private final List<Variable> methodPreVariables;
 		private final List<ProverExpr> methodPreExprs;
-
+		
 		public MethodEncoder(Prover p, Program program, Method method) {
 			this.p = p;
 			this.program = program;
 			this.method = method;
 			this.methodContract = methodContracts.get(method.getMethodName());
 			this.methodPreVariables = methodContract.precondition.variables;
-
+			
 			this.methodPreExprs = new ArrayList<ProverExpr>();
 			for (Variable v : methodPreVariables)
 				methodPreExprs.add(p.mkHornVariable(v.getName() + "_" + newVarNum(), getProverType(v.getType())));
@@ -485,12 +486,15 @@ public class Checker {
 				clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom, postCondAtom }, p.mkLiteral(true)));
 
 			} else if (s instanceof PullStatement) {
-
+				
 				final PullStatement us = (PullStatement) s;
 				final ClassVariable sig = us.getClassSignature();
 				final List<IdentifierExpression> lhss = us.getLeft();
 				final ProverFun inv = getClassInvariant(p, sig);
 
+				
+				ppOrdering.debugPrintInfluencingPushs(us);
+				
 				final ProverExpr[] invArgs = new ProverExpr[1 + lhss.size()];
 				int cnt = 0;
 				invArgs[cnt++] = exprToProverExpr(us.getObject(), varMap);
@@ -644,15 +648,26 @@ public class Checker {
 	private int hack_counter = 0;
 
 	////////////////////////////////////////////////////////////////////////////
-
+	protected InterProceduralPullPushOrdering ppOrdering;
+	
 	public boolean checkProgram(Program program) {
 
+//		System.err.println(method);
+		//TODO **********************
+		/* We have to build that up elsewhere. The problem is that we currently modify the cfg while generating the
+		 * Horn clauses. For this to work to correctly, we need to create a final version of the cfg first; then 
+		 * build up this ordering; and finally create the Horn clauses.
+		 */
+		ppOrdering = new InterProceduralPullPushOrdering(program.getEntryPoints()[0]);
+		//*************************
+
+		
 		Log.info("Starting verification for " + program.getEntryPoints().length + " entry points.");
 
 		Prover p = factory.spawn();
 		p.setHornLogic(true);
 		ProverResult result = ProverResult.Unknown;
-
+		
 		try {
 			Log.info("Building type hierarchy");
 
@@ -745,7 +760,8 @@ public class Checker {
 						entry.addStatement(1, pack);
 					}
 				}
-//				System.err.println(method);
+
+				
 				final MethodEncoder encoder = new MethodEncoder(p, program, method);
 				encoder.encode();
 				clauses.addAll(encoder.clauses);
