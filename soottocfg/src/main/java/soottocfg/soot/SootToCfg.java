@@ -200,7 +200,7 @@ public class SootToCfg {
 	private void constructCfg(SootClass sc) {
 		SootTranslationHelpers.v().setCurrentClass(sc);
 		for (SootMethod sm : sc.getMethods()) {
-			if (sm.isConcrete()) {
+			if (sm.isConcrete()) {				
 				SootTranslationHelpers.v().setCurrentMethod(sm);
 				try {
 					Body body = null;
@@ -226,7 +226,7 @@ public class SootToCfg {
 					mi.finalizeAndAddToProgram();
 					Method m = mi.getMethod();
 
-//					System.err.println(body);
+					System.err.println(sm.getSignature()+body);
 					if (debug) {
 						// System.out.println("adding method: " +
 						// m.getMethodName());

@@ -18,6 +18,7 @@ import soot.Unit;
 import soot.VoidType;
 import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
+import soot.jimple.SpecialInvokeExpr;
 import soot.jimple.Stmt;
 import soottocfg.soot.util.SootTranslationHelpers;
 
@@ -46,6 +47,7 @@ public class MethodStubber extends AbstractSceneTransformer {
 			SootClass cls = m.getDeclaringClass();
 			body.insertIdentityStmts();
 			if (m.isConstructor()) {
+
 				if (!cls.declaresFieldByName(SootTranslationHelpers.typeFieldName)) {
 					cls.addField(new SootField(SootTranslationHelpers.typeFieldName,
 							RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC | Modifier.FINAL));
@@ -55,6 +57,21 @@ public class MethodStubber extends AbstractSceneTransformer {
 						Jimple.v().newInstanceFieldRef(body.getThisLocal(), dyntTypeField.makeRef()),
 						SootTranslationHelpers.v().getClassConstant(RefType.v(cls)));
 				body.getUnits().add(init);
+				//add call to super class constructor if necessary				
+				if (cls.hasSuperclass()) {					
+					SootMethod superConstructor = null;
+					for (SootMethod sm : cls.getSuperclass().getMethods()) {
+						if (sm.isConstructor() && sm.getParameterCount()==0) {
+							superConstructor = sm;
+							break;
+						}
+					}
+					if (superConstructor!=null) {						
+						SpecialInvokeExpr ivk = Jimple.v().newSpecialInvokeExpr(body.getThisLocal(), superConstructor.makeRef());
+						body.getUnits().add(Jimple.v().newInvokeStmt(ivk));
+						System.err.println("Added: "+ivk + " to " + m.getSignature());
+					}
+				}
 			}
 			// TODO: instead of default return, we have to return HAVOC!!!!!
 			if (m.getReturnType() instanceof VoidType) {
@@ -82,7 +99,7 @@ public class MethodStubber extends AbstractSceneTransformer {
 	}
 
 	public Set<SootMethod> getInvokedLibraryMethods() {
-		Set<SootMethod> invokedLibraryMethods = new HashSet<SootMethod>();
+		Set<SootMethod> invokedLibraryMethods = new HashSet<SootMethod>();		
 		for (SootClass sc : new LinkedList<SootClass>(Scene.v().getClasses())) {
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES) {
 				for (SootMethod sm : sc.getMethods()) {
@@ -108,6 +125,23 @@ public class MethodStubber extends AbstractSceneTransformer {
 				}
 			}
 		}
+		//if library methods include constructors, we also have to add the
+		//constructors of their super classes.
+		for (SootMethod sm : new HashSet<SootMethod>(invokedLibraryMethods)) {
+			if (sm.isConstructor()) {
+				SootClass dc = sm.getDeclaringClass();
+				if (dc.resolvingLevel()>=SootClass.HIERARCHY && dc.hasSuperclass()) {
+					for (SootMethod superMethod : dc.getSuperclass().getMethods()) {
+						if (superMethod.isConcrete() && superMethod.isConstructor()) {
+							//TODO: hack - we only need default constructors.
+							if (superMethod.getParameterCount()>0) continue;
+							invokedLibraryMethods.add(superMethod);
+						}
+					}
+				}
+			}
+		}
+		
 		return invokedLibraryMethods;
 	}
 	
