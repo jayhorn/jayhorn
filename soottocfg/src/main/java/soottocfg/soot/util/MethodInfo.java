@@ -73,20 +73,21 @@ public class MethodInfo {
 			 * all final fields
 			 * of this class and of all super classes.
 			 */
-			Set<SootField> finalFields = new HashSet<SootField>();
-			SootClass cl = sm.getDeclaringClass();
-			while (cl != null) {
-				for (SootField sf : cl.getFields()) {
-					if (sf.isFinal()) {
-						finalFields.add(sf);
-					}
-				}
-				if (cl.hasSuperclass()) {
-					cl = cl.getSuperclass();
-				} else {
-					cl = null;
-				}
-			}
+			// Rody: findBugs was complaining about this code, it seems obsolete?
+//			Set<SootField> finalFields = new HashSet<SootField>();
+//			SootClass cl = sm.getDeclaringClass();
+//			while (cl != null) {
+//				for (SootField sf : cl.getFields()) {
+//					if (sf.isFinal()) {
+//						finalFields.add(sf);
+//					}
+//				}
+//				if (cl.hasSuperclass()) {
+//					cl = cl.getSuperclass();
+//				} else {
+//					cl = null;
+//				}
+//			}
 			//TODO
 		} else {
 			this.returnVariables = null;
