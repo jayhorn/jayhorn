@@ -226,7 +226,6 @@ public class SootToCfg {
 					mi.finalizeAndAddToProgram();
 					Method m = mi.getMethod();
 
-					System.err.println(sm.getSignature()+body);
 					if (debug) {
 						// System.out.println("adding method: " +
 						// m.getMethodName());
@@ -302,6 +301,7 @@ public class SootToCfg {
 
 		for (SootClass sc : classes) {
 			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
+				initializeStaticFields(sc);
 				continue; // no need to process this guy.
 			}
 

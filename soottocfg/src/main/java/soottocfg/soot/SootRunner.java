@@ -19,18 +19,6 @@
 
 package soottocfg.soot;
 
-import soot.BooleanType;
-import soot.Local;
-import soot.Modifier;
-import soot.Scene;
-import soot.SootClass;
-import soot.SootField;
-import soot.SootMethod;
-import soot.Type;
-import soot.VoidType;
-import soot.jimple.Jimple;
-import soot.jimple.JimpleBody;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -45,6 +33,18 @@ import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+
+import soot.BooleanType;
+import soot.Local;
+import soot.Modifier;
+import soot.Scene;
+import soot.SootClass;
+import soot.SootField;
+import soot.SootMethod;
+import soot.Type;
+import soot.VoidType;
+import soot.jimple.Jimple;
+import soot.jimple.JimpleBody;
 
 /**
  * The Soot Runner
@@ -282,6 +282,15 @@ public class SootRunner {
 		// TODO: throw an assertion here.
 		body.getUnits().add(Jimple.v().newReturnVoidStmt());
 
+		SootMethod staticInitializer =new SootMethod(SootMethod.staticInitializerName,
+				Arrays.asList(new Type[] { }), VoidType.v(),
+				Modifier.PUBLIC | Modifier.STATIC);
+		body = Jimple.v().newBody(staticInitializer);
+		staticInitializer.setActiveBody(body);
+		body.insertIdentityStmts();
+		body.getUnits().add(Jimple.v().newReturnVoidStmt());
+		sClass.addMethod(staticInitializer);
+		
 		Scene.v().addClass(sClass);
 		sClass.setApplicationClass();
 	}
