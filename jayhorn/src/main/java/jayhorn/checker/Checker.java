@@ -31,13 +31,12 @@ import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverType;
+import jayhorn.util.CfgStubber;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Program;
-import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BinaryExpression;
-import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
@@ -652,15 +651,22 @@ public class Checker {
 	
 	public boolean checkProgram(Program program) {
 
-//		System.err.println(method);
+		/* The checker assumes that the program is closed. I.e., no uninitialized variables
+		 * are being used (e.g. in main(String[] args), the array args[] is not initialized).
+		 * These need to be initialized to an unknown value. Further, we need to add non-det
+		 * assignments to unknown library calls and add some other stuff. 
+		 */
+		CfgStubber stubber = new CfgStubber();
+		stubber.stubUnboundFieldsAndMethods(program);
 		//TODO **********************
 		/* We have to build that up elsewhere. The problem is that we currently modify the cfg while generating the
 		 * Horn clauses. For this to work to correctly, we need to create a final version of the cfg first; then 
 		 * build up this ordering; and finally create the Horn clauses.
 		 */
+		Verify.verify(program.getEntryPoints().length==1, "Currently, we only support programs with one entry point. However, its easy to extend that.");
 		ppOrdering = new InterProceduralPullPushOrdering(program.getEntryPoints()[0]);
 		//*************************
-
+		
 		
 		Log.info("Starting verification for " + program.getEntryPoints().length + " entry points.");
 
@@ -709,57 +715,11 @@ public class Checker {
 
 			List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
+			
+			
 			for (Method method : program.getMethods()) {
 				//Stub all methods for which we don't have a body
 				// TODO: hack - this has to be done as a program transformation. 
-				if (method.getSource() == null) {
-					CfgBlock block = new CfgBlock(method);
-					SourceLocation loc = method.getLocation();
-					
-					AssignStatement asn = new AssignStatement(loc,
-							new IdentifierExpression(loc, program.getExceptionGlobal()), new IdentifierExpression(loc,
-									program.createFreshGlobal("havoc", program.getExceptionGlobal().getType())));
-					block.addStatement(asn);
-
-					ClassVariable c = ((ReferenceType) program.getExceptionGlobal().getType()).getClassVariable();
-					List<Expression> rhs = new LinkedList<Expression>();
-					rhs.add(new IdentifierExpression(loc,
-							program.createFreshGlobal("havoc", program.getExceptionGlobal().getType())));
-					PushStatement pack = new PushStatement(loc, c,
-							new IdentifierExpression(loc, program.getExceptionGlobal()), rhs);
-					block.addStatement(pack);
-
-					Verify.verifyNotNull(method.getSource());
-//					throw new RuntimeException("The checker currently expects that all methods have a body. Go and create a stub during translation for "+method.getMethodName());
-				} else if (method.isProgramEntryPoint()) {
-					if (method.getInParams().size() == 1 && method.getMethodName().contains("main")) {
-						Variable argsParam = method.getInParams().get(0);
-						ReferenceType argsType = (ReferenceType) argsParam.getType();
-						CfgBlock entry = method.getSource();
-						SourceLocation loc = method.getLocation();
-						Variable sizeLocal = new Variable("undef_size", IntType.instance());
-						AssumeStatement asm = new AssumeStatement(loc, new BinaryExpression(loc, BinaryOperator.Ge,
-								new IdentifierExpression(loc, sizeLocal), IntegerLiteral.zero()));
-						entry.addStatement(0, asm);
-
-						// pack(JayHornArr12, r0, [JayHornArr12.$length,
-						// JayHornArr12.$elType, JayHornArr12.$dynamicType])
-						List<Expression> rhs = new LinkedList<Expression>();
-						rhs.add(new IdentifierExpression(loc, sizeLocal));
-						rhs.add(new IdentifierExpression(loc, argsType.getClassVariable()));
-						ClassVariable c = ((ReferenceType) argsParam.getType()).getClassVariable();
-						rhs.add(new IdentifierExpression(loc, c));
-						//this is an array, so initialize the remaining fields with sth as well
-						//TODO:
-						int i=0;
-						while (rhs.size()<c.getAssociatedFields().length) {
-							Variable undefLocal = new Variable("undef_field"+(i++), IntType.instance());
-							rhs.add(new IdentifierExpression(loc, undefLocal));
-						}
-						PushStatement pack = new PushStatement(loc, c, new IdentifierExpression(loc, argsParam), rhs);
-						entry.addStatement(1, pack);
-					}
-				}
 
 				
 				final MethodEncoder encoder = new MethodEncoder(p, program, method);
