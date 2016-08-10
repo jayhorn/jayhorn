@@ -5,6 +5,7 @@ package soottocfg.cfg.util;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
@@ -18,6 +19,8 @@ import org.jgrapht.graph.DefaultEdge;
 import com.google.common.base.Optional;
 import com.google.common.base.Verify;
 
+
+import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
@@ -39,7 +42,7 @@ public class InterProceduralPullPushOrdering {
 		public final Set<PushStatement> relevantAfter = new HashSet<PushStatement>();
 		public Optional<Statement> stmt = Optional.absent();
 		public Method containingMethod = null;
-//		public CfgBlock containingCfgBlock = null;
+		// public CfgBlock containingCfgBlock = null;
 
 	}
 
@@ -55,7 +58,8 @@ public class InterProceduralPullPushOrdering {
 		for (FixedPointObject fpo : ipgraph.vertexSet()) {
 			if (fpo.stmt.isPresent() && fpo.stmt.get() instanceof PullStatement) {
 				PullStatement pull = (PullStatement) fpo.stmt.get();
-				Verify.verify(!pullMap.containsKey(pull), pull.toString() + " already in there. "+fpo.containingMethod);
+				Verify.verify(!pullMap.containsKey(pull),
+						pull.toString() + " already in there. " + fpo.containingMethod);
 				pullMap.put(pull, fpo);
 			}
 		}
@@ -70,14 +74,14 @@ public class InterProceduralPullPushOrdering {
 			sb.append("\t");
 			sb.append(fpo.stmt);
 			sb.append("\tin Method");
-			if (fpo.containingMethod!=null) {
-			sb.append(fpo.containingMethod.getMethodName());
+			if (fpo.containingMethod != null) {
+				sb.append(fpo.containingMethod.getMethodName());
 			}
 			sb.append("\n");
 		}
 		System.err.println(sb.toString());
 	}
-	
+
 	public Set<FixedPointObject> getPushsInfluencing(PullStatement pull) {
 		
 		Set<FixedPointObject> ret = new HashSet<FixedPointObject>();
@@ -93,8 +97,8 @@ public class InterProceduralPullPushOrdering {
 		Set<FixedPointObject> done = new HashSet<FixedPointObject>();
 		while (!todo.isEmpty()) {
 			FixedPointObject cur = todo.remove();
-			done.add(cur);
-			if (cur.stmt.isPresent() && cur.stmt.get() instanceof PushStatement) {
+			done.add(cur);			
+			if (cur.stmt.isPresent() && cur.stmt.get() instanceof PushStatement && canAffectPull(((PushStatement)cur.stmt.get()) , pull)) {
 				//TODO check if the pull works type wise.
 				ret.add(cur);
 			} else {
@@ -105,9 +109,36 @@ public class InterProceduralPullPushOrdering {
 				}
 			}
 		}
+		Verify.verify(!ret.isEmpty(), "Cannot find a push that affects this pull. This would introduce an assume(false): "+pull);
 		return ret;
 	}
 
+	private boolean canAffectPull(PushStatement push, PullStatement pull) {
+		ClassVariable pushCv = push.getClassSignature();
+		ClassVariable pullCv = pull.getClassSignature();
+
+		List<ClassVariable> todo = new LinkedList<ClassVariable>();
+		todo.add(pushCv);
+		//check if the push is to a type that might affect the pull.
+		while (!todo.isEmpty()) {
+			ClassVariable cv = todo.remove(0);
+			if (cv==pullCv) return true;
+			if (cv.getParents()!=null) {
+				todo.addAll(cv.getParents());
+			}
+		}
+		//Now the other way around.
+		todo.add(pullCv);
+		while (!todo.isEmpty()) {
+			ClassVariable cv = todo.remove(0);
+			if (cv==pushCv) return true;
+			if (cv.getParents()!=null) {
+				todo.addAll(cv.getParents());
+			}
+		}
+		
+		return false;
+	}
 
 	private Pair<FixedPointObject, FixedPointObject> buildInterProcGraph(Method method,
 			DirectedGraph<FixedPointObject, DefaultEdge> ipgraph) {
@@ -123,7 +154,7 @@ public class InterProceduralPullPushOrdering {
 		Pair<FixedPointObject, FixedPointObject> ret = new Pair<FixedPointObject, FixedPointObject>(fpEntry, fpExit);
 
 		methodEntryExit.put(method, ret);
-		
+
 		Map<CfgBlock, FixedPointObject> entryFpo = new HashMap<CfgBlock, FixedPointObject>();
 		Map<CfgBlock, FixedPointObject> exitFpo = new HashMap<CfgBlock, FixedPointObject>();
 
@@ -137,7 +168,7 @@ public class InterProceduralPullPushOrdering {
 				fpo = new FixedPointObject();
 				ipgraph.addVertex(fpo);
 			}
-			
+
 			// create the subgraph from the current cfg block
 			entryFpo.put(cur, fpo);
 			for (Statement st : cur.getStatements()) {
@@ -150,7 +181,7 @@ public class InterProceduralPullPushOrdering {
 					ipgraph.addEdge(pair.getSecond(), fpo);
 				} else if (st instanceof PushStatement || st instanceof PullStatement) {
 					fpo.stmt = Optional.of(st);
-//					fpo.containingCfgBlock = cur;
+					// fpo.containingCfgBlock = cur;
 					fpo.containingMethod = method;
 					FixedPointObject nextFpo = new FixedPointObject();
 					ipgraph.addVertex(nextFpo);
