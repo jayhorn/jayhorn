@@ -50,4 +50,21 @@ public class ClassVariable extends Variable  {
 	public String toString() {
 		return this.variableName;
 	}
+	
+	public boolean subclassOf(ClassVariable cls) {
+		List<ClassVariable> todo = new LinkedList<ClassVariable>();
+		todo.add(this);
+		while (!todo.isEmpty()) {
+			ClassVariable cv = todo.remove(0);
+			if (cv==cls) return true;
+			if (cv.getParents()!=null) {
+				todo.addAll(cv.getParents());
+			}
+		}
+		return false;
+	}
+	
+	public boolean superclassOf(ClassVariable cls) {
+		return cls.subclassOf(this);
+	}
 }

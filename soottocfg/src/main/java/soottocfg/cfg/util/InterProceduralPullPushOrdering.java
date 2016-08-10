@@ -5,7 +5,6 @@ package soottocfg.cfg.util;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
@@ -116,28 +115,7 @@ public class InterProceduralPullPushOrdering {
 	private boolean canAffectPull(PushStatement push, PullStatement pull) {
 		ClassVariable pushCv = push.getClassSignature();
 		ClassVariable pullCv = pull.getClassSignature();
-
-		List<ClassVariable> todo = new LinkedList<ClassVariable>();
-		todo.add(pushCv);
-		//check if the push is to a type that might affect the pull.
-		while (!todo.isEmpty()) {
-			ClassVariable cv = todo.remove(0);
-			if (cv==pullCv) return true;
-			if (cv.getParents()!=null) {
-				todo.addAll(cv.getParents());
-			}
-		}
-		//Now the other way around.
-		todo.add(pullCv);
-		while (!todo.isEmpty()) {
-			ClassVariable cv = todo.remove(0);
-			if (cv==pushCv) return true;
-			if (cv.getParents()!=null) {
-				todo.addAll(cv.getParents());
-			}
-		}
-		
-		return false;
+		return pushCv.subclassOf(pullCv) || pushCv.superclassOf(pullCv);
 	}
 
 	private Pair<FixedPointObject, FixedPointObject> buildInterProcGraph(Method method,
