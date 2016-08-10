@@ -391,31 +391,31 @@ public class PushPullSimplifier {
 		return moves;
 	}
 	
-	private int removeEmptyBlocks(Method m) {
-		int removed = 0;
-		Set<CfgBlock> toRemove = new HashSet<CfgBlock>();
-		for (CfgBlock b : m.vertexSet()) {
-			if (b.getStatements().isEmpty()) {
-				//make all predecessors point to unique successor
-				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
-				if (outgoing.size()==1) {
-					Set<CfgEdge> toRemoveEdges = new HashSet<CfgEdge>();
-					CfgBlock next = b.getMethod().getEdgeTarget((CfgEdge)outgoing.toArray()[0]);
-					Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
-					for (CfgEdge in : incoming) {
-						CfgBlock prev = b.getMethod().getEdgeSource(in);
-						toRemoveEdges.add(in);
-						b.getMethod().addEdge(prev, next);
-					}
-					toRemove.add(b);
-					b.getMethod().removeAllEdges(toRemoveEdges);
-				}
-			}
-		}
-		// this one breaks everything...
-//		m.removeAllVertices(toRemove);
-		return removed;
-	}
+//	private int removeEmptyBlocks(Method m) {
+//		int removed = 0;
+//		Set<CfgBlock> toRemove = new HashSet<CfgBlock>();
+//		for (CfgBlock b : m.vertexSet()) {
+//			if (b.getStatements().isEmpty()) {
+//				//make all predecessors point to unique successor
+//				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
+//				if (outgoing.size()==1) {
+//					Set<CfgEdge> toRemoveEdges = new HashSet<CfgEdge>();
+//					CfgBlock next = b.getMethod().getEdgeTarget((CfgEdge)outgoing.toArray()[0]);
+//					Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
+//					for (CfgEdge in : incoming) {
+//						CfgBlock prev = b.getMethod().getEdgeSource(in);
+//						toRemoveEdges.add(in);
+//						b.getMethod().addEdge(prev, next);
+//					}
+//					toRemove.add(b);
+//					b.getMethod().removeAllEdges(toRemoveEdges);
+//				}
+//			}
+//		}
+//		// this one breaks everything...
+////		m.removeAllVertices(toRemove);
+//		return removed;
+//	}
 	
 	private boolean sameVars(PushStatement push, PullStatement pull) {
 		List<Expression> pushvars = push.getRight();

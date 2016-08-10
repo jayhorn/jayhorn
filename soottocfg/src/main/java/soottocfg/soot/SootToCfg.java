@@ -490,7 +490,9 @@ public class SootToCfg {
 		LinkedList<String> it = new LinkedList<String>();
 		it.add(text);
 		try {
-			Files.createDirectories(file.getParent());
+			Path parent = file.getParent();
+			if (parent != null)
+				Files.createDirectories(parent);
 			Files.write(file, it, Charset.forName("UTF-8"));
 		} catch (Exception e) {
 			System.err.println("Error writing file " + file);

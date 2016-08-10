@@ -387,9 +387,9 @@ public class NewMemoryModel extends BasicMemoryModel {
 //		System.out.println("Copying " + rhs + " into " + lhs);
 		lhs.apply(valueSwitch);
 		IdentifierExpression base = (IdentifierExpression) valueSwitch.popExpression();
-		for (Variable v : fieldToLocalMap.keySet()) {
-			if (v.getName().equals(rhs.getName())) {
-				fieldToLocalMap.put(base.getVariable(), fieldToLocalMap.get(v));
+		for (Map.Entry<Variable,Map<String,Variable>> e : fieldToLocalMap.entrySet()) {
+			if (e.getKey().getName().equals(rhs.getName())) {
+				fieldToLocalMap.put(base.getVariable(), e.getValue());
 				return;
 			}
 		}
