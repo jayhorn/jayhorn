@@ -6,7 +6,7 @@ class UnsatThrows {
 		RuntimeException a = new A();
 		try {
 			throw a;
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			assert false;
 		}
 	}

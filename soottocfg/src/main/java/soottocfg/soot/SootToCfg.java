@@ -200,7 +200,11 @@ public class SootToCfg {
 	private void constructCfg(SootClass sc) {
 		SootTranslationHelpers.v().setCurrentClass(sc);
 		for (SootMethod sm : sc.getMethods()) {
-			if (sm.isConcrete()) {				
+			if (sm.isConcrete()) {	
+				if (sm.equals(SootTranslationHelpers.v().getAssertMethod())) {
+					//Do not translate the assertion method.
+					continue;
+				}
 				SootTranslationHelpers.v().setCurrentMethod(sm);
 				try {
 					Body body = null;
@@ -245,9 +249,9 @@ public class SootToCfg {
 	private void constructCfg() {
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
-			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
-				continue; // no need to process this guy.
-			}
+//			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
+//				continue; // no need to process this guy.
+//			}
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
 				constructCfg(sc);
 			}

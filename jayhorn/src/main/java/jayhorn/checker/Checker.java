@@ -650,7 +650,7 @@ public class Checker {
 	protected InterProceduralPullPushOrdering ppOrdering;
 	
 	public boolean checkProgram(Program program) {
-
+		
 		/* The checker assumes that the program is closed. I.e., no uninitialized variables
 		 * are being used (e.g. in main(String[] args), the array args[] is not initialized).
 		 * These need to be initialized to an unknown value. Further, we need to add non-det
@@ -718,9 +718,7 @@ public class Checker {
 			
 			
 			for (Method method : program.getMethods()) {
-				//Stub all methods for which we don't have a body
-				// TODO: hack - this has to be done as a program transformation. 
-
+				System.err.println(method);
 				
 				final MethodEncoder encoder = new MethodEncoder(p, program, method);
 				encoder.encode();
