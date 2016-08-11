@@ -18,7 +18,6 @@ import org.jgrapht.graph.DefaultEdge;
 import com.google.common.base.Optional;
 import com.google.common.base.Verify;
 
-
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
@@ -81,24 +80,64 @@ public class InterProceduralPullPushOrdering {
 		System.err.println(sb.toString());
 	}
 
-	public Set<FixedPointObject> getPushsInfluencing(PullStatement pull) {
-		
-		Set<FixedPointObject> ret = new HashSet<FixedPointObject>();
-		
+	/**
+	 * TODO: rewrite!
+	 * For the lack of a better points-to analysis, this checks for every pull
+	 * if there are any previous pushs to a subtype
+	 * of the object being pulled. We use this to decide which possible
+	 * invariants we have to look for.
+	 * As the name suggests, this is only a temporary solution and should be
+	 * replaced by something more efficient later.
+	 * 
+	 * @param pull
+	 * @return
+	 */
+	public Set<ClassVariable> getBrutalOverapproximationOfPossibleType(PullStatement pull) {
+		Set<ClassVariable> usedSubtypes = new HashSet<ClassVariable>();
+		usedSubtypes.add(pull.getClassSignature());
 		if (!pullMap.containsKey(pull)) {
 			System.err.println("Pull not reachable from program entry: " + pull);
-			return ret;
+			return usedSubtypes;
 		}
-		
 		FixedPointObject fpo = pullMap.get(pull);
 		Queue<FixedPointObject> todo = new LinkedList<FixedPointObject>();
 		todo.addAll(Graphs.predecessorListOf(ipgraph, fpo));
 		Set<FixedPointObject> done = new HashSet<FixedPointObject>();
 		while (!todo.isEmpty()) {
 			FixedPointObject cur = todo.remove();
-			done.add(cur);			
-			if (cur.stmt.isPresent() && cur.stmt.get() instanceof PushStatement && canAffectPull(((PushStatement)cur.stmt.get()) , pull)) {
-				//TODO check if the pull works type wise.
+			done.add(cur);
+			if (cur.stmt.isPresent() && cur.stmt.get() instanceof PushStatement
+					&& (((PushStatement) cur.stmt.get()).getClassSignature().subclassOf(pull.getClassSignature()))) {
+				usedSubtypes.add(((PushStatement) cur.stmt.get()).getClassSignature());
+			}
+			for (FixedPointObject pre : Graphs.predecessorListOf(ipgraph, cur)) {
+				if (!todo.contains(pre) && !done.contains(pre)) {
+					todo.add(pre);
+				}
+			}
+
+		}
+		return usedSubtypes;
+	}
+
+	public Set<FixedPointObject> getPushsInfluencing(PullStatement pull) {
+
+		Set<FixedPointObject> ret = new HashSet<FixedPointObject>();
+
+		if (!pullMap.containsKey(pull)) {
+			System.err.println("Pull not reachable from program entry: " + pull);
+			return ret;
+		}
+
+		FixedPointObject fpo = pullMap.get(pull);
+		Queue<FixedPointObject> todo = new LinkedList<FixedPointObject>();
+		todo.addAll(Graphs.predecessorListOf(ipgraph, fpo));
+		Set<FixedPointObject> done = new HashSet<FixedPointObject>();
+		while (!todo.isEmpty()) {
+			FixedPointObject cur = todo.remove();
+			done.add(cur);
+			if (cur.stmt.isPresent() && cur.stmt.get() instanceof PushStatement
+					&& canAffectPull(((PushStatement) cur.stmt.get()), pull)) {
 				ret.add(cur);
 			} else {
 				for (FixedPointObject pre : Graphs.predecessorListOf(ipgraph, cur)) {
@@ -108,7 +147,8 @@ public class InterProceduralPullPushOrdering {
 				}
 			}
 		}
-		Verify.verify(!ret.isEmpty(), "Cannot find a push that affects this pull. This would introduce an assume(false): "+pull);
+		Verify.verify(!ret.isEmpty(),
+				"Cannot find a push that affects this pull. This would introduce an assume(false): " + pull);
 		return ret;
 	}
 

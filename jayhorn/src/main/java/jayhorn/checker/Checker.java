@@ -152,14 +152,14 @@ public class Checker {
 
 		private final List<Variable> methodPreVariables;
 		private final List<ProverExpr> methodPreExprs;
-		
+
 		public MethodEncoder(Prover p, Program program, Method method) {
 			this.p = p;
 			this.program = program;
 			this.method = method;
 			this.methodContract = methodContracts.get(method.getMethodName());
 			this.methodPreVariables = methodContract.precondition.variables;
-			
+
 			this.methodPreExprs = new ArrayList<ProverExpr>();
 			for (Variable v : methodPreVariables)
 				methodPreExprs.add(p.mkHornVariable(v.getName() + "_" + newVarNum(), getProverType(v.getType())));
@@ -485,33 +485,84 @@ public class Checker {
 				clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom, postCondAtom }, p.mkLiteral(true)));
 
 			} else if (s instanceof PullStatement) {
-				
+
 				final PullStatement us = (PullStatement) s;
-				final ClassVariable sig = us.getClassSignature();
+
 				final List<IdentifierExpression> lhss = us.getLeft();
-				final ProverFun inv = getClassInvariant(p, sig);
 
-				
-				ppOrdering.debugPrintInfluencingPushs(us);
-				
-				final ProverExpr[] invArgs = new ProverExpr[1 + lhss.size()];
-				int cnt = 0;
-				invArgs[cnt++] = exprToProverExpr(us.getObject(), varMap);
+				/*
+				 * TODO
+				 * Martin's hack to handle the substype problem =============
+				 */
+				final Set<ClassVariable> possibleTypes = ppOrdering.getBrutalOverapproximationOfPossibleType(us);
+				final List<ProverExpr> invariantDisjunction = new LinkedList<ProverExpr>();
+				for (ClassVariable sig : possibleTypes) {
+					System.err.println("Possible type "+sig.getName() + " of " +us.getClassSignature().getName());
+					final ProverFun inv = getClassInvariant(p, sig);
 
-				for (IdentifierExpression lhs : lhss) {
-					final ProverExpr lhsExpr = p.mkHornVariable("unpackRes_" + lhs + "_" + newVarNum(),
-							getProverType(lhs.getType()));
-					invArgs[cnt++] = lhsExpr;
+					int totalFields = Math.max(sig.getAssociatedFields().length, lhss.size());
+					
+					final ProverExpr[] invArgs = new ProverExpr[1 + totalFields];
+					int cnt = 0;
+					invArgs[cnt++] = exprToProverExpr(us.getObject(), varMap);
 
-					final int lhsIndex = postPred.variables.indexOf(lhs.getVariable());
-					if (lhsIndex >= 0)
-						postVars.set(lhsIndex, lhsExpr);
+					for (IdentifierExpression lhs : lhss) {
+						final ProverExpr lhsExpr = p.mkHornVariable("unpackRes_" + lhs + "_" + newVarNum(),
+								getProverType(lhs.getType()));
+						invArgs[cnt++] = lhsExpr;
+
+						final int lhsIndex = postPred.variables.indexOf(lhs.getVariable());
+						if (lhsIndex >= 0)
+							postVars.set(lhsIndex, lhsExpr);
+					}
+					while (cnt<totalFields+1) {
+						//fill up the fields that are not being used
+						//this should only happen if sig is a subtype of what we 
+						//are trying to pull (and thus declares more fields).
+						final ProverExpr lhsExpr = p.mkHornVariable("unpackRes_stub" + cnt + "_" + newVarNum(),
+								getProverType(sig.getAssociatedFields()[cnt-1].getType() ));
+						invArgs[cnt++] = lhsExpr;
+					}
+					invariantDisjunction.add(inv.mkExpr(invArgs));
+					
+					final ProverExpr invAtom = inv.mkExpr(invArgs);
+					final ProverExpr postAtom = instPredicate(postPred, postVars);
+					clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom }, p.mkLiteral(true)));
+
 				}
+//				final ProverExpr invAtom = p.mkOr(invariantDisjunction.toArray(new ProverExpr[invariantDisjunction.size()]));
 
-				final ProverExpr invAtom = inv.mkExpr(invArgs);
-				final ProverExpr postAtom = instPredicate(postPred, postVars);
-
-				clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom }, p.mkLiteral(true)));
+				/*
+				 * Old code that only checked one invariant.
+				 * final PullStatement us = (PullStatement) s;
+				 * final ClassVariable sig = us.getClassSignature();
+				 * final List<IdentifierExpression> lhss = us.getLeft();
+				 * final ProverFun inv = getClassInvariant(p, sig);
+				 * 
+				 * 
+				 * final ProverExpr[] invArgs = new ProverExpr[1 + lhss.size()];
+				 * int cnt = 0;
+				 * invArgs[cnt++] = exprToProverExpr(us.getObject(), varMap);
+				 * 
+				 * for (IdentifierExpression lhs : lhss) {
+				 * final ProverExpr lhsExpr = p.mkHornVariable("unpackRes_" +
+				 * lhs + "_" + newVarNum(),
+				 * getProverType(lhs.getType()));
+				 * invArgs[cnt++] = lhsExpr;
+				 * 
+				 * final int lhsIndex =
+				 * postPred.variables.indexOf(lhs.getVariable());
+				 * if (lhsIndex >= 0)
+				 * postVars.set(lhsIndex, lhsExpr);
+				 * }
+				 * 
+				 * final ProverExpr invAtom = inv.mkExpr(invArgs);
+				 * final ProverExpr postAtom = instPredicate(postPred,
+				 * postVars);
+				 * 
+				 * clauses.add(p.mkHornClause(postAtom, new ProverExpr[] {
+				 * preAtom, invAtom }, p.mkLiteral(true)));
+				 */
 
 			} else if (s instanceof PushStatement) {
 
@@ -593,7 +644,7 @@ public class Checker {
 
 						final Set<ClassVariable> subTypes = GraphUtil
 								.getForwardReachableVertices(program.getTypeGraph(), var);
-						
+
 						ProverExpr disj = p.mkLiteral(false);
 						for (ClassVariable st : subTypes) {
 							disj = p.mkOr(disj, p.mkEq(left, p.mkLiteral(typeIds.get(st))));
@@ -643,37 +694,43 @@ public class Checker {
 		}
 	}
 
-	
 	private int hack_counter = 0;
 
 	////////////////////////////////////////////////////////////////////////////
 	protected InterProceduralPullPushOrdering ppOrdering;
-	
+
 	public boolean checkProgram(Program program) {
-		
-		/* The checker assumes that the program is closed. I.e., no uninitialized variables
-		 * are being used (e.g. in main(String[] args), the array args[] is not initialized).
-		 * These need to be initialized to an unknown value. Further, we need to add non-det
-		 * assignments to unknown library calls and add some other stuff. 
+
+		/*
+		 * The checker assumes that the program is closed. I.e., no
+		 * uninitialized variables
+		 * are being used (e.g. in main(String[] args), the array args[] is not
+		 * initialized).
+		 * These need to be initialized to an unknown value. Further, we need to
+		 * add non-det
+		 * assignments to unknown library calls and add some other stuff.
 		 */
 		CfgStubber stubber = new CfgStubber();
 		stubber.stubUnboundFieldsAndMethods(program);
-		//TODO **********************
-		/* We have to build that up elsewhere. The problem is that we currently modify the cfg while generating the
-		 * Horn clauses. For this to work to correctly, we need to create a final version of the cfg first; then 
+		// TODO **********************
+		/*
+		 * We have to build that up elsewhere. The problem is that we currently
+		 * modify the cfg while generating the
+		 * Horn clauses. For this to work to correctly, we need to create a
+		 * final version of the cfg first; then
 		 * build up this ordering; and finally create the Horn clauses.
 		 */
-		Verify.verify(program.getEntryPoints().length==1, "Currently, we only support programs with one entry point. However, its easy to extend that.");
+		Verify.verify(program.getEntryPoints().length == 1,
+				"Currently, we only support programs with one entry point. However, its easy to extend that.");
 		ppOrdering = new InterProceduralPullPushOrdering(program.getEntryPoints()[0]);
-		//*************************
-		
-		
+		// *************************
+
 		Log.info("Starting verification for " + program.getEntryPoints().length + " entry points.");
 
 		Prover p = factory.spawn();
 		p.setHornLogic(true);
 		ProverResult result = ProverResult.Unknown;
-		
+
 		try {
 			Log.info("Building type hierarchy");
 
@@ -681,7 +738,7 @@ public class Checker {
 				typeIds.put(var, typeIds.size());
 
 			}
-			
+
 			Log.info("Generating method contracts");
 
 			for (Method method : program.getMethods()) {
@@ -692,9 +749,9 @@ public class Checker {
 				if (!method.getOutParam().isEmpty()) {
 					postParams.addAll(method.getOutParam());
 				} else if (!method.getReturnType().isEmpty()) {
-					int ctr =0;
+					int ctr = 0;
 					for (Type tp : method.getReturnType()) {
-						postParams.add(new Variable("resultVar"+(ctr++), tp));
+						postParams.add(new Variable("resultVar" + (ctr++), tp));
 					}
 				}
 
@@ -715,11 +772,9 @@ public class Checker {
 
 			List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
-			
-			
 			for (Method method : program.getMethods()) {
 				System.err.println(method);
-				
+
 				final MethodEncoder encoder = new MethodEncoder(p, program, method);
 				encoder.encode();
 				clauses.addAll(encoder.clauses);
@@ -732,12 +787,12 @@ public class Checker {
 						Log.info("\t\t" + clause);
 				}
 			}
-			
+
 			// write Horn clauses to file
 			String outDir = jayhorn.Options.v().getOutDir();
-			if(outDir != null) {
+			if (outDir != null) {
 				String outBasename = jayhorn.Options.v().getOutBasename();
-				Path file = Paths.get(outDir+outBasename+".horn");
+				Path file = Paths.get(outDir + outBasename + ".horn");
 				LinkedList<String> it = new LinkedList<String>();
 				for (ProverHornClause clause : clauses)
 					it.add("\t\t" + clause);
