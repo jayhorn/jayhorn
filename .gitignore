@@ -8,3 +8,12 @@ bin/
 cov-int
 build/
 **/*.log
+*.iml
+.idea/
+.idea/gradle.xml
+.idea/libraries
+*.ipr
+*.iws
+/out/
+*.dot
+.shelf/

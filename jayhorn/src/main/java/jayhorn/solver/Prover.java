@@ -209,6 +209,8 @@ public interface Prover {
     ////////////////////////////////////////////////////////////////////////////
     // Horn clause interface
 
+    ProverExpr mkHornVariable(String name, ProverType type);
+
     ProverFun mkHornPredicate(String name, ProverType[] argTypes);
     
     /**

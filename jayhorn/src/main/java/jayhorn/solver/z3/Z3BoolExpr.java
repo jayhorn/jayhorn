@@ -2,11 +2,11 @@ package jayhorn.solver.z3;
 
 import java.math.BigInteger;
 
+import com.microsoft.z3.BoolExpr;
+
 import jayhorn.solver.BoolType;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverType;
-
-import com.microsoft.z3.BoolExpr;
 
 class Z3BoolExpr implements ProverExpr {
 

@@ -1,4 +1,4 @@
-class assert2
+public class assert2
 {
   public static void main(String[] args)
   {

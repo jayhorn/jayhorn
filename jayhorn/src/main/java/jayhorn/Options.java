@@ -19,83 +19,115 @@
 
 package jayhorn;
 
-import jayhorn.soot.SootRunner.CallgraphAlgorithm;
-import jayhorn.util.Log;
-
 import org.kohsuke.args4j.Option;
 
 /**
  * Options
  * 
- * @author schaef, schaef
+ * @author schaef
  */
 public class Options {
 
 	
-	@Option(name = "-android-jars", usage = "Path to the jars that stub the android platform.")
-	private String androidStubPath=null;
-	
-	public String getAndroidStubPath() {
-		return androidStubPath;
+//	@Option(name = "-android-jars", usage = "Path to the jars that stub the android platform.")
+//	private String androidStubPath=null;
+//	
+//	public String getAndroidStubPath() {
+//		return androidStubPath;
+//	}
+//
+//	public void setAndroidStubPath(String path) {
+//		this.androidStubPath = path;
+//	}
+//	
+//	/**
+//	 * JAR file
+//	 */
+	@Option(name = "-checker", usage = "Select a checker [inconsistency, or safety]", required = false)
+//	//@Option(name = "-checker", usage = "Select a checker [safety]", required = false)
+	private String checker = "safety";
+	public String getChecker() {
+		return checker;
 	}
-
-	public void setAndroidStubPath(String path) {
-		this.androidStubPath = path;
+	
+	@Option(name = "-solver", usage = "Select a solver [eldarica or z3]", required = false)
+	private String solver = "eldarica";
+	public String getSolver() {
+		return solver;
 	}
 	
 	
 	/**
 	 * JAR file
 	 */
-	@Option(name = "-j", usage = "JAR file, class folder, or apk", required = false)
+	@Option(name = "-j", usage = "JAR file, class folder, or apk", required = true)
 	private String javaInput;
 	
-	public String getJavaInput() {
+	public String getJavaInput() {		
 		return this.javaInput;
 	}
-
-	@Option(name = "-cg", usage = "Set the callgraph algorithm: CHA,RTA,VTA,SPARK, or None (default).", required = false)
-	private String callGraphAlgorithm = "None";
-	public CallgraphAlgorithm getCallGraphAlgorithm() {
-		if (callGraphAlgorithm==null || callGraphAlgorithm.toLowerCase().equals("none")) {
-			return CallgraphAlgorithm.None;
-		} else if (callGraphAlgorithm.toLowerCase().equals("cha")) {
-			return CallgraphAlgorithm.CHA;
-		} else if (callGraphAlgorithm.toLowerCase().equals("rta")) {
-			return CallgraphAlgorithm.RTA;
-		} else if (callGraphAlgorithm.toLowerCase().equals("vta")) {
-			return CallgraphAlgorithm.VTA;
-		} else if (callGraphAlgorithm.toLowerCase().equals("spark")) {
-			return CallgraphAlgorithm.SPARK;			
-		} else {
-			Log.error("Unknown callgraph algorithm "+callGraphAlgorithm+". Using none instead");
-		}
-		return CallgraphAlgorithm.None;
-	}
-	
-	public void setCallGraphAlgorithm(String s) {
-		this.callGraphAlgorithm = s;
-	}
 	
 	
-
-	/**
-	 * Scope
-	 */
-	@Option(name = "--scope", usage = "Only analyze classes/methods that contain the scope string")
-	private String scope = null;
-	public String getScope() {
-		return scope;
+//	/**
+//	 * Print Horn clauses
+//	 */
+	@Option(name = "-h", usage = "Print horn clauses", required = false)
+	private boolean printHorn = false;
+	
+	public boolean getPrintHorn() {		
+		return this.printHorn;
 	}
-	public boolean hasScope() {
-		return scope == null || scope.isEmpty();
-	}
+	
+	public void setPrintHorn(boolean b) {		
+		this.printHorn = b;
+	}	
 
+//	/**
+//	 * Output intermediate representations
+//	 */
+	@Option(name = "-out", usage = "Output directory for intermediate represenations", required = false)
+	private String out = null;
+	
+//	public String getOut() {		
+//		return this.out;
+//	}
+	
+	public String getOutDir() {
+		if (this.out != null && !this.out.endsWith("/"))
+			return this.out+"/";
+		return this.out;
+	}
+	
+	public String getOutBasename() { 
+		String in = getJavaInput();
+		if (in.endsWith("/"))
+			in = in.substring(0, in.length()-1);
+		String outName = in.substring(in.lastIndexOf('/') + 1, in.length()).replace(".java", "").replace(".class", "");
+		if (outName.equals(""))
+			outName = "noname";
+		return outName;
+	}
+	
+	public void setOut(String s) {		
+		this.out = s;
+	}	
+	
 	/**
 	 * Classpath
 	 */
 	@Option(name = "-cp", usage = "Classpath")
 	private String classpath;
+
+	@Option(name = "-t", usage = "Timeout per procedure in seconds. Use 0 for no timeout. (Default is 0)")
+	private int timeout=0;
+	
+	public int getTimeout() {
+		return this.timeout;
+	}
+	
+	public void setTimeout(int seconds) {
+		this.timeout = seconds;
+	}
 
 
 	/**

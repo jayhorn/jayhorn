@@ -5,29 +5,13 @@ import java.io.PrintStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Stack;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-import jayhorn.solver.ArrayType;
-import jayhorn.solver.BoolType;
-import jayhorn.solver.IntType;
-import jayhorn.solver.Prover;
-import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverFun;
-import jayhorn.solver.ProverHornClause;
-import jayhorn.solver.ProverListener;
-import jayhorn.solver.ProverResult;
-import jayhorn.solver.ProverType;
-import lazabs.horn.bottomup.HornClauses;
-import lazabs.horn.bottomup.HornClauses.Clause;
-import lazabs.horn.bottomup.SimpleWrapper;
-import lazabs.horn.bottomup.Util.Dag;
-import scala.Tuple2;
-import scala.collection.Iterator;
-import scala.collection.Seq;
-import scala.collection.immutable.List;
-import scala.collection.immutable.Map;
-import scala.collection.immutable.Set;
-import scala.collection.mutable.ArrayBuffer;
-import scala.util.Either;
 import ap.SimpleAPI;
 import ap.SimpleAPI.ProverStatus$;
 import ap.basetypes.IdealInt$;
@@ -54,6 +38,28 @@ import ap.parser.PredicateSubstVisitor$;
 import ap.parser.SymbolCollector$;
 import ap.terfor.ConstantTerm;
 import ap.terfor.preds.Predicate;
+import jayhorn.solver.ArrayType;
+import jayhorn.solver.BoolType;
+import jayhorn.solver.IntType;
+import jayhorn.solver.Prover;
+import jayhorn.solver.ProverExpr;
+import jayhorn.solver.ProverFun;
+import jayhorn.solver.ProverHornClause;
+import jayhorn.solver.ProverListener;
+import jayhorn.solver.ProverResult;
+import jayhorn.solver.ProverType;
+import lazabs.horn.bottomup.HornClauses;
+import lazabs.horn.bottomup.HornClauses.Clause;
+import lazabs.horn.bottomup.SimpleWrapper;
+import lazabs.horn.bottomup.Util.Dag;
+import scala.Tuple2;
+import scala.collection.Iterator;
+import scala.collection.Seq;
+import scala.collection.immutable.List;
+import scala.collection.immutable.Map;
+import scala.collection.immutable.Set;
+import scala.collection.mutable.ArrayBuffer;
+import scala.util.Either;
 
 public class PrincessProver implements Prover {
 
@@ -85,9 +91,7 @@ public class PrincessProver implements Prover {
 
 	public ProverExpr mkBoundVariable(int deBruijnIndex, ProverType type) {
 		if (type.equals(getBooleanType())) {
-			return mkEq(
-					new TermExpr(new IVariable(deBruijnIndex), getIntType()),
-					mkLiteral(0));
+			return mkEq(new TermExpr(new IVariable(deBruijnIndex), getIntType()), mkLiteral(0));
 		} else {
 			return new TermExpr(new IVariable(deBruijnIndex), type);
 		}
@@ -108,10 +112,8 @@ public class PrincessProver implements Prover {
 		// throw new RuntimeException();
 	}
 
-	public ProverFun mkUnintFunction(String name, ProverType[] argTypes,
-			ProverType resType) {
-		return new PrincessFun(api.createFunction(name, argTypes.length),
-				resType);
+	public ProverFun mkUnintFunction(String name, ProverType[] argTypes, ProverType resType) {
+		return new PrincessFun(api.createFunction(name, argTypes.length), resType);
 	}
 
 	/**
@@ -119,66 +121,49 @@ public class PrincessProver implements Prover {
 	 * variables with indexes <code>0, 1, ..., (n-1)</code> representing the
 	 * arguments of the function.
 	 */
-	public ProverFun mkDefinedFunction(String name, ProverType[] argTypes,
-			final ProverExpr body) {
+	public ProverFun mkDefinedFunction(String name, ProverType[] argTypes, final ProverExpr body) {
 		return new ProverFun() {
 			public ProverExpr mkExpr(ProverExpr[] args) {
 				final ArrayBuffer<ITerm> argsBuf = new ArrayBuffer<ITerm>();
 				for (int i = 0; i < args.length; ++i) {
-					ITerm termArg;
-					if (args[i].getType() == BoolType.INSTANCE)
-						termArg = new ITermITE(((FormulaExpr) args[i]).formula,
-								new IIntLit(IdealInt$.MODULE$.apply(0)),
-								new IIntLit(IdealInt$.MODULE$.apply(1)));
-					else
-						termArg = ((TermExpr) args[i]).term;
-					argsBuf.$plus$eq(termArg);
+					argsBuf.$plus$eq(((PrincessProverExpr) args[i]).toTerm());
 				}
 				final List<ITerm> argsList = argsBuf.toList();
 
 				if (body instanceof TermExpr)
-					return new TermExpr(IExpression$.MODULE$.subst(
-							((TermExpr) body).term, argsList, 0),
+					return new TermExpr(IExpression$.MODULE$.subst(((TermExpr) body).term, argsList, 0),
 							body.getType());
 				else
-					return new FormulaExpr(IExpression$.MODULE$.subst(
-							((FormulaExpr) body).formula, argsList, 0));
+					return new FormulaExpr(IExpression$.MODULE$.subst(((FormulaExpr) body).formula, argsList, 0));
 			}
 		};
 	}
 
 	public ProverExpr mkAll(ProverExpr body, ProverType type) {
-		return new FormulaExpr(
-				IExpression$.MODULE$.all(((FormulaExpr) body).formula));
+		return new FormulaExpr(IExpression$.MODULE$.all(((PrincessProverExpr) body).toFormula()));
 	}
 
 	public ProverExpr mkEx(ProverExpr body, ProverType type) {
-		return new FormulaExpr(
-				IExpression$.MODULE$.ex(((FormulaExpr) body).formula));
+		return new FormulaExpr(IExpression$.MODULE$.ex(((PrincessProverExpr) body).toFormula()));
 	}
 
 	public ProverExpr mkTrigger(ProverExpr body, ProverExpr[] triggers) {
 		final ArrayBuffer<IExpression> triggerExprs = new ArrayBuffer<IExpression>();
 
 		for (int i = 0; i < triggers.length; ++i) {
-			if (triggers[i] instanceof TermExpr)
-				triggerExprs.$plus$eq(((TermExpr) triggers[i]).term);
-			else
-				triggerExprs.$plus$eq(((FormulaExpr) triggers[i]).formula);
+			triggerExprs.$plus$eq(((PrincessProverExpr) triggers[i]).toExpression());
 		}
 
-		return new FormulaExpr(IExpression.trig(((FormulaExpr) body).formula,
-				triggerExprs));
+		return new FormulaExpr(IExpression.trig(((FormulaExpr) body).formula, triggerExprs));
 	}
 
 	public ProverExpr mkEq(ProverExpr left, ProverExpr right) {
-		if (left instanceof TermExpr)
-			return new FormulaExpr(
-					((TermExpr) left).term.$eq$eq$eq(((TermExpr) right).term));
+		PrincessProverExpr pLeft = (PrincessProverExpr) left;
+		PrincessProverExpr pRight = (PrincessProverExpr) right;
+		if (pLeft.isBoolean() && pRight.isBoolean())
+			return new FormulaExpr(pLeft.toFormula().$less$eq$greater(pRight.toFormula()));
 		else
-			return new FormulaExpr(
-					((FormulaExpr) left).formula
-							.$less$eq$greater(((FormulaExpr) right).formula));
+			return new FormulaExpr(pLeft.toTerm().$eq$eq$eq(pRight.toTerm()));
 	}
 
 	public ProverExpr mkLiteral(boolean value) {
@@ -186,30 +171,30 @@ public class PrincessProver implements Prover {
 	}
 
 	public ProverExpr mkNot(ProverExpr body) {
-		return new FormulaExpr(new INot(((FormulaExpr) body).formula));
+		return new FormulaExpr(new INot(((PrincessProverExpr) body).toFormula()));
 	}
 
 	public ProverExpr mkAnd(ProverExpr left, ProverExpr right) {
-		return new FormulaExpr(new IBinFormula(IBinJunctor.And(),
-				((FormulaExpr) left).formula, ((FormulaExpr) right).formula));
+		return new FormulaExpr(new IBinFormula(IBinJunctor.And(), ((PrincessProverExpr) left).toFormula(),
+				((PrincessProverExpr) right).toFormula()));
 	}
 
 	public ProverExpr mkAnd(ProverExpr[] args) {
 		final ArrayBuffer<IFormula> argsBuf = new ArrayBuffer<IFormula>();
 		for (int i = 0; i < args.length; ++i)
-			argsBuf.$plus$eq(((FormulaExpr) args[i]).formula);
+			argsBuf.$plus$eq(((PrincessProverExpr) args[i]).toFormula());
 		return new FormulaExpr(IExpression$.MODULE$.and(argsBuf));
 	}
 
 	public ProverExpr mkOr(ProverExpr left, ProverExpr right) {
-		return new FormulaExpr(new IBinFormula(IBinJunctor.Or(),
-				((FormulaExpr) left).formula, ((FormulaExpr) right).formula));
+		return new FormulaExpr(new IBinFormula(IBinJunctor.Or(), ((PrincessProverExpr) left).toFormula(),
+				((PrincessProverExpr) right).toFormula()));
 	}
 
 	public ProverExpr mkOr(ProverExpr[] args) {
 		final ArrayBuffer<IFormula> argsBuf = new ArrayBuffer<IFormula>();
 		for (int i = 0; i < args.length; ++i)
-			argsBuf.$plus$eq(((FormulaExpr) args[i]).formula);
+			argsBuf.$plus$eq(((PrincessProverExpr) args[i]).toFormula());
 		return new FormulaExpr(IExpression$.MODULE$.or(argsBuf));
 	}
 
@@ -217,32 +202,26 @@ public class PrincessProver implements Prover {
 		return mkOr(mkNot(left), right);
 	}
 
-	public ProverExpr mkIte(ProverExpr cond, ProverExpr thenExpr,
-			ProverExpr elseExpr) {
+	public ProverExpr mkIte(ProverExpr cond, ProverExpr thenExpr, ProverExpr elseExpr) {
 		if (thenExpr instanceof TermExpr)
-			return new TermExpr(new ITermITE(((FormulaExpr) cond).formula,
-					((TermExpr) thenExpr).term, ((TermExpr) elseExpr).term),
+			return new TermExpr(new ITermITE(((PrincessProverExpr) cond).toFormula(),
+					((PrincessProverExpr) thenExpr).toTerm(), ((PrincessProverExpr) elseExpr).toTerm()),
 					thenExpr.getType());
 		else
-			return new FormulaExpr(new IFormulaITE(
-					((FormulaExpr) cond).formula,
-					((FormulaExpr) thenExpr).formula,
-					((FormulaExpr) elseExpr).formula));
+			return new FormulaExpr(new IFormulaITE(((PrincessProverExpr) cond).toFormula(),
+					((PrincessProverExpr) thenExpr).toFormula(), ((PrincessProverExpr) elseExpr).toFormula()));
 	}
 
 	public ProverExpr mkLiteral(int value) {
-		return new TermExpr(new IIntLit(IdealInt$.MODULE$.apply(value)),
-				getIntType());
+		return new TermExpr(new IIntLit(IdealInt$.MODULE$.apply(value)), getIntType());
 	}
 
 	public ProverExpr mkLiteral(BigInteger value) {
-		return new TermExpr(new IIntLit(IdealInt$.MODULE$.apply(value
-				.toString())), getIntType());
+		return new TermExpr(new IIntLit(IdealInt$.MODULE$.apply(value.toString())), getIntType());
 	}
 
 	public ProverExpr mkPlus(ProverExpr left, ProverExpr right) {
-		return new TermExpr(new IPlus(((TermExpr) left).term,
-				((TermExpr) right).term), getIntType());
+		return new TermExpr(new IPlus(((TermExpr) left).term, ((TermExpr) right).term), getIntType());
 	}
 
 	public ProverExpr mkPlus(ProverExpr[] args) {
@@ -253,8 +232,7 @@ public class PrincessProver implements Prover {
 	}
 
 	public ProverExpr mkMinus(ProverExpr left, ProverExpr right) {
-		return new TermExpr(new IPlus(((TermExpr) left).term,
-				((TermExpr) right).term.unary_$minus()), getIntType());
+		return new TermExpr(new IPlus(((TermExpr) left).term, ((TermExpr) right).term.unary_$minus()), getIntType());
 	}
 
 	public ProverExpr mkNeg(ProverExpr arg) {
@@ -262,48 +240,39 @@ public class PrincessProver implements Prover {
 	}
 
 	public ProverExpr mkMult(ProverExpr left, ProverExpr right) {
-		return new TermExpr(api.mult(((TermExpr) left).term,
-				((TermExpr) right).term), getIntType());
+		return new TermExpr(api.mult(((TermExpr) left).term, ((TermExpr) right).term), getIntType());
 	}
 
 	public ProverExpr mkEDiv(ProverExpr num, ProverExpr denom) {
-		return new TermExpr(api.mulTheory().eDiv(((TermExpr) num).term,
-				((TermExpr) denom).term), getIntType());
+		return new TermExpr(api.mulTheory().eDiv(((TermExpr) num).term, ((TermExpr) denom).term), getIntType());
 	}
 
 	public ProverExpr mkEMod(ProverExpr num, ProverExpr denom) {
-		return new TermExpr(api.mulTheory().eMod(((TermExpr) num).term,
-				((TermExpr) denom).term), getIntType());
+		return new TermExpr(api.mulTheory().eMod(((TermExpr) num).term, ((TermExpr) denom).term), getIntType());
 	}
 
 	public ProverExpr mkTDiv(ProverExpr num, ProverExpr denom) {
-		return new TermExpr(api.mulTheory().tDiv(((TermExpr) num).term,
-				((TermExpr) denom).term), getIntType());
+		return new TermExpr(api.mulTheory().tDiv(((TermExpr) num).term, ((TermExpr) denom).term), getIntType());
 	}
 
 	public ProverExpr mkTMod(ProverExpr num, ProverExpr denom) {
-		return new TermExpr(api.mulTheory().tMod(((TermExpr) num).term,
-				((TermExpr) denom).term), getIntType());
+		return new TermExpr(api.mulTheory().tMod(((TermExpr) num).term, ((TermExpr) denom).term), getIntType());
 	}
 
 	public ProverExpr mkGeq(ProverExpr left, ProverExpr right) {
-		return new FormulaExpr(
-				((TermExpr) left).term.$greater$eq(((TermExpr) right).term));
+		return new FormulaExpr(((TermExpr) left).term.$greater$eq(((TermExpr) right).term));
 	}
 
 	public ProverExpr mkGt(ProverExpr left, ProverExpr right) {
-		return new FormulaExpr(
-				((TermExpr) left).term.$greater(((TermExpr) right).term));
+		return new FormulaExpr(((TermExpr) left).term.$greater(((TermExpr) right).term));
 	}
 
 	public ProverExpr mkLeq(ProverExpr left, ProverExpr right) {
-		return new FormulaExpr(
-				((TermExpr) left).term.$less$eq(((TermExpr) right).term));
+		return new FormulaExpr(((TermExpr) left).term.$less$eq(((TermExpr) right).term));
 	}
 
 	public ProverExpr mkLt(ProverExpr left, ProverExpr right) {
-		return new FormulaExpr(
-				((TermExpr) left).term.$less(((TermExpr) right).term));
+		return new FormulaExpr(((TermExpr) left).term.$less(((TermExpr) right).term));
 	}
 
 	public ProverExpr mkSelect(ProverExpr ar, ProverExpr[] indexes) {
@@ -312,76 +281,115 @@ public class PrincessProver implements Prover {
 		for (int i = 0; i < indexes.length; ++i)
 			args.$plus$eq(((TermExpr) indexes[i]).term);
 
-		return new TermExpr(new IFunApp(api.selectFun(indexes.length),
-				args.toSeq()), getIntType());
+		return new TermExpr(new IFunApp(api.selectFun(indexes.length), args.toSeq()), getIntType());
 	}
 
-	public ProverExpr mkStore(ProverExpr ar, ProverExpr[] indexes,
-			ProverExpr value) {
+	public ProverExpr mkStore(ProverExpr ar, ProverExpr[] indexes, ProverExpr value) {
 		final ArrayBuffer<ITerm> args = new ArrayBuffer<ITerm>();
 		args.$plus$eq(((TermExpr) ar).term);
 		for (int i = 0; i < indexes.length; ++i)
 			args.$plus$eq(((TermExpr) indexes[i]).term);
 		args.$plus$eq(((TermExpr) value).term);
 
-		return new TermExpr(new IFunApp(api.storeFun(indexes.length),
-				args.toSeq()), getIntType());
+		return new TermExpr(new IFunApp(api.storeFun(indexes.length), args.toSeq()), getIntType());
 	}
 
 	// ////////////////////////////////////////////////////////////////////////////
 
 	public void push() {
 		api.push();
-                assertedClausesStack.push(assertedClauses.size());
+		assertedClausesStack.push(assertedClauses.size());
 	}
 
 	public void pop() {
 		api.pop();
-                int n = assertedClausesStack.pop();
-                while (assertedClauses.size() > n)
-                    assertedClauses.remove(assertedClauses.size() - 1);
+		int n = assertedClausesStack.pop();
+		while (assertedClauses.size() > n)
+			assertedClauses.remove(assertedClauses.size() - 1);
 	}
 
 	public void addAssertion(ProverExpr assertion) {
-            if (assertion instanceof HornExpr)
-                assertedClauses.add((HornExpr)assertion);
-            else
-		api.addAssertion(((FormulaExpr) assertion).formula);
+		if (assertion instanceof HornExpr)
+			assertedClauses.add((HornExpr) assertion);
+		else
+			api.addAssertion(((PrincessProverExpr) assertion).toFormula());
 	}
 
 	// ////////////////////////////////////////////////////////////////////////////
 
+	private ExecutorService executor = null;
+	private Future<?> future = null;
+	private PrincessSolverThread thread = null;
+
 	public ProverResult checkSat(boolean block) {
-            if (assertedClauses.isEmpty()) {
-                return translateRes(api.checkSat(block));
-            } else {
-                assert(block); // only implemented case so far
+		if (assertedClauses.isEmpty()) {
+			return translateRes(api.checkSat(block));
+		} else {
+			if (block) {
 
-                final ArrayBuffer<HornClauses.Clause> clauses =
-                    new ArrayBuffer<HornClauses.Clause>();
-                for (HornExpr clause : assertedClauses)
-                    clauses.$plus$eq(clause.clause);
+				final ArrayBuffer<HornClauses.Clause> clauses = new ArrayBuffer<HornClauses.Clause>();
+				for (HornExpr clause : assertedClauses)
+					clauses.$plus$eq(clause.clause);
 
-                final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result =
-                    SimpleWrapper.solve
-                    (clauses,
-                     scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>>empty(),
-                     false,
-                     false);
+				final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
+						scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(), false, false);
+				//System.out.println(result);
+				if (result.isLeft())
+					return ProverResult.Sat;
+				else
+					return ProverResult.Unsat;
+			} else {
+				this.executor = Executors.newSingleThreadExecutor();
+				this.thread = new PrincessSolverThread(assertedClauses);
+				this.future = executor.submit(this.thread);
+				return ProverResult.Running;
+			}
+		}
+	}
 
-                if (result.isLeft())
-                  return ProverResult.Sat;
-                else
-                  return ProverResult.Unsat;
-            }
+	static class PrincessSolverThread implements Runnable {
+		private final ArrayList<HornExpr> hornClauses;
+		private ProverResult status;
+
+		public PrincessSolverThread(ArrayList<HornExpr> clauses) {
+			this.hornClauses = clauses;
+		}
+
+		@Override
+		public void run() {
+			status = ProverResult.Running;
+			final ArrayBuffer<HornClauses.Clause> clauses = new ArrayBuffer<HornClauses.Clause>();
+			for (HornExpr clause : hornClauses)
+				clauses.$plus$eq(clause.clause);
+			final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
+					scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(), false, false);
+			if (result.isLeft())
+				this.status = ProverResult.Sat;
+			else
+				this.status = ProverResult.Unsat;
+		}
+
+		public ProverResult getStatus() {
+			return this.status;
+		}
+	}
+
+	private void killThread() {
+		if (this.future != null && !this.future.isDone()) {
+			this.future.cancel(true);
+		}
+		if (this.executor != null) {
+			this.executor.shutdown();
+		}
+		this.executor = null;
+		this.future = null;
+		this.thread = null;
 	}
 
 	private ProverResult translateRes(scala.Enumeration.Value result) {
-		if (result == ProverStatus$.MODULE$.Sat()
-				|| result == ProverStatus$.MODULE$.Invalid())
+		if (result == ProverStatus$.MODULE$.Sat() || result == ProverStatus$.MODULE$.Invalid())
 			return ProverResult.Sat;
-		else if (result == ProverStatus$.MODULE$.Unsat()
-				|| result == ProverStatus$.MODULE$.Valid())
+		else if (result == ProverStatus$.MODULE$.Unsat() || result == ProverStatus$.MODULE$.Valid())
 			return ProverResult.Unsat;
 		else if (result == ProverStatus$.MODULE$.Unknown())
 			return ProverResult.Unknown;
@@ -396,7 +404,23 @@ public class PrincessProver implements Prover {
 	}
 
 	public ProverResult getResult(long timeout) {
-		return translateRes(api.getStatus(timeout));
+		ProverResult result;
+		if (future != null) {
+			try {
+				future.get(timeout, TimeUnit.MILLISECONDS);
+				result = this.thread.getStatus();
+			} catch (InterruptedException | ExecutionException e) {
+				throw new RuntimeException("solver failed");
+			} catch (TimeoutException e) {
+				result = ProverResult.Unknown;
+			}
+			killThread();
+		} else {
+			throw new RuntimeException("Start query with check sat first.");
+		}
+		return result;
+
+		// return translateRes(api.getStatus(timeout));
 	}
 
 	public ProverResult nextModel(boolean block) {
@@ -438,12 +462,11 @@ public class PrincessProver implements Prover {
 	}
 
 	public ProverExpr evaluate(ProverExpr expr) {
-		if (expr instanceof TermExpr)
-			return new TermExpr(new IIntLit(api.eval(((TermExpr) expr).term)),
-					((TermExpr) expr).getType());
+		if (((PrincessProverExpr) expr).isBoolean())
+			return new FormulaExpr(new IBoolLit(api.eval(((PrincessProverExpr) expr).toFormula())));
 		else
-			return new FormulaExpr(new IBoolLit(
-					api.eval(((FormulaExpr) expr).formula)));
+			return new TermExpr(new IIntLit(api.eval(((PrincessProverExpr) expr).toTerm())),
+					((TermExpr) expr).getType());
 	}
 
 	public ProverExpr[] freeVariables(ProverExpr expr) {
@@ -451,11 +474,9 @@ public class PrincessProver implements Prover {
 
 		final scala.Tuple3<scala.collection.Set<IVariable>, scala.collection.Set<ConstantTerm>, scala.collection.Set<Predicate>> symTriple;
 		if (expr instanceof TermExpr)
-			symTriple = SymbolCollector$.MODULE$
-					.varsConstsPreds(((TermExpr) expr).term);
+			symTriple = SymbolCollector$.MODULE$.varsConstsPreds(((TermExpr) expr).term);
 		else
-			symTriple = SymbolCollector$.MODULE$
-					.varsConstsPreds(((FormulaExpr) expr).formula);
+			symTriple = SymbolCollector$.MODULE$.varsConstsPreds(((FormulaExpr) expr).formula);
 
 		final Iterator<IVariable> it1 = symTriple._1().iterator();
 		while (it1.hasNext())
@@ -463,8 +484,7 @@ public class PrincessProver implements Prover {
 
 		final Iterator<ConstantTerm> it2 = symTriple._2().iterator();
 		while (it2.hasNext())
-			res.add(new TermExpr(IConstant$.MODULE$.apply(it2.next()),
-					getIntType()));
+			res.add(new TermExpr(IConstant$.MODULE$.apply(it2.next()), getIntType()));
 
 		final Iterator<Predicate> it3 = symTriple._3().iterator();
 		final List<ITerm> emptyArgs = (new ArrayBuffer<ITerm>()).toList();
@@ -479,8 +499,7 @@ public class PrincessProver implements Prover {
 	 * <code>target</code>. <code>from</code> has to be an array of free or
 	 * bound variables.
 	 */
-	public ProverExpr substitute(ProverExpr target, ProverExpr[] from,
-			ProverExpr[] to) {
+	public ProverExpr substitute(ProverExpr target, ProverExpr[] from, ProverExpr[] to) {
 		assert (from.length == to.length);
 
 		final scala.collection.mutable.HashMap<ConstantTerm, ITerm> constantSubst = new scala.collection.mutable.HashMap<ConstantTerm, ITerm>();
@@ -488,13 +507,11 @@ public class PrincessProver implements Prover {
 
 		for (int i = 0; i < from.length; ++i) {
 			if (from[i] instanceof TermExpr) {
-				final ConstantTerm c = ((IConstant) ((TermExpr) from[i]).term)
-						.c();
+				final ConstantTerm c = ((IConstant) ((TermExpr) from[i]).term).c();
 				final ITerm t = ((TermExpr) to[i]).term;
 				constantSubst.put(c, t);
 			} else {
-				final Predicate p = ((IAtom) ((FormulaExpr) from[i]).formula)
-						.pred();
+				final Predicate p = ((IAtom) ((FormulaExpr) from[i]).formula).pred();
 				assert (p.arity() == 0);
 				final IFormula f = ((FormulaExpr) to[i]).formula;
 				predicateSubst.put(p, f);
@@ -508,17 +525,13 @@ public class PrincessProver implements Prover {
 
 		if (target instanceof TermExpr) {
 			final ITerm t1 = ((TermExpr) target).term;
-			final ITerm t2 = ConstantSubstVisitor$.MODULE$.apply(t1,
-					constantSubst);
-			final ITerm t3 = PredicateSubstVisitor$.MODULE$.apply(t2,
-					predicateSubst);
+			final ITerm t2 = ConstantSubstVisitor$.MODULE$.apply(t1, constantSubst);
+			final ITerm t3 = PredicateSubstVisitor$.MODULE$.apply(t2, predicateSubst);
 			return new TermExpr(t3, target.getType());
 		} else {
 			final IFormula f1 = ((FormulaExpr) target).formula;
-			final IFormula f2 = ConstantSubstVisitor$.MODULE$.apply(f1,
-					constantSubst);
-			final IFormula f3 = PredicateSubstVisitor$.MODULE$.apply(f2,
-					predicateSubst);
+			final IFormula f2 = ConstantSubstVisitor$.MODULE$.apply(f1, constantSubst);
+			final IFormula f3 = PredicateSubstVisitor$.MODULE$.apply(f2, predicateSubst);
 			return new FormulaExpr(f3);
 		}
 	}
@@ -543,44 +556,49 @@ public class PrincessProver implements Prover {
 		return baos.toString();
 	}
 
+	////////////////////////////////////////////////////////////////////////////
+	// Horn clause interface
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Horn clause interface
+	private final ArrayList<HornExpr> assertedClauses = new ArrayList<HornExpr>();
 
-    private final ArrayList<HornExpr> assertedClauses =
-        new ArrayList<HornExpr>();
+	private final Stack<Integer> assertedClausesStack = new Stack<Integer>();
 
-    private final Stack<Integer> assertedClausesStack =
-        new Stack<Integer>();
+	public ProverExpr mkHornVariable(String name, ProverType type) {
+		// always use terms as Horn variables/arguments
+		return new TermExpr(api.createConstant(name), type);
+	}
 
-    public ProverFun mkHornPredicate(String name, ProverType[] argTypes) {
-	return new PredicateFun(api.createRelation(name, argTypes.length));
-    }
-    
-    /**
-     * The head literal can either be constructed using
-     * <code>mkHornPredicate</code>, or be the formula <code>false</code>.
-     */
-    public ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body,
-                                         ProverExpr constraint) {
-        IFormula rawHead = ((FormulaExpr)head).formula;
-        if ((rawHead instanceof IBoolLit) && !((IBoolLit)rawHead).value())
-            rawHead = SimpleWrapper.FALSEAtom();
+	public ProverFun mkHornPredicate(String name, ProverType[] argTypes) {
+		return new PredicateFun(api.createRelation(name, argTypes.length));
+	}
 
-        final ArrayBuffer<IAtom> rawBody = new ArrayBuffer<IAtom>();
-        for (int i = 0; i < body.length; ++i)
-            rawBody.$plus$eq((IAtom)((FormulaExpr)body[i]).formula);
+	/**
+	 * The head literal can either be constructed using
+	 * <code>mkHornPredicate</code>, or be the formula <code>false</code>.
+	 */
+	public ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body, ProverExpr constraint) {
+		IFormula rawHead = ((FormulaExpr) head).formula;
+		if ((rawHead instanceof IBoolLit) && !((IBoolLit) rawHead).value())
+			rawHead = SimpleWrapper.FALSEAtom();
 
-        final HornClauses.Clause clause =
-            SimpleWrapper.clause((IAtom)rawHead,
-                                 rawBody.toList(),
-                                 ((FormulaExpr)constraint).formula);
+		final ArrayBuffer<IAtom> rawBody = new ArrayBuffer<IAtom>();
+		for (int i = 0; i < body.length; ++i)
+			rawBody.$plus$eq((IAtom) ((FormulaExpr) body[i]).formula);
 
-        return new HornExpr(clause);
-    }
+		final HornClauses.Clause clause = SimpleWrapper.clause((IAtom) rawHead, rawBody.toList(),
+				((FormulaExpr) constraint).formula);
+
+		return new HornExpr(clause);
+	}
 
 	@Override
 	public void setHornLogic(boolean b) {
-		// ignore		
+		// ignore
 	}
+	
+	@Override
+	public String toString() {
+		return "Princess";
+	}
+
 }

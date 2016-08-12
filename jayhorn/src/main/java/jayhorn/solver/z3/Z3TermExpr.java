@@ -2,10 +2,11 @@ package jayhorn.solver.z3;
 
 import java.math.BigInteger;
 
+import com.microsoft.z3.Expr;
+import com.microsoft.z3.enumerations.Z3_lbool;
+
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverType;
-
-import com.microsoft.z3.Expr;
 
 class Z3TermExpr implements ProverExpr {
 
@@ -38,7 +39,7 @@ class Z3TermExpr implements ProverExpr {
 	}
 
 	public boolean getBooleanLiteralValue() {
-		throw new RuntimeException();
+		return this.term.getBoolValue()==Z3_lbool.Z3_L_TRUE;
 	}
 
 	public int hashCode() {

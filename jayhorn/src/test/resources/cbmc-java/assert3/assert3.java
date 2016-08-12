@@ -8,7 +8,7 @@ class assert3
     
     if(i>=1000)
       if(!(i>1000))
-        throw new AssertionError("i>1000"); // should fail
+        assert(false); // should fail
   }
 }
 

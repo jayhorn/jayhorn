@@ -20,4 +20,3 @@ class double1
     d=java.lang.Double.NaN;
   }
 }
-

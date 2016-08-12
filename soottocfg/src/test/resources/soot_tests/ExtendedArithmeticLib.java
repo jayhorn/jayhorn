@@ -1,6 +1,5 @@
 package soot_tests;
 
-
 public class ExtendedArithmeticLib {
 
 	protected int i1;
@@ -65,7 +64,7 @@ public class ExtendedArithmeticLib {
 	public int doInc() {
 		int j = 0;
 		for (int i = 0; i < 100; i++) {
-			j+=4;
+			j += 4;
 		}
 		return j;
 	}

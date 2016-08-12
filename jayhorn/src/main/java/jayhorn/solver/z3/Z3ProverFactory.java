@@ -3,9 +3,9 @@
  */
 package jayhorn.solver.z3;
 
+import jayhorn.Log;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverFactory;
-import jayhorn.util.Log;
 
 /**
  * @author schaef

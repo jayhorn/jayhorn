@@ -1,17 +1,16 @@
 package soot_tests;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class ControlStructures {
-	
+
 	List<Integer> result;
 
-	protected List<Integer> get(int i){
+	protected List<Integer> get(int i) {
 		result = new ArrayList<Integer>();
-		
-		switch(i){
+
+		switch (i) {
 		case 1:
 			result.add(1);
 			break;
@@ -23,8 +22,8 @@ public class ControlStructures {
 		default:
 			result.add(null);
 		}
-		
-		switch(i){
+
+		switch (i) {
 		case 1:
 			result.add(1);
 		case 10:
@@ -36,8 +35,8 @@ public class ControlStructures {
 		default:
 			result.add(null);
 		}
-		
+
 		return result;
 	}
-	
+
 }

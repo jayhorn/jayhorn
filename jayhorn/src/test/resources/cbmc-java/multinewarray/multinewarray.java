@@ -14,8 +14,7 @@ class multinewarray
       for(int j=0; j<x; ++j)
         int_array[i][j]=i+j;
 
-    assert false;
-    /*assert int_array[4][10] == 14;*/
+    assert int_array[4][10] == 14;
     //A object_array[][] = new A[x][y];
   }
 }

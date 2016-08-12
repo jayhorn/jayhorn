@@ -3,7 +3,7 @@ package jayhorn.solver;
 import java.util.HashMap;
 import java.util.Map;
 
-import jayhorn.solver.princess.PrincessProverFactory;
+import jayhorn.solver.z3.Z3ProverFactory;
 
 public class Main {
 
@@ -231,6 +231,7 @@ public class Main {
             if (p.checkSat(true)!=ProverResult.Unsat) {
             	throw new RuntimeException("Solver failed.");
             }
+            
             System.out.println("Horn test successful.");
             p.setHornLogic(false);
         }
@@ -256,7 +257,8 @@ public class Main {
 	}
 
 	public static void main(String[] args) {
-		final ProverFactory factory = new PrincessProverFactory();
+//		final ProverFactory factory = new PrincessProverFactory();
+		final ProverFactory factory = new Z3ProverFactory();
 		Main m = new Main();
 		m.runTests(factory);
 	}

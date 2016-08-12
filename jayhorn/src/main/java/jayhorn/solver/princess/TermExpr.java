@@ -2,13 +2,16 @@ package jayhorn.solver.princess;
 
 import java.math.BigInteger;
 
-import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverType;
 import ap.SimpleAPI$;
+import ap.parser.IExpression;
+import ap.parser.IExpression$;
+import ap.parser.IFormula;
 import ap.parser.IIntLit;
 import ap.parser.ITerm;
+import jayhorn.solver.BoolType;
+import jayhorn.solver.ProverType;
 
-class TermExpr implements ProverExpr {
+class TermExpr extends PrincessProverExpr {
 
 	protected final ProverType type;
 	protected final ITerm term;
@@ -18,8 +21,25 @@ class TermExpr implements ProverExpr {
 		this.type = type;
 	}
 
+	@Override
 	public String toString() {
-            return SimpleAPI$.MODULE$.pp(term);
+		return SimpleAPI$.MODULE$.pp(term);
+	}
+
+	public ITerm toTerm() {
+		return term;
+	}
+
+	public IFormula toFormula() {
+		return IExpression$.MODULE$.eqZero(term);
+	}
+
+	public IExpression toExpression() {
+		return term;
+	}
+
+	public boolean isBoolean() {
+		return type == BoolType.INSTANCE;
 	}
 
 	public ProverType getType() {
@@ -36,23 +56,25 @@ class TermExpr implements ProverExpr {
 		throw new RuntimeException();
 	}
 
-  public int hashCode() {
-    return term.hashCode();
-  }
+	@Override
+	public int hashCode() {
+		return term.hashCode();
+	}
 
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    TermExpr other = (TermExpr) obj;
-    if (term == null) {
-      if (other.term != null)
-        return false;
-    } else if (!term.equals(other.term))
-      return false;
-    return true;
-  }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TermExpr other = (TermExpr) obj;
+		if (term == null) {
+			if (other.term != null)
+				return false;
+		} else if (!term.equals(other.term))
+			return false;
+		return true;
+	}
 }

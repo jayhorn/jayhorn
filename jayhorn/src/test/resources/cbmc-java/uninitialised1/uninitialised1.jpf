@@ -1,0 +1,2 @@
+target=uninitialised1
+ classpath=/Users/teme/Documents/GitHub/jayhorn/jayhorn/build/resources/test/cbmc-java/uninitialised1/
