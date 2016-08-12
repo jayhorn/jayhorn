@@ -25,7 +25,7 @@ import soottocfg.soot.SootToCfg;
  *
  */
 @RunWith(Parameterized.class)
-public class TrivialZ3Test {
+public class ClassicProblemsHornTest {
 
 	private static final String userDir = System.getProperty("user.dir") + "/";
 	private static final String testRoot = userDir + "src/test/resources/";
@@ -35,7 +35,7 @@ public class TrivialZ3Test {
 	@Parameterized.Parameters(name = "{index}: check ({1})")
 	public static Collection<Object[]> data() {
 		List<Object[]> filenames = new LinkedList<Object[]>();
-		final File source_dir = new File(testRoot + "horn-encoding/new_encoding");
+		final File source_dir = new File(testRoot + "horn-encoding/classics");
 		collectFileNamesRecursively(source_dir, filenames);
 		if (filenames.isEmpty()) {
 			throw new RuntimeException("Test data not found!");
@@ -58,7 +58,7 @@ public class TrivialZ3Test {
 		}
 	}
 
-	public TrivialZ3Test(File source, String name) {
+	public ClassicProblemsHornTest(File source, String name) {
 		this.sourceFile = source;
 	}
 
@@ -72,7 +72,9 @@ public class TrivialZ3Test {
 //		verifyAssertions(new Z3ProverFactory());
 //	}
 
+	
 	protected void verifyAssertions(ProverFactory factory) {
+		jayhorn.Options.v().setTimeout(60);
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
@@ -81,10 +83,9 @@ public class TrivialZ3Test {
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			Checker checker = new Checker(factory);
 			boolean result = checker.checkProgram(soot2cfg.getProgram());
-			
+
 //			Checker checker = new Checker(factory);
 //			boolean result = checker.checkProgram(soot2cfg.getProgram());
-			
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
 
@@ -97,6 +98,5 @@ public class TrivialZ3Test {
 			}
 		}	
 	}
-
-
+		
 }
