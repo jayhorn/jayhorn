@@ -126,7 +126,7 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 						entryPoints.remove(sm);
 					}
 
-					if (sc.resolvingLevel() >= SootClass.BODIES && sm.isConcrete()) {
+					if (sc.resolvingLevel() >= SootClass.BODIES && sm.isConcrete() && !sc.isLibraryClass() && !sc.isJavaLibraryClass()) {
 						// record all methods for which we found a body.
 						bodies.add((JimpleBody) sm.retrieveActiveBody());
 					}

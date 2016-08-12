@@ -35,8 +35,8 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import soot.BooleanType;
-import soot.Local;
 import soot.Modifier;
+import soot.PackManager;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
@@ -55,17 +55,16 @@ import soot.jimple.JimpleBody;
 public class SootRunner {
 
 	private final soot.options.Options sootOpt;
-	private final List<String> resolvedClassNames;
+//	private final List<String> resolvedClassNames;
 
 	public SootRunner() {
 		this(new ArrayList<String>());
 	}
 
 	public SootRunner(List<String> resolvedClassNames) {
-		this.resolvedClassNames = resolvedClassNames;
-		this.sootOpt						= soot.options.Options.v();
+//		this.resolvedClassNames = resolvedClassNames;
+		this.sootOpt = soot.options.Options.v();
 	}
-
 
 	public void run(String input, String classPath) {
 		if (null == input || input.isEmpty()) {
@@ -158,7 +157,7 @@ public class SootRunner {
 			if (classPath != null) {
 				cp += File.pathSeparatorChar + classPath;
 			}
-			
+
 			// set soot-class-path
 			sootOpt.set_soot_classpath(cp);
 			sootOpt.set_src_prec(soot.options.Options.src_prec_class);
@@ -188,7 +187,7 @@ public class SootRunner {
 		sootOpt.set_prepend_classpath(true); // -pp
 
 		sootOpt.set_output_format(soot.options.Options.output_format_none);
-		//prevent strange assertion optimization.
+		// prevent strange assertion optimization.
 		sootOpt.setPhaseOption("jop.cpf", "enabled:false");
 		sootOpt.set_allow_phantom_refs(true);
 
@@ -197,18 +196,15 @@ public class SootRunner {
 		}
 
 		// TODO: hack for the implicit entry points.
-		
-		
+
 		Scene.v().addBasicClass("java.lang.System", SootClass.SIGNATURES);
 		Scene.v().addBasicClass("java.lang.Thread", SootClass.SIGNATURES);
-		Scene.v().addBasicClass("java.lang.ThreadGroup", SootClass.SIGNATURES);
+		Scene.v().addBasicClass("java.lang.ThreadGroup", SootClass.SIGNATURES);		
 
 		Scene.v().addBasicClass("java.lang.ClassLoader", SootClass.SIGNATURES);
 		Scene.v().addBasicClass("java.security.PrivilegedActionException", SootClass.SIGNATURES);
 		Scene.v().addBasicClass("java.lang.ref.Finalizer", SootClass.SIGNATURES);
-		
-		createAssertionClass();
-		
+
 		try {
 			// redirect soot output into a stream.
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -216,22 +212,28 @@ public class SootRunner {
 			// Now load the soot classes.
 
 			Scene.v().loadBasicClasses();
-			if(resolvedClassNames.isEmpty()) { Scene.v().loadNecessaryClasses(); } else {
-				loadNecessaryClasses();
-			}
+			// if (resolvedClassNames.isEmpty()) {
+			Scene.v().loadNecessaryClasses();
+			// } else {
+			// //TODO: Is this reachable?
+			// loadNecessaryClasses();
+			// }
+			PackManager.v().runPacks();
+			createAssertionClass();
 			
 			/*
 			 * TODO: apply some preprocessing stuff like:
 			 * soot.jimple.toolkits.base or maybe the optimize option from soot.
-			 */			
+			 * TODO: NOT SURE IF THE CODE BELOW IS NECESSARY!
+			 */
 			for (SootClass sc : Scene.v().getClasses()) {
 				if (sc.resolvingLevel() < SootClass.SIGNATURES) {
 					sc.setResolvingLevel(SootClass.SIGNATURES);
 				}
 
-				if (classes.contains(sc.getName())) {
-					sc.setApplicationClass();
-				}
+//				if (classes.contains(sc.getName())) {
+//					sc.setApplicationClass();
+//				}
 			}
 
 		} catch (UnsupportedEncodingException e) {
@@ -241,12 +243,12 @@ public class SootRunner {
 		}
 	}
 
-	private void loadNecessaryClasses(){
-		for(String eachClassname : resolvedClassNames){
-			final SootClass theClass = Scene.v().loadClassAndSupport(eachClassname);
-			theClass.setApplicationClass();
-		}
-	}
+//	private void loadNecessaryClasses() {
+//		for (String eachClassname : resolvedClassNames) {
+//			final SootClass theClass = Scene.v().loadClassAndSupport(eachClassname);
+//			theClass.setApplicationClass();
+//		}
+//	}
 
 	public static final String assertionClassName = "JayHornAssertions";
 	public static final String assertionProcedureName = "super_crazy_assertion";
@@ -257,40 +259,35 @@ public class SootRunner {
 	 */
 	public static void createAssertionClass() {
 		if (Scene.v().containsClass(assertionClassName)) {
-			return; // Don't create it twice.
+			throw new RuntimeException("Don't try to call me twice!");
 		}
 		SootClass sClass = new SootClass(assertionClassName, Modifier.PUBLIC);
 		sClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
 
 		// add a static field to keep track of thrown exceptions.
-		SootClass exceptionClass = Scene.v().getSootClass("java.lang.Throwable");
-		SootField exceptionGlobal = new SootField(exceptionGlobalName, exceptionClass.getType(),
+		SootClass javaThrowableClass = Scene.v().getSootClass("java.lang.Throwable");
+		SootField exceptionGlobal = new SootField(exceptionGlobalName, javaThrowableClass.getType(),
 				Modifier.PUBLIC | Modifier.STATIC);
 		sClass.addField(exceptionGlobal);
 
 		// add a method to model assertions.
 		SootMethod internalAssertMethod = new SootMethod(assertionProcedureName,
-				Arrays.asList(new Type[] { BooleanType.v() }), VoidType.v(),
-				Modifier.PUBLIC | Modifier.STATIC);
+				Arrays.asList(new Type[] { BooleanType.v() }), VoidType.v(), Modifier.PUBLIC | Modifier.STATIC);
 		sClass.addMethod(internalAssertMethod);
 
 		JimpleBody body = Jimple.v().newBody(internalAssertMethod);
 		internalAssertMethod.setActiveBody(body);
-		Local local = Jimple.v().newLocal("$arg0", BooleanType.v());
-		body.getLocals().add(local);
-		body.getUnits().add(Jimple.v().newIdentityStmt(local, Jimple.v().newParameterRef(BooleanType.v(), 0)));
-		// TODO: throw an assertion here.
+		body.insertIdentityStmts();
 		body.getUnits().add(Jimple.v().newReturnVoidStmt());
 
-		SootMethod staticInitializer =new SootMethod(SootMethod.staticInitializerName,
-				Arrays.asList(new Type[] { }), VoidType.v(),
-				Modifier.PUBLIC | Modifier.STATIC);
+		SootMethod staticInitializer = new SootMethod(SootMethod.staticInitializerName, Arrays.asList(new Type[] {}),
+				VoidType.v(), Modifier.PUBLIC | Modifier.STATIC);
 		body = Jimple.v().newBody(staticInitializer);
 		staticInitializer.setActiveBody(body);
 		body.insertIdentityStmts();
 		body.getUnits().add(Jimple.v().newReturnVoidStmt());
 		sClass.addMethod(staticInitializer);
-		
+
 		Scene.v().addClass(sClass);
 		sClass.setApplicationClass();
 	}

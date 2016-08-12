@@ -14,6 +14,7 @@ import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
+import soot.Type;
 import soot.Unit;
 import soot.VoidType;
 import soot.jimple.Jimple;
@@ -42,7 +43,6 @@ public class MethodStubber extends AbstractSceneTransformer {
 		Set<SootMethod> invokedLibraryMethods = getInvokedLibraryMethods();
 		Set<SootClass> modifiedClasses = new HashSet<SootClass>();
 		for (SootMethod m : invokedLibraryMethods) {
-			System.err.println("Creating body for " + m.getSignature());
 			JimpleBody body = Jimple.v().newBody(m);
 			SootClass cls = m.getDeclaringClass();
 			body.insertIdentityStmts();
@@ -57,23 +57,32 @@ public class MethodStubber extends AbstractSceneTransformer {
 						Jimple.v().newInstanceFieldRef(body.getThisLocal(), dyntTypeField.makeRef()),
 						SootTranslationHelpers.v().getClassConstant(RefType.v(cls)));
 				body.getUnits().add(init);
-				//add call to super class constructor if necessary				
-				if (cls.hasSuperclass()) {					
+				// add call to super class constructor if necessary
+				if (cls.hasSuperclass()) {
 					SootMethod superConstructor = null;
 					for (SootMethod sm : cls.getSuperclass().getMethods()) {
-						if (sm.isConstructor() && sm.getParameterCount()==0) {
+						if (sm.isConstructor() && sm.getParameterCount() == 0) {
 							superConstructor = sm;
 							break;
 						}
 					}
-					if (superConstructor!=null) {						
-						SpecialInvokeExpr ivk = Jimple.v().newSpecialInvokeExpr(body.getThisLocal(), superConstructor.makeRef());
+					if (superConstructor != null) {
+						SpecialInvokeExpr ivk = Jimple.v().newSpecialInvokeExpr(body.getThisLocal(),
+								superConstructor.makeRef());
 						body.getUnits().add(Jimple.v().newInvokeStmt(ivk));
-						System.err.println("Added: "+ivk + " to " + m.getSignature());
+						System.err.println("Added: " + ivk + " to " + m.getSignature());
 					}
 				}
 			}
-			// TODO: instead of default return, we have to return HAVOC!!!!!
+
+			//havoc the exception global.
+			Type exType = SootTranslationHelpers.v().getExceptionGlobal().getType();
+			SootMethod havocCall = SootTranslationHelpers.v().getHavocMethod(exType);
+			Local havocLocal = Jimple.v().newLocal("havoc", exType);
+			body.getLocals().add(havocLocal);
+			body.getUnits().add(Jimple.v().newAssignStmt(havocLocal, Jimple.v().newStaticInvokeExpr(havocCall.makeRef())));
+			body.getUnits().add(Jimple.v().newAssignStmt(Jimple.v().newStaticFieldRef(SootTranslationHelpers.v().getExceptionGlobal().makeRef()) , havocLocal));		
+			//instead of default return, we have to return HAVOC!!!!!
 			if (m.getReturnType() instanceof VoidType) {
 				body.getUnits().add(SootTranslationHelpers.v().getDefaultReturnStatement(m.getReturnType(), m));
 			} else {
@@ -83,6 +92,7 @@ public class MethodStubber extends AbstractSceneTransformer {
 				body.getUnits().add(Jimple.v().newAssignStmt(ret, Jimple.v().newStaticInvokeExpr(havoc.makeRef())));
 				body.getUnits().add(Jimple.v().newReturnStmt(ret));
 			}
+			
 			m.setActiveBody(body);
 			cls.setApplicationClass();
 			cls.setResolvingLevel(SootClass.BODIES);
@@ -99,7 +109,7 @@ public class MethodStubber extends AbstractSceneTransformer {
 	}
 
 	public Set<SootMethod> getInvokedLibraryMethods() {
-		Set<SootMethod> invokedLibraryMethods = new HashSet<SootMethod>();		
+		Set<SootMethod> invokedLibraryMethods = new HashSet<SootMethod>();
 		for (SootClass sc : new LinkedList<SootClass>(Scene.v().getClasses())) {
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES) {
 				for (SootMethod sm : sc.getMethods()) {
@@ -125,24 +135,25 @@ public class MethodStubber extends AbstractSceneTransformer {
 				}
 			}
 		}
-		//if library methods include constructors, we also have to add the
-		//constructors of their super classes.
+		// if library methods include constructors, we also have to add the
+		// constructors of their super classes.
 		for (SootMethod sm : new HashSet<SootMethod>(invokedLibraryMethods)) {
 			if (sm.isConstructor()) {
 				SootClass dc = sm.getDeclaringClass();
-				if (dc.resolvingLevel()>=SootClass.HIERARCHY && dc.hasSuperclass()) {
+				if (dc.resolvingLevel() >= SootClass.HIERARCHY && dc.hasSuperclass()) {
 					for (SootMethod superMethod : dc.getSuperclass().getMethods()) {
 						if (superMethod.isConcrete() && superMethod.isConstructor()) {
-							//TODO: hack - we only need default constructors.
-							if (superMethod.getParameterCount()>0) continue;
+							// TODO: hack - we only need default constructors.
+							if (superMethod.getParameterCount() > 0)
+								continue;
 							invokedLibraryMethods.add(superMethod);
 						}
 					}
 				}
 			}
 		}
-		
+
 		return invokedLibraryMethods;
 	}
-	
+
 }

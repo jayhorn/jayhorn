@@ -1,7 +1,7 @@
 class A extends RuntimeException {
 }
 
-class UnsatThrows {
+class UnsatThrows2 {
 	public static void main(String[] args) {
 		RuntimeException a = new A();
 		try {

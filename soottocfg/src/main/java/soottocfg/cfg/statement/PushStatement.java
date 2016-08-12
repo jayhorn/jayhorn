@@ -12,6 +12,7 @@ import com.google.common.base.Verify;
 
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.SourceLocation;
+import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 
@@ -34,7 +35,22 @@ public class PushStatement extends Statement {
 		classConstant = c;
 		object = obj;
 		right = new LinkedList<Expression>(rhs);
-		Verify.verify(c.getAssociatedFields().length == right.size(), c.getAssociatedFields().length +"=="+ right.size());
+		if (c.getAssociatedFields().length != right.size()) {
+			StringBuilder err = new StringBuilder();
+			err.append(obj);
+			err.append(" has fields ");
+			String comma = "";
+			err.append("[");
+			for (Variable cv : c.getAssociatedFields()) {
+				err.append(comma);
+				comma = ", ";
+				err.append(cv.getName());
+			}
+			err.append("] but is assigned to ");
+			err.append(rhs);
+			Verify.verify(false, err.toString());
+		} 
+		
 	}
 
     public ClassVariable getClassSignature() {

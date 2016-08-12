@@ -301,7 +301,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			usedStaticFields = new LinkedList<SootField>();
 			ClassVariable classVar = new ClassVariable(globalsClassVarName, new LinkedList<ClassVariable>());
 			Set<Variable> fields = new LinkedHashSet<Variable>();
-			for (SootClass sc : Scene.v().getClasses()) {
+			for (SootClass sc : new LinkedList<SootClass>(Scene.v().getClasses())) {
 				if (sc.resolvingLevel() >= SootClass.BODIES) {
 					for (SootMethod sm : sc.getMethods()) {
 						try {
@@ -319,11 +319,6 @@ public class NewMemoryModel extends BasicMemoryModel {
 
 						}
 					}
-					// for (SootField sf : sc.getFields()) {
-					// if (sf.isStatic()) {
-					// fields.add(this.lookupField(sf));
-					// }
-					// }
 				}
 			}
 			List<Variable> fieldList = new LinkedList<Variable>();

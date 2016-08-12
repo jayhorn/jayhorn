@@ -206,6 +206,7 @@ public class SootToCfg {
 					continue;
 				}
 				SootTranslationHelpers.v().setCurrentMethod(sm);
+				
 				try {
 					Body body = null;
 					try {
@@ -224,6 +225,7 @@ public class SootToCfg {
 						((NewMemoryModel) mm).clearFieldToLocalMap();
 					}
 
+					System.err.println(sm.getSignature()+"\n"+body);
 					SootStmtSwitch ss = new SootStmtSwitch(body, mi);
 					mi.setSource(ss.getEntryBlock());
 
@@ -252,7 +254,7 @@ public class SootToCfg {
 //			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
 //				continue; // no need to process this guy.
 //			}
-			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
+			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass() && !sc.isJavaLibraryClass() && !sc.isLibraryClass()) {
 				constructCfg(sc);
 			}
 		}
@@ -332,25 +334,6 @@ public class SootToCfg {
 									locations.add(SootTranslationHelpers.v().getSourceLocation(u));
 								}
 							}
-
-//							// first reconstruct the assertions.
-//							AssertionReconstruction ar = new AssertionReconstruction();
-//							ar.transform(body);
-//
-//							// make the exception handling explicit
-//							ExceptionTransformer em = new ExceptionTransformer(
-//									new NullnessAnalysis(new CompleteUnitGraph(body)),
-//									createAssertionsForUncaughtExceptions);
-//							em.transform(body);
-//
-//							// replace all switches by sets of IfStmt
-//							SwitchStatementRemover so = new SwitchStatementRemover();
-//							so.transform(body);
-//
-//							if (resolveVirtualCalls) {
-//								VirtualCallResolver vc = new VirtualCallResolver();
-//								vc.transform(body);
-//							}
 						} catch (RuntimeException e) {
 							e.printStackTrace();
 							throw new RuntimeException("Behavior preserving transformation failed " + sm.getSignature()
