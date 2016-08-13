@@ -495,7 +495,7 @@ public class Checker {
 				 * Martin's hack to handle the substype problem =============
 				 */
 				final Set<ClassVariable> possibleTypes = ppOrdering.getBrutalOverapproximationOfPossibleType(us);
-				final List<ProverExpr> invariantDisjunction = new LinkedList<ProverExpr>();
+//				final List<ProverExpr> invariantDisjunction = new LinkedList<ProverExpr>();
 				for (ClassVariable sig : possibleTypes) {
 					System.err.println("Possible type "+sig.getName() + " of " +us.getClassSignature().getName());
 					final ProverFun inv = getClassInvariant(p, sig);
@@ -523,7 +523,7 @@ public class Checker {
 								getProverType(sig.getAssociatedFields()[cnt-1].getType() ));
 						invArgs[cnt++] = lhsExpr;
 					}
-					invariantDisjunction.add(inv.mkExpr(invArgs));
+//					invariantDisjunction.add(inv.mkExpr(invArgs));
 					
 					final ProverExpr invAtom = inv.mkExpr(invArgs);
 					final ProverExpr postAtom = instPredicate(postPred, postVars);
@@ -654,6 +654,12 @@ public class Checker {
 					} else {
 						throw new RuntimeException("instanceof is only supported for concrete types");
 					}
+				case And:
+					return p.mkAnd(left, right);
+				case Or:
+					return p.mkOr(left, right);
+				case Implies:
+					return p.mkImplies(left, right);
 				case Shl:
 				case Shr:
 				case BAnd:

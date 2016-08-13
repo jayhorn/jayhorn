@@ -40,6 +40,7 @@ import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.Method;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.memory_model.NewMemoryModel;
+import soottocfg.soot.memory_model.PushIdentifierAdder;
 import soottocfg.soot.memory_model.PushPullSimplifier;
 import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.transformers.AssertionReconstruction;
@@ -149,6 +150,12 @@ public class SootToCfg {
 		pps.simplify(program);
 		if (outDir != null)
 			writeFile(".simpl.cfg", program.toString());
+		
+		// add push IDs
+//		PushIdentifierAdder pia = new PushIdentifierAdder();
+//		pia.addIDs(program);
+//		if (outDir != null)
+//			writeFile(".ids.simpl.cfg", program.toString());
 
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();

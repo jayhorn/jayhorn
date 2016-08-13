@@ -43,6 +43,10 @@ public class PullStatement extends Statement {
 		return left;
 	}
 	
+    public void addGhostField(IdentifierExpression e) {
+    	left.add(e);
+    }
+	
     public ClassVariable getClassSignature() {
         return classConstant;
     }

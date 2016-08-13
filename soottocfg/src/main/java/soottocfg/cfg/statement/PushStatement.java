@@ -26,7 +26,10 @@ public class PushStatement extends Statement {
 	private final ClassVariable classConstant;
 	private final IdentifierExpression object;
 	private final List<Expression> right;
-
+	
+	private final int id;	
+	private static int nextID = 0;
+	
 	/**
 	 * @param loc
 	 */
@@ -50,9 +53,14 @@ public class PushStatement extends Statement {
 			err.append(rhs);
 			Verify.verify(false, err.toString());
 		} 
-		
+		id = nextID();
 	}
 
+	// had to put this in a method to silence findBugs...
+	private int nextID() {
+		return ++nextID;
+	}
+	
     public ClassVariable getClassSignature() {
         return classConstant;
     }
@@ -64,7 +72,15 @@ public class PushStatement extends Statement {
     public List<Expression> getRight() {
         return right;
     }
-
+    
+    public int getID() {
+    	return id;
+    }
+    
+    public void addGhostField(Expression e) {
+    	right.add(e);
+    }
+    
 	@Override
 	public Set<IdentifierExpression> getUseIdentifierExpressions() {
 		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
@@ -101,6 +117,7 @@ public class PushStatement extends Statement {
 		return sb.toString();
 	}
 
+	// TODO check where this is used and what to do with ID
 	@Override
 	public Statement deepCopy() {
 		List<Expression> rightCopy = new LinkedList<Expression>();

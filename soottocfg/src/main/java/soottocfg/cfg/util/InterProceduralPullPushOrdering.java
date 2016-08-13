@@ -36,12 +36,12 @@ public class InterProceduralPullPushOrdering {
 	private Map<Method, Pair<FixedPointObject, FixedPointObject>> methodEntryExit;
 
 	static class FixedPointObject {
-		public final Set<PushStatement> relevantBefore = new HashSet<PushStatement>();
-		public final Set<PushStatement> relevantAfter = new HashSet<PushStatement>();
+//		public final Set<PushStatement> relevantBefore = new HashSet<PushStatement>();
+//		public final Set<PushStatement> relevantAfter = new HashSet<PushStatement>();
 		public Optional<Statement> stmt = Optional.absent();
 		public Method containingMethod = null;
 		// public CfgBlock containingCfgBlock = null;
-
+		public final Set<PushStatement> pushes = new HashSet<PushStatement>();
 	}
 
 	private Map<PullStatement, FixedPointObject> pullMap = new HashMap<PullStatement, FixedPointObject>();
@@ -68,7 +68,7 @@ public class InterProceduralPullPushOrdering {
 		sb.append("Listing pushs that may influence:\n  ");
 		sb.append(pull);
 		sb.append("\n");
-		for (FixedPointObject fpo : getPushsInfluencing(pull)) {
+		for (FixedPointObject fpo : getFPOsInfluencing(pull)) {
 			sb.append("\t");
 			sb.append(fpo.stmt);
 			sb.append("\tin Method");
@@ -120,7 +120,16 @@ public class InterProceduralPullPushOrdering {
 		return usedSubtypes;
 	}
 
-	public Set<FixedPointObject> getPushsInfluencing(PullStatement pull) {
+	public Set<PushStatement> getPushsInfluencing(PullStatement pull) {
+		Set<PushStatement> ret = new HashSet<PushStatement>();
+		Set<FixedPointObject> fpos = getFPOsInfluencing(pull);
+		for (FixedPointObject fpo : fpos) {
+			ret.addAll(fpo.pushes);
+		}
+		return ret;
+	}
+	
+	private Set<FixedPointObject> getFPOsInfluencing(PullStatement pull) {
 
 		Set<FixedPointObject> ret = new HashSet<FixedPointObject>();
 
@@ -186,6 +195,8 @@ public class InterProceduralPullPushOrdering {
 				fpo = new FixedPointObject();
 				ipgraph.addVertex(fpo);
 			}
+			
+			fpo.pushes.addAll(getPushes(cur));
 
 			// create the subgraph from the current cfg block
 			entryFpo.put(cur, fpo);
@@ -224,6 +235,15 @@ public class InterProceduralPullPushOrdering {
 		if (method.edgeSet().isEmpty()) {
 			// in case the method has no body.
 			ipgraph.addEdge(fpEntry, fpExit);
+		}
+		return ret;
+	}
+	
+	private Set<PushStatement> getPushes(CfgBlock b) {
+		Set<PushStatement> ret = new HashSet<PushStatement>();
+		for (Statement s : b.getStatements()) {
+			if (s instanceof PushStatement)
+				ret.add((PushStatement) s);
 		}
 		return ret;
 	}

@@ -71,6 +71,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		location = loc;
 		methodName = uniqueName;
 		returnTypes = outTypes;
+		locals = new HashSet<Variable>();
 		this.parameterList = Collections.unmodifiableList(params);
 	}
 
