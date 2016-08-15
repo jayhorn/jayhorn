@@ -32,6 +32,7 @@ import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverType;
 import jayhorn.util.CfgStubber;
+import jayhorn.hornify.Hornify;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Program;
@@ -308,7 +309,7 @@ public class Checker {
 			// are later needed for the post-conditions
 			allArgs.addAll(methodPreVariables);
 			allArgs.addAll(sortedVars);
-			return genHornPredicate(p, name, allArgs);
+			return genHornPredicate(p, method.getMethodName() + "_" + name, allArgs);
 		}
 
 		private ProverType getProverType(Type t) {
@@ -784,41 +785,13 @@ public class Checker {
 				final MethodEncoder encoder = new MethodEncoder(p, program, method);
 				encoder.encode();
 				clauses.addAll(encoder.clauses);
-
-				// print Horn clauses
-				if (jayhorn.Options.v().getPrintHorn()) {
-					// Log.info("\tNumber of clauses: " +
-					// encoder.clauses.size());
-					for (ProverHornClause clause : encoder.clauses)
-						Log.info("\t\t" + clause);
-				}
 			}
 
-			// write Horn clauses to file
-			String outDir = jayhorn.Options.v().getOutDir();
-			if (outDir != null) {
-				String outBasename = jayhorn.Options.v().getOutBasename();
-				Path file = Paths.get(outDir + outBasename + ".horn");
-				LinkedList<String> it = new LinkedList<String>();
-				for (ProverHornClause clause : clauses)
-					it.add("\t\t" + clause);
-				try {
-					Path parent = file.getParent();
-					if (parent != null)
-						Files.createDirectories(parent);
-					Files.write(file, it, Charset.forName("UTF-8"));
-				} catch (Exception e) {
-					System.err.println("Error writing file " + file);
-				}
-			}
-
+                        int verifCount = 0;
 			for (Method method : program.getEntryPoints()) {
 				Log.info("\tVerification from entry " + method.getMethodName());
 				// Log.info("\t Number of clauses: " + clauses.size());
 				p.push();
-
-				for (ProverHornClause clause : clauses)
-					p.addAssertion(clause);
 
 				// add an entry clause from the preconditions
 				final HornPredicate entryPred = methodContracts.get(method.getMethodName()).precondition;
@@ -827,8 +800,25 @@ public class Checker {
 				createVarMap(p, entryPred.variables, entryVars, varMap);
 
 				final ProverExpr entryAtom = entryPred.predicate.mkExpr(entryVars.toArray(new ProverExpr[0]));
+                                final ProverHornClause entryClause =
+                                    p.mkHornClause(entryAtom, new ProverExpr[0], p.mkLiteral(true));
 
-				p.addAssertion(p.mkHornClause(entryAtom, new ProverExpr[0], p.mkLiteral(true)));
+                                clauses.add(entryClause);
+
+				// print Horn clauses
+				if (jayhorn.Options.v().getPrintHorn()) {
+                                    // Log.info("\tNumber of clauses: " +
+                                    // encoder.clauses.size());
+                                    for (ProverHornClause clause : clauses)
+                                        Log.info("\t\t" + clause);
+				}
+
+                                // write Horn clauses to file
+                                Hornify.hornToSMTLIBFile(clauses, verifCount, p);
+                                Hornify.hornToFile(clauses, verifCount);
+
+				for (ProverHornClause clause : clauses)
+					p.addAssertion(clause);
 
 				// result = p.checkSat(true);
 				if (jayhorn.Options.v().getTimeout() > 0) {
@@ -840,7 +830,11 @@ public class Checker {
 					result = p.checkSat(true);
 				}
 
+                                clauses.remove(clauses.size() - 1);
+
 				p.pop();
+
+                                ++verifCount;
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();

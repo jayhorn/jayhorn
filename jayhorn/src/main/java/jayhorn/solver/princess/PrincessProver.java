@@ -63,6 +63,9 @@ import scala.util.Either;
 
 public class PrincessProver implements Prover {
 
+        private static final boolean EldaricaDebug = false;
+        private static final boolean EldaricaTemplates = false;
+
 	private SimpleAPI api;
 
 	public PrincessProver() {
@@ -331,9 +334,10 @@ public class PrincessProver implements Prover {
 				for (HornExpr clause : assertedClauses)
 					clauses.$plus$eq(clause.clause);
 
+                                lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
 				final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
-						scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(), false, false);
-				//System.out.println(result);
+						scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(), EldaricaTemplates, EldaricaDebug);
+				System.out.println(result);
 				if (result.isLeft())
 					return ProverResult.Sat;
 				else
@@ -361,8 +365,9 @@ public class PrincessProver implements Prover {
 			final ArrayBuffer<HornClauses.Clause> clauses = new ArrayBuffer<HornClauses.Clause>();
 			for (HornExpr clause : hornClauses)
 				clauses.$plus$eq(clause.clause);
+                        lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
 			final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
-					scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(), false, false);
+					scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(), EldaricaTemplates, EldaricaDebug);
 			if (result.isLeft())
 				this.status = ProverResult.Sat;
 			else
@@ -600,5 +605,21 @@ public class PrincessProver implements Prover {
 	public String toString() {
 		return "Princess";
 	}
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Some functions for outputing SMT-LIB
+
+    public String toSMTLIBDeclaration(ProverFun fun) {
+        if (fun instanceof PredicateFun) {
+            final PredicateFun predFun = (PredicateFun)fun;
+            return predFun.toSMTLIBDeclaration();
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public String toSMTLIBFormula(ProverHornClause clause) {
+        return ((HornExpr)clause).toSMTLIBFormula();
+    }
 
 }
