@@ -52,7 +52,7 @@ public class PushStatement extends Statement {
 			err.append("] but is assigned to ");
 			err.append(rhs);
 			Verify.verify(false, err.toString());
-		} 
+		}
 		id = nextID();
 	}
 

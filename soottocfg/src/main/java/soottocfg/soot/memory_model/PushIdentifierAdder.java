@@ -17,7 +17,6 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
@@ -33,7 +32,7 @@ public class PushIdentifierAdder {
 	
 	private static boolean debug = true;
 	
-	private static String LP = "lastpush";
+	public final static String LP = "lastpush";
 	
 	public void addIDs(Program p) {
 		addGhostFieldToClasses(p);
@@ -43,7 +42,7 @@ public class PushIdentifierAdder {
 	private void addGhostFieldToClasses(Program p) {
 		Set<ClassVariable> cvs = p.getClassVariables();
 		for (ClassVariable cv : cvs) {
-			Variable lastpush = new Variable("lastpush", IntType.instance());
+			Variable lastpush = new Variable(LP, IntType.instance());
 			cv.addGhostField(lastpush);
 		}
 	}
@@ -59,7 +58,7 @@ public class PushIdentifierAdder {
 			
 			if (debug) {
 				System.out.println("Adding IDs to method " + m.getMethodName());
-				System.out.println(m);
+//				System.out.println(m);
 			}
 			
 			// Add "lastpush" local
@@ -87,7 +86,6 @@ public class PushIdentifierAdder {
 			for (CfgBlock b : blocks) {
 				
 				List<Statement> stmts = b.getStatements();
-				int added = 0;
 				
 				for (int i = 0; i < stmts.size(); i++) {
 					Statement s = stmts.get(i);

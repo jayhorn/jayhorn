@@ -18,6 +18,7 @@ import jayhorn.checker.Checker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.test.Util;
+import scala.actors.threadpool.Arrays;
 import soottocfg.soot.SootToCfg;
 
 /**
@@ -46,6 +47,7 @@ public class SimpleHornTest {
 	private static void collectFileNamesRecursively(File file, List<Object[]> filenames) {
 		File[] directoryListing = file.listFiles();
 		if (directoryListing != null) {
+			Arrays.sort(directoryListing);
 			for (File child : directoryListing) {
 				if (child.isFile() && child.getName().endsWith(".java")) {
 					filenames.add(new Object[] { child, child.getName() });

@@ -77,7 +77,6 @@ public class ClassVariable extends Variable  {
 				todo.addAll(cv.getParents());
 			}
 		}
-		System.out.println(this + " is not a subclass of " + cls);
 		return false;
 	}
 	

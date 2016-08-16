@@ -83,10 +83,6 @@ public class FailingTests {
 			jayhorn.Options.v().setPrintHorn(true);
 			Checker checker = new Checker(factory);
 			boolean result = checker.checkProgram(soot2cfg.getProgram());
-			
-//			Checker checker = new Checker(factory);
-//			boolean result = checker.checkProgram(soot2cfg.getProgram());
-			
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
 

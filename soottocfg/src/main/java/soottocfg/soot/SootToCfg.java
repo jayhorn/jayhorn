@@ -38,6 +38,7 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.util.CfgStubber;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.memory_model.PushIdentifierAdder;
@@ -145,6 +146,9 @@ public class SootToCfg {
 		if (outDir != null)
 			writeFile(".cfg", program.toString());
 
+		CfgStubber stubber = new CfgStubber();
+		stubber.stubUnboundFieldsAndMethods(program);
+		
 		// simplify push-pull
 		PushPullSimplifier pps = new PushPullSimplifier();
 		pps.simplify(program);

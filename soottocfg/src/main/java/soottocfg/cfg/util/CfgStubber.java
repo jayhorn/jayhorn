@@ -1,7 +1,7 @@
 /**
  * 
  */
-package jayhorn.util;
+package soottocfg.cfg.util;
 
 import java.util.LinkedList;
 import java.util.List;
