@@ -14,6 +14,7 @@ import java.util.concurrent.TimeoutException;
 
 import ap.SimpleAPI;
 import ap.SimpleAPI.ProverStatus$;
+import ap.DialogUtil$;
 import ap.basetypes.IdealInt$;
 import ap.parser.ConstantSubstVisitor$;
 import ap.parser.IAtom;
@@ -38,6 +39,7 @@ import ap.parser.PredicateSubstVisitor$;
 import ap.parser.SymbolCollector$;
 import ap.terfor.ConstantTerm;
 import ap.terfor.preds.Predicate;
+import jayhorn.Log;
 import jayhorn.solver.ArrayType;
 import jayhorn.solver.BoolType;
 import jayhorn.solver.IntType;
@@ -337,11 +339,27 @@ public class PrincessProver implements Prover {
                                 lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
 				final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
 						scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(), EldaricaTemplates, EldaricaDebug);
-				System.out.println(result);
-				if (result.isLeft())
+
+				if (result.isLeft()) {
 					return ProverResult.Sat;
-				else
+				} else {
+                                        Log.info("Counterexample:\n" +
+                                          DialogUtil$.MODULE$.asString
+                                          (new scala.runtime.AbstractFunction0<Integer>() {
+                                             public Integer apply() {
+                                               Dag<IAtom> simpDag =
+                                                 result.right().get().map(
+                                                   new scala.runtime.AbstractFunction1<Tuple2<IAtom, Clause>, IAtom>() {
+                                                     public IAtom apply(Tuple2<IAtom, Clause> p) {
+                                                       return p._1();
+                                                     }
+                                                   });
+                                               simpDag.prettyPrint();
+                                               return 0;
+                                             }
+                                           }));
 					return ProverResult.Unsat;
+                                }
 			} else {
 				this.executor = Executors.newSingleThreadExecutor();
 				this.thread = new PrincessSolverThread(assertedClauses);
