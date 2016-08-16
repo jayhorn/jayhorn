@@ -232,7 +232,7 @@ public class SootToCfg {
 						((NewMemoryModel) mm).clearFieldToLocalMap();
 					}
 
-					System.err.println(sm.getSignature()+"\n"+body);
+//					System.err.println(sm.getSignature()+"\n"+body);
 					SootStmtSwitch ss = new SootStmtSwitch(body, mi);
 					mi.setSource(ss.getEntryBlock());
 

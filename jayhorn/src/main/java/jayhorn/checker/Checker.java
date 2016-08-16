@@ -498,7 +498,7 @@ public class Checker {
 				final Set<ClassVariable> possibleTypes = ppOrdering.getBrutalOverapproximationOfPossibleType(us);
 //				final List<ProverExpr> invariantDisjunction = new LinkedList<ProverExpr>();
 				for (ClassVariable sig : possibleTypes) {
-					System.err.println("Possible type "+sig.getName() + " of " +us.getClassSignature().getName());
+//					System.err.println("Possible type "+sig.getName() + " of " +us.getClassSignature().getName());
 					final ProverFun inv = getClassInvariant(p, sig);
 
 					int totalFields = Math.max(sig.getAssociatedFields().length, lhss.size());
@@ -780,7 +780,7 @@ public class Checker {
 			List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
 			for (Method method : program.getMethods()) {
-				System.err.println(method);
+//				System.err.println(method);
 
 				final MethodEncoder encoder = new MethodEncoder(p, program, method);
 				encoder.encode();

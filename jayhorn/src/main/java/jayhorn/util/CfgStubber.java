@@ -57,7 +57,7 @@ public class CfgStubber {
 							Variable undefLocal = new Variable("undef_field" + (i++), IntType.instance());
 							rhs.add(new IdentifierExpression(loc, undefLocal));
 						}
-						System.err.println("********* "+v);						
+//						System.err.println("********* "+v);						
 					}
 					PushStatement pack = new PushStatement(loc, rt.getClassVariable(), new IdentifierExpression(loc, thisPointer), rhs);
 					block.addStatement(pack);
