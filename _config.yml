@@ -1,8 +1,8 @@
 # Site settings
 title: "Lab Notes"
 description: "What we learned while building JayHorn."
-baseurl: ""
-url: "http://jayhorn.github.io/jayhorn"
+baseurl: "jayhorn"
+url: "http://jayhorn.github.io/"
 
 # Build settings
 markdown: kramdown
