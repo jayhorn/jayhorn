@@ -15,4 +15,4 @@ First, we looked at what’s out there. In particular for C, there is a set of t
    
    * Use a reasoning engine to prove the desired property and compute a certificate that the property holds or a counterexample that shows how it can be violated. Read more [here]( {{ site.github.url }}{% post_url 2016-08-07-checking-horn %} ).
    
-   
+A more detailed overview with related work and a few nice pictures can be found in our CAV 2016 [tool paper](http://martinschaef.github.io/website/papers/cav2016.pdf).

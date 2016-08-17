@@ -32,7 +32,7 @@ Can now be written as:
 
 ```java
 public void foo(MyObject obj) {
-  Int x,y,z = pull(obj);
+  int x,y,z = pull(obj);
   x=1; y++; z=3;
   push(obj, x, y, z);
 }
@@ -46,17 +46,9 @@ The analogy to git also introduces another important concepts: invariants. In gi
 
 Here is where our story diverges a bit from git: in this basic encoding we assume that there is one invariant to describe an object on the heap and that this invariant never changes. So speaking in the language of git, a push is more like a pull request and we assume that all developers have a gentleman's agreement (the invariant) to ensure that all pull requests could be merged in an arbitrary order without conflicts. 
 
-We can use pull and push to express all interactions with the heap. Hence, all other statements in our program will only operate on local variables. When translating our program into Horn clauses, we introduce an uninterpreted predicate symbol that represents the invariant for each class. A pull statement of an object is then represented as an assume of this invariant in the Horn clause. A push asserts the invariant. For our example from above:
+We give a more detailed explanation on how we introduce `pull` and `push` statements and how we minimize their usage in this [post]( {{ site.github.url }}{% post_url 2016-08-04-moving-pull-and-push %} ).
 
-```java
-class MyObject {
-  public int x,y,z;
-}
-```
+We can use pull and push to express all interactions with the heap. Hence, all other statements in our program will only operate on local variables. The next step how to get from here to Horn clauses is discussed [here]( {{ site.github.url }}{% post_url 2016-08-07-checking-horn %} ).
 
-Our invariant would be represented by an invariant:
-invMyObject(this, x, y, z)
-Where the first `this` field is used to refer to a particular instance of this object.
 
-*TODO*
 

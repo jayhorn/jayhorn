@@ -5,7 +5,11 @@ date:   2016-08-02 00:01:00
 categories: jekyll
 ---
 
-The first step rewrites the program without changing its behavior. Tools based on C/C++ usually use Clang and LLVM for this step which comes with a built in set of transformations that can get the program into a somewhat “canonical” form. For Java, we have a few frameworks to choose from: Soot and Wala are high level framework that come with a lot of off-the-shelf algorithms. For people with a lot of time, there is also ASM and BCEL to modify bytecode with your bare hands. We decided to use Soot, mostly because we had prior experience with it. Wala probably would have worked equally well.
+As discussed in our overview [post]( {{ site.github.url }}{% 2016-08-01-model-checking-java %} ), the first of building a software model checker usually is to simplify the program as much as possible without changing its behavior. 
+
+Everything that we can simplify without changing the behavior of the program can be tested easily. We can simply run both versions and make sure that their output is the same. This is extremely useful because it is very easy to get code transformations wrong and testable transformations and not only less likely to have bugs, they are also a lot easier to debug. So let's spend some time to simplify the program.
+
+Tools based on C/C++ usually use Clang and LLVM for this step which comes with a built in set of transformations that can get the program into a somewhat “canonical” form. For Java, we have a few frameworks to choose from: Soot and Wala are high level framework that come with a lot of off-the-shelf algorithms. For people with a lot of time, there is also ASM and BCEL to modify bytecode with your bare hands. We decided to use Soot, mostly because we had prior experience with it. Wala probably would have worked equally well.
 Soot parses the class files of a Java program for us and produces [Jimple]("https://en.wikipedia.org/wiki/Soot_(software)") representation. Jimple already simplifies the many bytecode operations to 15 simple operations. Still, before we can start proving properties of Java code, we have to get rid of all that implicit control-flow introduced by exceptions and virtual calls. 
 
 Let’s look at the following example:
