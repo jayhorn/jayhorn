@@ -30,7 +30,7 @@ title: Home
     {% endif %}
 
     {% if paginator.next_page %}
-      <a class="page-link" href="{{ paginator.next_page_path  }}">nxt</a>
+      <a class="page-link" href="{{ paginator.next_page_path | replace: site.url, site.github.url }}">nxt</a>
     {% else %}
       <span class="page-link">nxt</span>
     {% endif %}

@@ -7,7 +7,7 @@ url: "http://jayhorn.github.io/"
 # Build settings
 markdown: kramdown
 permalink: pretty
-highlighter: pygments
+highlighter: rouge
 paginate_path: "/blog/page:num"
 paginate: 3
 
