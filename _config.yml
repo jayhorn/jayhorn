@@ -2,7 +2,7 @@
 title: "This is so random"
 description: "No idea why it doesn't update."
 baseurl: ""
-url: "jayhorn.github.io/jayhorn"
+url: "jayhorn.github.io/jayhorn/"
 
 # Build settings
 markdown: kramdown
