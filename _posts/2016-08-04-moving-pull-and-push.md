@@ -9,4 +9,4 @@ Go back to [Pull and Push]({{ site.github.url }}{% post_url 2016-08-03-pull-and-
 
 Go back to [intermediate language]({{ site.github.url }}{% post_url 2016-08-08-intermediate-language %}).
 
-Go back to [overview]( {{ site.github.url }}{% 2016-08-01-model-checking-java %} )
+Go back to [overview]( {{ site.github.url }}{% post_url 2016-08-01-model-checking-java %} )

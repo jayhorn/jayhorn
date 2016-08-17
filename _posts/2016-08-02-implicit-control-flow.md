@@ -5,7 +5,7 @@ date:   2016-08-02 00:01:00
 categories: jekyll
 ---
 
-As discussed in our overview [post]( {{ site.github.url }}{% 2016-08-01-model-checking-java %} ), the first of building a software model checker usually is to simplify the program as much as possible without changing its behavior. 
+As discussed in our overview [post]( {{ site.github.url }}{% post_url 2016-08-01-model-checking-java %} ), the first of building a software model checker usually is to simplify the program as much as possible without changing its behavior. 
 
 Everything that we can simplify without changing the behavior of the program can be tested easily. We can simply run both versions and make sure that their output is the same. This is extremely useful because it is very easy to get code transformations wrong and testable transformations and not only less likely to have bugs, they are also a lot easier to debug. So let's spend some time to simplify the program.
 
