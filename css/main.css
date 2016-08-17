@@ -1,0 +1,136 @@
+body {
+  font-family: monospace;
+  line-height:150%;
+  margin: 80px 0px;
+  background: url("../images/bg.png")
+}
+
+.container {
+  background: #ffe;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  margin: 100px auto 0;
+  max-width: 400px;
+  min-height: 300px;
+  padding: 200px;
+  position: relative;
+  width: 80%;
+}
+
+.container:before, .container:after {
+  content: "";
+  height: 98%;
+  position: absolute;
+  width: 100%;
+  z-index: -1;
+}
+
+.container:before {
+  background: #ffe;
+  box-shadow: 0 0 8px rgba(0,0,0,0.5);
+  left: -5px;
+  top: 4px;
+  transform: rotate(-2.5deg);
+}
+
+.container:after {
+  background: #ffe;
+  box-shadow: 0 0 3px rgba(0,0,0,0.5);
+  right: -3px;
+  top: 1px;
+  transform: rotate(1.4deg);
+}
+
+/* links */
+a:link, a:visited, a:active, a:hover {
+  color: #C00;
+  text-decoration: none;
+}
+
+/* menu */
+.page-link {
+  font-weight: bold;
+}
+
+a.page-link:hover {
+  border-bottom: 4px solid #C00;
+}
+
+.navlist {
+  padding: 0px 0px;
+}
+
+.navlist > li {
+  display: inline;
+  list-style-type: none;
+  padding-right: 10px;
+}
+
+/* headings */
+h1, h2, h3, h4, h5, h6 {
+  font-size: 1em;
+}
+
+h1 {
+  text-transform: uppercase;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+h2 {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+h3 {
+  font-weight: bold;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 100px;
+}
+
+.header > h1 {
+  letter-spacing: 10px;
+  margin-bottom: 10px;
+  text-decoration: none;
+  text-shadow: 1px 0px 1px #444;
+}
+
+/* posts */
+.posts {
+  padding-left: 0px;
+}
+
+.posts > li {
+  list-style-type: none;
+  margin: 80px 0px;
+}
+
+/* code blocks */
+.highlight, blockquote {
+  margin: 40px 0px;
+  padding: 0px 20px;
+  border-left-style: solid;
+}
+
+/* footer */
+footer {
+  margin-top: 100px;
+  text-align: center;
+}
+
+/* pagination */
+.pagination {
+  text-align: center;
+}
+
+.pagination > a, .pagination > span {
+  margin: 40px 10px;
+}
+
+/* continue reading */
+.continue {
+  text-align: center;
+  margin-top: 40px;
+}

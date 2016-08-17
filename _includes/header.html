@@ -1,0 +1,20 @@
+<div class="header">
+    <h1>
+        <a style="color: #000;" href="{{ site.baseurl }}/">{{ site.title }}</a>
+    </h1>
+    <p class="sub">
+        {{ site.description }}
+    </p>
+
+    <div class="menu">
+        <ul class="navlist">
+            {% for link in site.links %}
+            <li>
+                <a class="page-link" href="{{ link.url | prepend: site.baseurl }}">{{ link.title }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+

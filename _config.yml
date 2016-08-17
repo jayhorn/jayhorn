@@ -1,0 +1,22 @@
+# Site settings
+title: "This is so random"
+description: "No idea why it doesn't update."
+baseurl: ""
+url: "jayhorn.github.io/jayhorn"
+
+# Build settings
+markdown: kramdown
+permalink: pretty
+highlighter: pygments
+paginate_path: "/blog/page:num"
+paginate: 3
+
+
+# Links
+links:
+  - title: "home"
+    url: /
+  - title: "about"
+    url: http://twitter.com/alixedi
+  - title: "rss"
+    url: /feed.xml
