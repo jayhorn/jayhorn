@@ -23,14 +23,14 @@ title: Home
       {% if page == 2 %}
         <a class="page-link" href="{{ 'blog.html' | replace: '//', '/' | replace: ':num', page }}">prv</a>
       {% else %}
-        <a class="page-link" href="{{ paginator.previous_page_path |  replace: '//', '/' }}">prv</a>
+        <a class="page-link" href="{{ paginator.previous_page_path |  prepend: 'jayhorn/' | replace: '//', '/' }}">prv</a>
       {% endif %}
     {% else %}
       <span class="page-link">prv</span>
     {% endif %}
 
     {% if paginator.next_page %}
-      <a class="page-link" href="{{ paginator.next_page_path |  replace: '//', '/' }}">nxt</a>
+      <a class="page-link" href="{{ paginator.next_page_path | prepend: 'jayhorn/' | replace: '//', '/' }}">nxt</a>
     {% else %}
       <span class="page-link">nxt</span>
     {% endif %}

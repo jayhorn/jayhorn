@@ -15,8 +15,8 @@ paginate: 3
 # Links
 links:
   - title: "home"
-    url: /
+    url: /blog
   - title: "github"
-    url: http://jayhorn.github.io/jayhorn
+    url: /
   - title: "rss"
     url: /feed.xml

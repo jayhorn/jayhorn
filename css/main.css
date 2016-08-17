@@ -8,8 +8,8 @@ body {
 .container {
   background: #ffe;
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  margin: 100px auto 0;
-  max-width: 500px;
+  margin: 50px auto 0;
+  max-width: 450px;
   min-height: 300px;
   padding: 200px;
   position: relative;
