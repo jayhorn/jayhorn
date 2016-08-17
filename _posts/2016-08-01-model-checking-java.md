@@ -9,11 +9,10 @@ So we decided to build a model checker for Java programs. The first thing you ne
 
 First, we looked at what’s out there. In particular for C, there is a set of tools, and even a [tool competition](https://sv-comp.sosy-lab.org/ ). All these tools share a basic organization into three steps: 
 
-   * Parse the input program and simplify it as much as possible. Read more [here]({% post_url 2016-08-02-implicit-control-flow %}).
+   * Parse the input program and simplify it as much as possible. Read more [here]({{ site.github.url }}{% post_url 2016-08-02-implicit-control-flow %}).
 
-   * Translate the simplified program and the property that needs to be verified into an intermediate form that makes various lemmas about the language explicit.
+   * Translate the simplified program and the property that needs to be verified into an intermediate form that makes various lemmas about the language explicit. Read more [here]( {{ site.github.url }}{% post_url 2016-08-08-intermediate-language %} ).
    
-   * Use a reasoning engine to prove the desired property and compute a certificate that the property holds or a counterexample that shows how it can be violated. Read more [here]({% post_url 2016-08-07-checking-horn %}).
+   * Use a reasoning engine to prove the desired property and compute a certificate that the property holds or a counterexample that shows how it can be violated. Read more [here]( {{ site.github.url }}{% post_url 2016-08-07-checking-horn %} ).
    
-
-
+   

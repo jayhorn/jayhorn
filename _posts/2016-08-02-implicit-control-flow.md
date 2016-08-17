@@ -96,3 +96,5 @@ For programs where this becomes a problem, a points-to analysis can help to get 
 Another option is to replace the virtual call by a call to a method that is treated as something abstract by the verifier. But we will discuss that in a different article. 
 
 Now we have eliminated most implicit control-flow and can start thinking about translating the transformed program into our intermediate verification language which we discuss in the next section. Note that, even if we did some good work so far, we are not done yet. There is still things like static initializers, implicit initialization of fields, or calls to library methods that needs to be handled. However, we will ignore these problems for now and first look into our intermediate representation for verification.
+
+In a future [post]( {{ site.github.url }}{% post_url 2016-08-08-intermediate-language %} ) we discuss how to get from this simplified version of Java into an intermediate representation that is suitable for verification.
