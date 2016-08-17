@@ -1,6 +1,6 @@
 # Site settings
-title: "This is so random"
-description: "No idea why it doesn't update."
+title: "Lab Notes"
+description: "What we learned while building JayHorn."
 baseurl: ""
 url: "http://jayhorn.github.io/jayhorn"
 
@@ -16,7 +16,7 @@ paginate: 3
 links:
   - title: "home"
     url: /
-  - title: "about"
-    url: http://twitter.com/alixedi
+  - title: "github"
+    url: http://jayhorn.github.io/jayhorn
   - title: "rss"
     url: /feed.xml
