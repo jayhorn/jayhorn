@@ -83,6 +83,7 @@ public class HornRegressionTest {
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg(false, true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
+//			jayhorn.Options.v().setPrintHorn(true);
 			Checker checker = new Checker(factory);
 			boolean result = checker.checkProgram(soot2cfg.getProgram());
 			boolean expected = this.sourceFile.getName().startsWith("Sat");

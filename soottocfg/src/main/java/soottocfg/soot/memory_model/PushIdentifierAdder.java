@@ -17,6 +17,7 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
@@ -30,7 +31,7 @@ import soottocfg.cfg.util.InterProceduralPullPushOrdering;
  */
 public class PushIdentifierAdder {
 	
-	private static boolean debug = true;
+	private static boolean debug = false;
 	
 	public final static String LP = "lastpush";
 	
@@ -122,12 +123,16 @@ public class PushIdentifierAdder {
 										);
 							}
 							Statement assume = new AssumeStatement(pull.getSourceLocation(), toAssume);
-							b.addStatement(i+1,assume); // TODO test if this index is correct
+							b.addStatement(i+1,assume);
 							pull.addGhostField(new IdentifierExpression(pull.getSourceLocation(),lp));
 						}
 					} else if (s instanceof PushStatement) {
 						PushStatement push = (PushStatement) s;
-						push.addGhostField(new IntegerLiteral(SourceLocation.ANALYSIS, push.getID()));
+						IntegerLiteral pushID = new IntegerLiteral(SourceLocation.ANALYSIS, push.getID());
+						Expression lastpush = new IdentifierExpression(push.getSourceLocation(),lp);
+						push.addGhostField(lastpush);
+						Statement assign = new AssignStatement(push.getSourceLocation(), lastpush, pushID);
+						b.addStatement(++i, assign);
 					}
 				}
 			}
