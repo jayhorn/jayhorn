@@ -5,7 +5,7 @@ date:   2016-08-02 00:01:00
 categories: jekyll
 ---
 
-As discussed in our overview [post]( {{ site.github.url }}{% post_url 2016-08-01-model-checking-java %} ), the first of building a software model checker usually is to simplify the program as much as possible without changing its behavior. 
+As discussed in our overview [post]( {{ site.github.url }}{% post_url 2016-08-01-model-checking-java %} ), the first step of building a software model checker usually is to simplify the program as much as possible without changing its behavior. 
 
 Everything that we can simplify without changing the behavior of the program can be tested easily. We can simply run both versions and make sure that their output is the same. This is extremely useful because it is very easy to get code transformations wrong and testable transformations and not only less likely to have bugs, they are also a lot easier to debug. So let's spend some time to simplify the program.
 
@@ -95,7 +95,7 @@ The easiest way to handle this is to have a big switch case over the possible ty
 
 Note that if we make all methods public, we also have to make all fields public to avoid permission errors. Since we assume that we start from compilable code this does not introduce any problems.
 
-Note that, in practice, the switch case over the possible types of an object at runtime can become really large. Assume the object that we are interested in is declared as `java.lang.Object` and we call its `toString` method. In the worst case, we have to make a case split over all possible types in our classpath. 
+In practice, the switch case over the possible types of an object at runtime can become really large. Assume the object that we are interested in is declared as `java.lang.Object` and we call its `toString` method. In the worst case, we have to make a case split over all possible types in our classpath. 
 For programs where this becomes a problem, a points-to analysis can help to get a better approximation of the possible types of an object at runtime. Soot already provides several built in algorithms for that. However, they are computationally very expensive and should be only used if enumerating the possible subclasses is not an option.
 Another option is to replace the virtual call by a call to a method that is treated as something abstract by the verifier. But we will discuss that in a different article. 
 
