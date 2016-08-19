@@ -21,5 +21,3 @@ Another important question when building an intermediate language is how to hand
 
 Finally, we have to discuss how to handle primitive types. Do we model integers as mathematical integers without bounds, or do we want to track overflows? How about floats and doubles? Are they real numbers or do we model rounding errors? And strings: objects or primitive types? There are many ways to answer these questions and it is important to have some dials and knobs to balance between precision and scalability. The post for this topic has yet to be written (and to code in JayHorn as well).
 
-
-

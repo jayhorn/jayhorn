@@ -14,9 +14,11 @@ paginate: 3
 
 # Links
 links:
-  - title: "home"
-    url: /blog
+  - title: "intro"
+    url: http://jayhorn.github.io/jayhorn/jekyll/2016/08/01/model-checking-java/
   - title: "github"
     url: /
+  - title: "articles"
+    url: /blog
   - title: "rss"
     url: /feed.xml
