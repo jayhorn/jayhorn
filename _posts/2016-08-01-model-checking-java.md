@@ -7,7 +7,7 @@ categories: jekyll
 
 So we decided to build a model checker for Java programs. The first thing you need is a catchy name: JayHorn. That is Java + Horn clauses. Teme came up with that name because he was working on SeaHorn (C + Horn clauses) already. We’ll talk about Horn clauses in a bit, but first: What exactly is a model checker for Java? For us, this is a program that tries to find a proof that certain bad states in a Java program are never reachable. These bad states can are specified by adding runtime assertions (where some assertions may be generated, e.g., that an object reference must not be Null before being accessed). Java can be a nasty language (try [yourself](http://www.javadeathmatch.com/)) so we set our goals humble: let’s focus on simple Java programs first. No threads, no dynamic class loading, no strange corner cases of static initialization. 
 
-First, we looked at what’s out there. In particular for C, there is a set of tools, and even a [tool competition](https://sv-comp.sosy-lab.org/ ). All these tools share a basic organization into three steps: 
+First, we looked at what’s out there. In particular for C, there is a set of tools, and even a [tool competition](https://sv-comp.sosy-lab.org/ ). All these tools share a basic organization into three steps which we also used for building JayHorn: 
 
    * Parse the input program and simplify it as much as possible. Read more [here]({{ site.github.url }}{% post_url 2016-08-02-implicit-control-flow %}).
 
@@ -20,7 +20,7 @@ A more detailed overview with related work and a few nice pictures can be found 
 
 # TL;DR Show me that Horn stuff #
 
-In a nutshell, the idea behind using Horn clauses is that we don't have a nice logic representation of the program where we don't have to remove the loops, etc. Let's look at this Java method:
+In a nutshell, the idea behind using Horn clauses is that we want a nice logic representation of the program where we don't have to remove the loops, etc. Let's look at this Java method:
 
 ```java
 void foo(int k) {
@@ -31,7 +31,7 @@ void foo(int k) {
 }
 ```
 
-where we want to prove the assertion `r==2*k`. When encoding the program as Horn clauses, we create one predicate for each control-location (basically for every place where a debugger could stop) over all program variables that are live (or can be observed with a debugger), and one Horn clause for each transition (or statement). So, in this example, we would start with creating one predicate $$p0(r, k)$$ for the location where we enter `foo` over the variables `r` and `k`. Then we add a second predicate for the entrance to the `for` loop $$p0(r, k, i)$$. Now, we can add our first Horn clause:
+where we want to prove the assertion `r==2*k`. When encoding the program as Horn clauses, we create one predicate for each control-location (basically for every place where a debugger could stop) over all program variables that are live (or can be observed with a debugger), and one Horn clause for each transition (or statement). So, in this example, we would start with creating one predicate $$p0(r, k)$$ for the location where we enter `foo` over the variables `r` and `k`. Then we add a second predicate for the entrance to the `for` loop $$p1(r, k, i)$$. Now, we can add our first Horn clause:
 
 $$
 \begin{align*}
@@ -91,6 +91,8 @@ r=2*k & \leftarrow r=2*k
 $$
 
 and obviously all these formulas are valid, which gives us a proof that we can call `foo` for any value of `k` and we have the guarantee that the assertion holds `r==2*k `.
+
+The assignments to the predicates can be seen as invariants for the corresponding program location. You may have noted that we didn't even worry that there is a loop in the program (which is usually the tricky part in verification). The Horn clause solver does that for us. For free. Awesome!
 
 Now you might think: "wait, what happens if we pick a large `k` that causes an integer overflow"? 
 
