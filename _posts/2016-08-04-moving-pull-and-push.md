@@ -16,11 +16,7 @@ In a nutshell, our heap model entails the following: any time we access an objec
 Consider the following example:
 
 ```java
-class A {
-  int i;
-}
-
-void foo(A a) {
+void foo() {
   A a = new A();
   a.i = 42;
   assert a.i==42;
@@ -30,7 +26,7 @@ void foo(A a) {
 For the sake of the example, assume that the constructor for `A` ends with a push of `0` to the `i` field. When we add pulls and pushes around the field accesses, we end up with the following:
 
 ```java
-void foo(A a) {
+void foo() {
   int i;
   A a = new A();
   i = pull(a);
@@ -53,7 +49,7 @@ A formal definition of the simplification rules will be given in an upcoming pap
 In this case, this results in the following (provable) code:
 
 ```java
-void foo(A a) {
+void foo() {
   int i;
   A a = new A();
   i = pull(a);
