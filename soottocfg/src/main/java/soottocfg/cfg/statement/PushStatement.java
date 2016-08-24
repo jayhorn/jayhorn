@@ -33,7 +33,7 @@ public class PushStatement extends Statement {
 	/**
 	 * @param loc
 	 */
-	public PushStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj, List<Expression> rhs) {
+	public PushStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj, List<Expression> rhs, int id) {
 		super(loc);
 		classConstant = c;
 		object = obj;
@@ -53,11 +53,15 @@ public class PushStatement extends Statement {
 			err.append(rhs);
 			Verify.verify(false, err.toString());
 		}
-		id = nextID();
+		this.id = id;
+	}
+	
+	public PushStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj, List<Expression> rhs) {
+		this(loc, c, obj, rhs, nextID());
 	}
 
 	// had to put this in a method to silence findBugs...
-	private int nextID() {
+	private static int nextID() {
 		return ++nextID;
 	}
 	
@@ -124,7 +128,7 @@ public class PushStatement extends Statement {
 		for (Expression e : right) {
 			rightCopy.add(e.deepCopy());
 		}
-		return new PushStatement(getSourceLocation(), classConstant, object.deepCopy(), rightCopy);
+		return new PushStatement(getSourceLocation(), classConstant, object.deepCopy(), rightCopy, this.id);
 	}
 
 }

@@ -19,6 +19,7 @@ import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
+import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
@@ -31,13 +32,13 @@ import soottocfg.cfg.util.InterProceduralPullPushOrdering;
  */
 public class PushIdentifierAdder {
 	
-	private static boolean debug = false;
+	private static boolean debug = true;
 	
 	public final static String LP = "lastpush";
 	
-	public void addIDs(Program p) {
+	public void addIDs(Program p, Method havoc) {
 		addGhostFieldToClasses(p);
-		addToPushesAndPulls(p);
+		addToPushesAndPulls(p, havoc);
 	}
 	
 	private void addGhostFieldToClasses(Program p) {
@@ -48,7 +49,7 @@ public class PushIdentifierAdder {
 		}
 	}
 	
-	private void addToPushesAndPulls(Program p) {
+	private void addToPushesAndPulls(Program p, Method havoc) {
 		InterProceduralPullPushOrdering ordering = new InterProceduralPullPushOrdering(p.getEntryPoints()[0]);
 		Variable lp = new Variable(LP, IntType.instance());
 		Method[] ms = p.getMethods();
@@ -69,19 +70,6 @@ public class PushIdentifierAdder {
 					throw new RuntimeException("Method " + m.getMethodName() + " contains a local named " + LP);
 			}
 			m.addLocalVariable(lp);
-
-//			CfgBlock src =	m.getSource();
-//			Statement decl = new AssignStatement(
-//					SourceLocation.ANALYSIS, 
-//					new IdentifierExpression(SourceLocation.ANALYSIS,lp),
-//					new IntegerLiteral(SourceLocation.ANALYSIS,-1)
-//					);
-//			if (src==null) {
-//				if (debug)
-//					System.out.println("Method " + m + " has no source block");
-//				continue;
-//			}
-//			src.addStatement(0, decl);
 			
 			Set<CfgBlock> blocks = m.vertexSet();
 			for (CfgBlock b : blocks) {
@@ -111,20 +99,37 @@ public class PushIdentifierAdder {
 						}
 						
 						if (!disj.isEmpty()) {
+							
+							IdentifierExpression lpid = new IdentifierExpression(pull.getSourceLocation(),lp);
+							SourceLocation loc = pull.getSourceLocation();
+							
+							// add havoc of LP
+//							List<Expression> rec = new ArrayList<Expression>();
+//							rec.add(lpid);
+//							CallStatement havocCall = new CallStatement(
+//									loc,
+//									havoc,
+//									new ArrayList<Expression>(),
+//									rec
+//									);
+//							b.addStatement(i++,havocCall);
+//							b.addStatement(++i,havocCall);
+							
 							Iterator<Expression> it = disj.iterator();
 							Expression toAssume = it.next();
 							while (it.hasNext()) {
 								Expression toAdd = it.next();
 								toAssume = new BinaryExpression(
-										pull.getSourceLocation(),
+										loc,
 										BinaryOperator.Or,
 										toAssume,
 										toAdd
 										);
 							}
-							Statement assume = new AssumeStatement(pull.getSourceLocation(), toAssume);
-							b.addStatement(i+1,assume);
-							pull.addGhostField(new IdentifierExpression(pull.getSourceLocation(),lp));
+							Statement assume = new AssumeStatement(loc, toAssume);
+							b.addStatement(++i,assume);
+							pull.addGhostField(lpid);
+							i++;
 						}
 					} else if (s instanceof PushStatement) {
 						PushStatement push = (PushStatement) s;
@@ -132,7 +137,8 @@ public class PushIdentifierAdder {
 						Expression lastpush = new IdentifierExpression(push.getSourceLocation(),lp);
 						push.addGhostField(lastpush);
 						Statement assign = new AssignStatement(push.getSourceLocation(), lastpush, pushID);
-						b.addStatement(++i, assign);
+						b.addStatement(i, assign);
+						i++;
 					}
 				}
 			}

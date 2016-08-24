@@ -142,6 +142,10 @@ public class SootToCfg {
 						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
 		program.setExceptionGlobal(exceptionGlobal);
 
+		// add havoc method for ints for lastpull
+//		SootMethod havocSoot = SootTranslationHelpers.v().getHavocMethod(soot.IntType.v());
+//		Method havoc = SootTranslationHelpers.v().lookupOrCreateMethod(havocSoot);
+		
 		constructCfg();
 		if (outDir != null)
 			writeFile(".cfg", program.toString());
@@ -156,10 +160,10 @@ public class SootToCfg {
 			writeFile(".simpl.cfg", program.toString());
 		
 		// add push IDs
-		PushIdentifierAdder pia = new PushIdentifierAdder();
-		pia.addIDs(program);
-		if (outDir != null)
-			writeFile(".ids.simpl.cfg", program.toString());
+//		PushIdentifierAdder pia = new PushIdentifierAdder();
+//		pia.addIDs(program, havoc);
+//		if (outDir != null)
+//			writeFile(".ids.simpl.cfg", program.toString());
 
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
