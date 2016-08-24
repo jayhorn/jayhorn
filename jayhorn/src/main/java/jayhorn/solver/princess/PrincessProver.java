@@ -341,7 +341,18 @@ public class PrincessProver implements Prover {
 						scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(), EldaricaTemplates, EldaricaDebug);
 
 				if (result.isLeft()) {
-					return ProverResult.Sat;
+                                    StringBuffer sol = new StringBuffer();
+                                    sol.append("Solution:\n");
+                                    List<Tuple2<Predicate, IFormula>> ar = result.left().get().toList();
+
+                                    while (!ar.isEmpty()) {
+                                        Tuple2<Predicate, IFormula> p = ar.head();
+                                        ar = (List<Tuple2<Predicate, IFormula>>)ar.tail();
+                                        sol.append("" + p._1() + ": " + api.pp(p._2()) + "\n");
+                                    }
+
+                                    Log.info(sol.toString());
+                                    return ProverResult.Sat;
 				} else {
                                         Log.info("Counterexample:\n" +
                                           DialogUtil$.MODULE$.asString
