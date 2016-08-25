@@ -5,18 +5,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.LinkedHashSet;
 
 import com.google.common.base.Verify;
 
 import jayhorn.Log;
 import jayhorn.solver.Prover;
-import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverFactory;
+import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.Program;

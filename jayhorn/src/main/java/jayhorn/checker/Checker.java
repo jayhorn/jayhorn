@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.base.Verify;
 
 import jayhorn.Log;
+import jayhorn.hornify.Hornify;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFactory;
@@ -27,7 +28,6 @@ import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverType;
-import jayhorn.hornify.Hornify;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Program;

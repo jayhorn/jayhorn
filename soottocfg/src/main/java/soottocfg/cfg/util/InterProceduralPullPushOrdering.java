@@ -19,7 +19,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Verify;
 
 import soottocfg.cfg.ClassVariable;
-import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;

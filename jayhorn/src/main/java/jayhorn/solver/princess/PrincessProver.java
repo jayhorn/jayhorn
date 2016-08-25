@@ -12,9 +12,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import ap.DialogUtil$;
 import ap.SimpleAPI;
 import ap.SimpleAPI.ProverStatus$;
-import ap.DialogUtil$;
 import ap.basetypes.IdealInt$;
 import ap.parser.ConstantSubstVisitor$;
 import ap.parser.IAtom;

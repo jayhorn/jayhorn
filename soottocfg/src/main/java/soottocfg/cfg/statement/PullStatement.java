@@ -10,8 +10,8 @@ import java.util.Set;
 
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
 
 /**
  * @author schaef
