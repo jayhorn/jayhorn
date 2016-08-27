@@ -1,7 +1,7 @@
 /**
  * 
  */
-package jayhorn.test.integration_tests;
+package jayhorn.test.assorted_tests;
 
 import static org.junit.Assert.fail;
 

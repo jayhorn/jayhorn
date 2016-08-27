@@ -1,7 +1,7 @@
 /**
  * 
  */
-package jayhorn.test.integration_tests;
+package jayhorn.test.assorted_tests;
 
 import java.io.File;
 import java.io.IOException;
