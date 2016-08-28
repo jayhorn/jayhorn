@@ -5,7 +5,7 @@ date:   2016-08-01 00:01:00
 categories: jekyll
 ---
 
-So we decided to build a model checker for Java programs. The first thing you need is a catchy name: JayHorn. That is Java + Horn clauses. Teme came up with that name because he was working on SeaHorn (C + Horn clauses) already. We’ll talk about Horn clauses in a bit, but first: What exactly is a model checker for Java? For us, this is a program that tries to find a proof that certain bad states in a Java program are never reachable. These bad states can are specified by adding runtime assertions (where some assertions may be generated, e.g., that an object reference must not be Null before being accessed). Java can be a nasty language (try [yourself](http://www.javadeathmatch.com/)) so we set our goals humble: let’s focus on simple Java programs first. No threads, no dynamic class loading, no strange corner cases of static initialization. 
+So we decided to build a model checker for Java programs. The first thing you need is a catchy name: JayHorn. That is Java + Horn clauses. Teme came up with that name because he was working on SeaHorn (C + Horn clauses) already. We’ll talk about Horn clauses in a bit, but first: What exactly is a model checker for Java? For us, this is a program that tries to find a proof that certain bad states in a Java program are never reachable. These bad states are specified by adding runtime assertions (where some assertions may be generated, e.g., that an object reference must not be Null before being accessed). Java can be a nasty language (try [yourself](http://www.javadeathmatch.com/)) so we set our goals humble: let’s focus on simple Java programs first. No threads, no dynamic class loading, no strange corner cases of static initialization. 
 
 First, we looked at what’s out there. In particular for C, there is a set of tools, and even a [tool competition](https://sv-comp.sosy-lab.org/ ). All these tools share a basic organization into three steps which we also used for building JayHorn: 
 
@@ -64,7 +64,7 @@ r=2*k & \leftarrow p3(r, k, i)
 $$
 
 
-Now how do we get from this to a proof that the assertion holds? Short answer: get a tool that does this like [Eldarica](http://lara.epfl.ch/w/eldarica) or [Z3](https://github.com/Z3Prover/z3) and read [this](https://www7.in.tum.de/~rybal/papers/2013-sas-solving-universally-quantified-horn-clauses.pdf) paper or [this](https://www7.in.tum.de/~rybal/papers/2013-cav-solving-existentially-quantified-horn-clauses.pdf) paper. The buzzwords you need to know are property directed reachability or PDR aka IC3. If you don't like to read, there is also a [video](https://vimeo.com/36729095).
+Now how do we get from this to a proof that the assertion holds? Short answer: get a tool that does this, for instance [Eldarica](https://github.com/uuverifiers/eldarica) or [Z3](https://github.com/Z3Prover/z3). Horn solvers use methods like predicate abstraction, CEGAR, or PDR/IC3, and can handle systems with hundreds or thousands of clauses.
 
 These tools try to find a formula for each of our predicates `p1`, `p2`, and `p3` such that all Horn clauses become valid. For `p0`, we have to pick `true`, because we want to prove that the assertion holds from any initial state. For example, a tool could pick:
 

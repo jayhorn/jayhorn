@@ -5,7 +5,7 @@ date:   2016-08-03 00:01:00
 categories: jekyll
 ---
 
-Reasoning about the heap is hard. Things quickly become undecidable and inferring any reasonable invariant automatically requires some careful thinking about the memory model. For memory-safe languages (like Java, in our case), the Burstall-Bornat memory encoding has been popular for a long time. In this approach, the heap is encoded by a two-dimensional array where the first dimension describes the object that we are interested in and the second describes the field of that object that we want to access.
+Reasoning about the heap is hard. Inferring reasonable invariants automatically requires some careful thinking about the memory model, and powerful methods (or heuristics) for generalization. For memory-safe languages (like Java, in our case), the Burstall-Bornat memory encoding has been popular for a long time. In this approach, the heap is encoded by a two-dimensional array where the first dimension describes the object that we are interested in and the second describes the field of that object that we want to access.
 For example, if we have a Java method like:
 
 ```java
@@ -14,9 +14,9 @@ public void foo(MyObject obj) {
 }
 ```
 
-We could encode the assignment `obj.x = 5` as follows: `heap[obj][x] := 5`. To verify this program, we would need to prove that `obj` is not `null` in the precondition and we would quickly get to a point where we have properties with two quantifiers and most of our reasoning tools would just give up.
+We could encode the assignment `obj.x = 5` as follows: `heap[obj][x] := 5`. However, to verify this and similar programs, we would need Horn solvers that can handle arrays, and able able to infer quantified invariants about arrays, which would quickly get to a point where existing tools would just give up.
 
-So we need a new memory model. We want to get away with simple invariants that can be learned per object by our Horn clause solver. Of course, this has to come at a price and we may not be able to find invariants which are sufficient to verify the properties that we are interested in. Later, we will talk about how to improve precision again. 
+So we need a new memory model: we focus on simple invariants that can be learned per object by our Horn clause solver. Of course, this has to come at a price and we may not be able to find invariants which are sufficient to verify the properties that we are interested in. Later, we will talk about how to improve precision again. 
 
 First, we want to minimize the interactions with the heap. The idea is straightforward: if reasoning about heap interactions is complicated and expensive, try to do it a seldom as possible. To that end, we introduce two new language constructs: pull and push. Pull copies all fields of an object into local variables in a single transaction. Push updates all fields of an object on the heap in a single transaction. For example:
 
