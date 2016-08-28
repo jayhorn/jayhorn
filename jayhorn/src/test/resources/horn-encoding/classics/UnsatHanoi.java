@@ -1,6 +1,6 @@
 import java.util.Random;
 
-public class SatHanoi01 {
+public class UnsatHanoi {
 
 	static int counter;
 
