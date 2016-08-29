@@ -1,7 +1,7 @@
 body {
   font-family: monospace;
   line-height:150%;
-  margin: 80px 10%;
+  margin: 80px 0px;
   background: url("../images/bg.png")
 }
 
@@ -11,7 +11,7 @@ body {
   margin: 50px auto 0;
   max-width: 450px;
   min-height: 300px;
-  padding: 10%;
+  padding: 200px;
   position: relative;
   width: 80%;
 }
@@ -22,12 +22,6 @@ body {
   position: absolute;
   width: 100%;
   z-index: -1;
-}
-
-@media (max-device-width: 800px) {
-  .container:before, .container:after {
-    display: none;
-  }
 }
 
 .container:before {
@@ -139,4 +133,15 @@ footer {
 .continue {
   text-align: center;
   margin-top: 40px;
+}
+
+/* phone / small screen layout */
+@media (max-device-width: 800px) {
+  .container:before, .container:after {
+    display: none;
+  }
+  .container {
+    padding: 10px;
+    margin: 10px auto 0;
+  }
 }
