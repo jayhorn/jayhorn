@@ -143,10 +143,11 @@ footer {
   .container {
     padding: 10px;
     margin: 10px auto 0;
-    width: 450px;
+    width: 350px;
   }
   body {
-   margin: 20px;
+   margin: 20px 0px;
+   padding: 0px 20px;
   }
   .header {
     margin-bottom: 20px;
