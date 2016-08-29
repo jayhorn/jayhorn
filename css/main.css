@@ -10,9 +10,10 @@ body {
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
   margin: 50px auto 0;
   min-height: 300px;
+  max-width: 450px;
   padding: 200px;
   position: relative;
-  width: 450px;
+  width: 80%;
 }
 
 .container:before, .container:after {
@@ -142,6 +143,7 @@ footer {
   .container {
     padding: 10px;
     margin: 10px auto 0;
+    width: 600px;
   }
   body {
    margin: 20px 0px;
