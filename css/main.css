@@ -153,4 +153,14 @@ footer {
   .pagination > a, .pagination > span {
     margin: 20px 10px;
   }
+  .posts > li {
+    margin: 40px 0px;
+  }
+  footer {
+    margin-top: 40px;
+  }
+  .highlight, blockquote {
+    margin: 10px 0px;
+    padding: 0px 10px;
+  }
 }
