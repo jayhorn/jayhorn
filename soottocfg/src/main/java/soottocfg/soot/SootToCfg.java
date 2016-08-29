@@ -38,6 +38,7 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.util.CfgStubber;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.memory_model.PushPullSimplifier;
@@ -140,15 +141,28 @@ public class SootToCfg {
 						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
 		program.setExceptionGlobal(exceptionGlobal);
 
+		// add havoc method for ints for lastpull
+//		SootMethod havocSoot = SootTranslationHelpers.v().getHavocMethod(soot.IntType.v());
+//		Method havoc = SootTranslationHelpers.v().lookupOrCreateMethod(havocSoot);
+		
 		constructCfg();
 		if (outDir != null)
 			writeFile(".cfg", program.toString());
 
+		CfgStubber stubber = new CfgStubber();
+		stubber.stubUnboundFieldsAndMethods(program);
+		
 		// simplify push-pull
 		PushPullSimplifier pps = new PushPullSimplifier();
 		pps.simplify(program);
 		if (outDir != null)
 			writeFile(".simpl.cfg", program.toString());
+		
+		// add push IDs
+//		PushIdentifierAdder pia = new PushIdentifierAdder();
+//		pia.addIDs(program, havoc);
+//		if (outDir != null)
+//			writeFile(".ids.simpl.cfg", program.toString());
 
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
@@ -225,7 +239,7 @@ public class SootToCfg {
 						((NewMemoryModel) mm).clearFieldToLocalMap();
 					}
 
-					System.err.println(sm.getSignature()+"\n"+body);
+//					System.err.println(sm.getSignature()+"\n"+body);
 					SootStmtSwitch ss = new SootStmtSwitch(body, mi);
 					mi.setSource(ss.getEntryBlock());
 

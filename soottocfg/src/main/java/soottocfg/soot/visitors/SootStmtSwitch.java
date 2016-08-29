@@ -415,7 +415,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			optionalLhs.apply(valueSwitch);
 			receiver.add(valueSwitch.popExpression());
 		}
-		System.err.println(call);
+//		System.err.println(call);
 		if (call.getMethod().isConstructor() && call instanceof SpecialInvokeExpr) {
 			/* For our new memory model, we need special treatment of constructor invoke
 			 */

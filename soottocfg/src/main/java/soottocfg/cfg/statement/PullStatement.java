@@ -10,8 +10,8 @@ import java.util.Set;
 
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
 
 /**
  * @author schaef
@@ -42,6 +42,10 @@ public class PullStatement extends Statement {
 	public List<IdentifierExpression> getLeft() {
 		return left;
 	}
+	
+    public void addGhostField(IdentifierExpression e) {
+    	left.add(e);
+    }
 	
     public ClassVariable getClassSignature() {
         return classConstant;

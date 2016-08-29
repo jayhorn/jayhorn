@@ -4,10 +4,6 @@
 package jayhorn.checker;
 
 import java.math.BigInteger;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -24,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.base.Verify;
 
 import jayhorn.Log;
+import jayhorn.hornify.Hornify;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFactory;
@@ -31,7 +28,6 @@ import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverType;
-import jayhorn.util.CfgStubber;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Program;
@@ -308,7 +304,7 @@ public class Checker {
 			// are later needed for the post-conditions
 			allArgs.addAll(methodPreVariables);
 			allArgs.addAll(sortedVars);
-			return genHornPredicate(p, name, allArgs);
+			return genHornPredicate(p, method.getMethodName() + "_" + name, allArgs);
 		}
 
 		private ProverType getProverType(Type t) {
@@ -486,28 +482,31 @@ public class Checker {
 
 			} else if (s instanceof PullStatement) {
 
-				final PullStatement us = (PullStatement) s;
-
-				final List<IdentifierExpression> lhss = us.getLeft();
+				final PullStatement pull = (PullStatement) s;
+				final List<IdentifierExpression> lhss = pull.getLeft();
 
 				/*
 				 * TODO
 				 * Martin's hack to handle the substype problem =============
 				 */
-				final Set<ClassVariable> possibleTypes = ppOrdering.getBrutalOverapproximationOfPossibleType(us);
-				final List<ProverExpr> invariantDisjunction = new LinkedList<ProverExpr>();
+				final Set<ClassVariable> possibleTypes = ppOrdering.getBrutalOverapproximationOfPossibleType(pull);
+//				final List<ProverExpr> invariantDisjunction = new LinkedList<ProverExpr>();
 				for (ClassVariable sig : possibleTypes) {
-					System.err.println("Possible type "+sig.getName() + " of " +us.getClassSignature().getName());
+//					System.err.println("Possible type "+sig.getName() + " of " +us.getClassSignature().getName());
 					final ProverFun inv = getClassInvariant(p, sig);
+					
+//					Verify.verify(sig.getAssociatedFields()[sig.getAssociatedFields().length-1]
+//							.getName().equals(PushIdentifierAdder.LP), 
+//							"Class is missing " + PushIdentifierAdder.LP + " field: " + sig);
 
 					int totalFields = Math.max(sig.getAssociatedFields().length, lhss.size());
 					
 					final ProverExpr[] invArgs = new ProverExpr[1 + totalFields];
 					int cnt = 0;
-					invArgs[cnt++] = exprToProverExpr(us.getObject(), varMap);
+					invArgs[cnt++] = exprToProverExpr(pull.getObject(), varMap);
 
 					for (IdentifierExpression lhs : lhss) {
-						final ProverExpr lhsExpr = p.mkHornVariable("unpackRes_" + lhs + "_" + newVarNum(),
+						final ProverExpr lhsExpr = p.mkHornVariable("pullRes_" + lhs + "_" + newVarNum(),
 								getProverType(lhs.getType()));
 						invArgs[cnt++] = lhsExpr;
 
@@ -519,11 +518,11 @@ public class Checker {
 						//fill up the fields that are not being used
 						//this should only happen if sig is a subtype of what we 
 						//are trying to pull (and thus declares more fields).
-						final ProverExpr lhsExpr = p.mkHornVariable("unpackRes_stub" + cnt + "_" + newVarNum(),
+						final ProverExpr lhsExpr = p.mkHornVariable("pullRes_stub" + cnt + "_" + newVarNum(),
 								getProverType(sig.getAssociatedFields()[cnt-1].getType() ));
 						invArgs[cnt++] = lhsExpr;
 					}
-					invariantDisjunction.add(inv.mkExpr(invArgs));
+//					invariantDisjunction.add(inv.mkExpr(invArgs));
 					
 					final ProverExpr invAtom = inv.mkExpr(invArgs);
 					final ProverExpr postAtom = instPredicate(postPred, postVars);
@@ -570,6 +569,13 @@ public class Checker {
 				final ClassVariable sig = ps.getClassSignature();
 				final List<Expression> rhss = ps.getRight();
 				final ProverFun inv = getClassInvariant(p, sig);
+				
+				// check that last field is "lastpush" and that lhs and rhs lengths are equal
+//				Verify.verify(sig.getAssociatedFields()[sig.getAssociatedFields().length-1]
+//						.getName().equals(PushIdentifierAdder.LP), 
+//						"Class is missing " + PushIdentifierAdder.LP + " field: " + sig);
+				Verify.verify(sig.getAssociatedFields().length == rhss.size(), 
+						"Unequal lengths: " + sig + " and " + rhss);
 
 				final ProverExpr[] invArgs = new ProverExpr[1 + rhss.size()];
 				int cnt = 0;
@@ -654,6 +660,12 @@ public class Checker {
 					} else {
 						throw new RuntimeException("instanceof is only supported for concrete types");
 					}
+				case And:
+					return p.mkAnd(left, right);
+				case Or:
+					return p.mkOr(left, right);
+				case Implies:
+					return p.mkImplies(left, right);
 				case Shl:
 				case Shr:
 				case BAnd:
@@ -710,8 +722,8 @@ public class Checker {
 		 * add non-det
 		 * assignments to unknown library calls and add some other stuff.
 		 */
-		CfgStubber stubber = new CfgStubber();
-		stubber.stubUnboundFieldsAndMethods(program);
+//		CfgStubber stubber = new CfgStubber();
+//		stubber.stubUnboundFieldsAndMethods(program);
 		// TODO **********************
 		/*
 		 * We have to build that up elsewhere. The problem is that we currently
@@ -773,46 +785,18 @@ public class Checker {
 			List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
 			for (Method method : program.getMethods()) {
-				System.err.println(method);
+//				System.err.println(method);
 
 				final MethodEncoder encoder = new MethodEncoder(p, program, method);
 				encoder.encode();
 				clauses.addAll(encoder.clauses);
-
-				// print Horn clauses
-				if (jayhorn.Options.v().getPrintHorn()) {
-					// Log.info("\tNumber of clauses: " +
-					// encoder.clauses.size());
-					for (ProverHornClause clause : encoder.clauses)
-						Log.info("\t\t" + clause);
-				}
 			}
 
-			// write Horn clauses to file
-			String outDir = jayhorn.Options.v().getOutDir();
-			if (outDir != null) {
-				String outBasename = jayhorn.Options.v().getOutBasename();
-				Path file = Paths.get(outDir + outBasename + ".horn");
-				LinkedList<String> it = new LinkedList<String>();
-				for (ProverHornClause clause : clauses)
-					it.add("\t\t" + clause);
-				try {
-					Path parent = file.getParent();
-					if (parent != null)
-						Files.createDirectories(parent);
-					Files.write(file, it, Charset.forName("UTF-8"));
-				} catch (Exception e) {
-					System.err.println("Error writing file " + file);
-				}
-			}
-
+                        int verifCount = 0;
 			for (Method method : program.getEntryPoints()) {
 				Log.info("\tVerification from entry " + method.getMethodName());
 				// Log.info("\t Number of clauses: " + clauses.size());
 				p.push();
-
-				for (ProverHornClause clause : clauses)
-					p.addAssertion(clause);
 
 				// add an entry clause from the preconditions
 				final HornPredicate entryPred = methodContracts.get(method.getMethodName()).precondition;
@@ -821,8 +805,25 @@ public class Checker {
 				createVarMap(p, entryPred.variables, entryVars, varMap);
 
 				final ProverExpr entryAtom = entryPred.predicate.mkExpr(entryVars.toArray(new ProverExpr[0]));
+                                final ProverHornClause entryClause =
+                                    p.mkHornClause(entryAtom, new ProverExpr[0], p.mkLiteral(true));
 
-				p.addAssertion(p.mkHornClause(entryAtom, new ProverExpr[0], p.mkLiteral(true)));
+                                clauses.add(entryClause);
+
+				// print Horn clauses
+				if (jayhorn.Options.v().getPrintHorn()) {
+                                    // Log.info("\tNumber of clauses: " +
+                                    // encoder.clauses.size());
+                                    for (ProverHornClause clause : clauses)
+                                        Log.info("\t\t" + clause);
+				}
+
+                                // write Horn clauses to file
+                                Hornify.hornToSMTLIBFile(clauses, verifCount, p);
+                                Hornify.hornToFile(clauses, verifCount);
+
+				for (ProverHornClause clause : clauses)
+					p.addAssertion(clause);
 
 				// result = p.checkSat(true);
 				if (jayhorn.Options.v().getTimeout() > 0) {
@@ -834,7 +835,11 @@ public class Checker {
 					result = p.checkSat(true);
 				}
 
+                                clauses.remove(clauses.size() - 1);
+
 				p.pop();
+
+                                ++verifCount;
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();

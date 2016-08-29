@@ -452,17 +452,17 @@ public class MethodEncoder {
 
 			} else if (s instanceof PullStatement) {
 
-				final PullStatement us = (PullStatement) s;
-				final ClassVariable sig = us.getClassSignature();
-				final List<IdentifierExpression> lhss = us.getLeft();
+				final PullStatement pull = (PullStatement) s;
+				final ClassVariable sig = pull.getClassSignature();
+				final List<IdentifierExpression> lhss = pull.getLeft();
 				final ProverFun inv = cInv.getClassInvariant(p, sig);
 
 				final ProverExpr[] invArgs = new ProverExpr[1 + lhss.size()];
 				int cnt = 0;
-				invArgs[cnt++] = exprToProverExpr(us.getObject(), varMap);
+				invArgs[cnt++] = exprToProverExpr(pull.getObject(), varMap);
 
 				for (IdentifierExpression lhs : lhss) {
-					final ProverExpr lhsExpr = p.mkHornVariable("unpackRes_" + lhs + "_" + newVarNum(),
+					final ProverExpr lhsExpr = p.mkHornVariable("pullRes_" + lhs + "_" + newVarNum(),
 							getProverType(lhs.getType()));
 					invArgs[cnt++] = lhsExpr;
 
@@ -478,14 +478,14 @@ public class MethodEncoder {
 
 			} else if (s instanceof PushStatement) {
 
-				final PushStatement ps = (PushStatement) s;
-				final ClassVariable sig = ps.getClassSignature();
-				final List<Expression> rhss = ps.getRight();
+				final PushStatement push = (PushStatement) s;
+				final ClassVariable sig = push.getClassSignature();
+				final List<Expression> rhss = push.getRight();
 				final ProverFun inv = cInv.getClassInvariant(p, sig);
 
 				final ProverExpr[] invArgs = new ProverExpr[1 + rhss.size()];
 				int cnt = 0;
-				invArgs[cnt++] = exprToProverExpr(ps.getObject(), varMap);
+				invArgs[cnt++] = exprToProverExpr(push.getObject(), varMap);
 
 				for (Expression rhs : rhss)
 					invArgs[cnt++] = exprToProverExpr(rhs, varMap);

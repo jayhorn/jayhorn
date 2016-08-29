@@ -3,21 +3,6 @@
  */
 package soottocfg.test.translation_test;
 
-import com.google.common.io.Files;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import soot.Scene;
-import soot.SootClass;
-import soot.SourceLocator;
-import soot.jimple.JasminClass;
-import soot.options.Options;
-import soot.util.JasminOutputStream;
-import soottocfg.soot.SootToCfg;
-import soottocfg.soot.util.SootTranslationHelpers;
-import soottocfg.test.Util;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -32,6 +17,23 @@ import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import com.google.common.io.Files;
+
+import soot.Scene;
+import soot.SootClass;
+import soot.SourceLocator;
+import soot.jimple.JasminClass;
+import soot.options.Options;
+import soot.util.JasminOutputStream;
+import soottocfg.soot.SootToCfg;
+import soottocfg.soot.util.SootTranslationHelpers;
+import soottocfg.test.Util;
 
 /**
  * @author schaef

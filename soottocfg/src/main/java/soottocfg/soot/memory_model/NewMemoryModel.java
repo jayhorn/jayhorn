@@ -324,6 +324,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			List<Variable> fieldList = new LinkedList<Variable>();
 			fieldList.addAll(fields);
 			classVar.setAssociatedFields(fieldList);
+			SootTranslationHelpers.v().getProgram().addClassVariable(classVar);
 			staticFieldContainerVariable = new Variable(globalsClassName, new ReferenceType(classVar), true, true);
 		}
 		return staticFieldContainerVariable;

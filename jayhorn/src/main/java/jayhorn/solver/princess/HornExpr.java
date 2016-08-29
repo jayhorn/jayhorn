@@ -54,7 +54,20 @@ class HornExpr implements ProverHornClause {
   @Override
   public String toString() {
 	  return this.clause.toPrologString();
+//	  return this.clause.toString();
+//	  String ret = null;
+//	  try {
+//		  ret = this.clause.toPrologString();
+//	  } catch (Exception e) {
+//		  System.out.println("Exception on " + this.clause.toString());
+//		  e.printStackTrace();
+//	  }
+//	  return ret;
   }
+
+    public String toSMTLIBFormula() {
+        return clause.toSMTString();
+    }
 
     /**
      * Get the head predicate symbol.

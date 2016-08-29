@@ -19,6 +19,7 @@ import org.junit.runners.Parameterized;
 import jayhorn.checker.Checker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
+import scala.actors.threadpool.Arrays;
 import soottocfg.soot.SootToCfg;
 
 @RunWith(Parameterized.class)
@@ -33,6 +34,7 @@ public class CbmcTest {
 		final File source_dir = new File(testRoot + "cbmc-java/");
 		File[] directoryListing = source_dir.listFiles();
 		if (directoryListing != null) {
+			Arrays.sort(directoryListing);
 			for (File child : directoryListing) {
 				//found a directory containing a test.
 				if (child.isDirectory() && child.listFiles()!=null) {

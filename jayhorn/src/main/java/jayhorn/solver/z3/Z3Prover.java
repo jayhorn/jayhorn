@@ -762,4 +762,15 @@ public class Z3Prover implements Prover {
 	public String toString() {
 		return "Z3";
 	}
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Some functions for outputing SMT-LIB
+
+    public String toSMTLIBDeclaration(ProverFun fun) {
+        throw new UnsupportedOperationException();
+    }
+
+    public String toSMTLIBFormula(ProverHornClause clause) {
+        throw new UnsupportedOperationException();
+    }
 }

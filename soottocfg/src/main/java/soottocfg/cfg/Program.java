@@ -62,6 +62,10 @@ public class Program {
 			}			
 		}
 	}
+
+	public Set<ClassVariable> getClassVariables() {
+		return this.typeGraph.vertexSet();
+	}
 	
 	public ClassVariable findClassVariableByName(final String name) {
 		for (ClassVariable cv : this.typeGraph.vertexSet()) {

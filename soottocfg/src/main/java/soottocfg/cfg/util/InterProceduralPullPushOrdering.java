@@ -36,12 +36,14 @@ public class InterProceduralPullPushOrdering {
 	private Map<Method, Pair<FixedPointObject, FixedPointObject>> methodEntryExit;
 
 	static class FixedPointObject {
-		public final Set<PushStatement> relevantBefore = new HashSet<PushStatement>();
-		public final Set<PushStatement> relevantAfter = new HashSet<PushStatement>();
+		// public final Set<PushStatement> relevantBefore = new
+		// HashSet<PushStatement>();
+		// public final Set<PushStatement> relevantAfter = new
+		// HashSet<PushStatement>();
 		public Optional<Statement> stmt = Optional.absent();
 		public Method containingMethod = null;
 		// public CfgBlock containingCfgBlock = null;
-
+		public final Set<PushStatement> pushes = new HashSet<PushStatement>();
 	}
 
 	private Map<PullStatement, FixedPointObject> pullMap = new HashMap<PullStatement, FixedPointObject>();
@@ -68,7 +70,7 @@ public class InterProceduralPullPushOrdering {
 		sb.append("Listing pushs that may influence:\n  ");
 		sb.append(pull);
 		sb.append("\n");
-		for (FixedPointObject fpo : getPushsInfluencing(pull)) {
+		for (FixedPointObject fpo : getFPOsInfluencing(pull)) {
 			sb.append("\t");
 			sb.append(fpo.stmt);
 			sb.append("\tin Method");
@@ -120,7 +122,16 @@ public class InterProceduralPullPushOrdering {
 		return usedSubtypes;
 	}
 
-	public Set<FixedPointObject> getPushsInfluencing(PullStatement pull) {
+	public Set<PushStatement> getPushsInfluencing(PullStatement pull) {
+		Set<PushStatement> ret = new HashSet<PushStatement>();
+		Set<FixedPointObject> fpos = getFPOsInfluencing(pull);
+		for (FixedPointObject fpo : fpos) {
+			ret.addAll(fpo.pushes);
+		}
+		return ret;
+	}
+
+	private Set<FixedPointObject> getFPOsInfluencing(PullStatement pull) {
 
 		Set<FixedPointObject> ret = new HashSet<FixedPointObject>();
 
@@ -136,10 +147,18 @@ public class InterProceduralPullPushOrdering {
 		while (!todo.isEmpty()) {
 			FixedPointObject cur = todo.remove();
 			done.add(cur);
-			if (cur.stmt.isPresent() && cur.stmt.get() instanceof PushStatement
-					&& canAffectPull(((PushStatement) cur.stmt.get()), pull)) {
-				ret.add(cur);
-			} else {
+			boolean stopTravese = false;
+			if (cur.stmt.isPresent() && cur.stmt.get() instanceof PushStatement) {
+				PushStatement push = (PushStatement) cur.stmt.get();
+				if (mayAlias(push, pull)) {					
+					ret.add(cur);
+					if (mustShadow(push, pull)) {
+						stopTravese = true;
+					}
+				}
+			}
+			
+			if (!stopTravese) {
 				for (FixedPointObject pre : Graphs.predecessorListOf(ipgraph, cur)) {
 					if (!todo.contains(pre) && !done.contains(pre)) {
 						todo.add(pre);
@@ -150,6 +169,51 @@ public class InterProceduralPullPushOrdering {
 		Verify.verify(!ret.isEmpty(),
 				"Cannot find a push that affects this pull. This would introduce an assume(false): " + pull);
 		return ret;
+	}
+
+	/**
+	 * Returns true if the objects in the push and pull statement may be aliased.
+	 * Current we approximate this by simply checking if their types are compatible.
+	 * I.e., this is a heavy over-approximation (i.e., never returns false if alias 
+	 * is not possible, but returns true in cases where no alias is possible).
+	 * @param push
+	 * @param pull
+	 * @return true if the objects in pull and push may alias.
+	 */
+	protected boolean mayAlias(PushStatement push, PullStatement pull) {
+		// TODO implement using points-to information
+		// true is a sound approximation
+		
+		// Intermediate solution:
+		// we approximate by saying that two objects may only alias if their types
+		// are compatible (i.e., either sub or supertype relation).
+		return canAffectPull(push, pull);
+	}
+
+	/**
+	 * Returns true if the push must shadow all preceding pushs that could
+	 * influence the pull statement. E.g., 
+	 * 
+	 * push(Object, o, 3)
+	 * p=o
+	 * push(Object, p, 42)
+	 * pull(Object, o)
+	 * 
+	 * In this example, the second push shadows the first because any execution of pull 
+	 * must go through the second push which overwrites the changes performed by the first
+	 * push.
+	 * So, mustShadow for the pull and the second push should return true, and mustShadow for the
+	 * pull and the push should return false.
+	 * 
+	 * TODO: Currently, this is soundly approximated by always returning false. 
+	 * @param push
+	 * @param pull
+	 * @return true if push shadows all preceding pushs that may affect pull. False otherwise.
+	 */
+	protected boolean mustShadow(PushStatement push, PullStatement pull) {
+		// TODO implement using points-to information
+		// false is a sound approximation
+		return false;
 	}
 
 	private boolean canAffectPull(PushStatement push, PullStatement pull) {
@@ -186,6 +250,8 @@ public class InterProceduralPullPushOrdering {
 				fpo = new FixedPointObject();
 				ipgraph.addVertex(fpo);
 			}
+
+			fpo.pushes.addAll(getPushes(cur));
 
 			// create the subgraph from the current cfg block
 			entryFpo.put(cur, fpo);
@@ -224,6 +290,15 @@ public class InterProceduralPullPushOrdering {
 		if (method.edgeSet().isEmpty()) {
 			// in case the method has no body.
 			ipgraph.addEdge(fpEntry, fpExit);
+		}
+		return ret;
+	}
+
+	private Set<PushStatement> getPushes(CfgBlock b) {
+		Set<PushStatement> ret = new HashSet<PushStatement>();
+		for (Statement s : b.getStatements()) {
+			if (s instanceof PushStatement)
+				ret.add((PushStatement) s);
 		}
 		return ret;
 	}
