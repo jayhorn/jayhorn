@@ -139,15 +139,17 @@ footer {
 /* phone / small screen layout */
 @media (max-device-width: 800px) {
   .container:before, .container:after {
-    display: none;
+    background: transparent;
+    box-shadow: none;
+    left: 0px;
+    top: 0px;
   }
   .container {
     padding: 10px;
     margin: 10px auto 0;
   }
   body {
-   margin: 20px 0px;
-   padding: 0px 20px;
+   margin: 20px;
   }
   .header {
     margin-bottom: 20px;
