@@ -17,9 +17,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import jayhorn.checker.Checker;
+import jayhorn.hornify.Hornify;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import scala.actors.threadpool.Arrays;
+import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
 
 @RunWith(Parameterized.class)
@@ -88,8 +90,9 @@ public class CbmcTest {
 		SootToCfg soot2cfg = new SootToCfg();
 		soot2cfg.run(classDir.getAbsolutePath(), classDir.getAbsolutePath());	
 		
-		Checker checker = new Checker(factory);
-		boolean result = checker.checkProgram(soot2cfg.getProgram());
+		Program program = soot2cfg.getProgram();
+  		Checker hornChecker = new Checker(factory);
+  		boolean result = hornChecker.checkProgram(program);
 
 //		Checker checker = new Checker(factory);
 //		boolean result = checker.checkProgram(soot2cfg.getProgram());

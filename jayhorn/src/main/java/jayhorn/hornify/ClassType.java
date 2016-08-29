@@ -9,11 +9,15 @@ public class ClassType {
 	
 	private Map<ClassVariable, Integer> typeIds = new LinkedHashMap<ClassVariable, Integer>();
 	
-	public void addClassVar(ClassVariable var, Integer value){
-		typeIds.put(var, value);
+	public void addClassVar(ClassVariable var){
+		typeIds.put(var, typeIds.size());
 	}
 
-	public Integer getValue(ClassVariable var){
+	public Integer getTypeID(ClassVariable var){
 		return typeIds.get(var);
+	}
+	
+	public Map<ClassVariable, Integer> getTypeIds(){
+		return typeIds;
 	}
 }

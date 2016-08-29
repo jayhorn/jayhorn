@@ -161,8 +161,7 @@ public class SootToCfg {
 		// add push IDs
 //		PushIdentifierAdder pia = new PushIdentifierAdder();
 //		pia.addIDs(program, havoc);
-//		if (outDir != null)
-//			writeFile(".ids.simpl.cfg", program.toString());
+//		pia.addIDs(program);
 
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();

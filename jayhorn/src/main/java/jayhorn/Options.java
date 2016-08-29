@@ -88,9 +88,9 @@ public class Options {
 	@Option(name = "-out", usage = "Output directory for intermediate represenations", required = false)
 	private String out = null;
 	
-//	public String getOut() {		
-//		return this.out;
-//	}
+	public String getOut() {		
+		return this.out;
+	}
 	
 	public String getOutDir() {
 		if (this.out != null && !this.out.endsWith("/"))

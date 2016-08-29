@@ -14,12 +14,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import jayhorn.Log;
+import jayhorn.Options;
 import jayhorn.checker.Checker;
+import jayhorn.hornify.Hornify;
 import jayhorn.solver.ProverFactory;
+import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.test.Util;
+import soottocfg.cfg.Program;
 import scala.actors.threadpool.Arrays;
 import soottocfg.soot.SootToCfg;
+import soottocfg.soot.SootToCfg.MemModel;
 
 /**
  * @author schaef
@@ -83,9 +89,12 @@ public class HornRegressionTest {
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg(false, true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
-//			jayhorn.Options.v().setPrintHorn(true);
-			Checker checker = new Checker(factory);
-			boolean result = checker.checkProgram(soot2cfg.getProgram());
+
+//
+			Program program = soot2cfg.getProgram();
+	  		Checker hornChecker = new Checker(factory);
+	  		boolean result = hornChecker.checkProgram(program);
+
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
 

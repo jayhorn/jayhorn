@@ -1,20 +1,17 @@
-/**
- * 
- */
 package jayhorn.hornify;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Map.Entry;
+
+import com.google.common.base.Verify;
 
 import jayhorn.Log;
 import jayhorn.solver.Prover;
@@ -43,98 +40,43 @@ import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.type.BoolType;
-import soottocfg.cfg.type.IntType;
-import soottocfg.cfg.type.MapType;
-import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.util.GraphUtil;
 
 public class MethodEncoder {
+	
+	private Map<ClassVariable, Integer> typeIds = new LinkedHashMap<ClassVariable, Integer>();
 
+	////////////////////////////////////////////////////////////////////////////
+
+	
 		private final Program program;
-		private Method method;
-		private MethodContract methodContract;
+		private final Method method;
+		private final MethodContract methodContract;
 		private final Prover p;
 
 		private final Map<CfgBlock, HornPredicate> blockPredicates = new LinkedHashMap<CfgBlock, HornPredicate>();
 		public final List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
-		private Map<String, MethodContract> methodContracts = new LinkedHashMap<String, MethodContract>();
 
-		private List<Variable> methodPreVariables = new LinkedList<Variable>();
-		private List<ProverExpr> methodPreExprs = new LinkedList<ProverExpr>();
-		
-		private ClassType cType;
-		
-		private int varNum = 0;
+		private final List<Variable> methodPreVariables;
+		private final List<ProverExpr> methodPreExprs;
 
-		private int newVarNum() {
-			return varNum++;
-		}
-		
-		public MethodEncoder(Prover p, Program program, ClassType cType) {
+		public MethodEncoder(Prover p, Program program, Method method, ClassType cType) {
 			this.p = p;
 			this.program = program;
-			this.cType = cType;
-		
-		}
-		
-		/**
-		 * Create method contracts
-		 */
-		public void mkMethodContract(){
-			
-			for (Method method : program.getMethods()) {
-				final List<Variable> inParams = new ArrayList<Variable>();
-				inParams.addAll(method.getInParams());
-				final List<Variable> postParams = new ArrayList<Variable>();
-				postParams.addAll(method.getInParams());
-				if (!method.getOutParam().isEmpty()) {
-					postParams.addAll(method.getOutParam());
-				} else if (!method.getReturnType().isEmpty()) {
-					int ctr =0;
-					for (Type tp : method.getReturnType()) {
-						postParams.add(new Variable("resultVar"+(ctr++), tp));
-					}
-				}
-				final ProverFun prePred = this.freshHornPredicate(p, method.getMethodName() + "_pre", inParams);
-				final ProverFun postPred = this.freshHornPredicate(p, method.getMethodName() + "_post", postParams);
-
-				Log.debug("method: " + method.getMethodName());
-				Log.debug("pre: " + inParams);
-				Log.debug("post: " + postParams);
-
-				final HornPredicate pre = new HornPredicate(method.getMethodName() + "_pre", inParams, prePred);
-				final HornPredicate post = new HornPredicate(method.getMethodName() + "_post", postParams, postPred);
-
-				methodContracts.put(method.getMethodName(), new MethodContract(method, pre, post));
-			}
-			
-		}
-		
-		/**
-		 * Return the method contract
-		 * @param methodName
-		 * @return
-		 */
-		public MethodContract getMethodContract(String methodName){
-			return methodContracts.get(methodName);
-		}
-		/**
-		 * Main encoder 
-		 * @param method
-		 */
-		public void encode(Method method) {
-			Log.info("Encoding method: " + method.getMethodName());
 			this.method = method;
-			this.methodContract = methodContracts.get(method.getMethodName());;
+			this.typeIds = cType.getTypeIds();
+			this.methodContract = HornHelper.hh().getMethodContract(method.getMethodName());
 			this.methodPreVariables = methodContract.precondition.variables;
 
 			this.methodPreExprs = new ArrayList<ProverExpr>();
 			for (Variable v : methodPreVariables)
-				methodPreExprs.add(p.mkHornVariable(v.getName() + "_" + newVarNum(), getProverType(v.getType())));
-		    	
-		    LiveVars<CfgBlock> liveVariables = method.computeBlockLiveVariables();
+				methodPreExprs.add(p.mkHornVariable(v.getName() + "_" + HornHelper.hh().newVarNum(), getProverType(v.getType())));
+		}
+
+		public void encode() {
+			// Log.info("\tEncoding method " + method.getMethodName());
+			LiveVars<CfgBlock> liveVariables = method.computeBlockLiveVariables();
 			makeBlockPredicates(liveVariables);
 
 			if (method.getSource() == null) {
@@ -149,6 +91,7 @@ public class MethodEncoder {
 						.mkExpr(entryVars.toArray(new ProverExpr[0]));
 				final ProverExpr exitAtom = methodContract.postcondition.predicate
 						.mkExpr(exitVars.toArray(new ProverExpr[0]));
+
 				clauses.add(p.mkHornClause(exitAtom, new ProverExpr[] { entryAtom }, p.mkLiteral(true)));
 
 				return;
@@ -179,10 +122,12 @@ public class MethodEncoder {
 
 				clauses.add(p.mkHornClause(entryAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 			}
-		
+
+			// translate reachable blocks
 			while (!todo.isEmpty()) {
 				CfgBlock current = todo.remove(0);
-		
+				// Log.info("\tEncoding block " + current);
+
 				done.add(current);
 				final HornPredicate exitPred = blockToHorn(current, liveVariables);
 
@@ -252,7 +197,7 @@ public class MethodEncoder {
 				allLive.addAll(entry.getValue());
 				// sort the list of variables by name to make access
 				// and reading easier.
-				List<Variable> sortedVars = setToSortedList(allLive);
+				List<Variable> sortedVars = HornHelper.hh().setToSortedList(allLive);
 				String name = entry.getKey().getLabel();
 				ProverFun pred = freshHornPredicate(name, sortedVars);
 				blockPredicates.put(entry.getKey(), new HornPredicate(name, sortedVars, pred));
@@ -272,11 +217,11 @@ public class MethodEncoder {
 			// are later needed for the post-conditions
 			allArgs.addAll(methodPreVariables);
 			allArgs.addAll(sortedVars);
-			return genHornPredicate(p, name, allArgs);
+			return HornHelper.hh().genHornPredicate(p, method.getMethodName() + "_" + name, allArgs);
 		}
 
 		private ProverType getProverType(Type t) {
-			return MethodEncoder.this.getProverType(p, t);
+			return HornHelper.hh().getProverType(p, t);
 		}
 
 		private HornPredicate blockToHorn(CfgBlock block, LiveVars<CfgBlock> liveVariables) {
@@ -311,7 +256,7 @@ public class MethodEncoder {
 
 			for (Statement s : block.getStatements()) {
 				final String postName = initName + "_" + (++counter);
-				final List<Variable> interVarList = setToSortedList(interVars[counter - 1]);
+				final List<Variable> interVarList = HornHelper.hh().setToSortedList(interVars[counter - 1]);
 				final HornPredicate postPred = new HornPredicate(postName, interVarList,
 						freshHornPredicate(postName, interVarList));
 				statementToClause(s, prePred, postPred);
@@ -326,7 +271,7 @@ public class MethodEncoder {
 			for (Variable v : cfgVars) {
 				ProverExpr e = varMap.get(v);
 				if (e == null) {
-					e = p.mkHornVariable(v.getName() + "_" + newVarNum(), getProverType(v.getType()));
+					e = p.mkHornVariable(v.getName() + "_" + HornHelper.hh().newVarNum(), getProverType(v.getType()));
 					varMap.put(v, e);
 				}
 				proverVars.add(e);
@@ -334,9 +279,6 @@ public class MethodEncoder {
 		}
 
 		private void statementToClause(Statement s, HornPredicate prePred, HornPredicate postPred) {
-			
-			ClassInvariant cInv = new ClassInvariant(this.p);
-			
 			final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
 
 			final List<ProverExpr> preVars = new ArrayList<ProverExpr>();
@@ -375,8 +317,9 @@ public class MethodEncoder {
 				if (lhs instanceof IdentifierExpression) {
 					final IdentifierExpression idLhs = (IdentifierExpression) lhs;
 					final int lhsIndex = postPred.variables.indexOf(idLhs.getVariable());
-					if (lhsIndex >= 0)
+					if (lhsIndex >= 0) {
 						postVars.set(lhsIndex, exprToProverExpr(as.getRight(), varMap));
+					}
 				} else {
 					throw new RuntimeException("only assignments to variables are supported, not to " + lhs);
 				}
@@ -389,8 +332,8 @@ public class MethodEncoder {
 
 				final CallStatement cs = (CallStatement) s;
 				final Method calledMethod = cs.getCallTarget();
-				final MethodContract contract = methodContracts.get(calledMethod.getMethodName());
-
+				//final MethodContract contract = methodContracts.get(calledMethod.getMethodName());
+				final MethodContract contract = HornHelper.hh().getMethodContract(calledMethod.getMethodName());
 				if (contract == null)
 					throw new RuntimeException("Invoked method " + calledMethod.getMethodName() + " is unknown");
 
@@ -420,7 +363,7 @@ public class MethodEncoder {
 				if (!cs.getReceiver().isEmpty()) {
 					for (Expression lhs : cs.getReceiver()) {
 
-						final ProverExpr callRes = p.mkHornVariable("callRes_" + newVarNum(),
+						final ProverExpr callRes = p.mkHornVariable("callRes_" + HornHelper.hh().newVarNum(),
 								getProverType(lhs.getType()));
 						actualPostParams[cnt++] = callRes;
 
@@ -436,7 +379,7 @@ public class MethodEncoder {
 					}
 				} else if (!calledMethod.getReturnType().isEmpty()) {
 					for (Type tp : calledMethod.getReturnType()) {
-						final ProverExpr callRes = p.mkHornVariable("callRes_" + newVarNum(), getProverType(tp));
+						final ProverExpr callRes = p.mkHornVariable("callRes_" + HornHelper.hh().newVarNum(), getProverType(tp));
 						actualPostParams[cnt++] = callRes;
 					}
 				}
@@ -453,39 +396,104 @@ public class MethodEncoder {
 			} else if (s instanceof PullStatement) {
 
 				final PullStatement pull = (PullStatement) s;
-				final ClassVariable sig = pull.getClassSignature();
 				final List<IdentifierExpression> lhss = pull.getLeft();
-				final ProverFun inv = cInv.getClassInvariant(p, sig);
 
-				final ProverExpr[] invArgs = new ProverExpr[1 + lhss.size()];
-				int cnt = 0;
-				invArgs[cnt++] = exprToProverExpr(pull.getObject(), varMap);
+				/*
+				 * TODO
+				 * Martin's hack to handle the substype problem =============
+				 */
+				//final Set<ClassVariable> possibleTypes = ppOrdering.getBrutalOverapproximationOfPossibleType(pull);
+				final Set<ClassVariable> possibleTypes = HornHelper.hh().ppOrdering.getBrutalOverapproximationOfPossibleType(pull);
+//				final List<ProverExpr> invariantDisjunction = new LinkedList<ProverExpr>();
+				for (ClassVariable sig : possibleTypes) {
+//					System.err.println("Possible type "+sig.getName() + " of " +us.getClassSignature().getName());
+					final ProverFun inv = HornHelper.hh().getClassInvariant(p, sig);
+					
+//					Verify.verify(sig.getAssociatedFields()[sig.getAssociatedFields().length-1]
+//							.getName().equals(PushIdentifierAdder.LP), 
+//							"Class is missing " + PushIdentifierAdder.LP + " field: " + sig);
 
-				for (IdentifierExpression lhs : lhss) {
-					final ProverExpr lhsExpr = p.mkHornVariable("pullRes_" + lhs + "_" + newVarNum(),
-							getProverType(lhs.getType()));
-					invArgs[cnt++] = lhsExpr;
+					int totalFields = Math.max(sig.getAssociatedFields().length, lhss.size());
+					
+					final ProverExpr[] invArgs = new ProverExpr[1 + totalFields];
+					int cnt = 0;
+					invArgs[cnt++] = exprToProverExpr(pull.getObject(), varMap);
 
-					final int lhsIndex = postPred.variables.indexOf(lhs.getVariable());
-					if (lhsIndex >= 0)
-						postVars.set(lhsIndex, lhsExpr);
+					for (IdentifierExpression lhs : lhss) {
+						final ProverExpr lhsExpr = p.mkHornVariable("pullRes_" + lhs + "_" + HornHelper.hh().newVarNum(),
+								getProverType(lhs.getType()));
+						invArgs[cnt++] = lhsExpr;
+
+						final int lhsIndex = postPred.variables.indexOf(lhs.getVariable());
+						if (lhsIndex >= 0)
+							postVars.set(lhsIndex, lhsExpr);
+					}
+					while (cnt<totalFields+1) {
+						//fill up the fields that are not being used
+						//this should only happen if sig is a subtype of what we 
+						//are trying to pull (and thus declares more fields).
+						final ProverExpr lhsExpr = p.mkHornVariable("pullRes_stub" + cnt + "_" + HornHelper.hh().newVarNum(),
+								getProverType(sig.getAssociatedFields()[cnt-1].getType() ));
+						invArgs[cnt++] = lhsExpr;
+					}
+//					invariantDisjunction.add(inv.mkExpr(invArgs));
+					
+					final ProverExpr invAtom = inv.mkExpr(invArgs);
+					final ProverExpr postAtom = instPredicate(postPred, postVars);
+					clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom }, p.mkLiteral(true)));
+
 				}
+//				final ProverExpr invAtom = p.mkOr(invariantDisjunction.toArray(new ProverExpr[invariantDisjunction.size()]));
 
-				final ProverExpr invAtom = inv.mkExpr(invArgs);
-				final ProverExpr postAtom = instPredicate(postPred, postVars);
-
-				clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom }, p.mkLiteral(true)));
+				/*
+				 * Old code that only checked one invariant.
+				 * final PullStatement us = (PullStatement) s;
+				 * final ClassVariable sig = us.getClassSignature();
+				 * final List<IdentifierExpression> lhss = us.getLeft();
+				 * final ProverFun inv = getClassInvariant(p, sig);
+				 * 
+				 * 
+				 * final ProverExpr[] invArgs = new ProverExpr[1 + lhss.size()];
+				 * int cnt = 0;
+				 * invArgs[cnt++] = exprToProverExpr(us.getObject(), varMap);
+				 * 
+				 * for (IdentifierExpression lhs : lhss) {
+				 * final ProverExpr lhsExpr = p.mkHornVariable("unpackRes_" +
+				 * lhs + "_" + newVarNum(),
+				 * getProverType(lhs.getType()));
+				 * invArgs[cnt++] = lhsExpr;
+				 * 
+				 * final int lhsIndex =
+				 * postPred.variables.indexOf(lhs.getVariable());
+				 * if (lhsIndex >= 0)
+				 * postVars.set(lhsIndex, lhsExpr);
+				 * }
+				 * 
+				 * final ProverExpr invAtom = inv.mkExpr(invArgs);
+				 * final ProverExpr postAtom = instPredicate(postPred,
+				 * postVars);
+				 * 
+				 * clauses.add(p.mkHornClause(postAtom, new ProverExpr[] {
+				 * preAtom, invAtom }, p.mkLiteral(true)));
+				 */
 
 			} else if (s instanceof PushStatement) {
 
-				final PushStatement push = (PushStatement) s;
-				final ClassVariable sig = push.getClassSignature();
-				final List<Expression> rhss = push.getRight();
-				final ProverFun inv = cInv.getClassInvariant(p, sig);
+				final PushStatement ps = (PushStatement) s;
+				final ClassVariable sig = ps.getClassSignature();
+				final List<Expression> rhss = ps.getRight();
+				final ProverFun inv = HornHelper.hh().getClassInvariant(p, sig);
+				
+				// check that last field is "lastpush" and that lhs and rhs lengths are equal
+//				Verify.verify(sig.getAssociatedFields()[sig.getAssociatedFields().length-1]
+//						.getName().equals(PushIdentifierAdder.LP), 
+//						"Class is missing " + PushIdentifierAdder.LP + " field: " + sig);
+				Verify.verify(sig.getAssociatedFields().length == rhss.size(), 
+						"Unequal lengths: " + sig + " and " + rhss);
 
 				final ProverExpr[] invArgs = new ProverExpr[1 + rhss.size()];
 				int cnt = 0;
-				invArgs[cnt++] = exprToProverExpr(push.getObject(), varMap);
+				invArgs[cnt++] = exprToProverExpr(ps.getObject(), varMap);
 
 				for (Expression rhs : rhss)
 					invArgs[cnt++] = exprToProverExpr(rhs, varMap);
@@ -503,12 +511,11 @@ public class MethodEncoder {
 			}
 		}
 
-
 		private ProverExpr exprToProverExpr(Expression e, Map<Variable, ProverExpr> varMap) {
 			if (e instanceof IdentifierExpression) {
 				Variable var = ((IdentifierExpression) e).getVariable();
 				if (var instanceof ClassVariable) {
-					return p.mkLiteral(this.cType.getValue((ClassVariable)var));
+					return p.mkLiteral(typeIds.get(var));
 				} else {
 					ProverExpr res = varMap.get(var);
 					if (res == null)
@@ -559,19 +566,26 @@ public class MethodEncoder {
 								.getForwardReachableVertices(program.getTypeGraph(), var);
 
 						ProverExpr disj = p.mkLiteral(false);
-						for (ClassVariable st : subTypes)
-							disj = p.mkOr(disj, p.mkEq(left, p.mkLiteral(this.cType.getValue(st))));
+						for (ClassVariable st : subTypes) {
+							disj = p.mkOr(disj, p.mkEq(left, p.mkLiteral(typeIds.get(st))));
+						}
 
 						return disj;
 					} else {
 						throw new RuntimeException("instanceof is only supported for concrete types");
 					}
+				case And:
+					return p.mkAnd(left, right);
+				case Or:
+					return p.mkOr(left, right);
+				case Implies:
+					return p.mkImplies(left, right);
 				case Shl:
 				case Shr:
 				case BAnd:
 				case BOr:
 				case Xor:
-					return p.mkVariable("HACK_FreeVar" + hack_counter++, p.getIntType());
+					return p.mkVariable("HACK_FreeVar" + HornHelper.hh().getHackCounter(), p.getIntType());
 				// Verify.verify(left.getType()==p.getIntType() &&
 				// right.getType()==p.getIntType());
 				// return binopFun.mkExpr(new ProverExpr[]{left, right});
@@ -604,69 +618,5 @@ public class MethodEncoder {
 			}
 			throw new RuntimeException("Expression type " + e + " not implemented!");
 		}
-	
-   
-	private int hack_counter = 0;
-
-	
-	public ProverFun freshHornPredicate(Prover p, String name, List<Variable> sortedVars) {
-		return genHornPredicate(p, name, sortedVars);
 	}
 
-	private ProverFun genHornPredicate(Prover p, String name, List<Variable> sortedVars) {
-		final List<ProverType> types = new LinkedList<ProverType>();
-		for (Variable v : sortedVars)
-			types.add(getProverType(p, v.getType()));
-		return p.mkHornPredicate(name, types.toArray(new ProverType[types.size()]));
-	}
-
-	/**
-	 * Creates a ProverType from a Type.
-	 * TODO: not fully implemented.
-	 * 
-	 * @param p
-	 * @param t
-	 * @return
-	 */
-	private ProverType getProverType(Prover p, Type t) {
-		if (t == IntType.instance()) {
-			return p.getIntType();
-		}
-		if (t == BoolType.instance()) {
-			return p.getBooleanType();
-		}
-		if (t instanceof ReferenceType) {
-			return p.getIntType();
-		}
-		if (t instanceof MapType) {
-			System.err.println("Warning: translating " + t + " as prover type int");
-			return p.getIntType();
-		}
-		throw new IllegalArgumentException("don't know what to do with " + t);
-	}
-
-	public void createVarMap(Prover p, List<Variable> cfgVars, List<ProverExpr> proverVars,
-			Map<Variable, ProverExpr> varMap) {
-		for (Variable v : cfgVars) {
-			ProverExpr e = varMap.get(v);
-			if (e == null) {
-				e = p.mkHornVariable(v.getName() + "_" + newVarNum(), getProverType(p, v.getType()));
-				varMap.put(v, e);
-			}
-			proverVars.add(e);
-		}
-	}
-
-	private List<Variable> setToSortedList(Set<Variable> set) {
-		List<Variable> res = new LinkedList<Variable>(set);
-		if (!res.isEmpty()) {
-			Collections.sort(res, new Comparator<Variable>() {
-				@Override
-				public int compare(final Variable object1, final Variable object2) {
-					return object1.getName().compareTo(object2.getName());
-				}
-			});
-		}
-		return res;
-	}
-}

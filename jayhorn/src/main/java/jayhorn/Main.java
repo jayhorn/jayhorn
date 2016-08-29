@@ -3,6 +3,8 @@
  */
 package jayhorn;
 
+
+
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
@@ -10,6 +12,7 @@ import jayhorn.checker.Checker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.solver.z3.Z3ProverFactory;
+import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
 import soottocfg.soot.SootToCfg.MemModel;
 
@@ -22,25 +25,36 @@ public class Main {
 		}else{
 			return "UNSAFE";
 		}
-//    	switch (solver){
-//    	case "z3":
-//    		if (result){
-//    			return "UNSAFE";
-//    		}else{
-//    			return "SAFE";
-//    		}
-//    	case "princess":
-//    		if (result){
-//    			return "SAFE";
-//    		}else{
-//    			return "UNSAFE";
-//    		}
-//    		default:
-//    			return "UNKNOWN";
-//    	}
     }
+    /**
+     * Safety Analysis with JayHorn
+     * @param options
+     * @param factory
+     */
+    public static void safetyAnalysis(ProverFactory factory){
+  		Log.info("Building CFG  ... ");
+  		String outDir = Options.v().getOut();
+  		String outName = null;
+  		if (outDir!=null) {
+  			String in = Options.v().getJavaInput();
+  			outName = in.substring(in.lastIndexOf('/'), in.length()).replace(".java", "").replace(".class", "");
+  		}
+  		SootToCfg soot2cfg = new SootToCfg(true, false, MemModel.PullPush, outDir, outName);
+  		soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());	
+  	
+  		Program program = soot2cfg.getProgram();
+  		
+  		Log.info("Safety Verification ... ");
+  		Checker hornChecker = new Checker(factory);
+  		
+  		boolean result = hornChecker.checkProgram(program);
+  		Log.info("Safety Result ... " + parseResult(Options.v().getSolver(), result));
+  		
+      }
     
 	public static void main(String[] args) {
+		System.out.println("\t\t ---   JAYHORN : Static Analayzer for Java Programs ---- ");
+		
 		Options options = Options.v();
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
@@ -55,23 +69,8 @@ public class Main {
 				throw new RuntimeException("Don't know solver " + Options.v().getSolver() + ". Using Eldarica instead.");
 			}
 			
-			if ("safety".equals(Options.v().getChecker())) {
-				System.out.println("\t\t ---   JAYHORN : Static Analayzer for Java Programs ---- ");
-				System.out.println("\t Building CFG  ... " + Options.v().getJavaInput());
-				System.out.println( "\t \t  ----------- \n");
-				String outDir = options.getOutDir();
-				String outName = options.getOutBasename();
-				SootToCfg soot2cfg = new SootToCfg(true, false, MemModel.PullPush, outDir, outName);
-				soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());			
-				Checker checker = new Checker(factory);
-				System.out.println( "\t \t  ----------- ");
-				System.out.println("\t Hornify and check  ... " + Options.v().getJavaInput());
-				System.out.println( "\t \t  ----------- \n");
-				boolean result = checker.checkProgram(soot2cfg.getProgram());
-				
-				System.out.println( "\t \t  ----------- \n");
-		
-				System.out.println("\t SAFETY VERIFICATION RESULT ... " + parseResult(Options.v().getSolver(), result));
+			if ("safety".equals(Options.v().getChecker())) {			
+				safetyAnalysis(factory);
 				
 			} else {
 				Log.error(String.format("Checker %s is unknown", Options.v().getChecker()) );

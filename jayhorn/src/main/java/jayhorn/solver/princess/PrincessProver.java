@@ -353,6 +353,7 @@ public class PrincessProver implements Prover {
 
                                     Log.info(sol.toString());
                                     return ProverResult.Sat;
+
 				} else {
                                         Log.info("Counterexample:\n" +
                                           DialogUtil$.MODULE$.asString
