@@ -3,23 +3,6 @@
  */
 package jayhorn.checker;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
-
-import com.microsoft.z3.Params;
-
-import java.util.Set;
-
 import jayhorn.Log;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
@@ -28,7 +11,6 @@ import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverType;
-import soot.options.Options;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Program;
@@ -56,6 +38,11 @@ import soottocfg.cfg.type.MapType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.util.GraphUtil;
+
+import java.math.BigInteger;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author schaef
