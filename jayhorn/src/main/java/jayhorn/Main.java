@@ -37,7 +37,7 @@ public class Main {
   		String outName = null;
   		if (outDir!=null) {
   			String in = Options.v().getJavaInput();
-  			outName = in.substring(in.lastIndexOf('/'), in.length()).replace(".java", "").replace(".class", "");
+  			outName = in.substring(in.lastIndexOf('/') + 1, in.length()).replace(".java", "").replace(".class", "");
   		}
   		SootToCfg soot2cfg = new SootToCfg(true, false, MemModel.PullPush, outDir, outName);
   		soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());	
