@@ -1,4 +1,3 @@
-
 public class Unsat01 {
 
 	public static void main(String[] args) {
@@ -7,5 +6,4 @@ public class Unsat01 {
 			i = i + 1;
 		assert (i == 10); // does not hold
 	}
-
 }

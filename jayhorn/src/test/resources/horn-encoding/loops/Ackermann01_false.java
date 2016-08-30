@@ -18,6 +18,7 @@ public class Ackermann01_false {
 
 	    int n = Integer.parseInt(args[1]);
 	
+	    int result = ack(m,n);
 	    if (m < 2 || result > 4) {
 	        assert false;
 	    } else {

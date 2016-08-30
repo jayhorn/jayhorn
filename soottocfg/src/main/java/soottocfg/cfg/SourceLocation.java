@@ -8,9 +8,11 @@ package soottocfg.cfg;
  *
  */
 public class SourceLocation {
-
+	
 	private final String sourceFileName;
 	private final int lineNumber;
+	
+	public static final SourceLocation ANALYSIS = new SourceLocation("-",-1);
 
 	public SourceLocation(String sourceFileName, int lineNumber) {
 		this.sourceFileName = sourceFileName;

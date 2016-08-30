@@ -36,15 +36,15 @@ public class TranslationTest01 {
 //	public void foo() {
 //	}
 
-	public int withException(int a[]) {
-		int b;
-		try {
-			b = a[3];
-		} catch (ArrayIndexOutOfBoundsException e) {
-			b = 20;
-		}
-		b = 30;
-		return b;
+	public static void main ( String a[]) {
+//		int b;
+//		try {
+//			b = a[3];
+//		} catch (ArrayIndexOutOfBoundsException e) {
+//			b = 20;
+//		}
+//		b = 30;
+//		return b;
 	}
 
 	// public void excpetions02() {

@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,10 +46,12 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	 * 
 	 */
 	private static final long serialVersionUID = 3367382274895641548L;
-
+	
+	private final transient SourceLocation location; //TODO remove the transient
 	private final String methodName;
-	private final Optional<Type> returnType;
-	private Variable thisVariable, returnVariable;
+	private final List<Type> returnTypes;
+	private Variable thisVariable;
+	private List<Variable> returnVariable;
 	private final List<Variable> parameterList;
 	private Set<Variable> locals;
 	private CfgBlock source, sink;
@@ -56,23 +59,25 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	
 
 	
-	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, Optional<Type> retType) {
+	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, List<Type> outTypes, SourceLocation sourceLocation) {
 		Preconditions.checkArgument(p.loopupMethod(uniqueName)==null, "Method with name "+uniqueName + " already exists");		
-		Method m = new Method(uniqueName, params, retType);
+		Method m = new Method(sourceLocation, uniqueName, params, outTypes);
 		p.addMethod(m);
 		return m;
 	}
 	
-	private Method(String uniqueName, List<Variable> params, Optional<Type> retType) {
+	private Method(SourceLocation loc, String uniqueName, List<Variable> params, List<Type> outTypes) {
 		super(new ClassBasedEdgeFactory<CfgBlock, CfgEdge>(CfgEdge.class), true, true);
+		location = loc;
 		methodName = uniqueName;
-		returnType = retType;
+		returnTypes = outTypes;
+		locals = new HashSet<Variable>();
 		this.parameterList = Collections.unmodifiableList(params);
 	}
 
 	public Method createMethodFromSubgraph(DirectedGraph<CfgBlock, CfgEdge> subgraph, String newMethodName) {
 		Preconditions.checkArgument(vertexSet().containsAll(subgraph.vertexSet()), "Method does not contain all nodes from subgraph.");
-		Method subgraphMethod = new Method(newMethodName, this.parameterList, this.returnType);
+		Method subgraphMethod = new Method(location, newMethodName, this.parameterList, this.returnTypes);
 		
 		for (CfgBlock v : subgraph.vertexSet()) {
 			subgraphMethod.addVertex(v);
@@ -87,14 +92,18 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	public String getMethodName() {
 		return this.methodName;
 	}
+	
+	public SourceLocation getLocation() {
+		return location;
+	}
 
-	public void initialize(Variable thisVariable, Variable returnVariable,
+	public void initialize(Variable thisVariable, List<Variable> returnVariables,
 			Collection<Variable> locals, CfgBlock source, boolean isEntryPoint) {
 		Preconditions.checkNotNull(parameterList, "Parameter list must not be null");
 		Preconditions.checkNotNull(source);
 		
 		this.thisVariable = thisVariable;
-		this.returnVariable = returnVariable;
+		this.returnVariable = returnVariables;
 		this.locals = new HashSet<Variable>(locals);
 		this.source = source;
 		this.isProgramEntry = isEntryPoint;
@@ -126,6 +135,10 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 
 	public boolean isProgramEntryPoint() {
 		return this.isProgramEntry;
+	}
+	
+	public void isProgramEntryPoint(boolean b) {
+		this.isProgramEntry = b;
 	}
 
 	public CfgBlock getSource() {
@@ -168,7 +181,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 				}
 			}
 			if (currentSinks.isEmpty()) {
-				System.err.println("No exit for " + this.methodName);
+				//System.err.println("No exit for " + this.methodName);
 				sink = null;
 			} else if (currentSinks.size() == 1) {
 				sink = currentSinks.iterator().next();
@@ -217,9 +230,11 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	 * current Method. 
 	 * @return Optional return variable.
 	 */
-	public Optional<Variable> getOutParam() {
-		Optional<Variable> ret = Optional.fromNullable(returnVariable);
-		return ret;
+	public List<Variable> getOutParam() {		
+		if (this.returnVariable==null) {
+			return new LinkedList<Variable>();
+		}
+		return new LinkedList<Variable>(this.returnVariable);
 	}
 
 	/**
@@ -227,8 +242,8 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	 * I.e., either a type or None if the method returns void
 	 * @return Optional return type.
 	 */
-	public Optional<Type> getReturnType() {
-		return this.returnType;
+	public List<Type> getReturnType() {
+		return this.returnTypes;
 	}
 
 	
@@ -294,19 +309,34 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 			comma = ", ";
 		}
 		sb.append(")\n");
-		if (this.returnVariable != null) {
-			sb.append("\treturns: ");
-			sb.append(this.returnVariable.getName());
+		if (this.returnTypes.size()>0) {
+			sb.append("  Return types: ");
+			comma = "";
+			for (Type t : this.returnTypes) {
+				sb.append(comma);
+				sb.append(t.toString());
+				comma = ", ";
+			}
 			sb.append("\n");
 		}
-		comma = "";
-		sb.append("\n");
+		if (this.returnVariable != null) {
+			sb.append("  Returns: ");
+			comma = "";
+			for (Variable v : this.returnVariable) {
+				sb.append(comma);
+				sb.append(v.toString());
+				comma = ", ";
+			}
+			sb.append("\n");
+			sb.append("\n");
+		}
+		comma = "";		
 		if (this.locals != null && !this.locals.isEmpty()) {
-			sb.append("\tlocals:\n");
+			sb.append("  locals:\n");
 			for (Variable v : this.locals) {
-				sb.append("\t\t");
+				sb.append("    ");
 				sb.append(v.getName());
-				sb.append(":\t\t");
+				sb.append(":    ");
 				sb.append(v.getType());
 				sb.append("\n");
 			}

@@ -31,6 +31,7 @@ import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.InvokeStmt;
 import soot.jimple.Jimple;
+import soot.jimple.JimpleBody;
 import soot.jimple.SpecialInvokeExpr;
 import soot.jimple.Stmt;
 import soot.tagkit.Host;
@@ -42,7 +43,7 @@ import soottocfg.util.Pair;
  * @author schaef
  *
  */
-public class VirtualCallResolver extends AbstractTransformer {
+public class VirtualCallResolver extends AbstractSceneTransformer {
 
 	private final Hierarchy hierarchy;
 
@@ -55,14 +56,13 @@ public class VirtualCallResolver extends AbstractTransformer {
 		hierarchy = Scene.v().getActiveHierarchy();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see soot.BodyTransformer#internalTransform(soot.Body, java.lang.String,
-	 * java.util.Map)
-	 */
-	@Override
-	protected void internalTransform(Body body, String arg1, Map<String, String> arg2) {
+	public void applyTransformation() {
+		for (JimpleBody body : this.getSceneBodies()) {
+			transform(body);
+		}
+	}
+
+	private void transform(Body body) {
 
 		ltf = new LocalTypeFinder(new CompleteUnitGraph(body),body);
 
@@ -137,7 +137,7 @@ public class VirtualCallResolver extends AbstractTransformer {
 					Jimple.v().newVirtualInvokeExpr(l, callee.makeRef(), ivk.getArgs()), s);
 			units.add(newAssign);
 		} else if (originalCall instanceof IdentityStmt) {
-			throw new RuntimeException();
+			throw new RuntimeException("Not imeplemented "+originalCall);
 		}
 		// jump back to the statement after the original call.
 		Unit succ = body.getUnits().getSuccOf(originalCall);

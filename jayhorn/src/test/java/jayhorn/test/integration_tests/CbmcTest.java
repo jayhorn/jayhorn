@@ -17,10 +17,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import jayhorn.checker.Checker;
+import jayhorn.hornify.Hornify;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
-import jayhorn.solver.z3.Z3ProverFactory;
-import soot.options.Options;
+import scala.actors.threadpool.Arrays;
+import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
 
 @RunWith(Parameterized.class)
@@ -35,6 +36,7 @@ public class CbmcTest {
 		final File source_dir = new File(testRoot + "cbmc-java/");
 		File[] directoryListing = source_dir.listFiles();
 		if (directoryListing != null) {
+			Arrays.sort(directoryListing);
 			for (File child : directoryListing) {
 				//found a directory containing a test.
 				if (child.isDirectory() && child.listFiles()!=null) {
@@ -69,15 +71,15 @@ public class CbmcTest {
 	}
 
 	
-//	@Test
-//	public void testWithPrincess() {
-//		verifyAssertions(new PrincessProverFactory());
-//	}
-
 	@Test
-	public void testWithZ3() {		
-		verifyAssertions(new Z3ProverFactory());
+	public void testWithPrincess() {
+		verifyAssertions(new PrincessProverFactory());
 	}
+
+//	@Test
+//	public void testWithZ3() {		
+//		verifyAssertions(new Z3ProverFactory());
+//	}
 		
 		
 	private void verifyAssertions(ProverFactory factory) {
@@ -86,9 +88,14 @@ public class CbmcTest {
 		System.out.println("\texpected result: "+ expectedResult);
 
 		SootToCfg soot2cfg = new SootToCfg();
-		soot2cfg.run(classDir.getAbsolutePath(), classDir.getAbsolutePath());		
-		Checker checker = new Checker(factory);
-		boolean result = checker.checkProgram(soot2cfg.getProgram());
+		soot2cfg.run(classDir.getAbsolutePath(), classDir.getAbsolutePath());	
+		
+		Program program = soot2cfg.getProgram();
+  		Checker hornChecker = new Checker(factory);
+  		boolean result = hornChecker.checkProgram(program);
+
+//		Checker checker = new Checker(factory);
+//		boolean result = checker.checkProgram(soot2cfg.getProgram());
 		
 		org.junit.Assert.assertTrue("Unexpected result for "+description+". Expected: "+expectedResult+" but got "+ result, expectedResult==result);		
 	}

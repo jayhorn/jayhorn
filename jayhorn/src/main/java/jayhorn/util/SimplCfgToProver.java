@@ -97,7 +97,7 @@ public class SimplCfgToProver implements ICfgToProver {
 						// because we know they are not equal.
 						axioms.add(prover.mkImplies(poCompare.mkExpr(new ProverExpr[] { pe, e2.getValue() }),
 								prover.mkNot(poCompare.mkExpr(new ProverExpr[] { pe, e1.getValue() }))));
-					} else {						
+					} else {
 						axioms.add(prover.mkImplies(poCompare.mkExpr(new ProverExpr[] { pe, e1.getValue() }),
 								prover.mkNot(poCompare.mkExpr(new ProverExpr[] { pe, e2.getValue() }))));
 						axioms.add(prover.mkImplies(poCompare.mkExpr(new ProverExpr[] { pe, e2.getValue() }),
@@ -114,8 +114,9 @@ public class SimplCfgToProver implements ICfgToProver {
 		List<ProverExpr> axioms = new LinkedList<ProverExpr>();
 		for (Variable v : m.getInParams()) {
 			if (v.getType() instanceof ReferenceType) {
-				ClassVariable cv = ((ReferenceType)v.getType()).getClassVariable();
-				Expression typeGuard = new BinaryExpression(null, BinaryOperator.PoLeq, new IdentifierExpression(null, v, 0), new IdentifierExpression(null, cv));
+				ClassVariable cv = ((ReferenceType) v.getType()).getClassVariable();
+				Expression typeGuard = new BinaryExpression(null, BinaryOperator.PoLeq,
+						new IdentifierExpression(null, v, 0), new IdentifierExpression(null, cv));
 				axioms.add(expressionToProverExpr(typeGuard));
 			}
 		}
@@ -177,30 +178,34 @@ public class SimplCfgToProver implements ICfgToProver {
 			return expressionToProverExpr(((AssumeStatement) s).getExpression());
 		} else if (s instanceof CallStatement) {
 			CallStatement cs = (CallStatement) s;
-			if (cs.getReceiver().isPresent()) {
-				return prover.mkEq(expressionToProverExpr(cs.getReceiver().get()), prover
-						.mkVariable("dummy" + (dummyvarcounter++), lookupProverType(cs.getReceiver().get().getType())));
+			if (!cs.getReceiver().isEmpty()) {
+				if (cs.getReceiver().size() == 1) {
+					return prover.mkEq(expressionToProverExpr(cs.getReceiver().get(0)), prover.mkVariable(
+							"dummy" + (dummyvarcounter++), lookupProverType(cs.getReceiver().get(0).getType())));
+				}
+				throw new RuntimeException("Not implemented");
 			}
 			return null;
 		} else if (s instanceof ArrayReadStatement) {
 			ArrayReadStatement ar = (ArrayReadStatement) s;
 			// TODO HACK
 			if (ar.getIndices()[ar.getIndices().length - 1].toString().contains(SootTranslationHelpers.typeFieldName)) {
-				//special handling for dynamic types
+				// special handling for dynamic types
 				ProverExpr arrAccess = prover.mkSelect(dynamicTypeArray,
 						new ProverExpr[] { expressionToProverExpr(ar.getIndices()[0]) });
 				return prover.mkEq(expressionToProverExpr(ar.getLeftValue()), arrAccess);
 			}
-			if (ar.getIndices()[ar.getIndices().length - 1].toString().contains(SootTranslationHelpers.lengthFieldName)) {
-				return prover.mkEq(expressionToProverExpr(ar.getLeftValue()), arrayLength
-						.mkExpr(new ProverExpr[] { expressionToProverExpr(ar.getIndices()[ar.getIndices().length - 2] ) }));
+			if (ar.getIndices()[ar.getIndices().length - 1].toString()
+					.contains(SootTranslationHelpers.lengthFieldName)) {
+				return prover.mkEq(expressionToProverExpr(ar.getLeftValue()), arrayLength.mkExpr(
+						new ProverExpr[] { expressionToProverExpr(ar.getIndices()[ar.getIndices().length - 2]) }));
 			}
 
 			MapType mt = (MapType) ar.getBase().getType();
 			return prover.mkEq(expressionToProverExpr(ar.getLeftValue()),
 					prover.mkVariable("dummy" + (dummyvarcounter++), lookupProverType(mt.getValueType())));
 		} else if (s instanceof ArrayStoreStatement) {
-			//TODO
+			// TODO
 		} else {
 			// TODO ignore all other statements?
 		}

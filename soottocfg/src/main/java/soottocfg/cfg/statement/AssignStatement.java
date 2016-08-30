@@ -6,8 +6,6 @@ package soottocfg.cfg.statement;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.common.base.Preconditions;
-
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
@@ -48,13 +46,9 @@ public class AssignStatement extends Statement {
 				} else if (((IntegerLiteral) rhs).getValue() == 1L) {
 					rhs = BooleanLiteral.trueLiteral();
 				} else {
-					throw new RuntimeException();
+					throw new RuntimeException("Assignment statement not implemented for bool/int mix.");
 				}
 			}
-		}
-		if (lhs instanceof IdentifierExpression) {
-			Preconditions.checkArgument(!((IdentifierExpression) lhs).getVariable().isConstant()
-					&& !((IdentifierExpression) lhs).getVariable().isUnique());
 		}
 
 		this.left = lhs;

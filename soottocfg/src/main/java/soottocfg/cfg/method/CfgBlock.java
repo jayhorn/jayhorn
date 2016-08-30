@@ -95,8 +95,16 @@ public class CfgBlock implements Node, Serializable {
 		return Collections.unmodifiableList(this.statements);
 	}
 	
+	public void removeStatement(Statement toRemove) {
+		this.statements.remove(toRemove);
+	}
+	
 	public void removeStatements(Set<Statement> toRemove) {
 		this.statements.removeAll(toRemove);
+	}
+	
+	public void swapStatements(int i, int j) {
+		Collections.swap(this.statements, i, j);
 	}
 
 	/**
@@ -209,8 +217,8 @@ public class CfgBlock implements Node, Serializable {
 		if (isExit()) {
 			//TODO
 //			out.addAll(getMethod().getModifiedGlobals());
-			if (getMethod().getOutParam().isPresent()) {
-				out.add(getMethod().getOutParam().get());
+			if (!getMethod().getOutParam().isEmpty()) {
+				out.addAll(getMethod().getOutParam());
 			}
 		} else {
 			for (CfgEdge edge : this.method.outgoingEdgesOf(this)) {

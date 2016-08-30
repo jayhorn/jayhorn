@@ -60,7 +60,7 @@ public class BinaryExpression extends Expression {
 				} else if (((IntegerLiteral) right).getValue() == 1L) {
 					right = BooleanLiteral.trueLiteral();
 				} else {
-					throw new RuntimeException();
+					throw new RuntimeException("BinaryExpression: bool/int confusion");
 				}
 			} else if (right.getType() == BoolType.instance() && left instanceof IntegerLiteral) {
 				if (((IntegerLiteral) left).getValue() == 0L) {
@@ -68,7 +68,7 @@ public class BinaryExpression extends Expression {
 				} else if (((IntegerLiteral) left).getValue() == 1L) {
 					left = BooleanLiteral.trueLiteral();
 				} else {
-					throw new RuntimeException();
+					throw new RuntimeException("BinaryExpression: bool/int confusion");
 				}				
 			}
 		}

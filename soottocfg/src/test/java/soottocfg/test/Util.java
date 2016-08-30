@@ -1,11 +1,11 @@
 package soottocfg.test;
 
-import com.google.common.io.Files;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.Charset;
+
+import com.google.common.io.Files;
 
 public final class Util {
 
@@ -39,9 +39,9 @@ public final class Util {
 	 *         fails.
 	 * @throws IOException
 	 */
-	public static File compileJavaFile(File sourceFile) throws IOException {
+	public static File compileJavaFile(File sourceFile, String classPath) throws IOException {
 		final File tempDir = Files.createTempDir();
-		final String javac_command = String.format("javac -g %s -d %s", sourceFile.getAbsolutePath(),
+		final String javac_command = String.format("javac -g -classpath %s %s -d %s", classPath, sourceFile.getAbsolutePath(),
 			tempDir.getAbsolutePath());
 
 		ProcessBuilder pb = new ProcessBuilder(javac_command.split(" "));
@@ -59,6 +59,12 @@ public final class Util {
 		return tempDir;
 	}
 
+	public static File compileJavaFile(File sourceFile) throws IOException {
+		return compileJavaFile(sourceFile, ".");
+	}
+
+	
+	
 	protected static void printJavaCVersion() {
 		final String javac_command = "javac -version";
 

@@ -12,14 +12,13 @@ import java.util.Map;
 
 import javax.lang.model.type.NullType;
 
-import com.google.common.base.Verify;
-
 import soot.ArrayType;
 import soot.RefLikeType;
 import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
+import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
 import soot.jimple.ArrayRef;
@@ -38,7 +37,9 @@ import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssumeStatement;
+import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceLikeType;
@@ -74,9 +75,8 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		return (e instanceof IdentifierExpression && ((IdentifierExpression) e).getVariable() == nullConstant);
 	}
 
-	
 	@Override
-	public void mkArrayWriteStatement(Unit u, ArrayRef arrayRef, Value rhs) {		
+	public void mkArrayWriteStatement(Unit u, ArrayRef arrayRef, Value rhs) {
 		throw new RuntimeException("This should have been removed by the array abstraction.");
 	}
 
@@ -85,7 +85,6 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		throw new RuntimeException("This should have been removed by the array abstraction.");
 	}
 
-	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -94,25 +93,30 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkNewExpr(NewExpr arg0) {
 		Type newType = this.lookupType(arg0.getBaseType());
-		MethodInfo mi = this.statementSwitch.getMethodInto();
+
+		// make this an application class to make sure that we analyze the
+		// constructor
+		arg0.getBaseType().getSootClass().setApplicationClass();
+
+		MethodInfo mi = this.statementSwitch.getMethodInfo();
 		Variable newLocal = mi.createFreshLocal("$new", newType, true, true);
 		// add: assume newLocal!=null
-		this.statementSwitch.push(
-				new AssumeStatement(statementSwitch.getCurrentLoc(),
-						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
-								new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
-								this.mkNullConstant())));
-		//TODO add: assume newLocal instanceof newType
-//		Expression instof = foo(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
-//				newType);
-//		this.statementSwitch.push(
-//				new AssumeStatement(statementSwitch.getCurrentLoc(),
-//						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne, instof,
-//								IntegerLiteral.zero())));
+		this.statementSwitch.push(new AssumeStatement(statementSwitch.getCurrentLoc(),
+				new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
+						new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
+						this.mkNullConstant())));
+		// TODO add: assume newLocal instanceof newType
+		// Expression instof = foo(new
+		// IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
+		// newType);
+		// this.statementSwitch.push(
+		// new AssumeStatement(statementSwitch.getCurrentLoc(),
+		// new BinaryExpression(this.statementSwitch.getCurrentLoc(),
+		// BinaryOperator.Ne, instof,
+		// IntegerLiteral.zero())));
 
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
 	}
-
 
 	// new InstanceOfExpression(, new
 	// IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
@@ -127,28 +131,31 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkNewArrayExpr(NewArrayExpr arg0) {
 		Type newType = this.lookupType(arg0.getType());
-		MethodInfo mi = this.statementSwitch.getMethodInto();
+		MethodInfo mi = this.statementSwitch.getMethodInfo();
 		Variable newLocal = mi.createFreshLocal("$newArr", newType, true, true);
 
-		this.statementSwitch.push(
-				new AssumeStatement(statementSwitch.getCurrentLoc(),
-						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
-								new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
-								this.mkNullConstant())));
+		this.statementSwitch.push(new AssumeStatement(statementSwitch.getCurrentLoc(),
+				new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
+						new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
+						this.mkNullConstant())));
 
-		//TODO
-//		arg0.getSize().apply(valueSwitch);
-//		Expression sizeExpression = valueSwitch.popExpression();
-//		this.statementSwitch.push(
-//				new AssumeStatement(statementSwitch.getCurrentLoc(),
-//						new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Eq,
-//								new ArrayLengthExpression(this.statementSwitch.getCurrentLoc(),
-//										new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal)),
-//						sizeExpression)));
+		// TODO
+		// arg0.getSize().apply(valueSwitch);
+		// Expression sizeExpression = valueSwitch.popExpression();
+		// this.statementSwitch.push(
+		// new AssumeStatement(statementSwitch.getCurrentLoc(),
+		// new BinaryExpression(this.statementSwitch.getCurrentLoc(),
+		// BinaryOperator.Eq,
+		// new ArrayLengthExpression(this.statementSwitch.getCurrentLoc(),
+		// new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
+		// newLocal)),
+		// sizeExpression)));
 
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
+		// return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
+		// newLocal);
+		throw new RuntimeException("This should have been removed by the array abstraction.");
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -159,9 +166,11 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkNewMultiArrayExpr(NewMultiArrayExpr arg0) {
 		// TODO Auto-generated method stub
-		System.err.println("New Multi-Array still not implemented");
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
-				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", lookupType(arg0.getType())));
+		// System.err.println("New Multi-Array still not implemented");
+		// return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
+		// SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO",
+		// lookupType(arg0.getType())));
+		throw new RuntimeException("This should have been removed by the array abstraction.");
 	}
 
 	/*
@@ -230,14 +239,16 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
 	}
 
-//	@Override
-//	public Expression lookupClassConstant(ClassConstant arg0) {
-//		if (!constantDictionary.containsKey(arg0)) {
-//			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
-//					"$cc" + arg0.getValue(), lookupType(arg0.getType()), true, true));
-//		}
-//		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
-//	}
+	// @Override
+	// public Expression lookupClassConstant(ClassConstant arg0) {
+	// if (!constantDictionary.containsKey(arg0)) {
+	// constantDictionary.put(arg0,
+	// SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
+	// "$cc" + arg0.getValue(), lookupType(arg0.getType()), true, true));
+	// }
+	// return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
+	// constantDictionary.get(arg0));
+	// }
 
 	/*
 	 * (non-Javadoc)
@@ -275,18 +286,29 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		return types.get(t);
 	}
 
+	@Override
+	public void mkConstructorCall(Unit u, SootMethod constructor, List<Expression> args) {
+		List<Expression> receiver = new LinkedList<Expression>();
+		Method method = SootTranslationHelpers.v().lookupOrCreateMethod(constructor);
+		CallStatement stmt = new CallStatement(SootTranslationHelpers.v().getSourceLocation(u), method, args, receiver);
+		this.statementSwitch.push(stmt);
+	}
+
 	protected ReferenceLikeType lookupRefLikeType(RefLikeType t) {
 		if (t instanceof ArrayType) {
-			ArrayType at = (ArrayType) t;
-//			Type baseType = lookupType(at.baseType);
-//			List<Type> ids = new LinkedList<Type>();
-//			for (int i = 0; i < at.numDimensions; i++) {
-//				ids.add(IntType.instance());
-//			}
-//			return new MapType(ids, baseType);
-			//TODO test!
-			SootClass fakeArrayClass = SootTranslationHelpers.v().getFakeArrayClass(at);
-			return lookupRefLikeType(RefType.v(fakeArrayClass));
+			// ArrayType at = (ArrayType) t;
+			// Type baseType = lookupType(at.baseType);
+			// List<Type> ids = new LinkedList<Type>();
+			// for (int i = 0; i < at.numDimensions; i++) {
+			// ids.add(IntType.instance());
+			// }
+			// return new MapType(ids, baseType);
+			// TODO test!
+			//
+			// SootClass fakeArrayClass =
+			// SootTranslationHelpers.v().getFakeArrayClass(at);
+			// return lookupRefLikeType(RefType.v(fakeArrayClass));
+			throw new RuntimeException("Remove Arrays first.");
 		} else if (t instanceof RefType) {
 			return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)));
 		} else if (t instanceof NullType) {
@@ -295,71 +317,74 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		throw new UnsupportedOperationException("Unsupported type " + t.getClass());
 	}
 
-	
+	private String classNameToSootName(String className) {
+		return className.replace('/', '.');
+	}
+
 	public ClassVariable lookupClassVariable(ClassConstant cc) {
 		if (!this.constantDictionary.containsKey(cc)) {
 			final String name = cc.getValue();
-			if (Scene.v().containsClass(cc.getValue())) {
-				SootClass c = Scene.v().getSootClass(cc.getValue());
+			final String sootClassName = classNameToSootName(name);
+
+			if (Scene.v().containsClass(sootClassName)) {
+				SootClass c = Scene.v().getSootClass(sootClassName);
 				Collection<ClassVariable> parents = new HashSet<ClassVariable>();
 				if (c.resolvingLevel() >= SootClass.HIERARCHY) {
 					if (c.hasSuperclass()) {
-						parents.add(lookupClassVariable(ClassConstant.v(c.getSuperclass().getJavaStyleName()) ));
+						/**
+						 * TODO: WARNING: we had bugs before from mixing
+						 * qualified and non-qualified class
+						 * names. E.g., we had:
+						 * java.lang.Object and Object in the class hierarchy.
+						 */
+						SootClass superClass = c.getSuperclass();
+						final String bytecodeName = superClass.getType().getClassName().replace('.', '/');
+						parents.add(lookupClassVariable(ClassConstant.v(bytecodeName)));
+					} else {
+						/*
+						 * This is a hack because, for whatever reason, Throwable and some other classes
+						 * do not have Object as their superclass.
+						 */
+						if (c!=Scene.v().getSootClass(Object.class.getName())) {
+							SootClass superClass = Scene.v().getSootClass(Object.class.getName());
+							final String bytecodeName = superClass.getType().getClassName().replace('.', '/');
+							parents.add(lookupClassVariable(ClassConstant.v(bytecodeName)));							
+						}
 					}
-				}
+				} 
 				ClassVariable cv = new ClassVariable(name, parents);
 				this.constantDictionary.put(cc, cv);
-				
+
 				List<Variable> fields = new LinkedList<Variable>();
-				for (SootField f : c.getFields()) {
-					fields.add(lookupField(f));
+				if (c.resolvingLevel() > SootClass.DANGLING) {
+					for (SootField f : c.getFields()) {
+						if (!f.isStatic()) {
+							fields.add(lookupField(f));
+						}
+					}
 				}
 				cv.setAssociatedFields(fields);
 			} else {
-				System.err.println("Class not in scene: "+cc);
+				// System.err.println("Class not in scene: "+sootClassName);
 				this.constantDictionary.put(cc, new ClassVariable(name, new HashSet<ClassVariable>()));
+
+				// sc.addField(new
+				// SootField(SootTranslationHelpers.typeFieldName,
+				// RefType.v(Scene.v().getSootClass("java.lang.Class"))));
+
 			}
+			this.program.addClassVariable((ClassVariable) this.constantDictionary.get(cc));
 		}
-		this.program.addClassVariable((ClassVariable) this.constantDictionary.get(cc));
 		return (ClassVariable) this.constantDictionary.get(cc);
 	}
-	
-//	public ClassVariable lookupClassVariable(RefType t) {
-//		if (!classVariables.containsKey(t)) {			
-//			SootClass c = t.getSootClass();
-//			Collection<ClassVariable> parents = new HashSet<ClassVariable>();
-//			if (c.resolvingLevel() >= SootClass.HIERARCHY) {
-//				if (c.hasSuperclass()) {
-//					parents.add(lookupClassVariable(c.getSuperclass().getType()));
-//				}
-//			}
-//			classVariables.put(t, new ClassVariable(c.getJavaStyleName(), parents));
-//			// add the fields after that to avoid endless loop.
-//			if (c.resolvingLevel() >= SootClass.SIGNATURES) {
-//				List<Variable> fields = new LinkedList<Variable>();
-//				for (SootField f : c.getFields()) {
-//					fields.add(lookupField(f));
-//				}
-//				classVariables.get(t).setAssociatedFields(fields);
-//			} else {
-//				// TODO
-//			}
-//
-//		}
-//		return classVariables.get(t);
-//	}
 
 	protected Variable lookupField(SootField field) {
 		if (!this.fieldGlobals.containsKey(field)) {
 			final String fieldName = field.getDeclaringClass().getName() + "." + field.getName();
-			Variable fieldVar = this.program.lookupGlobalVariable(fieldName, this.lookupType(field.getType()));
+			Variable fieldVar = this.program.lookupGlobalVariable(fieldName, this.lookupType(field.getType()),
+					field.isFinal(), field.isStatic());
 			this.fieldGlobals.put(field, fieldVar);
 		}
 		return this.fieldGlobals.get(field);
-	}
-
-	protected Variable lookupStaticField(SootField field) {
-		Verify.verify(false);
-		return this.program.lookupGlobalVariable(field.getName(), lookupType(field.getType()));
 	}
 }

@@ -24,33 +24,34 @@ import org.kohsuke.args4j.Option;
 /**
  * Options
  * 
- * @author schaef, schaef
+ * @author schaef
  */
 public class Options {
 
 	
-	@Option(name = "-android-jars", usage = "Path to the jars that stub the android platform.")
-	private String androidStubPath=null;
-	
-	public String getAndroidStubPath() {
-		return androidStubPath;
-	}
-
-	public void setAndroidStubPath(String path) {
-		this.androidStubPath = path;
-	}
-	
-	/**
-	 * JAR file
-	 */
+//	@Option(name = "-android-jars", usage = "Path to the jars that stub the android platform.")
+//	private String androidStubPath=null;
+//	
+//	public String getAndroidStubPath() {
+//		return androidStubPath;
+//	}
+//
+//	public void setAndroidStubPath(String path) {
+//		this.androidStubPath = path;
+//	}
+//	
+//	/**
+//	 * JAR file
+//	 */
 	@Option(name = "-checker", usage = "Select a checker [inconsistency, or safety]", required = false)
+//	//@Option(name = "-checker", usage = "Select a checker [safety]", required = false)
 	private String checker = "safety";
 	public String getChecker() {
 		return checker;
 	}
 	
-	@Option(name = "-solver", usage = "Select a solver [princess or z3]", required = false)
-	private String solver = "princess";
+	@Option(name = "-solver", usage = "Select a solver [eldarica or z3]", required = false)
+	private String solver = "eldarica";
 	public String getSolver() {
 		return solver;
 	}
@@ -59,13 +60,58 @@ public class Options {
 	/**
 	 * JAR file
 	 */
-	@Option(name = "-j", usage = "JAR file, class folder, or apk", required = false)
+	@Option(name = "-j", usage = "JAR file, class folder, or apk", required = true)
 	private String javaInput;
 	
 	public String getJavaInput() {		
 		return this.javaInput;
 	}
+	
+	
+//	/**
+//	 * Print Horn clauses
+//	 */
+	@Option(name = "-h", usage = "Print horn clauses", required = false)
+	private boolean printHorn = false;
+	
+	public boolean getPrintHorn() {		
+		return this.printHorn;
+	}
+	
+	public void setPrintHorn(boolean b) {		
+		this.printHorn = b;
+	}	
 
+//	/**
+//	 * Output intermediate representations
+//	 */
+	@Option(name = "-out", usage = "Output directory for intermediate represenations", required = false)
+	private String out = null;
+	
+	public String getOut() {		
+		return this.out;
+	}
+	
+	public String getOutDir() {
+		if (this.out != null && !this.out.endsWith("/"))
+			return this.out+"/";
+		return this.out;
+	}
+	
+	public String getOutBasename() { 
+		String in = getJavaInput();
+		if (in.endsWith("/"))
+			in = in.substring(0, in.length()-1);
+		String outName = in.substring(in.lastIndexOf('/') + 1, in.length()).replace(".java", "").replace(".class", "");
+		if (outName.equals(""))
+			outName = "noname";
+		return outName;
+	}
+	
+	public void setOut(String s) {		
+		this.out = s;
+	}	
+	
 	/**
 	 * Classpath
 	 */

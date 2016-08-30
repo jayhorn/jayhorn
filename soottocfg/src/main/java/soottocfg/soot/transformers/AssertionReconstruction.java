@@ -24,6 +24,7 @@ import soot.jimple.IfStmt;
 import soot.jimple.IntConstant;
 import soot.jimple.InvokeStmt;
 import soot.jimple.Jimple;
+import soot.jimple.JimpleBody;
 import soot.jimple.NewExpr;
 import soot.jimple.StaticFieldRef;
 import soot.jimple.Stmt;
@@ -34,7 +35,7 @@ import soottocfg.soot.util.SootTranslationHelpers;
  * @author schaef
  *
  */
-public class AssertionReconstruction extends AbstractTransformer {
+public class AssertionReconstruction extends AbstractSceneTransformer {
 
 	/*
 	 * Code to handle Java Assertions.
@@ -42,8 +43,14 @@ public class AssertionReconstruction extends AbstractTransformer {
 	private static final String javaAssertionType = "java.lang.AssertionError";
 	private static final String javaAssertionFlag = "$assertionsDisabled";
 
-	@Override
-	protected void internalTransform(Body body, String arg1, Map<String, String> arg2) {		
+	public void applyTransformation() {
+		for (JimpleBody body : this.getSceneBodies()) {
+			transform(body);
+		}
+	}
+	
+	
+	private void transform(Body body) {		
 		removeAssertionRelatedNonsense(body); //TODO: is it sufficient to do this
 		                                      //for constructors?
 		reconstructJavaAssertions(body);

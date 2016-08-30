@@ -55,12 +55,25 @@ public class Program {
 
 	public void addClassVariable(ClassVariable cv) {
 		if (!this.typeGraph.containsVertex(cv)) {
-			this.typeGraph.addVertex(cv);
+			this.typeGraph.addVertex(cv);			
 			for (ClassVariable parent : cv.getParents()) {
 				addClassVariable(parent);
 				this.typeGraph.addEdge(parent, cv);
 			}			
 		}
+	}
+
+	public Set<ClassVariable> getClassVariables() {
+		return this.typeGraph.vertexSet();
+	}
+	
+	public ClassVariable findClassVariableByName(final String name) {
+		for (ClassVariable cv : this.typeGraph.vertexSet()) {
+			if (name.equals(cv.variableName)) {
+				return cv;
+			}
+		}
+		return null;
 	}
 	
 	public DirectedGraph<ClassVariable, DefaultEdge> getTypeGraph() {
@@ -90,6 +103,7 @@ public class Program {
 	}
 
 	public void addEntryPoint(Method entry) {
+		entry.isProgramEntryPoint(true);
 		this.entryPoints.add(entry);
 	}
 
@@ -165,5 +179,22 @@ public class Program {
 			}
 		}
 		return modifiedGlobals;
+	}
+	
+	public String toString() {
+		StringBuilder prog = new StringBuilder();
+		
+		// global variables
+		for (Variable g : globalVariables.values()) {
+			prog.append(g+";\n");
+		}
+		prog.append("\n");
+		
+		// methods
+		for (Method m : methods.values()) {
+			prog.append(m+"\n");
+		}
+		
+		return prog.toString();
 	}
 }

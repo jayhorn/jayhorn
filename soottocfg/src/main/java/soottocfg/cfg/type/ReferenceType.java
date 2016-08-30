@@ -29,7 +29,8 @@ public class ReferenceType extends ReferenceLikeType {
 		if (classVariable == null) {
 			return "Null";
 		} else {
-			return "ref(" + classVariable.getName() + ")";
+//			return "ref(" + classVariable.getName() + ")";
+			return classVariable.getName().replace('/','.');
 		}
 	}
 

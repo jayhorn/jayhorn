@@ -1,4 +1,4 @@
-/**
+	/**
  * 
  */
 package soottocfg.test.translation_test;
@@ -65,7 +65,7 @@ public class TranslationTest {
 		SootToCfg soot2cfg = new SootToCfg();
 		File classDir = null;
 		try {
-			classDir = Util.compileJavaFile(this.sourceFile);
+			classDir = Util.compileJavaFile(this.sourceFile, System.getProperty("java.class.path"));
 		} catch (IOException e) {
 			e.printStackTrace();
 			Assert.fail();

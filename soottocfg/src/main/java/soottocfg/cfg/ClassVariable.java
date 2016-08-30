@@ -25,7 +25,7 @@ public class ClassVariable extends Variable  {
 	public ClassVariable(String name, Collection<ClassVariable> parents) {
 		super(name, new ReferenceType(null), true, true); //TODO, its actually not reference type.	
 		parentConstants = new HashSet<ClassVariable>();
-		parentConstants.addAll(parentConstants);
+		parentConstants.addAll(parents);
 		associatedFields = new LinkedList<Variable>();
 	}
 
@@ -46,8 +46,41 @@ public class ClassVariable extends Variable  {
 		return associatedFields.toArray(new Variable[associatedFields.size()]);
 	}
 
+	public void addGhostField(Variable gf) {
+		// TODO handle this nicely
+		if (this.hasField(gf.getName())) {
+			throw new RuntimeException("Cannot add ghostfield, already exists: " + gf.getName());
+		}
+		associatedFields.add(gf);
+	}
+	
+	public boolean hasField(String fname) {
+		for (Variable v : associatedFields) {
+			if (v.getName().equals(fname))
+				return true;
+		}
+		return false;
+	}
+	
 	@Override
 	public String toString() {
 		return this.variableName;
+	}
+	
+	public boolean subclassOf(ClassVariable cls) {
+		List<ClassVariable> todo = new LinkedList<ClassVariable>();
+		todo.add(this);
+		while (!todo.isEmpty()) {
+			ClassVariable cv = todo.remove(0);
+			if (cv==cls) return true;
+			if (cv.getParents()!=null) {
+				todo.addAll(cv.getParents());
+			}
+		}
+		return false;
+	}
+	
+	public boolean superclassOf(ClassVariable cls) {
+		return cls.subclassOf(this);
 	}
 }
