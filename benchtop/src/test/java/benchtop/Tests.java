@@ -34,12 +34,12 @@ public class Tests {
 
   private static final Map<String, List<String>> NAME_TO_FILE_CONTENT = Maps.newHashMap();
   static {
-//
-//    if(!WORKING_DIR.exists()){
-//      if(!WORKING_DIR.mkdirs()){
-//        System.out.println("Unable to create " + WORKING_DIR.toString());
-//      }
-//    }
+
+    if(!WORKING_DIR.exists()){
+      if(!WORKING_DIR.mkdirs()){
+        System.out.println("Unable to create " + WORKING_DIR.toString());
+      }
+    }
 
     NAME_TO_FILE_CONTENT.put(JAVA_FILE, simpleJavaFile());
     NAME_TO_FILE_CONTENT.put(JAVA_FILE2, javaFileWithStaticNestedClass());
@@ -72,7 +72,7 @@ public class Tests {
     Tests.testSetup(
       directory, JAVA_FILE,
       JAVA_FILE2, JAVA_FILE3,
-      JAVA_FILE4, JAVA_FILE5
+      JAVA_FILE4, JAVA_FILE5, JAVA_FILE6
     );
   }
 

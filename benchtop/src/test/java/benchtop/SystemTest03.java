@@ -4,6 +4,7 @@ import benchtop.spi.RandoopConfiguration;
 import com.google.common.io.Files;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -25,7 +26,7 @@ public class SystemTest03 {
     Tests.testSetup(compiledTempFolder, Tests.JAVA_FILE6);
   }
 
-  @Test public void testDynamicallyCreatedClasses() {
+  @Ignore @Test public void testDynamicallyCreatedClasses() {
     try {
       final Result result = Tests.consumesExecutionBundle(compiledTempFolder, DIR, true);
 

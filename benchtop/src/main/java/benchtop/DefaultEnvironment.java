@@ -99,19 +99,20 @@ public class DefaultEnvironment implements Environment {
       addError(e);
 
       LOG.error("Unexpected error", e);
+    } finally {
+      // deleting temp folder
+      try {
+        IO.deleteDirectory(this.nontransformed.toPath());
+        IO.deleteDirectory(this.transformed.toPath());
+        LOG.info(String.format("Content of files %s and %s has been deleted!", this.nontransformed, this.transformed));
+      } catch (IOException e) {
+        addError(e);
+        nontransformed.deleteOnExit(); // one more time
+        transformed.deleteOnExit();    // one more time
+        LOG.info(String.format("Files %s and %s have been permanently deleted!", this.nontransformed, this.transformed));
+      }
     }
 
-    // deleting temp folder
-    try {
-      IO.deleteDirectory(this.nontransformed.toPath());
-      IO.deleteDirectory(this.transformed.toPath());
-      LOG.info(String.format("Content of files %s and %s has been deleted!", this.nontransformed, this.transformed));
-    } catch (IOException e) {
-      addError(e);
-      nontransformed.deleteOnExit(); // one more time
-      transformed.deleteOnExit();    // one more time
-      LOG.info(String.format("Files %s and %s have been permanently deleted!", this.nontransformed, this.transformed));
-    }
   }
 
   void transformAndTest(List<Class<?>> listOfClasses) throws IOException {

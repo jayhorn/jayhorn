@@ -5,6 +5,7 @@ import benchtop.utils.Soot;
 import com.google.common.io.Files;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -45,7 +46,7 @@ public class SystemTest02 {
   }
 
 
-  @Test public void testFailureOfDynamicallyCreatedAndTransformedClasses(){
+  @Ignore @Test public void testFailureOfDynamicallyCreatedAndTransformedClasses(){
     Soot.withSanityCheck();
     try {
       Tests.consumesExecutionBundle(compiledTempFolder, DIR, true);

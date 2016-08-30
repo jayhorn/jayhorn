@@ -2,6 +2,7 @@ package benchtop;
 
 import benchtop.utils.Classes;
 import benchtop.utils.IO;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -9,7 +10,7 @@ import java.util.List;
 
 public class SystemTest01 {
 
-  @Test public void testOldWay() throws Exception {
+  @Ignore @Test public void testOldWay() throws Exception {
     final String cpString = "..the path to some libraries";
     final Classpath cp = Classpath.of(cpString.split(":"));
 
@@ -39,7 +40,7 @@ public class SystemTest01 {
 
   }
 
-  @Test public void testNewWay() throws Exception {
+  @Ignore @Test public void testNewWay() throws Exception {
     Benchtop.consumes(new ExecutionBundle() {
       @Override public void configure(Environment host) {
         host.bundleTarget(new File("path/to/project/classes"));
