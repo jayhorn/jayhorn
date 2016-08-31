@@ -48,7 +48,7 @@ public class Checker {
     allClauses.addAll(hf.clauses);
 
     if (Options.v().getPrintHorn()) {
-      hf.writeHorn();
+      System.out.println(hf.writeHorn());
     }
 
     ProverResult result = ProverResult.Unknown;

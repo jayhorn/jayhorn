@@ -46,6 +46,7 @@ import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.MethodStubber;
+import soottocfg.soot.transformers.NativeMethodStubber;
 import soottocfg.soot.transformers.SwitchStatementRemover;
 import soottocfg.soot.transformers.VirtualCallResolver;
 import soottocfg.soot.util.DuplicatedCatchDetection;
@@ -162,7 +163,7 @@ public class SootToCfg {
 //		PushIdentifierAdder pia = new PushIdentifierAdder();
 //		pia.addIDs(program, havoc);
 //		pia.addIDs(program);
-
+		
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
 	}
@@ -291,6 +292,10 @@ public class SootToCfg {
 	}
 
 	private void performAbstractionTransformations() {
+		
+		NativeMethodStubber nms = new NativeMethodStubber();
+		nms.applyTransformation();
+		
 		if (SootTranslationHelpers.v().getMemoryModel() instanceof NewMemoryModel) {
 			MethodStubber mstubber = new MethodStubber();
 			mstubber.applyTransformation();
