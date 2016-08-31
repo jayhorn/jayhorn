@@ -307,8 +307,9 @@ public abstract class BasicMemoryModel extends MemoryModel {
 			//
 			// SootClass fakeArrayClass =
 			// SootTranslationHelpers.v().getFakeArrayClass(at);
-			// return lookupRefLikeType(RefType.v(fakeArrayClass));
-			throw new RuntimeException("Remove Arrays first.");
+			// return lookupRefLikeType(RefType.v(fakeArrayClass));	
+			
+			throw new RuntimeException("Remove Arrays first. " + t);
 		} else if (t instanceof RefType) {
 			return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)));
 		} else if (t instanceof NullType) {
@@ -342,16 +343,17 @@ public abstract class BasicMemoryModel extends MemoryModel {
 						parents.add(lookupClassVariable(ClassConstant.v(bytecodeName)));
 					} else {
 						/*
-						 * This is a hack because, for whatever reason, Throwable and some other classes
+						 * This is a hack because, for whatever reason,
+						 * Throwable and some other classes
 						 * do not have Object as their superclass.
 						 */
-						if (c!=Scene.v().getSootClass(Object.class.getName())) {
+						if (c != Scene.v().getSootClass(Object.class.getName())) {
 							SootClass superClass = Scene.v().getSootClass(Object.class.getName());
 							final String bytecodeName = superClass.getType().getClassName().replace('.', '/');
-							parents.add(lookupClassVariable(ClassConstant.v(bytecodeName)));							
+							parents.add(lookupClassVariable(ClassConstant.v(bytecodeName)));
 						}
 					}
-				} 
+				}
 				ClassVariable cv = new ClassVariable(name, parents);
 				this.constantDictionary.put(cc, cv);
 
@@ -379,7 +381,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	}
 
 	protected Variable lookupField(SootField field) {
-		if (!this.fieldGlobals.containsKey(field)) {
+		if (!this.fieldGlobals.containsKey(field)) {			
 			final String fieldName = field.getDeclaringClass().getName() + "." + field.getName();
 			Variable fieldVar = this.program.lookupGlobalVariable(fieldName, this.lookupType(field.getType()),
 					field.isFinal(), field.isStatic());

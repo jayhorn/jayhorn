@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 
 import jayhorn.Log;
-import jayhorn.Options;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFun;

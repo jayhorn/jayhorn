@@ -14,18 +14,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import jayhorn.Log;
-import jayhorn.Options;
 import jayhorn.checker.Checker;
-import jayhorn.hornify.Hornify;
 import jayhorn.solver.ProverFactory;
-import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.test.Util;
-import soottocfg.cfg.Program;
 import scala.actors.threadpool.Arrays;
+import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
-import soottocfg.soot.SootToCfg.MemModel;
 
 /**
  * @author schaef

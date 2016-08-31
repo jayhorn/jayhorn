@@ -83,7 +83,7 @@ public class Hornify {
 		 * build up this ordering; and finally create the Horn clauses.
 		 */
 		Verify.verify(program.getEntryPoints().length == 1,
-				"Currently, we only support programs with one entry point. However, its easy to extend that.");
+				"Currently, we only support programs with one entry point. Found "+program.getEntryPoints().length);
 	}
 
 
