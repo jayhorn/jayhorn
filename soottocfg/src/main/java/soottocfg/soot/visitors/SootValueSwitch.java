@@ -23,11 +23,20 @@ import java.util.LinkedList;
 import java.util.List;
 
 import soot.ArrayType;
+import soot.ByteType;
+import soot.CharType;
+import soot.DoubleType;
+import soot.FloatType;
+import soot.IntType;
 import soot.Local;
+import soot.LongType;
 import soot.NullType;
 import soot.PrimType;
 import soot.RefType;
+import soot.ShortType;
 import soot.SootField;
+import soot.SootMethodRef;
+import soot.Type;
 import soot.Value;
 import soot.jimple.AddExpr;
 import soot.jimple.AndExpr;
@@ -244,7 +253,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseMethodHandle(MethodHandle arg0) {
-		// TODO Auto-generated method stub
+		throw new RuntimeException("We currently do not handle MethodHandle instructions. Please file an issue with your example.\nhttps://github.com/jayhorn/jayhorn/issues");
 
 	}
 
@@ -275,11 +284,81 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseCastExpr(CastExpr arg0) {
-		// TODO this assumes that we have introduced explicit updates to the type field.
-		arg0.getOp().apply(this);
-//		expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(), fresh));
+		if(isPrimitiveNarrowing(arg0)) {
+			//if we down-cast a numeric type, translate a havoc instead of the
+			//actual cast.
+			//TODO: this should me implemented in a more flexible way.
+			createHavocLocal(arg0.getCastType());
+		} else {
+			arg0.getOp().apply(this);	
+		}
 	}
 
+	/**
+	 * Creates a fresh local of type t, adds a statement
+	 * that assigns a non-det value to this local, and puts
+	 * this local on the stack.
+	 * @param t Type of the local that should be generated
+	 */
+	private void createHavocLocal(Type t) {
+		//create a fresh local variable
+		final String localName = "$ndet"+this.statementSwitch.getMethod().getActiveBody().getLocals().size();
+		Local freshLocal = Jimple.v().newLocal(localName, t);		
+		this.statementSwitch.getMethod().getActiveBody().getLocals().add(freshLocal);
+		//add a statement that assigns a non-det value to this variable.
+		SootMethodRef smr = SootTranslationHelpers.v().getHavocMethod(t).makeRef();			
+		Jimple.v().newAssignStmt(freshLocal, Jimple.v().newStaticInvokeExpr(smr)).apply(this.statementSwitch);
+		//push this fresh local on the expression stack.
+		freshLocal.apply(this);
+	}
+	
+	
+	/**
+	 * Check if the cast narrows a numeric type. 
+	 * E.g., down-casts a long into int.
+	 * @param ce Cast Expression
+	 * @return true if the cast narrows a numeric type, false otherwise.
+	 */
+	protected boolean isPrimitiveNarrowing(CastExpr ce) {
+		int target = primitiveTypeToNumber(ce.getCastType());
+		int inner = primitiveTypeToNumber(ce.getOp().getType());
+		if (inner<0 || target<0) return false;		
+		return target<inner;
+	}
+
+	/**
+	 * Check if the cast widens a numeric type. 
+	 * E.g., down-casts a int into long.
+	 * @param ce Cast Expression
+	 * @return true if the cast widens a numeric type, false otherwise.
+	 */
+	protected boolean isPrimitiveWidening(CastExpr ce) {
+		int target = primitiveTypeToNumber(ce.getCastType());
+		int inner = primitiveTypeToNumber(ce.getOp().getType());
+		if (inner<0 || target<0) return false;		
+		return target>inner;
+	}
+	
+	/**
+	 * Map numeric types to a number indicating a partial order of
+	 * their size. With double being the largest and byte being the
+	 * smallest. Following the partial order defined here:
+	 * https://docs.oracle.com/javase/specs/jls/se7/html/jls-5.html
+	 * @param t
+	 * @return
+	 */
+	private int primitiveTypeToNumber(Type t) {
+		if (t instanceof ByteType) return 0;
+		if (t instanceof ShortType) return 1;
+		if (t instanceof CharType) return 1;
+		if (t instanceof IntType) return 2;
+		if (t instanceof LongType) return 3;
+		if (t instanceof FloatType) return 4;
+		if (t instanceof DoubleType) return 5;
+		return -1;
+	}
+	
+	
 	@Override
 	public void caseCmpExpr(CmpExpr arg0) {
 		translateBinOp(arg0);
