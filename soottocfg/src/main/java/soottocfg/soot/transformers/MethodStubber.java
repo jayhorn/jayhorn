@@ -70,7 +70,7 @@ public class MethodStubber extends AbstractSceneTransformer {
 						SpecialInvokeExpr ivk = Jimple.v().newSpecialInvokeExpr(body.getThisLocal(),
 								superConstructor.makeRef());
 						body.getUnits().add(Jimple.v().newInvokeStmt(ivk));
-						System.err.println("Added: " + ivk + " to " + m.getSignature());
+//						System.err.println("Added: " + ivk + " to " + m.getSignature());
 					}
 				}
 			}

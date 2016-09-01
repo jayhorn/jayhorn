@@ -38,6 +38,7 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.util.CfgStubber;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.memory_model.PushPullSimplifier;
@@ -45,6 +46,7 @@ import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.MethodStubber;
+import soottocfg.soot.transformers.NativeMethodStubber;
 import soottocfg.soot.transformers.SwitchStatementRemover;
 import soottocfg.soot.transformers.VirtualCallResolver;
 import soottocfg.soot.util.DuplicatedCatchDetection;
@@ -131,24 +133,35 @@ public class SootToCfg {
 		// run soot to load all classes.
 		SootRunner runner = new SootRunner();
 		runner.run(input, classPath);
-
 		performBehaviorPreservingTransformations();
 		performAbstractionTransformations();
-
 		Variable exceptionGlobal = this.program
 				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
 						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
 		program.setExceptionGlobal(exceptionGlobal);
 
+		// add havoc method for ints for lastpull
+		// SootMethod havocSoot =
+		// SootTranslationHelpers.v().getHavocMethod(soot.IntType.v());
+		// Method havoc =
+		// SootTranslationHelpers.v().lookupOrCreateMethod(havocSoot);
 		constructCfg();
 		if (outDir != null)
 			writeFile(".cfg", program.toString());
+
+		CfgStubber stubber = new CfgStubber();
+		stubber.stubUnboundFieldsAndMethods(program);
 
 		// simplify push-pull
 		PushPullSimplifier pps = new PushPullSimplifier();
 		pps.simplify(program);
 		if (outDir != null)
 			writeFile(".simpl.cfg", program.toString());
+
+		// add push IDs
+		// PushIdentifierAdder pia = new PushIdentifierAdder();
+		// pia.addIDs(program, havoc);
+		// pia.addIDs(program);
 
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
@@ -160,19 +173,20 @@ public class SootToCfg {
 	 * 
 	 * @param sc
 	 */
-	public void runForSingleClass(SootClass sc) {
-		SootRunner.createAssertionClass();
-		performBehaviorPreservingTransformations();
-		performAbstractionTransformations();
-		Variable exceptionGlobal = this.program
-				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
-						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
-		program.setExceptionGlobal(exceptionGlobal);
-
-		constructCfg(sc);
-		// reset all the soot stuff.
-		SootTranslationHelpers.v().reset();
-	}
+//	public void runForSingleClass(SootClass sc) {
+//		SootRunner.createAssertionClass();
+//		performBehaviorPreservingTransformations();		
+//		performAbstractionTransformations();
+//
+//		Variable exceptionGlobal = this.program
+//				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
+//						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
+//		program.setExceptionGlobal(exceptionGlobal);
+//		
+//		constructCfg(sc);
+//		// reset all the soot stuff.
+//		SootTranslationHelpers.v().reset();
+//	}
 
 	/**
 	 * Like run, but only performs the behavior preserving transformations
@@ -200,18 +214,18 @@ public class SootToCfg {
 	private void constructCfg(SootClass sc) {
 		SootTranslationHelpers.v().setCurrentClass(sc);
 		for (SootMethod sm : sc.getMethods()) {
-			if (sm.isConcrete()) {	
+			if (sm.isConcrete()) {
 				if (sm.equals(SootTranslationHelpers.v().getAssertMethod())) {
-					//Do not translate the assertion method.
+					// Do not translate the assertion method.
 					continue;
 				}
 				SootTranslationHelpers.v().setCurrentMethod(sm);
-				
+
 				try {
 					Body body = null;
 					try {
 						body = sm.retrieveActiveBody();
-//						CopyPropagator.v().transform(body);
+						// CopyPropagator.v().transform(body);
 					} catch (RuntimeException e) {
 						// TODO: print warning that body couldn't be retrieved.
 						continue;
@@ -225,7 +239,7 @@ public class SootToCfg {
 						((NewMemoryModel) mm).clearFieldToLocalMap();
 					}
 
-					System.err.println(sm.getSignature()+"\n"+body);
+					// System.err.println(sm.getSignature()+"\n"+body);
 					SootStmtSwitch ss = new SootStmtSwitch(body, mi);
 					mi.setSource(ss.getEntryBlock());
 
@@ -251,10 +265,11 @@ public class SootToCfg {
 	private void constructCfg() {
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
-//			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
-//				continue; // no need to process this guy.
-//			}
-			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass() && !sc.isJavaLibraryClass() && !sc.isLibraryClass()) {
+			// if (sc == SootTranslationHelpers.v().getAssertionClass()) {
+			// continue; // no need to process this guy.
+			// }
+			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass() && !sc.isJavaLibraryClass()
+					&& !sc.isLibraryClass()) {
 				constructCfg(sc);
 			}
 		}
@@ -277,7 +292,12 @@ public class SootToCfg {
 		}
 	}
 
+
 	private void performAbstractionTransformations() {
+
+		NativeMethodStubber nms = new NativeMethodStubber();
+		nms.applyTransformation();
+
 		if (SootTranslationHelpers.v().getMemoryModel() instanceof NewMemoryModel) {
 			MethodStubber mstubber = new MethodStubber();
 			mstubber.applyTransformation();
@@ -352,7 +372,7 @@ public class SootToCfg {
 		if (resolveVirtualCalls) {
 			VirtualCallResolver vc = new VirtualCallResolver();
 			vc.applyTransformation();
-		}		
+		}
 		addStaticInitializerCallsToMain();
 	}
 

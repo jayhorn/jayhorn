@@ -18,12 +18,17 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.statement.*;
+import soottocfg.cfg.statement.AssertStatement;
+import soottocfg.cfg.statement.AssignStatement;
+import soottocfg.cfg.statement.AssumeStatement;
+import soottocfg.cfg.statement.PullStatement;
+import soottocfg.cfg.statement.PushStatement;
+import soottocfg.cfg.statement.Statement;
 import soottocfg.soot.util.SootTranslationHelpers;
 
 public class PushPullSimplifier {
 	
-	private static boolean debug = true;
+	private static boolean debug = false;
 	
 	public PushPullSimplifier() {
 	}

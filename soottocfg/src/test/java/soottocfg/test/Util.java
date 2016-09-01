@@ -1,11 +1,11 @@
 package soottocfg.test;
 
-import com.google.common.io.Files;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.Charset;
+
+import com.google.common.io.Files;
 
 public final class Util {
 

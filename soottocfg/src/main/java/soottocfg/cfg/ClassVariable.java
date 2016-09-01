@@ -46,6 +46,22 @@ public class ClassVariable extends Variable  {
 		return associatedFields.toArray(new Variable[associatedFields.size()]);
 	}
 
+	public void addGhostField(Variable gf) {
+		// TODO handle this nicely
+		if (this.hasField(gf.getName())) {
+			throw new RuntimeException("Cannot add ghostfield, already exists: " + gf.getName());
+		}
+		associatedFields.add(gf);
+	}
+	
+	public boolean hasField(String fname) {
+		for (Variable v : associatedFields) {
+			if (v.getName().equals(fname))
+				return true;
+		}
+		return false;
+	}
+	
 	@Override
 	public String toString() {
 		return this.variableName;

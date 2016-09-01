@@ -220,5 +220,11 @@ public interface Prover {
     ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body,
                                   ProverExpr constraint);
 
+    ////////////////////////////////////////////////////////////////////////////
+    // Some functions for outputing SMT-LIB
+
+    String toSMTLIBDeclaration(ProverFun fun);
+
+    String toSMTLIBFormula(ProverHornClause clause);
 
 }

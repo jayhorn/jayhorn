@@ -12,6 +12,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import ap.DialogUtil$;
 import ap.SimpleAPI;
 import ap.SimpleAPI.ProverStatus$;
 import ap.basetypes.IdealInt$;
@@ -38,6 +39,7 @@ import ap.parser.PredicateSubstVisitor$;
 import ap.parser.SymbolCollector$;
 import ap.terfor.ConstantTerm;
 import ap.terfor.preds.Predicate;
+import jayhorn.Log;
 import jayhorn.solver.ArrayType;
 import jayhorn.solver.BoolType;
 import jayhorn.solver.IntType;
@@ -62,6 +64,9 @@ import scala.collection.mutable.ArrayBuffer;
 import scala.util.Either;
 
 public class PrincessProver implements Prover {
+
+        private static final boolean EldaricaDebug = false;
+        private static final boolean EldaricaTemplates = false;
 
 	private SimpleAPI api;
 
@@ -331,13 +336,42 @@ public class PrincessProver implements Prover {
 				for (HornExpr clause : assertedClauses)
 					clauses.$plus$eq(clause.clause);
 
+                                lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
 				final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
-						scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(), false, false);
-				//System.out.println(result);
-				if (result.isLeft())
-					return ProverResult.Sat;
-				else
+						scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(), EldaricaTemplates, EldaricaDebug);
+
+				if (result.isLeft()) {
+                                    StringBuffer sol = new StringBuffer();
+                                    sol.append("Solution:\n");
+                                    List<Tuple2<Predicate, IFormula>> ar = result.left().get().toList();
+
+                                    while (!ar.isEmpty()) {
+                                        Tuple2<Predicate, IFormula> p = ar.head();
+                                        ar = (List<Tuple2<Predicate, IFormula>>)ar.tail();
+                                        sol.append("" + p._1() + ": " + api.pp(p._2()) + "\n");
+                                    }
+
+                                    Log.info(sol.toString());
+                                    return ProverResult.Sat;
+
+				} else {
+                                        Log.info("Counterexample:\n" +
+                                          DialogUtil$.MODULE$.asString
+                                          (new scala.runtime.AbstractFunction0<Integer>() {
+                                             public Integer apply() {
+                                               Dag<IAtom> simpDag =
+                                                 result.right().get().map(
+                                                   new scala.runtime.AbstractFunction1<Tuple2<IAtom, Clause>, IAtom>() {
+                                                     public IAtom apply(Tuple2<IAtom, Clause> p) {
+                                                       return p._1();
+                                                     }
+                                                   });
+                                               simpDag.prettyPrint();
+                                               return 0;
+                                             }
+                                           }));
 					return ProverResult.Unsat;
+                                }
 			} else {
 				this.executor = Executors.newSingleThreadExecutor();
 				this.thread = new PrincessSolverThread(assertedClauses);
@@ -361,8 +395,9 @@ public class PrincessProver implements Prover {
 			final ArrayBuffer<HornClauses.Clause> clauses = new ArrayBuffer<HornClauses.Clause>();
 			for (HornExpr clause : hornClauses)
 				clauses.$plus$eq(clause.clause);
+                        lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
 			final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
-					scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(), false, false);
+					scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(), EldaricaTemplates, EldaricaDebug);
 			if (result.isLeft())
 				this.status = ProverResult.Sat;
 			else
@@ -448,7 +483,7 @@ public class PrincessProver implements Prover {
 			args.$plus$eq(indexes.toSet());
 		}
 
-		final Seq<IFormula> ints = api.getInterpolants(args.toSeq());
+		final Seq<IFormula> ints = api.getInterpolants(args.toSeq(), Long.MAX_VALUE);
 
 		final ProverExpr[] res = new ProverExpr[partitionSeq.length - 1];
 		for (int i = 0; i < partitionSeq.length - 1; ++i)
@@ -600,5 +635,21 @@ public class PrincessProver implements Prover {
 	public String toString() {
 		return "Princess";
 	}
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Some functions for outputing SMT-LIB
+
+    public String toSMTLIBDeclaration(ProverFun fun) {
+        if (fun instanceof PredicateFun) {
+            final PredicateFun predFun = (PredicateFun)fun;
+            return predFun.toSMTLIBDeclaration();
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public String toSMTLIBFormula(ProverHornClause clause) {
+        return ((HornExpr)clause).toSMTLIBFormula();
+    }
 
 }

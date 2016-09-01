@@ -18,6 +18,8 @@ import jayhorn.checker.Checker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.test.Util;
+import scala.actors.threadpool.Arrays;
+import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
 
 /**
@@ -46,6 +48,7 @@ public class ClassicProblemsHornTest {
 	private static void collectFileNamesRecursively(File file, List<Object[]> filenames) {
 		File[] directoryListing = file.listFiles();
 		if (directoryListing != null) {
+			Arrays.sort(directoryListing);
 			for (File child : directoryListing) {
 				if (child.isFile() && child.getName().endsWith(".java")) {
 					filenames.add(new Object[] { child, child.getName() });
@@ -81,8 +84,10 @@ public class ClassicProblemsHornTest {
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg(false, true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
-			Checker checker = new Checker(factory);
-			boolean result = checker.checkProgram(soot2cfg.getProgram());
+			
+			Program program = soot2cfg.getProgram();
+	  		Checker hornChecker = new Checker(factory);
+	  		boolean result = hornChecker.checkProgram(program);
 
 //			Checker checker = new Checker(factory);
 //			boolean result = checker.checkProgram(soot2cfg.getProgram());

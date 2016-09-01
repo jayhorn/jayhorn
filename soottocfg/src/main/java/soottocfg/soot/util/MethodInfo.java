@@ -15,8 +15,6 @@ import java.util.Set;
 import com.google.common.base.Verify;
 
 import soot.Local;
-import soot.SootClass;
-import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.VoidType;

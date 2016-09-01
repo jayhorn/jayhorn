@@ -28,6 +28,19 @@ class PredicateFun implements ProverFun {
         return pred.toString();
     }
 
+    public String toSMTLIBDeclaration() {
+        StringBuffer res = new StringBuffer();
+        res.append("(declare-fun " + pred.name() + "(");
+        String sep = "";
+        for (int i = 0; i < pred.arity(); ++i) {
+            res.append(sep);
+            res.append("Int");
+            sep = " ";
+        }
+        res.append(") Bool)");
+        return res.toString();
+    }
+
     public int hashCode() {
         return pred.hashCode() + 13;
     }

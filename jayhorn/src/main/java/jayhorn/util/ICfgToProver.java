@@ -11,12 +11,12 @@ public interface ICfgToProver {
 	/**
 	 * creates missing axioms about variables used during the translation.
 	 */
-	public List<ProverExpr> generatedAxioms();
+	List<ProverExpr> generatedAxioms();
 
-	public ProverExpr statementListToTransitionRelation(List<Statement> stmts);
+	ProverExpr statementListToTransitionRelation(List<Statement> stmts);
 	
-	public ProverExpr statementToTransitionRelation(Statement s);
+	ProverExpr statementToTransitionRelation(Statement s);
 
-	public ProverExpr expressionToProverExpr(Expression e);
+	ProverExpr expressionToProverExpr(Expression e);
 
 }

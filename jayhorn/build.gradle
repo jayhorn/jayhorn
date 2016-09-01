@@ -81,15 +81,19 @@ test {
 	include '**/regression_tests/**'
     exclude '**/randoop_tests/**'
 	exclude '**/integration_tests/**'
+	exclude '**/assorted_tests/**'
 }
 
 task integration_test(type: Test) {
   group 'Verification'
   description 'Run integration tests.'
-
+	enableAssertions = true
+	ignoreFailures = true
 	include '**/regression_tests/**'
 	include '**/integration_tests/**'
+	exclude '**/assorted_tests/**'
 }
+
 
 task randoop_test(type: Test) {
     group 'Verification'

@@ -9,3 +9,4 @@ class SatInit {
      assert a.i==1;
   }
 }
+

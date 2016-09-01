@@ -11,6 +11,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Verify;
+
 import soot.ArrayType;
 import soot.IntType;
 import soot.Local;
@@ -80,9 +82,8 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 	public static final String arrayTypeName = "JayArray";
 	public static final String arrayElementPrefix = "atIndex";
 
-	
-	private static final int NumberOfModeledElements = 5;	
-	
+	private static final int NumberOfModeledElements = 5;
+
 	public ArrayTransformer() {
 
 	}
@@ -118,6 +119,7 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 						fieldSubstitutionMap.put(oldSignature, f);
 					}
 				}
+
 				for (SootMethod sm : sc.getMethods()) {
 					final String oldSignature = sm.getSignature();
 					// we also have to update the refs in the EntryPoint list.
@@ -126,7 +128,8 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 						entryPoints.remove(sm);
 					}
 
-					if (sc.resolvingLevel() >= SootClass.BODIES && sm.isConcrete() && !sc.isLibraryClass() && !sc.isJavaLibraryClass()) {
+					if (sc.resolvingLevel() >= SootClass.BODIES && sm.isConcrete() && !sc.isLibraryClass()
+							&& !sc.isJavaLibraryClass()) {
 						// record all methods for which we found a body.
 						bodies.add((JimpleBody) sm.retrieveActiveBody());
 					}
@@ -168,7 +171,9 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 				 */
 				if (((Stmt) u).containsFieldRef() && ((Stmt) u).getFieldRef().getType() instanceof ArrayType) {
 					FieldRef fr = ((Stmt) u).getFieldRef();
-					fr.setFieldRef(fieldSubstitutionMap.get(fr.toString()).makeRef());
+					String sig = fr.getField().getSignature();
+					Verify.verify(fieldSubstitutionMap.containsKey(sig), "No entry found for " + fr + " in stmt " + u);
+					fr.setFieldRef(fieldSubstitutionMap.get(sig).makeRef());
 				} else if (((Stmt) u).containsInvokeExpr()) {
 					InvokeExpr ive = ((Stmt) u).getInvokeExpr();
 					final String oldSignature = ive.getMethodRef().toString();
@@ -259,17 +264,31 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 						ce.setCastType(getArrayReplacementType((ArrayType) ce.getCastType()));
 					}
 				} else if (u instanceof DefinitionStmt && ((DefinitionStmt) u).getRightOp() instanceof ClassConstant) {
-					ClassConstant cc = (ClassConstant)((DefinitionStmt) u).getRightOp();
-					if (cc.getValue().contains("[")){
-						//TODO, here we have to parse the cc name and
-						//find the corresponding array class.
-						throw new RuntimeException("Not implemented: "+cc);	
-					}					
+					ClassConstant cc = (ClassConstant) ((DefinitionStmt) u).getRightOp();
+					if (cc.getValue().contains("[")) {
+						// TODO, here we have to parse the cc name and
+						// find the corresponding array class.
+						throw new RuntimeException("Not implemented: " + cc);
+					}
+				}
+			}
+			
+			/*
+			 * Changing the types of array fields 
+			 */
+			for (SootClass sc : classes) {
+				if (sc.resolvingLevel()<SootClass.SIGNATURES) {
+					continue;
+				}
+				for (SootField f : new LinkedList<SootField>(sc.getFields())) {
+					if (f.getType() instanceof ArrayType) {
+						sc.removeField(f);
+					}
 				}
 			}
 			try {
 				body.validate();
-			} catch (RuntimeException e) {				
+			} catch (RuntimeException e) {
 				throw e;
 			}
 		}
@@ -316,15 +335,14 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 				RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC | Modifier.FINAL);
 		arrayClass.addField(typeField);
 
-		//create one field for the first N elements of the array which we
-		//model precisely:
+		// create one field for the first N elements of the array which we
+		// model precisely:
 		SootField[] arrFields = new SootField[ArrayTransformer.NumberOfModeledElements];
-		for (int i=0; i<ArrayTransformer.NumberOfModeledElements; i++) {
-			arrFields[i] = new SootField(ArrayTransformer.arrayElementPrefix+"_"+i,
-					elementType, Modifier.PUBLIC);
-			arrayClass.addField(arrFields[i]);			
+		for (int i = 0; i < ArrayTransformer.NumberOfModeledElements; i++) {
+			arrFields[i] = new SootField(ArrayTransformer.arrayElementPrefix + "_" + i, elementType, Modifier.PUBLIC);
+			arrayClass.addField(arrFields[i]);
 		}
-		
+
 		SootMethod getElement = new SootMethod(arrayGetName, Arrays.asList(new Type[] { IntType.v() }), elementType,
 				Modifier.PUBLIC);
 		arrayClass.addMethod(getElement);
@@ -333,20 +351,23 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		Local retLocal = Jimple.v().newLocal("retVal", elementType);
 		body.getLocals().add(retLocal);
 		List<Unit> retStmts = new LinkedList<Unit>();
-		for (int i=0; i<ArrayTransformer.NumberOfModeledElements; i++) {
-			Unit ret = Jimple.v().newAssignStmt(retLocal, Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[i].makeRef()));
+		for (int i = 0; i < ArrayTransformer.NumberOfModeledElements; i++) {
+			Unit ret = Jimple.v().newAssignStmt(retLocal,
+					Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[i].makeRef()));
 			retStmts.add(ret);
-			retStmts.add(Jimple.v().newReturnStmt(retLocal));			
+			retStmts.add(Jimple.v().newReturnStmt(retLocal));
 			Value cond = Jimple.v().newEqExpr(body.getParameterLocal(0), IntConstant.v(i));
 			body.getUnits().add(Jimple.v().newIfStmt(cond, ret));
 		}
-		//if none of the modeled fields was requested, add return havoc as fall through case.
-		//ret = havoc; return ret;				
-		body.getUnits().add(Jimple.v().newAssignStmt(retLocal, Jimple.v().newStaticInvokeExpr(SootTranslationHelpers.v().getHavocMethod(elementType).makeRef())));
+		// if none of the modeled fields was requested, add return havoc as fall
+		// through case.
+		// ret = havoc; return ret;
+		body.getUnits().add(Jimple.v().newAssignStmt(retLocal,
+				Jimple.v().newStaticInvokeExpr(SootTranslationHelpers.v().getHavocMethod(elementType).makeRef())));
 		body.getUnits().add(Jimple.v().newReturnStmt(retLocal));
-		//now add all the return statements
+		// now add all the return statements
 		body.getUnits().addAll(retStmts);
-		
+
 		body.getUnits().add(Jimple.v().newReturnStmt(SootTranslationHelpers.v().getDefaultValue(elementType)));
 		getElement.setActiveBody(body);
 
@@ -357,15 +378,17 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		body.insertIdentityStmts();
 
 		List<Unit> updates = new LinkedList<Unit>();
-		for (int i=0; i<ArrayTransformer.NumberOfModeledElements; i++) {			
-			Unit asn = Jimple.v().newAssignStmt(Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[i].makeRef()), body.getParameterLocal(0));
+		for (int i = 0; i < ArrayTransformer.NumberOfModeledElements; i++) {
+			Unit asn = Jimple.v().newAssignStmt(
+					Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[i].makeRef()),
+					body.getParameterLocal(0));
 			updates.add(asn);
 			updates.add(Jimple.v().newReturnVoidStmt());
 			Value cond = Jimple.v().newEqExpr(body.getParameterLocal(1), IntConstant.v(i));
 			body.getUnits().add(Jimple.v().newIfStmt(cond, asn));
 		}
 		body.getUnits().addAll(updates);
-		
+
 		body.getUnits().add(Jimple.v().newReturnVoidStmt());
 		setElement.setActiveBody(body);
 
@@ -392,10 +415,9 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 				.add(Jimple.v().newAssignStmt(
 						Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemTypeField.makeRef()),
 						ClassConstant.v(elementTypeName)));
-		body.getUnits()
-		.add(Jimple.v().newReturnVoidStmt());
+		body.getUnits().add(Jimple.v().newReturnVoidStmt());
 		constructor.setActiveBody(body);
-		
+
 		return arrayClass;
 	}
 
