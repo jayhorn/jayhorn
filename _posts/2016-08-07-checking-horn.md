@@ -5,7 +5,7 @@ date:   2016-08-07 00:01:00
 categories: jekyll
 ---
 
-Remember our example from the Go back to [overview]( {{ site.github.url }}{% post_url 2016-08-01-model-checking-java %}) (here slightly modified to make it more interesting):
+Remember our example from the [overview]( {{ site.github.url }}{% post_url 2016-08-01-model-checking-java %}) (here slightly modified to make it more interesting):
 
 
 ```java
