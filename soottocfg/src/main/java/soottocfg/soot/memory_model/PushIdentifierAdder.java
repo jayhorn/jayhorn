@@ -19,6 +19,7 @@ import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
+import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
@@ -103,15 +104,15 @@ public class PushIdentifierAdder {
 							SourceLocation loc = pull.getSourceLocation();
 							
 							// add havoc of LP
-//							List<Expression> rec = new ArrayList<Expression>();
-//							rec.add(lpid);
-//							CallStatement havocCall = new CallStatement(
-//									loc,
-//									havoc,
-//									new ArrayList<Expression>(),
-//									rec
-//									);
-//							b.addStatement(i++,havocCall);
+							List<Expression> rec = new ArrayList<Expression>();
+							rec.add(lpid);
+							CallStatement havocCall = new CallStatement(
+									loc,
+									havoc,
+									new ArrayList<Expression>(),
+									rec
+									);
+							b.addStatement(i++,havocCall);
 //							b.addStatement(++i,havocCall);
 							
 							Iterator<Expression> it = disj.iterator();
