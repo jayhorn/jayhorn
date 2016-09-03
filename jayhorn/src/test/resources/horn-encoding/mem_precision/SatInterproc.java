@@ -11,6 +11,6 @@ class SatInterproc {
   public static void main(String[] args) {
      A a = new A();
      setField(a);
-     assert(a.i==41);
+     assert(a.i==42);
   }
 }
