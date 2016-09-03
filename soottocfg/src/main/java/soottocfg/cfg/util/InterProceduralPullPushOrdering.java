@@ -36,14 +36,20 @@ public class InterProceduralPullPushOrdering {
 	private Map<Method, Pair<FixedPointObject, FixedPointObject>> methodEntryExit;
 
 	static class FixedPointObject {
-		// public final Set<PushStatement> relevantBefore = new
-		// HashSet<PushStatement>();
-		// public final Set<PushStatement> relevantAfter = new
-		// HashSet<PushStatement>();
 		public Optional<Statement> stmt = Optional.absent();
 		public Method containingMethod = null;
 		// public CfgBlock containingCfgBlock = null;
-		public final Set<PushStatement> pushes = new HashSet<PushStatement>();
+//		public final Set<PushStatement> pushes = new HashSet<PushStatement>();
+		
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append("FPNode: ");
+			sb.append(stmt);
+			sb.append(" in ");
+			sb.append(this.containingMethod);
+			return sb.toString();
+		}
 	}
 
 	private Map<PullStatement, FixedPointObject> pullMap = new HashMap<PullStatement, FixedPointObject>();
@@ -126,7 +132,10 @@ public class InterProceduralPullPushOrdering {
 		Set<PushStatement> ret = new HashSet<PushStatement>();
 		Set<FixedPointObject> fpos = getFPOsInfluencing(pull);
 		for (FixedPointObject fpo : fpos) {
-			ret.addAll(fpo.pushes);
+			if (fpo.stmt.isPresent() && fpo.stmt.get() instanceof PushStatement) {
+				//TODO: I guess we can assert that this is reachable.
+				ret.add((PushStatement)fpo.stmt.get());
+			}
 		}
 		return ret;
 	}
@@ -251,8 +260,6 @@ public class InterProceduralPullPushOrdering {
 				ipgraph.addVertex(fpo);
 			}
 
-			fpo.pushes.addAll(getPushes(cur));
-
 			// create the subgraph from the current cfg block
 			entryFpo.put(cur, fpo);
 			for (Statement st : cur.getStatements()) {
@@ -290,15 +297,6 @@ public class InterProceduralPullPushOrdering {
 		if (method.edgeSet().isEmpty()) {
 			// in case the method has no body.
 			ipgraph.addEdge(fpEntry, fpExit);
-		}
-		return ret;
-	}
-
-	private Set<PushStatement> getPushes(CfgBlock b) {
-		Set<PushStatement> ret = new HashSet<PushStatement>();
-		for (Statement s : b.getStatements()) {
-			if (s instanceof PushStatement)
-				ret.add((PushStatement) s);
 		}
 		return ret;
 	}
