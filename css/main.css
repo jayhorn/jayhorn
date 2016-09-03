@@ -9,8 +9,9 @@ body {
   background: #ffe;
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
   margin: 50px auto 0;
-  max-width: 450px;
   min-height: 300px;
+  min-width: 350px;
+  max-width: 450px;
   padding: 200px;
   position: relative;
   width: 80%;
@@ -133,4 +134,37 @@ footer {
 .continue {
   text-align: center;
   margin-top: 40px;
+}
+
+/* phone / small screen layout */
+@media (max-device-width: 800px) {
+  .container:before, .container:after {
+    background: transparent;
+    box-shadow: none;
+    left: 0px;
+    top: 0px;
+  }
+  .container {
+    padding: 10px;
+    margin: 10px auto 0;
+  }
+  body {
+   margin: 20px;
+  }
+  .header {
+    margin-bottom: 20px;
+  }
+  .pagination > a, .pagination > span {
+    margin: 20px 10px;
+  }
+  .posts > li {
+    margin: 40px 0px;
+  }
+  footer {
+    margin-top: 40px;
+  }
+  .highlight, blockquote {
+    margin: 10px 0px;
+    padding: 0px 10px;
+  }
 }

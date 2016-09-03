@@ -15,12 +15,12 @@ Soot parses the class files of a Java program for us and produces [Jimple](https
 Let’s look at the following example:
 
 ```java
-  public class A extends OtherClass {
-    @Override
-    public int foo(String s) {
-      return s.length;
-    }
+public class A extends OtherClass {
+  @Override
+  public int foo(String s) {
+    return s.length;
   }
+}
 
 public class C {
   public void bar(OtherClass a) {
@@ -44,17 +44,17 @@ public class JayHornHelper {
 Now we can make the exceptional control-flow from our example above explicit by guarding each statement that may throw a runtime exception with an if-statement in which we update the exception variable if necessary:
 
 ```java
-  public class A extends OtherClass {
-    @Override
-    public int foo(String s) {
-      if (s==null) {
-        JayHornHelper.lastException = 
-          new NullPointerException(...);
-        return 0;
-      }
-      return s.length;
+public class A extends OtherClass {
+  @Override
+  public int foo(String s) {
+    if (s==null) {
+      JayHornHelper.lastException = 
+        new NullPointerException(...);
+      return 0;
     }
+    return s.length;
   }
+}
 
 public class C {
   public void bar(OtherClass a) {
@@ -82,15 +82,15 @@ Now, the exceptional control-flow should be gone from our program. Next, we have
 The easiest way to handle this is to have a big switch case over the possible types of `a` at this point. Further, once we have added these case splits and know that no virtual calls occur, we can make all methods static and pass the instance pointer as first argument. In our example class `A` this would look as follows:
 
 ```java
-  public static void bar(C _this, OtherClass a) {
-    //...
-    int i;
-    if (i instanceof A) i = A.foo((A)a, "3");
-    else i = OtherClass.foo(a, "3");
-    if (JayHornHelper.lastException!=null) 
-      return;
-    assert(i>0);
-  }
+public static void bar(C _this, OtherClass a) {
+  //...
+  int i;
+  if (i instanceof A) i = A.foo((A)a, "3");
+  else i = OtherClass.foo(a, "3");
+  if (JayHornHelper.lastException!=null) 
+    return;
+  assert(i>0);
+}
 ```
 
 Note that if we make all methods static, we also have to make all fields public to avoid permission errors. Since we assume that we start from compilable code this does not introduce any problems.
