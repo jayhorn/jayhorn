@@ -40,6 +40,7 @@ import ap.parser.SymbolCollector$;
 import ap.terfor.ConstantTerm;
 import ap.terfor.preds.Predicate;
 import jayhorn.Log;
+import jayhorn.Options;
 import jayhorn.solver.ArrayType;
 import jayhorn.solver.BoolType;
 import jayhorn.solver.IntType;
@@ -64,9 +65,6 @@ import scala.collection.mutable.ArrayBuffer;
 import scala.util.Either;
 
 public class PrincessProver implements Prover {
-
-        private static final boolean EldaricaDebug = false;
-        private static final boolean EldaricaTemplates = false;
 
 	private SimpleAPI api;
 
@@ -338,7 +336,9 @@ public class PrincessProver implements Prover {
 
                                 lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
 				final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
-						scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(), EldaricaTemplates, EldaricaDebug);
+						scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
+                              Options.v().getSolverOptions().contains("abstract"),
+                              Options.v().getSolverOptions().contains("debug"));
 
 				if (result.isLeft()) {
                                     StringBuffer sol = new StringBuffer();
@@ -396,8 +396,12 @@ public class PrincessProver implements Prover {
 			for (HornExpr clause : hornClauses)
 				clauses.$plus$eq(clause.clause);
                         lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
-			final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
-					scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(), EldaricaTemplates, EldaricaDebug);
+			final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result =
+                            SimpleWrapper.solve(
+                              clauses,
+                              scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
+                              Options.v().getSolverOptions().contains("abstract"),
+                              Options.v().getSolverOptions().contains("debug"));
 			if (result.isLeft())
 				this.status = ProverResult.Sat;
 			else

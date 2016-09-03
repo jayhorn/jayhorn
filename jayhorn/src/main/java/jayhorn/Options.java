@@ -21,6 +21,9 @@ package jayhorn;
 
 import org.kohsuke.args4j.Option;
 
+import java.util.List;
+import java.util.Arrays;
+
 /**
  * Options
  * 
@@ -54,6 +57,14 @@ public class Options {
 	private String solver = "eldarica";
 	public String getSolver() {
 		return solver;
+	}
+	
+	@Option(name = "-solverOptions",
+                usage = "Options for the solver [eldarica: abstract, debug]",
+                required = false)
+	private String solverOptions = "";
+	public List<String> getSolverOptions() {
+            return Arrays.asList(solverOptions.split(","));
 	}
 	
 	
