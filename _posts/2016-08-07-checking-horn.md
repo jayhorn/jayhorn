@@ -66,12 +66,12 @@ int bar(int x) {
 }
 ```
 
-This code can be turned right away into a set of Horn clauses. However, in contrast to all the clauses that we have seen so far, at this point we have to introduce a non-linear clause (a Horn clause with multiple literals in its body) to conect the state invariant of `bar` with the post-condition of `foo`:
+This code can be turned into a set of Horn clauses right away. However, in contrast to all the clauses that we have seen so far, at this point we have to introduce a non-linear clause (a Horn clause with multiple literals in its body) to conect the state invariant of `bar` with the post-condition of `foo`:
 
 $$
 \begin{align*}
-q0(y, x) & \leftarrow bar\_pre(x) \\
-foo\_pre(x+1) & \leftarrow q0(y, x) \\[0.5ex]
+q0(y, x) & \leftarrow bar\_pre(x) \\[0.5ex]
+foo\_pre(x+1) & \leftarrow q0(y, x) \\
 q1(y, x) & \leftarrow q0(y', x) \wedge foo\_post(y, x+1) \\[0.5ex]
 bar\_post(y, x) & \leftarrow q1(y, x)
 \end{align*}
