@@ -2,6 +2,7 @@ package jayhorn.solver.princess;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.io.StringReader;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Stack;
@@ -29,6 +30,7 @@ import ap.parser.IExpression$;
 import ap.parser.IFormula;
 import ap.parser.IFormulaITE;
 import ap.parser.IFunApp;
+import ap.parser.IFunction;
 import ap.parser.IIntLit;
 import ap.parser.INot;
 import ap.parser.IPlus;
@@ -36,6 +38,8 @@ import ap.parser.ITerm;
 import ap.parser.ITermITE;
 import ap.parser.IVariable;
 import ap.parser.PredicateSubstVisitor$;
+import ap.parser.SMTParser2InputAbsy.SMTFunctionType;
+import ap.parser.SMTParser2InputAbsy.SMTType;
 import ap.parser.SymbolCollector$;
 import ap.terfor.ConstantTerm;
 import ap.terfor.preds.Predicate;
@@ -56,6 +60,7 @@ import lazabs.horn.bottomup.HornClauses.Clause;
 import lazabs.horn.bottomup.SimpleWrapper;
 import lazabs.horn.bottomup.Util.Dag;
 import scala.Tuple2;
+import scala.Tuple3;
 import scala.collection.Iterator;
 import scala.collection.Seq;
 import scala.collection.immutable.List;
@@ -334,44 +339,42 @@ public class PrincessProver implements Prover {
 				for (HornExpr clause : assertedClauses)
 					clauses.$plus$eq(clause.clause);
 
-                                lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
+				lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
 				final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
 						scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
-                              Options.v().getSolverOptions().contains("abstract"),
-                              Options.v().getSolverOptions().contains("debug"));
+						Options.v().getSolverOptions().contains("abstract"),
+						Options.v().getSolverOptions().contains("debug"));
 
 				if (result.isLeft()) {
-                                    StringBuffer sol = new StringBuffer();
-                                    sol.append("Solution:\n");
-                                    List<Tuple2<Predicate, IFormula>> ar = result.left().get().toList();
+					StringBuffer sol = new StringBuffer();
+					sol.append("Solution:\n");
+					List<Tuple2<Predicate, IFormula>> ar = result.left().get().toList();
 
-                                    while (!ar.isEmpty()) {
-                                        Tuple2<Predicate, IFormula> p = ar.head();
-                                        ar = (List<Tuple2<Predicate, IFormula>>)ar.tail();
-                                        sol.append("" + p._1() + ": " + api.pp(p._2()) + "\n");
-                                    }
+					while (!ar.isEmpty()) {
+						Tuple2<Predicate, IFormula> p = ar.head();
+						ar = (List<Tuple2<Predicate, IFormula>>) ar.tail();
+						sol.append("" + p._1() + ": " + api.pp(p._2()) + "\n");
+					}
 
-                                    Log.info(sol.toString());
-                                    return ProverResult.Sat;
+					Log.info(sol.toString());
+					return ProverResult.Sat;
 
 				} else {
-                                        Log.info("Counterexample:\n" +
-                                          DialogUtil$.MODULE$.asString
-                                          (new scala.runtime.AbstractFunction0<Integer>() {
-                                             public Integer apply() {
-                                               Dag<IAtom> simpDag =
-                                                 result.right().get().map(
-                                                   new scala.runtime.AbstractFunction1<Tuple2<IAtom, Clause>, IAtom>() {
-                                                     public IAtom apply(Tuple2<IAtom, Clause> p) {
-                                                       return p._1();
-                                                     }
-                                                   });
-                                               simpDag.prettyPrint();
-                                               return 0;
-                                             }
-                                           }));
+					Log.info("Counterexample:\n"
+							+ DialogUtil$.MODULE$.asString(new scala.runtime.AbstractFunction0<Integer>() {
+								public Integer apply() {
+									Dag<IAtom> simpDag = result.right().get()
+											.map(new scala.runtime.AbstractFunction1<Tuple2<IAtom, Clause>, IAtom>() {
+												public IAtom apply(Tuple2<IAtom, Clause> p) {
+													return p._1();
+												}
+											});
+									simpDag.prettyPrint();
+									return 0;
+								}
+							}));
 					return ProverResult.Unsat;
-                                }
+				}
 			} else {
 				this.executor = Executors.newSingleThreadExecutor();
 				this.thread = new PrincessSolverThread(assertedClauses);
@@ -395,13 +398,11 @@ public class PrincessProver implements Prover {
 			final ArrayBuffer<HornClauses.Clause> clauses = new ArrayBuffer<HornClauses.Clause>();
 			for (HornExpr clause : hornClauses)
 				clauses.$plus$eq(clause.clause);
-                        lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
-			final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result =
-                            SimpleWrapper.solve(
-                              clauses,
-                              scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
-                              Options.v().getSolverOptions().contains("abstract"),
-                              Options.v().getSolverOptions().contains("debug"));
+			lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
+			final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
+					scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
+					Options.v().getSolverOptions().contains("abstract"),
+					Options.v().getSolverOptions().contains("debug"));
 			if (result.isLeft())
 				this.status = ProverResult.Sat;
 			else
@@ -633,27 +634,35 @@ public class PrincessProver implements Prover {
 	@Override
 	public void setHornLogic(boolean b) {
 		// ignore
+
 	}
-	
+
 	@Override
 	public String toString() {
 		return "Princess";
 	}
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Some functions for outputing SMT-LIB
+	////////////////////////////////////////////////////////////////////////////
+	// Some functions for outputing SMT-LIB
 
-    public String toSMTLIBDeclaration(ProverFun fun) {
-        if (fun instanceof PredicateFun) {
-            final PredicateFun predFun = (PredicateFun)fun;
-            return predFun.toSMTLIBDeclaration();
-        } else {
-            throw new UnsupportedOperationException();
-        }
-    }
+	public String toSMTLIBDeclaration(ProverFun fun) {
+		if (fun instanceof PredicateFun) {
+			final PredicateFun predFun = (PredicateFun) fun;
+			return predFun.toSMTLIBDeclaration();
+		} else {
+			throw new UnsupportedOperationException();
+		}
+	}
 
-    public String toSMTLIBFormula(ProverHornClause clause) {
-        return ((HornExpr)clause).toSMTLIBFormula();
-    }
+	public String toSMTLIBFormula(ProverHornClause clause) {
+		return ((HornExpr) clause).toSMTLIBFormula();
+	}
 
+	public void parseSMTLIBFormula(final String formula) {
+//		Tuple3<Seq<IFormula>, scala.collection.immutable.Map<IFunction, SMTFunctionType>, scala.collection.immutable.Map<ConstantTerm, SMTType>> triple = 
+				
+		api.execSMTLIB(new StringReader(formula));	
+//		api.extractSMTLIBAssertionsSymbols(new StringReader(formula));
+		
+	}
 }

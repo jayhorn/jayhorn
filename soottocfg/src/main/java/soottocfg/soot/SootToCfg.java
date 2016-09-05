@@ -47,6 +47,7 @@ import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.MethodStubber;
 import soottocfg.soot.transformers.NativeMethodStubber;
+import soottocfg.soot.transformers.SpecClassTransformer;
 import soottocfg.soot.transformers.SwitchStatementRemover;
 import soottocfg.soot.transformers.VirtualCallResolver;
 import soottocfg.soot.util.DuplicatedCatchDetection;
@@ -71,6 +72,12 @@ public class SootToCfg {
 	private final List<String> resolvedClassNames;
 	private boolean debug = false;
 
+	boolean useSpec = false;
+	
+	public void setUseSpec(boolean use) {
+		this.useSpec = use;
+	}
+	
 	private final boolean resolveVirtualCalls;
 	private final boolean createAssertionsForUncaughtExceptions;
 
@@ -131,7 +138,7 @@ public class SootToCfg {
 	 */
 	public void run(String input, String classPath) {
 		// run soot to load all classes.
-		SootRunner runner = new SootRunner();
+		SootRunner runner = new SootRunner(this.useSpec);
 		runner.run(input, classPath);
 		performBehaviorPreservingTransformations();
 		performAbstractionTransformations();
@@ -168,27 +175,6 @@ public class SootToCfg {
 	}
 
 	/**
-	 * Run the transformation on an existing Scene and only generate the CFG
-	 * for a single class sc.
-	 * 
-	 * @param sc
-	 */
-//	public void runForSingleClass(SootClass sc) {
-//		SootRunner.createAssertionClass();
-//		performBehaviorPreservingTransformations();		
-//		performAbstractionTransformations();
-//
-//		Variable exceptionGlobal = this.program
-//				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
-//						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
-//		program.setExceptionGlobal(exceptionGlobal);
-//		
-//		constructCfg(sc);
-//		// reset all the soot stuff.
-//		SootTranslationHelpers.v().reset();
-//	}
-
-	/**
 	 * Like run, but only performs the behavior preserving transformations
 	 * and does construct a CFG. This method is only needed to test the
 	 * soundness of the transformation with randoop.
@@ -197,7 +183,7 @@ public class SootToCfg {
 	 * @param classPath
 	 */
 	public void runPreservingTransformationOnly(String input, String classPath) {
-		SootRunner runner = new SootRunner(this.resolvedClassNames);
+		SootRunner runner = new SootRunner(this.useSpec, this.resolvedClassNames);
 		runner.run(input, classPath);
 		performBehaviorPreservingTransformations();
 		SootTranslationHelpers.v().reset();
@@ -292,7 +278,6 @@ public class SootToCfg {
 		}
 	}
 
-
 	private void performAbstractionTransformations() {
 
 		NativeMethodStubber nms = new NativeMethodStubber();
@@ -305,7 +290,13 @@ public class SootToCfg {
 
 		ArrayTransformer atrans = new ArrayTransformer();
 		atrans.applyTransformation();
+
+		if (useSpec) {
+			SpecClassTransformer spctrans = new SpecClassTransformer();
+			spctrans.applyTransformation();
+		}
 	}
+	
 
 	private Set<SootMethod> staticInitializers = new HashSet<SootMethod>();
 

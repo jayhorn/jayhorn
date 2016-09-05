@@ -1,9 +1,14 @@
 package jayhorn.solver;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-import jayhorn.solver.z3.Z3ProverFactory;
+import com.google.common.io.Files;
+
+import jayhorn.solver.princess.PrincessProverFactory;
 
 public class Main {
 
@@ -238,6 +243,7 @@ public class Main {
 
 	public void runTests(ProverFactory factory) {
 		final Prover p = factory.spawn();
+		
 		test01(p);
 		p.reset();
 		test02(p);
@@ -257,8 +263,8 @@ public class Main {
 	}
 
 	public static void main(String[] args) {
-//		final ProverFactory factory = new PrincessProverFactory();
-		final ProverFactory factory = new Z3ProverFactory();
+		final ProverFactory factory = new PrincessProverFactory();
+//		final ProverFactory factory = new Z3ProverFactory();
 		Main m = new Main();
 		m.runTests(factory);
 	}
@@ -276,6 +282,24 @@ public class Main {
 		return var;
 	}
 
+	private String demoHornProg() {
+		final String hornProg = 
+		"(declare-rel cp-rel-entry ())\n"
+		+"(declare-rel cp-rel-ERROR.i ())\n"
+		+"(declare-rel cp-rel-__UFO__0_proc ())\n"
+		+"(declare-var A Real)\n"
+		+"(declare-var B Real)\n"
+		+"(declare-var C Real)\n"
+		+"(declare-var D Bool)\n"
+		+"(declare-var E Bool)\n"
+		+"(declare-var F Bool)\n"
+		+"(rule cp-rel-entry)\n"
+		+"(rule (=> (and cp-rel-entry F (not E) (= D (> C B)) (= A (ite D B C)) (= E (> C A))) cp-rel-ERROR.i))\n"
+		+"(rule (=> (and cp-rel-__UFO__0_proc D) cp-rel-__UFO__0_proc))\n"
+		+"(query cp-rel-ERROR.i)\n";
+		return hornProg;
+	}
+	
 }
 
 /*

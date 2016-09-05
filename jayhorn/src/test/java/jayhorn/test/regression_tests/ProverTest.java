@@ -1,7 +1,7 @@
 /**
  * 
  */
-package jayhorn.test.assorted_tests;
+package jayhorn.test.regression_tests;
 
 import static org.junit.Assert.fail;
 
@@ -32,7 +32,7 @@ public class ProverTest {
 	public static Collection<Object[]> data() {
 		List<Object[]> testData = new LinkedList<Object[]>();
 		testData.add(new Object[] {"Princess", new PrincessProverFactory()});
-		testData.add(new Object[] {"Z3", new Z3ProverFactory()});
+//		testData.add(new Object[] {"Z3", new Z3ProverFactory()});
 	   return testData;
    }
 

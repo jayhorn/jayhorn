@@ -31,98 +31,105 @@ import java.util.Arrays;
  */
 public class Options {
 
-	
-//	@Option(name = "-android-jars", usage = "Path to the jars that stub the android platform.")
-//	private String androidStubPath=null;
-//	
-//	public String getAndroidStubPath() {
-//		return androidStubPath;
-//	}
-//
-//	public void setAndroidStubPath(String path) {
-//		this.androidStubPath = path;
-//	}
-//	
-//	/**
-//	 * JAR file
-//	 */
+	// @Option(name = "-android-jars", usage = "Path to the jars that stub the
+	// android platform.")
+	// private String androidStubPath=null;
+	//
+	// public String getAndroidStubPath() {
+	// return androidStubPath;
+	// }
+	//
+	// public void setAndroidStubPath(String path) {
+	// this.androidStubPath = path;
+	// }
+	//
+	// /**
+	// * JAR file
+	// */
 	@Option(name = "-checker", usage = "Select a checker [inconsistency, or safety]", required = false)
-//	//@Option(name = "-checker", usage = "Select a checker [safety]", required = false)
+	// //@Option(name = "-checker", usage = "Select a checker [safety]",
+	// required = false)
 	private String checker = "safety";
+
 	public String getChecker() {
 		return checker;
 	}
-	
+
 	@Option(name = "-solver", usage = "Select a solver [eldarica or z3]", required = false)
 	private String solver = "eldarica";
+
 	public String getSolver() {
 		return solver;
 	}
-	
-	@Option(name = "-solverOptions",
-                usage = "Options for the solver [eldarica: abstract, debug]",
-                required = false)
+
+	@Option(name = "-solverOptions", usage = "Options for the solver [eldarica: abstract, debug]", required = false)
 	private String solverOptions = "";
+
 	public List<String> getSolverOptions() {
-            return Arrays.asList(solverOptions.split(","));
+		return Arrays.asList(solverOptions.split(","));
 	}
-	
-	
+
 	/**
 	 * JAR file
 	 */
 	@Option(name = "-j", usage = "JAR file, class folder, or apk", required = true)
 	private String javaInput;
-	
-	public String getJavaInput() {		
+
+	public String getJavaInput() {
 		return this.javaInput;
 	}
-	
-	
-//	/**
-//	 * Print Horn clauses
-//	 */
+
+	// /**
+	// * Print Horn clauses
+	// */
 	@Option(name = "-h", usage = "Print horn clauses", required = false)
 	private boolean printHorn = false;
-	
-	public boolean getPrintHorn() {		
+
+	public boolean getPrintHorn() {
 		return this.printHorn;
 	}
-	
-	public void setPrintHorn(boolean b) {		
-		this.printHorn = b;
-	}	
 
-//	/**
-//	 * Output intermediate representations
-//	 */
+	public void setPrintHorn(boolean b) {
+		this.printHorn = b;
+	}
+
+	@Option(name = "-specs", usage = "Use built-in specs", required = false)
+	public boolean useSpecs = false;
+
+	
+	// /**
+	// * Output intermediate representations
+	// */
 	@Option(name = "-out", usage = "Output directory for intermediate represenations", required = false)
 	private String out = null;
-	
-	public String getOut() {		
+
+	public String getOut() {
 		return this.out;
 	}
-	
+
 	public String getOutDir() {
 		if (this.out != null && !this.out.endsWith("/"))
-			return this.out+"/";
+			return this.out + "/";
 		return this.out;
 	}
-	
-	public String getOutBasename() { 
+
+	public String getOutBasename() {
+		String outName = "";
 		String in = getJavaInput();
-		if (in.endsWith("/"))
-			in = in.substring(0, in.length()-1);
-		String outName = in.substring(in.lastIndexOf('/') + 1, in.length()).replace(".java", "").replace(".class", "");
+		if (in != null) {
+			if (in.endsWith("/"))
+				in = in.substring(0, in.length() - 1);
+			outName = in.substring(in.lastIndexOf('/') + 1, in.length()).replace(".java", "").replace(".class", "");
+		}
 		if (outName.equals(""))
 			outName = "noname";
 		return outName;
 	}
-	
-	public void setOut(String s) {		
+
+	public void setOut(String s) {
 		this.out = s;
-	}	
-	
+	}
+
 	/**
 	 * Classpath
 	 */
@@ -130,16 +137,15 @@ public class Options {
 	private String classpath;
 
 	@Option(name = "-t", usage = "Timeout per procedure in seconds. Use 0 for no timeout. (Default is 0)")
-	private int timeout=0;
-	
+	private int timeout = 0;
+
 	public int getTimeout() {
 		return this.timeout;
 	}
-	
+
 	public void setTimeout(int seconds) {
 		this.timeout = seconds;
 	}
-
 
 	/**
 	 * Determines, whether Joogie has an additional classpath
@@ -168,15 +174,13 @@ public class Options {
 	public void setClasspath(String classpath) {
 		this.classpath = classpath;
 	}
-	
 
-	
 	private static Options options;
 
 	public static void resetInstance() {
-		options = null;	
+		options = null;
 	}
-		
+
 	public static Options v() {
 		if (null == options) {
 			options = new Options();

@@ -227,4 +227,5 @@ public interface Prover {
 
     String toSMTLIBFormula(ProverHornClause clause);
 
+    void parseSMTLIBFormula(final String formula);
 }

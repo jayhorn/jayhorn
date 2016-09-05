@@ -42,7 +42,6 @@ import soot.jimple.NewArrayExpr;
 import soot.jimple.NewMultiArrayExpr;
 import soot.jimple.ParameterRef;
 import soot.jimple.Stmt;
-import soot.tagkit.Tag;
 import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
