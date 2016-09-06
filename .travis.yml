@@ -14,10 +14,11 @@ before_install:
    - export LD_LIBRARY_PATH=$(pwd)/jayhorn/native_lib
 
 script:   
-   - gradle check -i
+   - gradle check
 
 after_success:
    - gradle jacocoRootReport coveralls
+   - ./deploy_results.sh
 
 notifications:
   slack: jayhorn:gYFX9JnLgy7CxzjuV1K3OoJG

@@ -21,7 +21,10 @@ package soottocfg.soot;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -33,6 +36,10 @@ import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+
+import com.google.common.io.ByteStreams;
+import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.ClassPath.ClassInfo;
 
 import soot.BooleanType;
 import soot.Modifier;
@@ -55,14 +62,16 @@ import soot.jimple.JimpleBody;
 public class SootRunner {
 
 	private final soot.options.Options sootOpt;
-//	private final List<String> resolvedClassNames;
+	// private final List<String> resolvedClassNames;
 
-	public SootRunner() {
-		this(new ArrayList<String>());
+	private final boolean useSpecs;
+
+	public SootRunner(boolean useSpecs) {
+		this(useSpecs, new ArrayList<String>());
 	}
 
-	public SootRunner(List<String> resolvedClassNames) {
-//		this.resolvedClassNames = resolvedClassNames;
+	public SootRunner(boolean useSpecs, List<String> resolvedClassNames) {
+		this.useSpecs = useSpecs;
 		this.sootOpt = soot.options.Options.v();
 	}
 
@@ -73,8 +82,10 @@ public class SootRunner {
 		if (input.endsWith(".jar")) {
 			// run with JAR file
 			runWithJar(input, classPath);
+			throw new RuntimeException("currently not tested");
 		} else if (input.endsWith(".apk")) {
 			runWithApk(input, classPath);
+			throw new RuntimeException("currently not tested");
 		} else {
 			File file = new File(input);
 			if (file.isDirectory()) {
@@ -164,6 +175,13 @@ public class SootRunner {
 
 			List<String> processDirs = new LinkedList<String>();
 			processDirs.add(path);
+
+			if (useSpecs) {
+				File specDir = new File("spec_stuff/");
+				writeSpecPackageToDisc(specDir);
+				processDirs.add(specDir.getAbsolutePath());
+			}
+			
 			sootOpt.set_process_dir(processDirs);
 
 			// finally, run soot
@@ -199,7 +217,7 @@ public class SootRunner {
 
 		Scene.v().addBasicClass("java.lang.System", SootClass.SIGNATURES);
 		Scene.v().addBasicClass("java.lang.Thread", SootClass.SIGNATURES);
-		Scene.v().addBasicClass("java.lang.ThreadGroup", SootClass.SIGNATURES);		
+		Scene.v().addBasicClass("java.lang.ThreadGroup", SootClass.SIGNATURES);
 
 		Scene.v().addBasicClass("java.lang.ClassLoader", SootClass.SIGNATURES);
 		Scene.v().addBasicClass("java.security.PrivilegedActionException", SootClass.SIGNATURES);
@@ -220,7 +238,7 @@ public class SootRunner {
 			// }
 			PackManager.v().runPacks();
 			createAssertionClass();
-			
+
 			/*
 			 * TODO: apply some preprocessing stuff like:
 			 * soot.jimple.toolkits.base or maybe the optimize option from soot.
@@ -231,9 +249,9 @@ public class SootRunner {
 					sc.setResolvingLevel(SootClass.SIGNATURES);
 				}
 
-//				if (classes.contains(sc.getName())) {
-//					sc.setApplicationClass();
-//				}
+				// if (classes.contains(sc.getName())) {
+				// sc.setApplicationClass();
+				// }
 			}
 
 		} catch (UnsupportedEncodingException e) {
@@ -243,12 +261,12 @@ public class SootRunner {
 		}
 	}
 
-//	private void loadNecessaryClasses() {
-//		for (String eachClassname : resolvedClassNames) {
-//			final SootClass theClass = Scene.v().loadClassAndSupport(eachClassname);
-//			theClass.setApplicationClass();
-//		}
-//	}
+	// private void loadNecessaryClasses() {
+	// for (String eachClassname : resolvedClassNames) {
+	// final SootClass theClass = Scene.v().loadClassAndSupport(eachClassname);
+	// theClass.setApplicationClass();
+	// }
+	// }
 
 	public static final String assertionClassName = "JayHornAssertions";
 	public static final String assertionProcedureName = "super_crazy_assertion";
@@ -393,4 +411,50 @@ public class SootRunner {
 		return classes;
 	}
 
+	/*
+	 * ======= below deals with writing out the spec classes
+	 */
+
+	/**
+	 * Writes all classes from the soottocfg.spec to targetDir
+	 * so that we can use them later when re-writing the bytecode.
+	 * 
+	 * @param targetDir
+	 */
+	protected void writeSpecPackageToDisc(File targetDir) {
+		if (!targetDir.isDirectory()) {
+			if (!targetDir.mkdirs()) {
+				throw new RuntimeException("Can't write to disk");
+			}
+		}
+		try {
+			ClassLoader cl = this.getClass().getClassLoader();
+			ClassPath cp = ClassPath.from(cl);
+			for (ClassInfo ci : cp.getTopLevelClassesRecursive("soottocfg.spec")) {
+
+				StringBuilder sb = new StringBuilder();
+				sb.append(targetDir.getAbsolutePath());
+				sb.append(File.separator);
+				sb.append(ci.getPackageName().replace(".", File.separator));
+				File outFileDir = new File(sb.toString());
+				if (!outFileDir.exists() && !outFileDir.mkdirs()) {
+					throw new RuntimeException("Couldn't generate dirs for " + sb.toString());
+				}
+				sb.append(File.separator);
+				sb.append(ci.getSimpleName());
+				sb.append(".class");
+				File outFile = new File(sb.toString());
+
+				try (InputStream inputStream = cl.getResourceAsStream(ci.getResourceName());
+						OutputStream outputStream = new FileOutputStream(outFile);) {
+					ByteStreams.copy(inputStream, outputStream);
+				} catch (Throwable e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }

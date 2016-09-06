@@ -6,6 +6,7 @@ package soottocfg.cfg.util;
 import java.util.LinkedList;
 import java.util.List;
 
+import soot.SootMethod;
 import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
@@ -28,21 +29,20 @@ import soottocfg.soot.util.SootTranslationHelpers;
  *
  */
 public class CfgStubber {
-
+	
 	public void stubUnboundFieldsAndMethods(Program program) {
 		for (Method method : program.getMethods()) {
-			if (method.getSource() == null) {
+			if (method.getSource() == null) {				
 				/*
 				 * If the method does not have a body, we just add a non-det assignment to the 
 				 * exception global to indicate that this method might have thrown an exception.
 				 * 
 				 * TODO: We should add some support to look for user provided specs here!
 				 */
-//				new CfgBlock(method);
 				CfgBlock block = new CfgBlock(method);
 				SourceLocation loc = method.getLocation();
 
-				if (method.getMethodName().contains("<init>")) {
+				if (method.getMethodName().contains(SootMethod.constructorName)) {
 					//TODO
 					Variable thisPointer = method.getInParams().get(0);
 					ReferenceType rt = (ReferenceType)thisPointer.getType();
@@ -63,27 +63,6 @@ public class CfgStubber {
 					block.addStatement(pack);
 				}
 				
-//				AssignStatement asn = new AssignStatement(loc,
-//						new IdentifierExpression(loc, program.getExceptionGlobal()), new IdentifierExpression(loc,
-//								program.createFreshGlobal("havoc", program.getExceptionGlobal().getType())));
-//				block.addStatement(asn);
-
-				//TODO: push an update to the globals.
-//				ClassVariable c = ((ReferenceType) program.getExceptionGlobal().getType()).getClassVariable();
-//				List<Expression> rhs = new LinkedList<Expression>();
-//				rhs.add(new IdentifierExpression(loc,
-//						program.createFreshGlobal("havoc", program.getExceptionGlobal().getType())));
-//				PushStatement push = new PushStatement(loc, c,
-//						new IdentifierExpression(loc, program.getExceptionGlobal()), rhs);
-//				block.addStatement(push);
-
-//				Verify.verifyNotNull(method.getSource());
-//				
-//				System.err.println("**********  " + method.getMethodName());
-				
-				// throw new RuntimeException("The checker currently expects
-				// that all methods have a body. Go and create a stub during
-				// translation for "+method.getMethodName());
 			} else if (method.isProgramEntryPoint()) {
 				if (method.getInParams().size() == 1 && method.getMethodName().contains("main")) {
 					Variable argsParam = method.getInParams().get(0);

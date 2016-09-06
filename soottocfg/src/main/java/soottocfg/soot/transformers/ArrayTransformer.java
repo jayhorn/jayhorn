@@ -161,7 +161,6 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 			// statements.
 
 			for (Unit u : new LinkedList<Unit>(body.getUnits())) {
-
 				/*
 				 * Changing the types from ArrayType to RefType breaks the soot
 				 * 'references', FieldRef, MethodRef,
@@ -272,12 +271,12 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 					}
 				}
 			}
-			
+
 			/*
-			 * Changing the types of array fields 
+			 * Changing the types of array fields
 			 */
 			for (SootClass sc : classes) {
-				if (sc.resolvingLevel()<SootClass.SIGNATURES) {
+				if (sc.resolvingLevel() < SootClass.SIGNATURES) {
 					continue;
 				}
 				for (SootField f : new LinkedList<SootField>(sc.getFields())) {
@@ -393,31 +392,37 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		setElement.setActiveBody(body);
 
 		// add a constructor
-		// Now create a constructor that takes the array size as input
-		List<Type> argTypes = new ArrayList<Type>(Collections.nCopies(numDimensions, IntType.v()));
-		SootMethod constructor = new SootMethod(SootMethod.constructorName, argTypes, VoidType.v(), Modifier.PUBLIC);
-		// add the constructor to the class.
-		arrayClass.addMethod(constructor);
+		// Now create constructors that takes the array size as input
+		// For int[][][] we have to create 3 constructors since one
+		// could create new int[1][][], new int[1][2][], or new int[1][2][3]
+		for (int i = 1; i <= numDimensions; i++) {
+			List<Type> argTypes = new ArrayList<Type>(Collections.nCopies(i, IntType.v()));
+			SootMethod constructor = new SootMethod(SootMethod.constructorName, argTypes, VoidType.v(),
+					Modifier.PUBLIC);
+			// add the constructor to the class.
+			arrayClass.addMethod(constructor);
 
-		body = Jimple.v().newBody(constructor);
-		// add a local for the first param
-		body.insertIdentityStmts();
-		// set the length field.
-		body.getUnits().add(Jimple.v().newAssignStmt(
-				Jimple.v().newInstanceFieldRef(body.getThisLocal(), lengthField.makeRef()), body.getParameterLocal(0)));
-		// set the element type
-		String elementTypeName = elementType.toString();
-		if (elementType instanceof RefType) {
-			elementTypeName = ((RefType) elementType).getSootClass().getJavaStyleName();
+			body = Jimple.v().newBody(constructor);
+			// add a local for the first param
+			body.insertIdentityStmts();
+			// set the length field.
+			body.getUnits()
+					.add(Jimple.v().newAssignStmt(
+							Jimple.v().newInstanceFieldRef(body.getThisLocal(), lengthField.makeRef()),
+							body.getParameterLocal(0)));
+			// set the element type
+			String elementTypeName = elementType.toString();
+			if (elementType instanceof RefType) {
+				elementTypeName = ((RefType) elementType).getSootClass().getJavaStyleName();
+			}
+			elementTypeName = elementTypeName.replace('.', '/');
+			body.getUnits()
+					.add(Jimple.v().newAssignStmt(
+							Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemTypeField.makeRef()),
+							ClassConstant.v(elementTypeName)));
+			body.getUnits().add(Jimple.v().newReturnVoidStmt());
+			constructor.setActiveBody(body);
 		}
-		elementTypeName = elementTypeName.replace('.', '/');
-		body.getUnits()
-				.add(Jimple.v().newAssignStmt(
-						Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemTypeField.makeRef()),
-						ClassConstant.v(elementTypeName)));
-		body.getUnits().add(Jimple.v().newReturnVoidStmt());
-		constructor.setActiveBody(body);
-
 		return arrayClass;
 	}
 
