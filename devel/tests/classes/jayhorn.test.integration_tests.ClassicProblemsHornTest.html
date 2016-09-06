@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class jayhorn.test.integration_tests.ClassicProblemsHornTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class jayhorn.test.integration_tests.ClassicProblemsHornTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/jayhorn.test.integration_tests.html">jayhorn.test.integration_tests</a> &gt; ClassicProblemsHornTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">20</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">6</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">5m49.83s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox failures" id="successRate">
+<div class="percent">70%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Failed tests</a>
+</li>
+<li>
+<a href="#tab1">Tests</a>
+</li>
+<li>
+<a href="#tab2">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Failed tests</h2>
+<div class="test">
+<a name="testWithPrincess[11: check (SatPrimes01.java)]"></a>
+<h3 class="failures">testWithPrincess[11: check (SatPrimes01.java)]</h3>
+<span class="code">
+<pre>java.lang.RuntimeException: Verification failed with prover code Unknown
+	at jayhorn.checker.Checker.checkProgram(Checker.java:102)
+	at jayhorn.test.integration_tests.ClassicProblemsHornTest.verifyAssertions(ClassicProblemsHornTest.java:90)
+	at jayhorn.test.integration_tests.ClassicProblemsHornTest.testWithPrincess(ClassicProblemsHornTest.java:70)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.junit.runners.Suite.runChild(Suite.java:128)
+	at org.junit.runners.Suite.runChild(Suite.java:27)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.runTestClass(JUnitTestClassExecuter.java:86)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.execute(JUnitTestClassExecuter.java:49)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:64)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:50)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
+	at org.gradle.messaging.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:93)
+	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:106)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
+	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testWithPrincess[14: check (UnsatAddition02.java)]"></a>
+<h3 class="failures">testWithPrincess[14: check (UnsatAddition02.java)]</h3>
+<span class="code">
+<pre>java.lang.RuntimeException: Verification failed with prover code Unknown
+	at jayhorn.checker.Checker.checkProgram(Checker.java:102)
+	at jayhorn.test.integration_tests.ClassicProblemsHornTest.verifyAssertions(ClassicProblemsHornTest.java:90)
+	at jayhorn.test.integration_tests.ClassicProblemsHornTest.testWithPrincess(ClassicProblemsHornTest.java:70)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.junit.runners.Suite.runChild(Suite.java:128)
+	at org.junit.runners.Suite.runChild(Suite.java:27)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.runTestClass(JUnitTestClassExecuter.java:86)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.execute(JUnitTestClassExecuter.java:49)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:64)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:50)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
+	at org.gradle.messaging.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:93)
+	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:106)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
+	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testWithPrincess[1: check (SatAckermann02.java)]"></a>
+<h3 class="failures">testWithPrincess[1: check (SatAckermann02.java)]</h3>
+<span class="code">
+<pre>java.lang.RuntimeException: Verification failed with prover code Unknown
+	at jayhorn.checker.Checker.checkProgram(Checker.java:102)
+	at jayhorn.test.integration_tests.ClassicProblemsHornTest.verifyAssertions(ClassicProblemsHornTest.java:90)
+	at jayhorn.test.integration_tests.ClassicProblemsHornTest.testWithPrincess(ClassicProblemsHornTest.java:70)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.junit.runners.Suite.runChild(Suite.java:128)
+	at org.junit.runners.Suite.runChild(Suite.java:27)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.runTestClass(JUnitTestClassExecuter.java:86)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.execute(JUnitTestClassExecuter.java:49)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:64)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:50)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
+	at org.gradle.messaging.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:93)
+	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:106)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
+	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testWithPrincess[4: check (SatEvenOdd01.java)]"></a>
+<h3 class="failures">testWithPrincess[4: check (SatEvenOdd01.java)]</h3>
+<span class="code">
+<pre>java.lang.RuntimeException: Verification failed with prover code Unknown
+	at jayhorn.checker.Checker.checkProgram(Checker.java:102)
+	at jayhorn.test.integration_tests.ClassicProblemsHornTest.verifyAssertions(ClassicProblemsHornTest.java:90)
+	at jayhorn.test.integration_tests.ClassicProblemsHornTest.testWithPrincess(ClassicProblemsHornTest.java:70)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.junit.runners.Suite.runChild(Suite.java:128)
+	at org.junit.runners.Suite.runChild(Suite.java:27)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.runTestClass(JUnitTestClassExecuter.java:86)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.execute(JUnitTestClassExecuter.java:49)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:64)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:50)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
+	at org.gradle.messaging.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:93)
+	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:106)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
+	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testWithPrincess[8: check (SatGcd.java)]"></a>
+<h3 class="failures">testWithPrincess[8: check (SatGcd.java)]</h3>
+<span class="code">
+<pre>java.lang.RuntimeException: Verification failed with prover code Unknown
+	at jayhorn.checker.Checker.checkProgram(Checker.java:102)
+	at jayhorn.test.integration_tests.ClassicProblemsHornTest.verifyAssertions(ClassicProblemsHornTest.java:90)
+	at jayhorn.test.integration_tests.ClassicProblemsHornTest.testWithPrincess(ClassicProblemsHornTest.java:70)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.junit.runners.Suite.runChild(Suite.java:128)
+	at org.junit.runners.Suite.runChild(Suite.java:27)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.runTestClass(JUnitTestClassExecuter.java:86)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.execute(JUnitTestClassExecuter.java:49)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:64)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:50)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
+	at org.gradle.messaging.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:93)
+	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:106)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
+	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testWithPrincess[9: check (SatHanoi01.java)]"></a>
+<h3 class="failures">testWithPrincess[9: check (SatHanoi01.java)]</h3>
+<span class="code">
+<pre>java.lang.AssertionError: For SatHanoi01.java: expected true but got false
+	at org.junit.Assert.fail(Assert.java:88)
+	at org.junit.Assert.assertTrue(Assert.java:41)
+	at jayhorn.test.integration_tests.ClassicProblemsHornTest.verifyAssertions(ClassicProblemsHornTest.java:95)
+	at jayhorn.test.integration_tests.ClassicProblemsHornTest.testWithPrincess(ClassicProblemsHornTest.java:70)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.junit.runners.Suite.runChild(Suite.java:128)
+	at org.junit.runners.Suite.runChild(Suite.java:27)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.runTestClass(JUnitTestClassExecuter.java:86)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.execute(JUnitTestClassExecuter.java:49)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:64)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:50)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
+	at org.gradle.messaging.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:93)
+	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:106)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
+	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+</pre>
+</span>
+</div>
+</div>
+<div id="tab1" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">testWithPrincess[0: check (SatAckermann01.java)]</td>
+<td>0.996s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testWithPrincess[10: check (SatMccarthy91.java)]</td>
+<td>1.532s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="failures">testWithPrincess[11: check (SatPrimes01.java)]</td>
+<td>1m1.42s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="success">testWithPrincess[12: check (UnsatAckermann01.java)]</td>
+<td>1.477s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testWithPrincess[13: check (UnsatAddition01.java)]</td>
+<td>1.475s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="failures">testWithPrincess[14: check (UnsatAddition02.java)]</td>
+<td>1m1.37s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="success">testWithPrincess[15: check (UnsatEvenOdd01.java)]</td>
+<td>1.651s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testWithPrincess[16: check (UnsatFibonacci01.java)]</td>
+<td>1.945s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testWithPrincess[17: check (UnsatFibonacci02.java)]</td>
+<td>4.830s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testWithPrincess[18: check (UnsatHanoi.java)]</td>
+<td>3.115s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testWithPrincess[19: check (UnsatMccarthy91.java)]</td>
+<td>1.425s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="failures">testWithPrincess[1: check (SatAckermann02.java)]</td>
+<td>1m0.76s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="success">testWithPrincess[2: check (SatAckermann03.java)]</td>
+<td>3.161s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testWithPrincess[3: check (SatAddition01.java)]</td>
+<td>1.048s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="failures">testWithPrincess[4: check (SatEvenOdd01.java)]</td>
+<td>1m0.89s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="success">testWithPrincess[5: check (SatFibonacci01.java)]</td>
+<td>1.790s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testWithPrincess[6: check (SatFibonacci02.java)]</td>
+<td>7.336s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testWithPrincess[7: check (SatFibonacci03.java)]</td>
+<td>10.177s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="failures">testWithPrincess[8: check (SatGcd.java)]</td>
+<td>1m1.19s</td>
+<td class="failures">failed</td>
+</tr>
+<tr>
+<td class="failures">testWithPrincess[9: check (SatHanoi01.java)]</td>
+<td>2.240s</td>
+<td class="failures">failed</td>
+</tr>
+</table>
+</div>
+<div id="tab2" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>
+Running test SatAckermann01.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Sat
+
+Running test SatAckermann02.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Unknown
+
+Running test SatAckermann03.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Sat
+
+Running test SatAddition01.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Sat
+
+Running test SatEvenOdd01.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Unknown
+
+Running test SatFibonacci01.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Sat
+
+Running test SatFibonacci02.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Sat
+
+Running test SatFibonacci03.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Sat
+
+Running test SatGcd.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Unknown
+
+Running test SatHanoi01.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Unsat
+
+Running test SatMccarthy91.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Sat
+
+Running test SatPrimes01.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Unknown
+
+Running test UnsatAckermann01.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Unsat
+
+Running test UnsatAddition01.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Unsat
+
+Running test UnsatAddition02.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Unknown
+
+Running test UnsatEvenOdd01.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Unsat
+
+Running test UnsatFibonacci01.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Unsat
+
+Running test UnsatFibonacci02.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Unsat
+
+Running test UnsatHanoi.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Unsat
+
+Running test UnsatMccarthy91.java with class jayhorn.solver.princess.PrincessProverFactory
+
+[root] - Hornify  ... 
+[root] - Check if program has one entry ... 
+[root] - Interprocedural Push/Pull Ordering
+[root] - Building type hierarchy ... 
+[root] - Generating Method Contract ... 
+[root] - Transform Program Methods into Horn Clauses ... 
+RESULT: Unsat
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 2.3</a> at Sep 5, 2016 5:04:50 PM</p>
+</div>
+</div>
+</body>
+</html>
