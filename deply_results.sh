@@ -1,4 +1,6 @@
 #!/bin/sh
+export PR=https://api.github.com/repos/$TRAVIS_REPO_SLUG/pulls/$TRAVIS_PULL_REQUEST
+export BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_BRANCH; else echo `curl -s $PR | jq -r .head.ref`; fi)
 
 if [ -n "$GITHUB_API_KEY"] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then
   cd "$TRAVIS_BUILD_DIR"
