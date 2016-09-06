@@ -4,6 +4,7 @@ export BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_BRAN
 
 if [ -n "$GITHUB_API_KEY"] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then
   cd "$TRAVIS_BUILD_DIR"
+  echo "$PWD"
   git checkout -b gh-pages
   mkdir $BRANCH
   cp -r jayhorn/build/reports/tests $BRANCH/
