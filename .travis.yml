@@ -18,9 +18,7 @@ script:
 
 after_success:
    - gradle jacocoRootReport coveralls
-
-deply:
    - deploy_results.sh &2>/dev/null
-   
+
 notifications:
   slack: jayhorn:gYFX9JnLgy7CxzjuV1K3OoJG

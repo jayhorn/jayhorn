@@ -14,4 +14,6 @@ For information on how to download and run JayHorn check [our website](http://ja
 [our JayHorn development blog](http://jayhorn.github.io/jayhorn/jekyll/2016/08/01/model-checking-java/).
 
 
+Join the chat [![Join the chat at https://gitter.im/jayhorn/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jayhorn/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
