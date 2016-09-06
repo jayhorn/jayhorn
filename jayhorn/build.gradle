@@ -89,8 +89,11 @@ task integration_test(type: Test) {
   description 'Run integration tests.'
 	enableAssertions = true
 	ignoreFailures = true
+  maxHeapSize = "1024m"
+  jvmArgs "-XX:MaxPermSize=256m"  
 	include '**/integration_tests/**'
 	exclude '**/assorted_tests/**'
+  include '**/regression_tests/**'
 }
 
 
