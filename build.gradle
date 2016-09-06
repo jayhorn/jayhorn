@@ -59,7 +59,7 @@ subprojects {
 	apply plugin: 'com.github.kt3k.coveralls'
 	apply plugin: 'findbugs'
 	apply plugin: 'jdepend'
-	apply plugin: 'checkstyle'
+	//apply plugin: 'checkstyle'
 
 	tasks.withType(JavaCompile) {
         options.compilerArgs << "-Xlint:deprecation"
