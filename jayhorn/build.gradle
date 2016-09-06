@@ -89,7 +89,6 @@ task integration_test(type: Test) {
   description 'Run integration tests.'
 	enableAssertions = true
 	ignoreFailures = true
-	include '**/regression_tests/**'
 	include '**/integration_tests/**'
 	exclude '**/assorted_tests/**'
 }
