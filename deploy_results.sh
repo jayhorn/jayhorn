@@ -5,7 +5,7 @@ if [ -n "$GITHUB_API_KEY" ]; then
     echo "$PWD"
     cd "$TRAVIS_BUILD_DIR"
     echo "$PWD"
-    git checkout gh-pages
+    git checkout -b gh-pages origin/gh-pages
     echo $TRAVIS_BRANCH
     mkdir ./$TRAVIS_BRANCH
     cp -r ./jayhorn/build/reports/tests ./$TRAVIS_BRANCH/
