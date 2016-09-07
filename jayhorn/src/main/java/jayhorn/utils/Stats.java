@@ -4,12 +4,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import jayhorn.hornify.HornHelper;
-import jayhorn.hornify.MethodContract;
 
 public class Stats {
 	
-	final String tag = "BRUNCH_STAT ";
+	final static String tag = "BRUNCH_STAT ";
 	
 	private static Stats stats;
 
