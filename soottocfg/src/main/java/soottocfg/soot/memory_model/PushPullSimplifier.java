@@ -319,8 +319,13 @@ public class PushPullSimplifier {
 					CfgBlock prev = b.getMethod().getEdgeSource(in);
 					// only move up in CFG
 					if (isUp(prev,b)) {
-						prev.addStatement(stmts.get(s));
-						toRemove.add(stmts.get(s));
+						Statement stmt = stmts.get(s);
+						//don't create references to the same statement in multiple blocks
+						if (toRemove.contains(stmt))
+							stmt = stmt.deepCopy();
+						else
+							toRemove.add(stmt);
+						prev.addStatement(stmt);
 						moves++;
 
 						if (debug)
@@ -346,8 +351,14 @@ public class PushPullSimplifier {
 					CfgBlock next = b.getMethod().getEdgeTarget(out);
 					// only move down in source
 					if (isDown(next,b)) {
- 						next.addStatement(0,stmts.get(s));
-						toRemove.add(stmts.get(s));
+						
+						Statement stmt = stmts.get(s);
+						//don't create references to the same statement in multiple blocks
+						if (toRemove.contains(stmt))
+							stmt = stmt.deepCopy();
+						else
+							toRemove.add(stmt);
+						next.addStatement(0,stmts.get(s));
 						moves++;
 
 						if (debug)
@@ -361,40 +372,40 @@ public class PushPullSimplifier {
 		return moves;
 	}
 	
-	private int moveAssumeFalseUpInCFG(Set<CfgBlock> blocks) {
-		int moves = 0;
-		for (CfgBlock b : blocks) {
-			if (!b.getStatements().isEmpty()) {
-				Statement stmt = b.getStatements().get(0);
-				if (stmt instanceof AssumeStatement) {
-					AssumeStatement as = (AssumeStatement) stmt;
-					if (as.getExpression() instanceof BooleanLiteral && 
-							((BooleanLiteral) as.getExpression()).equals(BooleanLiteral.falseLiteral())) {
-						System.out.println("Found assume(false)");
-						// Found one! Now only move it up if all predecessors are actually up.
-						boolean allUp = true;
-						Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
-						for (CfgEdge in : incoming) {
-							CfgBlock prev = b.getMethod().getEdgeSource(in);
-							if (!isUp(prev,b))
-								allUp = false;
-						}
-						if (allUp && !incoming.isEmpty()) {
-							for (CfgEdge in : incoming) {
-								CfgBlock prev = b.getMethod().getEdgeSource(in);
-								prev.addStatement(as);							
-							}
-							b.removeStatement(as);
-							moves++;
-							if (debug)
-								System.out.println("Moved assume(false) up in CFG.");
-						}
-					}
-				}
-			}
-		}
-		return moves;
-	}
+//	private int moveAssumeFalseUpInCFG(Set<CfgBlock> blocks) {
+//		int moves = 0;
+//		for (CfgBlock b : blocks) {
+//			if (!b.getStatements().isEmpty()) {
+//				Statement stmt = b.getStatements().get(0);
+//				if (stmt instanceof AssumeStatement) {
+//					AssumeStatement as = (AssumeStatement) stmt;
+//					if (as.getExpression() instanceof BooleanLiteral && 
+//							((BooleanLiteral) as.getExpression()).equals(BooleanLiteral.falseLiteral())) {
+//						System.out.println("Found assume(false)");
+//						// Found one! Now only move it up if all predecessors are actually up.
+//						boolean allUp = true;
+//						Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
+//						for (CfgEdge in : incoming) {
+//							CfgBlock prev = b.getMethod().getEdgeSource(in);
+//							if (!isUp(prev,b))
+//								allUp = false;
+//						}
+//						if (allUp && !incoming.isEmpty()) {
+//							for (CfgEdge in : incoming) {
+//								CfgBlock prev = b.getMethod().getEdgeSource(in);
+//								prev.addStatement(as);							
+//							}
+//							b.removeStatement(as);
+//							moves++;
+//							if (debug)
+//								System.out.println("Moved assume(false) up in CFG.");
+//						}
+//					}
+//				}
+//			}
+//		}
+//		return moves;
+//	}
 	
 //	private int removeEmptyBlocks(Method m) {
 //		int removed = 0;

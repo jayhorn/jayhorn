@@ -32,7 +32,7 @@ import soottocfg.cfg.util.InterProceduralPullPushOrdering;
  */
 public class PushIdentifierAdder {
 	
-	private static boolean debug = true;
+	private static boolean debug = false;
 	
 	public final static String LP = "lastpush";
 	
@@ -113,7 +113,6 @@ public class PushIdentifierAdder {
 									rec
 									);
 							b.addStatement(i++,havocCall);
-//							b.addStatement(++i,havocCall);
 							
 							Iterator<Expression> it = disj.iterator();
 							Expression toAssume = it.next();
