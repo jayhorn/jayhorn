@@ -64,7 +64,7 @@ r=2*k & \leftarrow p3(r, k, i)
 $$
 
 
-Now how do we get from this to a proof that the assertion holds? Short answer: get a tool that does this, for instance [Eldarica](https://github.com/uuverifiers/eldarica) or [Z3](https://github.com/Z3Prover/z3). Horn solvers use methods like predicate abstraction, CEGAR, or PDR/IC3, and can handle systems with hundreds or thousands of clauses.
+Now how do we get from this to a proof that the assertion holds? Short answer: get a tool that does this, for instance [Eldarica](https://github.com/uuverifiers/eldarica), [Spacer](http://spacer.bitbucket.org/) or [Z3](https://github.com/Z3Prover/z3). Horn solvers use methods like predicate abstraction, CEGAR, or PDR/IC3, and can handle systems with hundreds or thousands of clauses.
 
 These tools try to find a formula for each of our predicates `p1`, `p2`, and `p3` such that all Horn clauses become valid. For `p0`, we have to pick `true`, because we want to prove that the assertion holds from any initial state. For example, a tool could pick:
 
