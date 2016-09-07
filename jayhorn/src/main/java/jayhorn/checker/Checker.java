@@ -14,6 +14,7 @@ import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
+import jayhorn.utils.Stats;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.variable.Variable;
@@ -80,8 +81,7 @@ public class Checker {
         } else {
           result = prover.checkSat(true);
         }
-
-        System.out.println("RESULT: " + result);
+     
         allClauses.remove(allClauses.size() - 1);
         prover.pop();
         ++verifCount;

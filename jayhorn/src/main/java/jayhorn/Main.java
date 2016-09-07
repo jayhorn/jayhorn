@@ -12,6 +12,7 @@ import jayhorn.checker.Checker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.solver.z3.Z3ProverFactory;
+import jayhorn.utils.Stats;
 import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
 import soottocfg.soot.SootToCfg.MemModel;
@@ -49,7 +50,14 @@ public class Main {
   		Checker hornChecker = new Checker(factory);
   		
   		boolean result = hornChecker.checkProgram(program);
-  		Log.info("Safety Result ... " + parseResult(Options.v().getSolver(), result));
+  		
+  		String prettyResult = parseResult(Options.v().getSolver(), result);
+  		
+  		Stats.stats("Result", prettyResult);
+  		
+  		if (Options.v().stats){ Stats.stats().printStats(); }
+      
+  		Log.info("Safety Result ... " + prettyResult);
   		
       }
     
