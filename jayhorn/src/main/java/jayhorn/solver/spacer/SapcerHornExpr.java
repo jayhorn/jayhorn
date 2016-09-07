@@ -1,7 +1,7 @@
 /**
  * 
  */
-package jayhorn.solver.z3;
+package jayhorn.solver.spacer;
 
 import java.math.BigInteger;
 import java.util.LinkedList;
@@ -17,13 +17,13 @@ import jayhorn.solver.ProverType;
  * @author schaef
  *
  */
-public class Z3HornExpr implements ProverHornClause {
+public class SapcerHornExpr implements ProverHornClause {
 
 	private final ProverExpr head;
 	private final List<ProverExpr> body;
 	private final ProverExpr constraint;
 	
-	public Z3HornExpr(ProverExpr head, ProverExpr[] body,
+	public SapcerHornExpr(ProverExpr head, ProverExpr[] body,
 			ProverExpr constraint) {
 		this.head = head;
 		this.body = new LinkedList<ProverExpr>();

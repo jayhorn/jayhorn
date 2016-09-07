@@ -1,4 +1,4 @@
-package jayhorn.solver.z3;
+package jayhorn.solver.spacer;
 
 import com.microsoft.z3.ArraySort;
 
@@ -6,12 +6,12 @@ import jayhorn.solver.ArrayType;
 import jayhorn.solver.ProverType;
 
 
-public class Z3ArrayType extends ArrayType {
+public class SpacerArrayType extends ArrayType {
 
 	private final ProverType indexType, valueType;
 	private final ArraySort sort;
 
-	public Z3ArrayType(ArraySort s, ProverType idx, ProverType val) {
+	public SpacerArrayType(ArraySort s, ProverType idx, ProverType val) {
 		//TODO:
 		super(2);
 		this.indexType = idx;
@@ -46,7 +46,7 @@ public class Z3ArrayType extends ArrayType {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Z3ArrayType other = (Z3ArrayType) obj;
+		SpacerArrayType other = (SpacerArrayType) obj;
 		if (sort != other.getSort())
 			return false;
 		return true;

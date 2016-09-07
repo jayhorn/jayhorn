@@ -16,7 +16,7 @@ import org.junit.runners.Parameterized;
 import jayhorn.solver.Main;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
-import jayhorn.solver.z3.Z3ProverFactory;
+import jayhorn.solver.spacer.SpacerProverFactory;
 
 /**
  * @author schaef

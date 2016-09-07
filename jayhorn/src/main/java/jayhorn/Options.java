@@ -55,7 +55,7 @@ public class Options {
 		return checker;
 	}
 
-	@Option(name = "-solver", usage = "Select a solver [eldarica or z3]", required = false)
+	@Option(name = "-solver", usage = "Select a solver [eldarica or spacer]", required = false)
 	private String solver = "eldarica";
 
 	public String getSolver() {

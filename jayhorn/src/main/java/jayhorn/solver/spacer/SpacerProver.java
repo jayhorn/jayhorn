@@ -1,7 +1,7 @@
 /**
  * 
  */
-package jayhorn.solver.z3;
+package jayhorn.solver.spacer;
 
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -50,7 +50,7 @@ import jayhorn.solver.ProverType;
  * @author schaef
  *
  */
-public class Z3Prover implements Prover {
+public class SpacerProver implements Prover {
 
 	private Context ctx;
 	private Solver solver;
@@ -79,7 +79,7 @@ public class Z3Prover implements Prover {
 		}
 	}
 
-	public Z3Prover() {
+	public SpacerProver() {
 		com.microsoft.z3.Global.ToggleWarningMessages(true);
 
 		this.cfg.put("model", "true");
@@ -90,19 +90,19 @@ public class Z3Prover implements Prover {
 	}
 
 	private void createSolver(boolean useHorn) {
+		Params params = this.ctx.mkParams();
 		if (useHorn) {
 			this.solver = this.ctx.mkSolver();
-			// params.add(":engine", "pdr");
-			// params.add(":xform.slice", false);
-			// params.add(":use_heavy_mev", true);
-			// params.add(":reset_obligation_queue", true);
-			// params.add(":pdr.flexible_trace", false);
-			// params.add(":xform.inline-linear", false);
-			// params.add(":xform.inline-eager", false);
-			// params.add(":pdr.utvpi", false);
+			 params.add(":engine", "spacer");
+			 params.add(":xform.slice", false);
+			 params.add(":use_heavy_mev", true);
+			 params.add(":reset_obligation_queue", true);
+			 params.add(":pdr.flexible_trace", false);
+			 params.add(":xform.inline-linear", false);
+			 params.add(":xform.inline-eager", false);
+			 params.add(":pdr.utvpi", false);
 	
 			if (Options.v().getTimeout() > 0) {
-				Params params = this.ctx.mkParams();
 				int timeoutInMsec = (int)TimeUnit.SECONDS.toMillis(Options.v().getTimeout());
 				params.add("timeout", timeoutInMsec);
 				this.solver.setParameters(params);
@@ -114,10 +114,10 @@ public class Z3Prover implements Prover {
 	}
 
 	protected Expr unpack(ProverExpr exp) {
-		if (exp instanceof Z3TermExpr) {
-			return ((Z3TermExpr) exp).getExpr();
-		} else if (exp instanceof Z3BoolExpr) {
-			return ((Z3BoolExpr) exp).getExpr();
+		if (exp instanceof SpacerTermExpr) {
+			return ((SpacerTermExpr) exp).getExpr();
+		} else if (exp instanceof SpacerBoolExpr) {
+			return ((SpacerBoolExpr) exp).getExpr();
 		}
 		throw new RuntimeException("not implemented " + exp.getType().toString());
 	}
@@ -132,9 +132,9 @@ public class Z3Prover implements Prover {
 
 	protected ProverExpr pack(Expr e) {
 		if (e instanceof BoolExpr) {
-			return new Z3BoolExpr((BoolExpr) e);
+			return new SpacerBoolExpr((BoolExpr) e);
 		} else {
-			return new Z3TermExpr(e, pack(e.getSort()));
+			return new SpacerTermExpr(e, pack(e.getSort()));
 		}
 	}
 
@@ -151,8 +151,8 @@ public class Z3Prover implements Prover {
 			return ctx.getIntSort();
 		} else if (type instanceof BoolType) {
 			return ctx.getBoolSort();
-		} else if (type instanceof Z3ArrayType) {
-			return ((Z3ArrayType) type).getSort();
+		} else if (type instanceof SpacerArrayType) {
+			return ((SpacerArrayType) type).getSort();
 		}
 		throw new RuntimeException("not implemented");
 	}
@@ -166,7 +166,7 @@ public class Z3Prover implements Prover {
 			throw new RuntimeException("not implemented");
 		} else if (type instanceof ArraySort) {
 			ArraySort as = (ArraySort) type;
-			return new Z3ArrayType(as, pack(as.getRange()), pack(as.getDomain()));
+			return new SpacerArrayType(as, pack(as.getRange()), pack(as.getDomain()));
 		} else {
 			throw new RuntimeException("not implemented");
 		}
@@ -193,7 +193,7 @@ public class Z3Prover implements Prover {
 		for (int i = argTypes.length - 1; i > 0; i--) {
 			sort = lookupArraySort(unpack(argTypes[i]), sort);
 		}
-		return new Z3ArrayType(lookupArraySort(unpack(argTypes[0]), sort), argTypes[0], t);
+		return new SpacerArrayType(lookupArraySort(unpack(argTypes[0]), sort), argTypes[0], t);
 	}
 
 	private ArraySort lookupArraySort(Sort idx, Sort val) {
@@ -202,7 +202,7 @@ public class Z3Prover implements Prover {
 
 	@Override
 	public ProverExpr mkBoundVariable(int deBruijnIndex, ProverType type) {
-		return new Z3TermExpr(ctx.mkBound(deBruijnIndex, unpack(type)), type);
+		return new SpacerTermExpr(ctx.mkBound(deBruijnIndex, unpack(type)), type);
 	}
 
 	@Override
@@ -212,13 +212,13 @@ public class Z3Prover implements Prover {
 			exp = ctx.mkIntConst(name);
 		} else if (type instanceof BoolType) {
 			exp = ctx.mkBoolConst(name);
-		} else if (type instanceof Z3ArrayType) {
-			exp = ctx.mkArrayConst(name, unpack(((Z3ArrayType) type).getIndexType()),
-					unpack(((Z3ArrayType) type).getValueType()));
+		} else if (type instanceof SpacerArrayType) {
+			exp = ctx.mkArrayConst(name, unpack(((SpacerArrayType) type).getIndexType()),
+					unpack(((SpacerArrayType) type).getValueType()));
 		} else {
 			throw new RuntimeException("not implemented");
 		}
-		return new Z3TermExpr(exp, type);
+		return new SpacerTermExpr(exp, type);
 	}
 
 	@Override
@@ -229,7 +229,7 @@ public class Z3Prover implements Prover {
 		}
 		FuncDecl fd = ctx.mkFuncDecl(name, argSorts, unpack(resType));
 		userDeclaredFunctions.add(fd);
-		return new Z3Fun(fd, ctx, resType);
+		return new SpacerFun(fd, ctx, resType);
 	}
 
 	/**
@@ -244,16 +244,16 @@ public class Z3Prover implements Prover {
 			public ProverExpr mkExpr(ProverExpr[] args) {
 				final Expr[] z3args = new Expr[args.length];
 				for (int i = 0; i < args.length; i++) {
-					if (args[i] instanceof Z3TermExpr) {
-						z3args[i] = ((Z3TermExpr) args[i]).getExpr();
-					} else if (args[i] instanceof Z3BoolExpr) {
-						z3args[i] = ctx.mkITE(((Z3BoolExpr) args[i]).getExpr(), ctx.mkInt(0), ctx.mkInt(1));
+					if (args[i] instanceof SpacerTermExpr) {
+						z3args[i] = ((SpacerTermExpr) args[i]).getExpr();
+					} else if (args[i] instanceof SpacerBoolExpr) {
+						z3args[i] = ctx.mkITE(((SpacerBoolExpr) args[i]).getExpr(), ctx.mkInt(0), ctx.mkInt(1));
 					}
 				}
-				if (b instanceof Z3TermExpr) {
-					return new Z3TermExpr(unpack(b).substituteVars(z3args), b.getType());
+				if (b instanceof SpacerTermExpr) {
+					return new SpacerTermExpr(unpack(b).substituteVars(z3args), b.getType());
 				} else {
-					return new Z3BoolExpr((BoolExpr) unpack(b).substituteVars(z3args));
+					return new SpacerBoolExpr((BoolExpr) unpack(b).substituteVars(z3args));
 				}
 			}
 		};
@@ -277,22 +277,22 @@ public class Z3Prover implements Prover {
 
 	@Override
 	public ProverExpr mkEq(ProverExpr left, ProverExpr right) {
-		return new Z3BoolExpr(ctx.mkEq(unpack(left), unpack(right)));
+		return new SpacerBoolExpr(ctx.mkEq(unpack(left), unpack(right)));
 	}
 
 	@Override
 	public ProverExpr mkLiteral(boolean value) {
-		return new Z3BoolExpr(ctx.mkBool(value));
+		return new SpacerBoolExpr(ctx.mkBool(value));
 	}
 
 	@Override
 	public ProverExpr mkNot(ProverExpr body) {
-		return new Z3BoolExpr(ctx.mkNot((BoolExpr) unpack(body)));
+		return new SpacerBoolExpr(ctx.mkNot((BoolExpr) unpack(body)));
 	}
 
 	@Override
 	public ProverExpr mkAnd(ProverExpr left, ProverExpr right) {
-		return new Z3BoolExpr(ctx.mkAnd((BoolExpr) unpack(left), (BoolExpr) unpack(right)));
+		return new SpacerBoolExpr(ctx.mkAnd((BoolExpr) unpack(left), (BoolExpr) unpack(right)));
 	}
 
 	@Override
@@ -303,12 +303,12 @@ public class Z3Prover implements Prover {
 			bargs[i] = (BoolExpr) unpack(args[i]);
 		}
 
-		return new Z3BoolExpr(ctx.mkAnd(bargs));
+		return new SpacerBoolExpr(ctx.mkAnd(bargs));
 	}
 
 	@Override
 	public ProverExpr mkOr(ProverExpr left, ProverExpr right) {
-		return new Z3BoolExpr(ctx.mkOr((BoolExpr) unpack(left), (BoolExpr) unpack(right)));
+		return new SpacerBoolExpr(ctx.mkOr((BoolExpr) unpack(left), (BoolExpr) unpack(right)));
 	}
 
 	@Override
@@ -317,33 +317,33 @@ public class Z3Prover implements Prover {
 		for (int i = 0; i < args.length; i++) {
 			bargs[i] = (BoolExpr) unpack(args[i]);
 		}
-		return new Z3BoolExpr(ctx.mkOr(bargs));
+		return new SpacerBoolExpr(ctx.mkOr(bargs));
 	}
 
 	@Override
 	public ProverExpr mkImplies(ProverExpr left, ProverExpr right) {
-		return new Z3BoolExpr(ctx.mkImplies((BoolExpr) unpack(left), (BoolExpr) unpack(right)));
+		return new SpacerBoolExpr(ctx.mkImplies((BoolExpr) unpack(left), (BoolExpr) unpack(right)));
 	}
 
 	@Override
 	public ProverExpr mkIte(ProverExpr cond, ProverExpr thenExpr, ProverExpr elseExpr) {
-		return new Z3TermExpr(ctx.mkITE((BoolExpr) unpack(cond), unpack(thenExpr), unpack(elseExpr)),
+		return new SpacerTermExpr(ctx.mkITE((BoolExpr) unpack(cond), unpack(thenExpr), unpack(elseExpr)),
 				thenExpr.getType());
 	}
 
 	@Override
 	public ProverExpr mkLiteral(int value) {
-		return new Z3TermExpr(ctx.mkInt(value), this.getIntType());
+		return new SpacerTermExpr(ctx.mkInt(value), this.getIntType());
 	}
 
 	@Override
 	public ProverExpr mkLiteral(BigInteger value) {
-		return new Z3TermExpr(ctx.mkInt(value.longValue()), this.getIntType());
+		return new SpacerTermExpr(ctx.mkInt(value.longValue()), this.getIntType());
 	}
 
 	@Override
 	public ProverExpr mkPlus(ProverExpr left, ProverExpr right) {
-		return new Z3TermExpr(ctx.mkAdd((ArithExpr) unpack(left), (ArithExpr) unpack(right)), left.getType());
+		return new SpacerTermExpr(ctx.mkAdd((ArithExpr) unpack(left), (ArithExpr) unpack(right)), left.getType());
 	}
 
 	@Override
@@ -352,27 +352,27 @@ public class Z3Prover implements Prover {
 		for (int i = 0; i < args.length; i++) {
 			aargs[i] = (ArithExpr) unpack(args[i]);
 		}
-		return new Z3TermExpr(ctx.mkAdd(aargs), this.getBooleanType());
+		return new SpacerTermExpr(ctx.mkAdd(aargs), this.getBooleanType());
 	}
 
 	@Override
 	public ProverExpr mkMinus(ProverExpr left, ProverExpr right) {
-		return new Z3TermExpr(ctx.mkSub((ArithExpr) unpack(left), (ArithExpr) unpack(right)), left.getType());
+		return new SpacerTermExpr(ctx.mkSub((ArithExpr) unpack(left), (ArithExpr) unpack(right)), left.getType());
 	}
 
 	@Override
 	public ProverExpr mkNeg(ProverExpr arg) {
-		return new Z3TermExpr(ctx.mkUnaryMinus((ArithExpr) unpack(arg)), arg.getType());
+		return new SpacerTermExpr(ctx.mkUnaryMinus((ArithExpr) unpack(arg)), arg.getType());
 	}
 
 	@Override
 	public ProverExpr mkEDiv(ProverExpr num, ProverExpr denom) {
-		return new Z3TermExpr(ctx.mkDiv((ArithExpr) unpack(num), (ArithExpr) unpack(num)), this.getIntType());
+		return new SpacerTermExpr(ctx.mkDiv((ArithExpr) unpack(num), (ArithExpr) unpack(num)), this.getIntType());
 	}
 
 	@Override
 	public ProverExpr mkEMod(ProverExpr num, ProverExpr denom) {
-		return new Z3TermExpr(ctx.mkMod((IntExpr) unpack(num), (IntExpr) unpack(num)), this.getIntType());
+		return new SpacerTermExpr(ctx.mkMod((IntExpr) unpack(num), (IntExpr) unpack(num)), this.getIntType());
 	}
 
 	@Override
@@ -387,33 +387,33 @@ public class Z3Prover implements Prover {
 
 	@Override
 	public ProverExpr mkMult(ProverExpr left, ProverExpr right) {
-		return new Z3TermExpr(ctx.mkMul((ArithExpr) unpack(left), (ArithExpr) unpack(right)), left.getType());
+		return new SpacerTermExpr(ctx.mkMul((ArithExpr) unpack(left), (ArithExpr) unpack(right)), left.getType());
 	}
 
 	@Override
 	public ProverExpr mkGeq(ProverExpr left, ProverExpr right) {
-		return new Z3BoolExpr(ctx.mkGe((ArithExpr) unpack(left), (ArithExpr) unpack(right)));
+		return new SpacerBoolExpr(ctx.mkGe((ArithExpr) unpack(left), (ArithExpr) unpack(right)));
 	}
 
 	@Override
 	public ProverExpr mkGt(ProverExpr left, ProverExpr right) {
-		return new Z3BoolExpr(ctx.mkGt((ArithExpr) unpack(left), (ArithExpr) unpack(right)));
+		return new SpacerBoolExpr(ctx.mkGt((ArithExpr) unpack(left), (ArithExpr) unpack(right)));
 	}
 
 	@Override
 	public ProverExpr mkLeq(ProverExpr left, ProverExpr right) {
-		return new Z3BoolExpr(ctx.mkLe((ArithExpr) unpack(left), (ArithExpr) unpack(right)));
+		return new SpacerBoolExpr(ctx.mkLe((ArithExpr) unpack(left), (ArithExpr) unpack(right)));
 	}
 
 	@Override
 	public ProverExpr mkLt(ProverExpr left, ProverExpr right) {
-		return new Z3BoolExpr(ctx.mkLt((ArithExpr) unpack(left), (ArithExpr) unpack(right)));
+		return new SpacerBoolExpr(ctx.mkLt((ArithExpr) unpack(left), (ArithExpr) unpack(right)));
 	}
 
 	@Override
 	public ProverExpr mkSelect(ProverExpr ar, ProverExpr[] indexes) {
 		if (indexes.length == 1) {
-			return new Z3TermExpr(ctx.mkSelect((ArrayExpr) unpack(ar), unpack(indexes[0])), ar.getType());
+			return new SpacerTermExpr(ctx.mkSelect((ArrayExpr) unpack(ar), unpack(indexes[0])), ar.getType());
 		}
 		throw new RuntimeException("not implemented");
 	}
@@ -421,7 +421,7 @@ public class Z3Prover implements Prover {
 	@Override
 	public ProverExpr mkStore(ProverExpr ar, ProverExpr[] indexes, ProverExpr value) {
 		if (indexes.length == 1) {
-			return new Z3TermExpr(ctx.mkStore((ArrayExpr) unpack(ar), unpack(indexes[0]), unpack(value)), ar.getType());
+			return new SpacerTermExpr(ctx.mkStore((ArrayExpr) unpack(ar), unpack(indexes[0]), unpack(value)), ar.getType());
 		}
 		throw new RuntimeException("not implemented");
 	}
@@ -443,9 +443,9 @@ public class Z3Prover implements Prover {
 
 	@Override
 	public void addAssertion(ProverExpr assertion) {
-		if (assertion instanceof Z3HornExpr) {
+		if (assertion instanceof SapcerHornExpr) {
 
-			Z3HornExpr hc = (Z3HornExpr) assertion;
+			SapcerHornExpr hc = (SapcerHornExpr) assertion;
 			BoolExpr head = (BoolExpr) unpack(hc.getHead());
 			BoolExpr body = (BoolExpr) unpack(hc.getConstraint());
 
@@ -476,7 +476,7 @@ public class Z3Prover implements Prover {
 				asrt = ctx.mkImplies(body, head);
 			}
 			this.solver.add(asrt);
-		} else if (assertion instanceof Z3BoolExpr || assertion instanceof Z3TermExpr) {
+		} else if (assertion instanceof SpacerBoolExpr || assertion instanceof SpacerTermExpr) {
 			BoolExpr asrt = (BoolExpr) unpack(assertion);
 			this.solver.add(asrt);
 
@@ -637,11 +637,11 @@ public class Z3Prover implements Prover {
 		Expr proof = this.solver.getProof();
 		Expr[] interps = ictx.GetInterpolant(proof, pat, params);
 
-		List<Z3BoolExpr> result = new LinkedList<Z3BoolExpr>();
+		List<SpacerBoolExpr> result = new LinkedList<SpacerBoolExpr>();
 		// TODO check if the bounds makes sense.
 		// for (int i = 0; i < interps.length; i++) {
 		for (int i = 0; i < partitionSeq.length - 1; i++) {
-			result.add(new Z3BoolExpr((BoolExpr) interps[i]));
+			result.add(new SpacerBoolExpr((BoolExpr) interps[i]));
 		}
 		return result.toArray(new ProverExpr[result.size()]);
 	}
@@ -660,10 +660,10 @@ public class Z3Prover implements Prover {
 		Expr e = unpack(expr);
 
 		if (e.isConst()) {
-			return new Z3TermExpr(m.getConstInterp(e), expr.getType());
+			return new SpacerTermExpr(m.getConstInterp(e), expr.getType());
 		}
 
-		return new Z3TermExpr(m.evaluate(e, false), expr.getType());
+		return new SpacerTermExpr(m.evaluate(e, false), expr.getType());
 	}
 
 	@Override
@@ -705,10 +705,10 @@ public class Z3Prover implements Prover {
 	@Override
 	public ProverExpr substitute(ProverExpr target, ProverExpr[] from, ProverExpr[] to) {
 		Expr e = unpack(target).substitute(unpack(from), unpack(to));
-		if (target instanceof Z3BoolExpr) {
-			return new Z3BoolExpr((BoolExpr) e);
+		if (target instanceof SpacerBoolExpr) {
+			return new SpacerBoolExpr((BoolExpr) e);
 		} else {
-			return new Z3TermExpr(e, target.getType());
+			return new SpacerTermExpr(e, target.getType());
 		}
 	}
 
@@ -749,7 +749,7 @@ public class Z3Prover implements Prover {
 	 * <code>mkHornPredicate</code>, or be the formula <code>false</code>.
 	 */
 	public ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body, ProverExpr constraint) {
-		return new Z3HornExpr(head, body, constraint);
+		return new SapcerHornExpr(head, body, constraint);
 	}
 
 	@Override

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package jayhorn.solver.z3;
+package jayhorn.solver.spacer;
 
 import jayhorn.Log;
 import jayhorn.solver.Prover;
@@ -11,7 +11,7 @@ import jayhorn.solver.ProverFactory;
  * @author schaef
  *
  */
-public class Z3ProverFactory implements ProverFactory {
+public class SpacerProverFactory implements ProverFactory {
 
 	/* (non-Javadoc)
 	 * @see jhorn.solver.ProverFactory#spawn()
@@ -20,7 +20,7 @@ public class Z3ProverFactory implements ProverFactory {
 	public Prover spawn() {
 		Prover z3 = null;
 		try {
-			z3 = new Z3Prover();
+			z3 = new SpacerProver();
 //			z3 = new Z3HornProver();
 		} catch (UnsatisfiedLinkError e) {
 			Log.error("Cannot start z3. "+e.toString());

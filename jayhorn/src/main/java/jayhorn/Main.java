@@ -11,7 +11,7 @@ import org.kohsuke.args4j.CmdLineParser;
 import jayhorn.checker.Checker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
-import jayhorn.solver.z3.Z3ProverFactory;
+import jayhorn.solver.spacer.SpacerProverFactory;
 import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
 import soottocfg.soot.SootToCfg.MemModel;
@@ -62,8 +62,8 @@ public class Main {
 			// parse command-line arguments
 			parser.parseArgument(args);
 			ProverFactory factory = null;
-			if ("z3".equals(Options.v().getSolver())) {
-				factory = new Z3ProverFactory();
+			if ("spacer".equals(Options.v().getSolver())) {
+				factory = new SpacerProverFactory();
 			} else if ("eldarica".equals(Options.v().getSolver())) {
 				factory = new PrincessProverFactory();
 			} else {

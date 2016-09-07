@@ -1,4 +1,4 @@
-package jayhorn.solver.z3;
+package jayhorn.solver.spacer;
 
 import java.math.BigInteger;
 
@@ -8,11 +8,11 @@ import jayhorn.solver.BoolType;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverType;
 
-class Z3BoolExpr implements ProverExpr {
+class SpacerBoolExpr implements ProverExpr {
 
 	protected final BoolExpr formula;
 
-	Z3BoolExpr(BoolExpr formula) {
+	SpacerBoolExpr(BoolExpr formula) {
 		this.formula = formula;
 	}
 
@@ -52,7 +52,7 @@ class Z3BoolExpr implements ProverExpr {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    Z3BoolExpr other = (Z3BoolExpr) obj;
+    SpacerBoolExpr other = (SpacerBoolExpr) obj;
     if (formula == null) {
       if (other.formula != null)
         return false;

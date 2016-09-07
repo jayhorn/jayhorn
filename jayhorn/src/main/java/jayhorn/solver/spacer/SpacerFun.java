@@ -1,4 +1,4 @@
-package jayhorn.solver.z3;
+package jayhorn.solver.spacer;
 
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
@@ -11,13 +11,13 @@ import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverType;
 
 
-class Z3Fun implements ProverFun {
+class SpacerFun implements ProverFun {
 
 	private final FuncDecl fun;
 	private final ProverType resType;
 	private final Context ctx;
 
-	public Z3Fun(FuncDecl fun, Context ctx, ProverType resType) {
+	public SpacerFun(FuncDecl fun, Context ctx, ProverType resType) {
 		this.fun = fun;
 		this.resType = resType;
 		this.ctx = ctx;
@@ -30,17 +30,17 @@ class Z3Fun implements ProverFun {
 	public ProverExpr mkExpr(ProverExpr[] args) {
 		final Expr[] z3args = new Expr[args.length];
 		for (int i=0; i<args.length; i++) {
-			if (args[i] instanceof Z3TermExpr) {
-				z3args[i]= ((Z3TermExpr)args[i]).getExpr();
-			} else if (args[i] instanceof Z3BoolExpr) {
-				z3args[i]= ((Z3BoolExpr)args[i]).getExpr();	
+			if (args[i] instanceof SpacerTermExpr) {
+				z3args[i]= ((SpacerTermExpr)args[i]).getExpr();
+			} else if (args[i] instanceof SpacerBoolExpr) {
+				z3args[i]= ((SpacerBoolExpr)args[i]).getExpr();	
 			}			
 		}
 		
 		if (this.resType == BoolType.INSTANCE) {
-			return new Z3BoolExpr((BoolExpr) ctx.mkApp(this.fun, z3args));
+			return new SpacerBoolExpr((BoolExpr) ctx.mkApp(this.fun, z3args));
 		} else {
-			return new Z3TermExpr(ctx.mkApp(this.fun, z3args), this.resType);
+			return new SpacerTermExpr(ctx.mkApp(this.fun, z3args), this.resType);
 		}
 	}
 	

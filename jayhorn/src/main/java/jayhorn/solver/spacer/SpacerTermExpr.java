@@ -1,4 +1,4 @@
-package jayhorn.solver.z3;
+package jayhorn.solver.spacer;
 
 import java.math.BigInteger;
 
@@ -8,12 +8,12 @@ import com.microsoft.z3.enumerations.Z3_lbool;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverType;
 
-class Z3TermExpr implements ProverExpr {
+class SpacerTermExpr implements ProverExpr {
 
 	protected final ProverType type;
 	protected final Expr term;
 
-	Z3TermExpr(Expr expr, ProverType type) {
+	SpacerTermExpr(Expr expr, ProverType type) {
 		this.term = expr;
 		this.type = type;
 	}
@@ -53,7 +53,7 @@ class Z3TermExpr implements ProverExpr {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Z3TermExpr other = (Z3TermExpr) obj;
+		SpacerTermExpr other = (SpacerTermExpr) obj;
 		if (term == null) {
 			if (other.term != null)
 				return false;
