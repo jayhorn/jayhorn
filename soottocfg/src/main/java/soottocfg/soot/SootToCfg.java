@@ -42,6 +42,7 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.util.CfgStubber;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.memory_model.NewMemoryModel;
+import soottocfg.soot.memory_model.PushIdentifierAdder;
 import soottocfg.soot.memory_model.PushPullSimplifier;
 import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.transformers.AssertionReconstruction;
@@ -143,10 +144,10 @@ public class SootToCfg {
 		program.setExceptionGlobal(exceptionGlobal);
 
 		// add havoc method for ints for lastpull
-		// SootMethod havocSoot =
-		// SootTranslationHelpers.v().getHavocMethod(soot.IntType.v());
-		// Method havoc =
-		// SootTranslationHelpers.v().lookupOrCreateMethod(havocSoot);
+		SootMethod havocSoot =
+				SootTranslationHelpers.v().getHavocMethod(soot.IntType.v());
+		Method havoc =
+				SootTranslationHelpers.v().lookupOrCreateMethod(havocSoot);
 		constructCfg();
 		if (outDir != null)
 			writeFile(".cfg", program.toString());
@@ -161,9 +162,8 @@ public class SootToCfg {
 			writeFile(".simpl.cfg", program.toString());
 
 		// add push IDs
-		// PushIdentifierAdder pia = new PushIdentifierAdder();
-		// pia.addIDs(program, havoc);
-		// pia.addIDs(program);
+		 PushIdentifierAdder pia = new PushIdentifierAdder();
+		 pia.addIDs(program, havoc);
 
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
