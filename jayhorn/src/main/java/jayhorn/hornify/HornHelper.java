@@ -18,7 +18,6 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
-import soottocfg.cfg.type.MapType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.util.InterProceduralPullPushOrdering;
@@ -74,10 +73,6 @@ public class HornHelper {
 			return p.getBooleanType();
 		}
 		if (t instanceof ReferenceType) {
-			return p.getIntType();
-		}
-		if (t instanceof MapType) {
-			//System.err.println("Warning: translating " + t + " as prover type int");
 			return p.getIntType();
 		}
 		throw new IllegalArgumentException("don't know what to do with " + t);

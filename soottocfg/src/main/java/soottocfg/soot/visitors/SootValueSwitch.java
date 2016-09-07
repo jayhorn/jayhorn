@@ -89,7 +89,6 @@ import soot.jimple.UshrExpr;
 import soot.jimple.VirtualInvokeExpr;
 import soot.jimple.XorExpr;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.expression.ArrayLengthExpression;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.BooleanLiteral;
@@ -452,10 +451,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseLengthExpr(LengthExpr arg0) {
-		//TODO: remove
-		arg0.getOp().apply(this);
-		Expression inner = this.popExpression();
-		this.expressionStack.add(new ArrayLengthExpression(statementSwitch.getCurrentLoc(), inner));
+		throw new RuntimeException("Arrays have to be removed first.");
 	}
 
 	@Override

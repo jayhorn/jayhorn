@@ -40,7 +40,6 @@ import soottocfg.soot.SootRunner;
 import soottocfg.soot.SootToCfg.MemModel;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.memory_model.NewMemoryModel;
-import soottocfg.soot.memory_model.SimpleBurstallBornatModel;
 
 /**
  * @author schaef
@@ -265,8 +264,6 @@ public enum SootTranslationHelpers {
 			// TODO:
 			if (memoryModelKind == MemModel.PullPush) {
 				this.memoryModel = new NewMemoryModel();
-			} else if (memoryModelKind == MemModel.BurstallBornat) {
-				this.memoryModel = new SimpleBurstallBornatModel();
 			} else {
 				throw new RuntimeException("Unknown memory model");
 			}

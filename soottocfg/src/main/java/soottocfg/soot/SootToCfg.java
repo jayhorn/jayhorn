@@ -68,7 +68,7 @@ import soottocfg.soot.visitors.SootStmtSwitch;
 public class SootToCfg {
 
 	public enum MemModel {
-		BurstallBornat, PullPush
+		PullPush
 	}
 
 	private final List<String> resolvedClassNames;
