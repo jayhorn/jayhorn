@@ -14,7 +14,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import jayhorn.Options;
 import jayhorn.checker.Checker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
@@ -81,17 +80,15 @@ public class SpecTests {
 		File classDir = null;
 		try {
 			classDir = Util.compileJavaFile(this.sourceFile);
-			SootToCfg soot2cfg = new SootToCfg(false, true);
+			SootToCfg soot2cfg = new SootToCfg();
 			soottocfg.Options.v().setBuiltInSpecs(true);
+			soottocfg.Options.v().setPrintCFG(true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			jayhorn.Options.v().setTimeout(5);
 			jayhorn.Options.v().setPrintHorn(false);
-			jayhorn.Options.v().setOut("./");
-//			Checker checker = new Checker(factory);
-//			boolean result = checker.checkProgram(soot2cfg.getProgram());
+//			jayhorn.Options.v().setOut("./");
 			
 			Program program = soot2cfg.getProgram();
-			System.err.println(program);
 	  		Checker hornChecker = new Checker(factory);
 	  		boolean result = hornChecker.checkProgram(program);
 	  		

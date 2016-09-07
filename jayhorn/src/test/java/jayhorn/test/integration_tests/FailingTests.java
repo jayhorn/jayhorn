@@ -78,12 +78,10 @@ public class FailingTests {
 		File classDir = null;
 		try {
 			classDir = Util.compileJavaFile(this.sourceFile);
-			SootToCfg soot2cfg = new SootToCfg(false, true);
+			SootToCfg soot2cfg = new SootToCfg();
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			jayhorn.Options.v().setTimeout(5);
 			jayhorn.Options.v().setPrintHorn(true);
-//			Checker checker = new Checker(factory);
-//			boolean result = checker.checkProgram(soot2cfg.getProgram());
 			
 			Program program = soot2cfg.getProgram();
 	  		Checker hornChecker = new Checker(factory);

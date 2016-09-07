@@ -32,6 +32,7 @@ import soot.tagkit.AbstractHost;
 import soot.tagkit.Host;
 import soot.tagkit.SourceFileTag;
 import soot.tagkit.Tag;
+import soottocfg.Options;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
@@ -76,9 +77,9 @@ public enum SootTranslationHelpers {
 		return cls.getMethodByName("havoc_" + t.toString());
 	}
 	
-	public static SootTranslationHelpers v(Program program, MemModel kind){
+	public static SootTranslationHelpers v(Program program){
 		final SootTranslationHelpers instance = INSTANCE;
-		instance.setMemoryModelKind(kind);
+		instance.setMemoryModelKind(Options.v().memModel());
 		instance.setProgram(program);
 		return instance;
 	}

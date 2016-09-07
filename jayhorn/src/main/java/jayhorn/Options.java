@@ -92,6 +92,20 @@ public class Options {
 	public void setPrintHorn(boolean b) {
 		this.printHorn = b;
 	}
+	
+	// /**
+	// * Print CFG
+	// */
+	@Option(name = "-cfg", usage = "Print CFG", required = false)
+	private boolean printCFG = false;
+
+	public boolean getPrintCFG() {
+		return this.printCFG;
+	}
+
+	public void setPrintCFG(boolean b) {
+		this.printCFG = b;
+	}
 
 	@Option(name = "-specs", usage = "Use built-in specs", required = false)
 	public boolean useSpecs = false;
@@ -100,7 +114,20 @@ public class Options {
 	@Option(name = "-stats", usage = "Generate Stats", required = false)
 	public boolean stats = false;
 
-
+	/*
+	 * Memory precision
+	 */
+	@Option(name = "-mem-prec", usage = "Precision of memory model", required = false)
+	private int memPrecision = 2;
+	
+	public int memPrecision() { 
+		return memPrecision;
+	}
+	
+	public void setMemPrecision(int prec) {
+		this.memPrecision = prec;
+	}
+	
 	
 	// /**
 	// * Output intermediate representations
