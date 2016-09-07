@@ -5,6 +5,7 @@ package jayhorn.checker;
 
 
 import jayhorn.Log;
+import com.google.common.base.Stopwatch;
 import jayhorn.Options;
 import jayhorn.hornify.HornHelper;
 import jayhorn.hornify.HornPredicate;
@@ -44,10 +45,12 @@ public class Checker {
 
     Log.info("Hornify  ... ");
     Hornify hf = new Hornify(factory);
+    Stopwatch toHornTimer = Stopwatch.createStarted();
     hf.toHorn(program);
+    Stats.stats().add("ToHorn", String.valueOf(toHornTimer.stop()));
     prover = hf.getProver();
     allClauses.addAll(hf.clauses);
-
+    
     if (Options.v().getPrintHorn()) {
       System.out.println(hf.writeHorn());
     }
@@ -74,14 +77,16 @@ public class Checker {
         for (ProverHornClause clause : allClauses)
           prover.addAssertion(clause);
 
+        Stopwatch satTimer = Stopwatch.createStarted();
         if (jayhorn.Options.v().getTimeout() > 0) {
           int timeoutInMsec = (int) TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());
+          
           prover.checkSat(false);
           result = prover.getResult(timeoutInMsec);
         } else {
           result = prover.checkSat(true);
         }
-     
+        Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));
         allClauses.remove(allClauses.size() - 1);
         prover.pop();
         ++verifCount;

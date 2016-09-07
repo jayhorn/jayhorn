@@ -8,6 +8,8 @@ package jayhorn;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
+import com.google.common.base.Stopwatch;
+
 import jayhorn.checker.Checker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
@@ -44,7 +46,9 @@ public class Main {
   		soottocfg.Options.v().setBuiltInSpecs(Options.v().useSpecs);
   		soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());	
   	
+  		Stopwatch sootTocfgTimer = Stopwatch.createStarted();
   		Program program = soot2cfg.getProgram();
+  	    Stats.stats().add("SootToCFG", String.valueOf(sootTocfgTimer.stop()));
   		
   		Log.info("Safety Verification ... ");
   		Checker hornChecker = new Checker(factory);
@@ -53,7 +57,7 @@ public class Main {
   		
   		String prettyResult = parseResult(Options.v().getSolver(), result);
   		
-  		Stats.stats("Result", prettyResult);
+  		Stats.stats().add("Result", prettyResult);
   		
   		if (Options.v().stats){ Stats.stats().printStats(); }
       
