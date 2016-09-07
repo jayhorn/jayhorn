@@ -17,12 +17,6 @@ public class Stats {
 	
 	private Map<String, String> statsMap = new LinkedHashMap<String, String>();
 	
-	public static Stats stats(String Key, String Val) {
-		if (null == stats) {
-			stats = new Stats(Key, Val);
-		}
-		return stats;
-	}
 
 	public static Stats stats() {
 		if (null == stats) {
@@ -31,7 +25,7 @@ public class Stats {
 		return stats;
 	}
 	
-	private Stats(String Key, String Val) {
+	public void add(String Key, String Val) {
 		statsMap.put(Key, Val);
 	}
 	

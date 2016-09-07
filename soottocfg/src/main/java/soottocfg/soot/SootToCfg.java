@@ -1,6 +1,3 @@
-/**
- * 
- */
 package soottocfg.soot;
 
 import java.nio.charset.Charset;
@@ -63,6 +60,7 @@ import soottocfg.soot.visitors.SootStmtSwitch;
  * Boogie/Horn.
  * 
  * @author schaef
+ * @author rodykers
  *
  */
 public class SootToCfg {
@@ -74,53 +72,21 @@ public class SootToCfg {
 	private final List<String> resolvedClassNames;
 	private boolean debug = false;
 	
-	private final boolean resolveVirtualCalls;
-	private final boolean createAssertionsForUncaughtExceptions;
-
 	private final Set<SourceLocation> locations = new HashSet<SourceLocation>();
-
-	private String outDir = null;
-	private String outName = null;
 
 	// Create a new program
 	private final Program program = new Program();
 
 	public SootToCfg() {
-		this(true, false);
+		this(new ArrayList<String>());
 	}
 
 	public SootToCfg(List<String> resolvedClassNames) {
-		this(true, false, MemModel.PullPush, resolvedClassNames);
-	}
-
-	public SootToCfg(boolean resolveVCalls, boolean excAsAssert) {
-		this(resolveVCalls, excAsAssert, MemModel.PullPush);
-	}
-
-	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel) {
-		this(resolveVCalls, excAsAssert, memModel, new ArrayList<String>());
-	}
-
-	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel, String outDir, String outName) {
-		this(resolveVCalls, excAsAssert, memModel, new ArrayList<String>(), outDir, outName);
-	}
-
-	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel, List<String> resolvedClassNames) {
-		this(resolveVCalls, excAsAssert, memModel, resolvedClassNames, null, null);
-	}
-
-	public SootToCfg(boolean resolveVCalls, boolean excAsAssert, MemModel memModel, List<String> resolvedClassNames,
-			String outDir, String outName) {
-		this.outDir = outDir;
-		this.outName = outName;
 		this.resolvedClassNames = resolvedClassNames;
 		// first reset everything:
 		soot.G.reset();
 		SootTranslationHelpers.v().reset();
-		resolveVirtualCalls = resolveVCalls;
-		createAssertionsForUncaughtExceptions = excAsAssert;
-
-		SootTranslationHelpers.v(program, memModel);
+		SootTranslationHelpers.v(program);
 	}
 
 	/**
@@ -148,22 +114,34 @@ public class SootToCfg {
 				SootTranslationHelpers.v().getHavocMethod(soot.IntType.v());
 		Method havoc =
 				SootTranslationHelpers.v().lookupOrCreateMethod(havocSoot);
+		
 		constructCfg();
-		if (outDir != null)
+		if (Options.v().outDir() != null)
 			writeFile(".cfg", program.toString());
 
 		CfgStubber stubber = new CfgStubber();
 		stubber.stubUnboundFieldsAndMethods(program);
 
 		// simplify push-pull
-		PushPullSimplifier pps = new PushPullSimplifier();
-		pps.simplify(program);
-		if (outDir != null)
-			writeFile(".simpl.cfg", program.toString());
+		if (Options.v().memPrecision() >= 1) {
+			PushPullSimplifier pps = new PushPullSimplifier();
+			pps.simplify(program);
+			if (Options.v().outDir() != null)
+				writeFile(".simpl.cfg", program.toString());
+		}
 
 		// add push IDs
-		 PushIdentifierAdder pia = new PushIdentifierAdder();
-		 pia.addIDs(program, havoc);
+		if (Options.v().memPrecision() >= 2) {
+			PushIdentifierAdder pia = new PushIdentifierAdder();
+			pia.addIDs(program, havoc);
+			if (Options.v().outDir() != null)
+				writeFile("precise.cfg", program.toString());
+		}
+		
+		// print CFG
+		if (Options.v().printCFG()) {
+			System.out.println(program);
+		}
 
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
@@ -351,11 +329,11 @@ public class SootToCfg {
 		}
 		AssertionReconstruction ar = new AssertionReconstruction();
 		ar.applyTransformation();
-		ExceptionTransformer em = new ExceptionTransformer(createAssertionsForUncaughtExceptions);
+		ExceptionTransformer em = new ExceptionTransformer(Options.v().excAsAssert());
 		em.applyTransformation();
 		SwitchStatementRemover so = new SwitchStatementRemover();
 		so.applyTransformation();
-		if (resolveVirtualCalls) {
+		if (Options.v().resolveVirtualCalls()) {
 			VirtualCallResolver vc = new VirtualCallResolver();
 			vc.applyTransformation();
 		}
@@ -479,13 +457,14 @@ public class SootToCfg {
 	}
 
 	private void writeFile(String extension, String text) {
-		Path file = Paths.get(outDir + outName + extension);
+		if (Options.v().outDir() == null)
+			return;
+		
+		Path file = Paths.get(Options.v().outDir().toString() + Options.v().outBaseName() + extension);
 		LinkedList<String> it = new LinkedList<String>();
 		it.add(text);
 		try {
-			Path parent = file.getParent();
-			if (parent != null)
-				Files.createDirectories(parent);
+			Files.createDirectories(Options.v().outDir());
 			Files.write(file, it, Charset.forName("UTF-8"));
 		} catch (Exception e) {
 			System.err.println("Error writing file " + file);

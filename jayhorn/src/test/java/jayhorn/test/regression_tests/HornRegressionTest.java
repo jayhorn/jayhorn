@@ -82,10 +82,9 @@ public class HornRegressionTest {
 		File classDir = null;
 		try {
 			classDir = Util.compileJavaFile(this.sourceFile);
-			SootToCfg soot2cfg = new SootToCfg(false, true);
+			SootToCfg soot2cfg = new SootToCfg();
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 
-//
 			Program program = soot2cfg.getProgram();
 	  		Checker hornChecker = new Checker(factory);
 	  		boolean result = hornChecker.checkProgram(program);

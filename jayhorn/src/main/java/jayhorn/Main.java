@@ -1,12 +1,12 @@
-/**
- * 
- */
 package jayhorn;
 
-
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+
+import com.google.common.base.Stopwatch;
 
 import jayhorn.checker.Checker;
 import jayhorn.solver.ProverFactory;
@@ -33,18 +33,26 @@ public class Main {
      * @param factory
      */
     public static void safetyAnalysis(ProverFactory factory){
-  		Log.info("Building CFG  ... ");
-  		String outDir = Options.v().getOut();
-  		String outName = null;
-  		if (outDir!=null) {
-  			String in = Options.v().getJavaInput();
-  			outName = in.substring(in.lastIndexOf('/') + 1, in.length()).replace(".java", "").replace(".class", "");
-  		}
-  		SootToCfg soot2cfg = new SootToCfg(true, false, MemModel.PullPush, outDir, outName);
+    	Log.info("Building CFG  ... ");
+  		SootToCfg soot2cfg = new SootToCfg();
   		soottocfg.Options.v().setBuiltInSpecs(Options.v().useSpecs);
+  		soottocfg.Options.v().setResolveVirtualCalls(true);
+  		soottocfg.Options.v().setExcAsAssert(false);
+  		soottocfg.Options.v().setMemModel(MemModel.PullPush);
+  		if (Options.v().getOut()!=null) {
+  			Path outDir = Paths.get(Options.v().getOut());
+  			String in = Options.v().getJavaInput();
+  			String outName = in.substring(in.lastIndexOf('/') + 1, in.length()).replace(".java", "").replace(".class", "");
+  			soottocfg.Options.v().setOutDir(outDir);
+  			soottocfg.Options.v().setOutBaseName(outName);
+  		}
+  		soottocfg.Options.v().setMemPrecision(Options.v().memPrecision());
+  		soottocfg.Options.v().setPrintCFG(Options.v().getPrintCFG());
   		soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());	
   	
+  		Stopwatch sootTocfgTimer = Stopwatch.createStarted();
   		Program program = soot2cfg.getProgram();
+  	    Stats.stats().add("SootToCFG", String.valueOf(sootTocfgTimer.stop()));
   		
   		Log.info("Safety Verification ... ");
   		Checker hornChecker = new Checker(factory);
@@ -53,7 +61,7 @@ public class Main {
   		
   		String prettyResult = parseResult(Options.v().getSolver(), result);
   		
-  		Stats.stats("Result", prettyResult);
+  		Stats.stats().add("Result", prettyResult);
   		
   		if (Options.v().stats){ Stats.stats().printStats(); }
       
