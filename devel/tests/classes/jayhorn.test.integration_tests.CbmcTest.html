@@ -29,7 +29,7 @@
 </td>
 <td>
 <div class="infoBox" id="failures">
-<div class="counter">13</div>
+<div class="counter">18</div>
 <p>failures</p>
 </div>
 </td>
@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">1m17.19s</div>
+<div class="counter">50.024s</div>
 <p>duration</p>
 </div>
 </td>
@@ -51,7 +51,7 @@
 </td>
 <td>
 <div class="infoBox failures" id="successRate">
-<div class="percent">70%</div>
+<div class="percent">59%</div>
 <p>successful</p>
 </div>
 </td>
@@ -141,10 +141,80 @@
 <a name="testWithPrincess[13: check (cast1)]"></a>
 <h3 class="failures">testWithPrincess[13: check (cast1)]</h3>
 <span class="code">
-<pre>java.lang.AssertionError: Unexpected result for cast1. Expected: true but got false
-	at org.junit.Assert.fail(Assert.java:88)
-	at org.junit.Assert.assertTrue(Assert.java:41)
-	at jayhorn.test.integration_tests.CbmcTest.verifyAssertions(CbmcTest.java:99)
+<pre>com.google.common.base.VerifyException: Cannot find a push that affects this pull. This would introduce an assume(false): JayHornAssertions_lastExceptionThrown3 := pull(JayhornGlobalsClassVar, JayhornGlobals)
+	at com.google.common.base.Verify.verify(Verify.java:123)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getFPOsInfluencing(InterProceduralPullPushOrdering.java:178)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getPushsInfluencing(InterProceduralPullPushOrdering.java:133)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addToPushesAndPulls(PushIdentifierAdder.java:83)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addIDs(PushIdentifierAdder.java:41)
+	at soottocfg.soot.SootToCfg.run(SootToCfg.java:166)
+	at jayhorn.test.integration_tests.CbmcTest.verifyAssertions(CbmcTest.java:90)
+	at jayhorn.test.integration_tests.CbmcTest.testWithPrincess(CbmcTest.java:75)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.junit.runners.Suite.runChild(Suite.java:128)
+	at org.junit.runners.Suite.runChild(Suite.java:27)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.runTestClass(JUnitTestClassExecuter.java:86)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.execute(JUnitTestClassExecuter.java:49)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:69)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:48)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
+	at org.gradle.messaging.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:93)
+	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:105)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
+	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testWithPrincess[14: check (catch1)]"></a>
+<h3 class="failures">testWithPrincess[14: check (catch1)]</h3>
+<span class="code">
+<pre>com.google.common.base.VerifyException: Cannot find a push that affects this pull. This would introduce an assume(false): $helper3_backtrace_13, $helper3_detailMessage_24, $helper3_cause_45, $helper3_stackTrace_56, $helper3_suppressedExceptions_77, $helper3_$dynamicType_3968 := pull(java/lang/Throwable, $helper3)
+	at com.google.common.base.Verify.verify(Verify.java:123)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getFPOsInfluencing(InterProceduralPullPushOrdering.java:178)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getPushsInfluencing(InterProceduralPullPushOrdering.java:133)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addToPushesAndPulls(PushIdentifierAdder.java:83)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addIDs(PushIdentifierAdder.java:41)
+	at soottocfg.soot.SootToCfg.run(SootToCfg.java:166)
+	at jayhorn.test.integration_tests.CbmcTest.verifyAssertions(CbmcTest.java:90)
 	at jayhorn.test.integration_tests.CbmcTest.testWithPrincess(CbmcTest.java:75)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
@@ -269,6 +339,71 @@
 	at org.junit.Assert.fail(Assert.java:88)
 	at org.junit.Assert.assertTrue(Assert.java:41)
 	at jayhorn.test.integration_tests.CbmcTest.verifyAssertions(CbmcTest.java:99)
+	at jayhorn.test.integration_tests.CbmcTest.testWithPrincess(CbmcTest.java:75)
+	at sun.reflect.GeneratedMethodAccessor6.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.junit.runners.Suite.runChild(Suite.java:128)
+	at org.junit.runners.Suite.runChild(Suite.java:27)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.runTestClass(JUnitTestClassExecuter.java:86)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.execute(JUnitTestClassExecuter.java:49)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:69)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:48)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
+	at org.gradle.messaging.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:93)
+	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:105)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
+	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testWithPrincess[18: check (double1)]"></a>
+<h3 class="failures">testWithPrincess[18: check (double1)]</h3>
+<span class="code">
+<pre>com.google.common.base.VerifyException: Cannot find a push that affects this pull. This would introduce an assume(false): JayHornAssertions_lastExceptionThrown18 := pull(JayhornGlobalsClassVar, JayhornGlobals)
+	at com.google.common.base.Verify.verify(Verify.java:123)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getFPOsInfluencing(InterProceduralPullPushOrdering.java:178)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getPushsInfluencing(InterProceduralPullPushOrdering.java:133)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addToPushesAndPulls(PushIdentifierAdder.java:83)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addIDs(PushIdentifierAdder.java:41)
+	at soottocfg.soot.SootToCfg.run(SootToCfg.java:166)
+	at jayhorn.test.integration_tests.CbmcTest.verifyAssertions(CbmcTest.java:90)
 	at jayhorn.test.integration_tests.CbmcTest.testWithPrincess(CbmcTest.java:75)
 	at sun.reflect.GeneratedMethodAccessor6.invoke(Unknown Source)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -506,6 +641,71 @@
 </span>
 </div>
 <div class="test">
+<a name="testWithPrincess[21: check (float1)]"></a>
+<h3 class="failures">testWithPrincess[21: check (float1)]</h3>
+<span class="code">
+<pre>com.google.common.base.VerifyException: Cannot find a push that affects this pull. This would introduce an assume(false): JayHornAssertions_lastExceptionThrown18 := pull(JayhornGlobalsClassVar, JayhornGlobals)
+	at com.google.common.base.Verify.verify(Verify.java:123)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getFPOsInfluencing(InterProceduralPullPushOrdering.java:178)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getPushsInfluencing(InterProceduralPullPushOrdering.java:133)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addToPushesAndPulls(PushIdentifierAdder.java:83)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addIDs(PushIdentifierAdder.java:41)
+	at soottocfg.soot.SootToCfg.run(SootToCfg.java:166)
+	at jayhorn.test.integration_tests.CbmcTest.verifyAssertions(CbmcTest.java:90)
+	at jayhorn.test.integration_tests.CbmcTest.testWithPrincess(CbmcTest.java:75)
+	at sun.reflect.GeneratedMethodAccessor6.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.junit.runners.Suite.runChild(Suite.java:128)
+	at org.junit.runners.Suite.runChild(Suite.java:27)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.runTestClass(JUnitTestClassExecuter.java:86)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.execute(JUnitTestClassExecuter.java:49)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:69)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:48)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
+	at org.gradle.messaging.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:93)
+	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:105)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
+	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+</pre>
+</span>
+</div>
+<div class="test">
 <a name="testWithPrincess[23: check (iarith2)]"></a>
 <h3 class="failures">testWithPrincess[23: check (iarith2)]</h3>
 <span class="code">
@@ -632,13 +832,82 @@
 </span>
 </div>
 <div class="test">
+<a name="testWithPrincess[27: check (list1)]"></a>
+<h3 class="failures">testWithPrincess[27: check (list1)]</h3>
+<span class="code">
+<pre>com.google.common.base.VerifyException: Unequal lengths: LinkedListEntry and [r3_Next_3552, r3_Value_03, r3_$dynamicType_5874]
+	at com.google.common.base.Verify.verify(Verify.java:123)
+	at jayhorn.hornify.MethodEncoder.statementToClause(MethodEncoder.java:491)
+	at jayhorn.hornify.MethodEncoder.blockToHorn(MethodEncoder.java:262)
+	at jayhorn.hornify.MethodEncoder.encode(MethodEncoder.java:132)
+	at jayhorn.hornify.Hornify.toHorn(Hornify.java:69)
+	at jayhorn.checker.Checker.checkProgram(Checker.java:47)
+	at jayhorn.test.integration_tests.CbmcTest.verifyAssertions(CbmcTest.java:94)
+	at jayhorn.test.integration_tests.CbmcTest.testWithPrincess(CbmcTest.java:75)
+	at sun.reflect.GeneratedMethodAccessor6.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.junit.runners.Suite.runChild(Suite.java:128)
+	at org.junit.runners.Suite.runChild(Suite.java:27)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.runTestClass(JUnitTestClassExecuter.java:86)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.execute(JUnitTestClassExecuter.java:49)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:69)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:48)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
+	at org.gradle.messaging.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:93)
+	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:105)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
+	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+</pre>
+</span>
+</div>
+<div class="test">
 <a name="testWithPrincess[28: check (long1)]"></a>
 <h3 class="failures">testWithPrincess[28: check (long1)]</h3>
 <span class="code">
-<pre>java.lang.AssertionError: Unexpected result for long1. Expected: true but got false
-	at org.junit.Assert.fail(Assert.java:88)
-	at org.junit.Assert.assertTrue(Assert.java:41)
-	at jayhorn.test.integration_tests.CbmcTest.verifyAssertions(CbmcTest.java:99)
+<pre>com.google.common.base.VerifyException: Cannot find a push that affects this pull. This would introduce an assume(false): JayHornAssertions_lastExceptionThrown18 := pull(JayhornGlobalsClassVar, JayhornGlobals)
+	at com.google.common.base.Verify.verify(Verify.java:123)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getFPOsInfluencing(InterProceduralPullPushOrdering.java:178)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getPushsInfluencing(InterProceduralPullPushOrdering.java:133)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addToPushesAndPulls(PushIdentifierAdder.java:83)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addIDs(PushIdentifierAdder.java:41)
+	at soottocfg.soot.SootToCfg.run(SootToCfg.java:166)
+	at jayhorn.test.integration_tests.CbmcTest.verifyAssertions(CbmcTest.java:90)
 	at jayhorn.test.integration_tests.CbmcTest.testWithPrincess(CbmcTest.java:75)
 	at sun.reflect.GeneratedMethodAccessor6.invoke(Unknown Source)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -700,6 +969,71 @@
 	at org.junit.Assert.fail(Assert.java:88)
 	at org.junit.Assert.assertTrue(Assert.java:41)
 	at jayhorn.test.integration_tests.CbmcTest.verifyAssertions(CbmcTest.java:99)
+	at jayhorn.test.integration_tests.CbmcTest.testWithPrincess(CbmcTest.java:75)
+	at sun.reflect.GeneratedMethodAccessor6.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.junit.runners.Suite.runChild(Suite.java:128)
+	at org.junit.runners.Suite.runChild(Suite.java:27)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.runTestClass(JUnitTestClassExecuter.java:86)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.execute(JUnitTestClassExecuter.java:49)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:69)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:48)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
+	at org.gradle.messaging.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:93)
+	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:105)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
+	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testWithPrincess[36: check (short1)]"></a>
+<h3 class="failures">testWithPrincess[36: check (short1)]</h3>
+<span class="code">
+<pre>com.google.common.base.VerifyException: Cannot find a push that affects this pull. This would introduce an assume(false): JayHornAssertions_lastExceptionThrown3 := pull(JayhornGlobalsClassVar, JayhornGlobals)
+	at com.google.common.base.Verify.verify(Verify.java:123)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getFPOsInfluencing(InterProceduralPullPushOrdering.java:178)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getPushsInfluencing(InterProceduralPullPushOrdering.java:133)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addToPushesAndPulls(PushIdentifierAdder.java:83)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addIDs(PushIdentifierAdder.java:41)
+	at soottocfg.soot.SootToCfg.run(SootToCfg.java:166)
+	at jayhorn.test.integration_tests.CbmcTest.verifyAssertions(CbmcTest.java:90)
 	at jayhorn.test.integration_tests.CbmcTest.testWithPrincess(CbmcTest.java:75)
 	at sun.reflect.GeneratedMethodAccessor6.invoke(Unknown Source)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -818,9 +1152,14 @@
 <a name="testWithPrincess[9: check (astore_aload1)]"></a>
 <h3 class="failures">testWithPrincess[9: check (astore_aload1)]</h3>
 <span class="code">
-<pre>java.lang.RuntimeException: Verification failed with prover code Unknown
-	at jayhorn.checker.Checker.checkProgram(Checker.java:102)
-	at jayhorn.test.integration_tests.CbmcTest.verifyAssertions(CbmcTest.java:94)
+<pre>com.google.common.base.VerifyException: Cannot find a push that affects this pull. This would introduce an assume(false): JayHornAssertions_lastExceptionThrown75 := pull(JayhornGlobalsClassVar, JayhornGlobals)
+	at com.google.common.base.Verify.verify(Verify.java:123)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getFPOsInfluencing(InterProceduralPullPushOrdering.java:178)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getPushsInfluencing(InterProceduralPullPushOrdering.java:133)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addToPushesAndPulls(PushIdentifierAdder.java:83)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addIDs(PushIdentifierAdder.java:41)
+	at soottocfg.soot.SootToCfg.run(SootToCfg.java:166)
+	at jayhorn.test.integration_tests.CbmcTest.verifyAssertions(CbmcTest.java:90)
 	at jayhorn.test.integration_tests.CbmcTest.testWithPrincess(CbmcTest.java:75)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
@@ -888,222 +1227,222 @@
 </thead>
 <tr>
 <td class="failures">testWithPrincess[0: check (aastore_aaload1)]</td>
-<td>9.170s</td>
+<td>10.051s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[10: check (athrow1)]</td>
-<td>0.902s</td>
+<td>0.660s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[11: check (basic1)]</td>
-<td>0.473s</td>
+<td>0.235s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[12: check (basic2)]</td>
-<td>0.372s</td>
+<td>0.322s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[13: check (cast1)]</td>
-<td>1.168s</td>
+<td>0.249s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
-<td class="success">testWithPrincess[14: check (catch1)]</td>
-<td>0.318s</td>
-<td class="success">passed</td>
+<td class="failures">testWithPrincess[14: check (catch1)]</td>
+<td>0.257s</td>
+<td class="failures">failed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[15: check (classpath1)]</td>
-<td>0.536s</td>
+<td>0.538s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[16: check (const1)]</td>
-<td>0.624s</td>
+<td>0.345s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[17: check (constructor1)]</td>
-<td>0.965s</td>
+<td>1.012s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
-<td class="success">testWithPrincess[18: check (double1)]</td>
-<td>0.403s</td>
-<td class="success">passed</td>
+<td class="failures">testWithPrincess[18: check (double1)]</td>
+<td>0.211s</td>
+<td class="failures">failed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[19: check (farith1)]</td>
-<td>3.518s</td>
+<td>2.245s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[1: check (array1)]</td>
-<td>15.957s</td>
+<td>15.768s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[20: check (fcmpx_dcmpx1)]</td>
-<td>0.744s</td>
+<td>0.536s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
-<td class="success">testWithPrincess[21: check (float1)]</td>
-<td>0.507s</td>
-<td class="success">passed</td>
+<td class="failures">testWithPrincess[21: check (float1)]</td>
+<td>0.240s</td>
+<td class="failures">failed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[22: check (iarith1)]</td>
-<td>1.194s</td>
+<td>0.505s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[23: check (iarith2)]</td>
-<td>0.500s</td>
+<td>0.243s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[24: check (if_acmp1)]</td>
-<td>1.005s</td>
+<td>0.671s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[25: check (if_icmp1)]</td>
-<td>0.566s</td>
+<td>0.361s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[26: check (ifxx1)]</td>
-<td>0.385s</td>
+<td>0.328s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">testWithPrincess[27: check (list1)]</td>
-<td>1.413s</td>
-<td class="success">passed</td>
+<td class="failures">testWithPrincess[27: check (list1)]</td>
+<td>0.362s</td>
+<td class="failures">failed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[28: check (long1)]</td>
-<td>0.513s</td>
+<td>0.199s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[29: check (lookupswitch1)]</td>
-<td>0.985s</td>
+<td>1.028s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[2: check (arraylength1)]</td>
-<td>0.586s</td>
+<td>0.720s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[30: check (loop1)]</td>
-<td>0.174s</td>
+<td>0.228s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[31: check (multinewarray)]</td>
-<td>0.407s</td>
+<td>0.421s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[32: check (overloading1)]</td>
-<td>0.471s</td>
+<td>0.444s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[33: check (putfield_getfield1)]</td>
-<td>0.376s</td>
+<td>0.482s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[34: check (putstatic_getstatic1)]</td>
-<td>0.351s</td>
+<td>0.608s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[35: check (return1)]</td>
-<td>0.367s</td>
+<td>0.352s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">testWithPrincess[36: check (short1)]</td>
-<td>0.203s</td>
-<td class="success">passed</td>
+<td class="failures">testWithPrincess[36: check (short1)]</td>
+<td>0.226s</td>
+<td class="failures">failed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[37: check (store_load1)]</td>
-<td>1.893s</td>
+<td>1.785s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[38: check (tableswitch1)]</td>
-<td>0.850s</td>
+<td>1.110s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[39: check (uninitialised1)]</td>
-<td>0.533s</td>
+<td>0.581s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[3: check (assert1)]</td>
-<td>0.717s</td>
+<td>0.847s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[40: check (virtual1)]</td>
-<td>0.536s</td>
+<td>0.352s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[41: check (virtual2)]</td>
-<td>0.355s</td>
+<td>0.297s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[42: check (virtual3)]</td>
-<td>0.245s</td>
+<td>0.395s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[43: check (virtual4)]</td>
-<td>0.232s</td>
+<td>0.222s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[4: check (assert2)]</td>
-<td>0.354s</td>
+<td>0.462s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[5: check (assert3)]</td>
-<td>0.474s</td>
+<td>0.343s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[6: check (assert4)]</td>
-<td>0.653s</td>
+<td>0.572s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[7: check (assert5)]</td>
-<td>0.338s</td>
+<td>0.352s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[8: check (assert6)]</td>
-<td>0.250s</td>
+<td>0.244s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[9: check (astore_aload1)]</td>
-<td>24.602s</td>
+<td>2.615s</td>
 <td class="failures">failed</td>
 </tr>
 </table>
@@ -1185,12 +1524,6 @@ Running test: assert6
 [root] - Transform Program Methods into Horn Clauses ... 
 Running test: astore_aload1
 	expected result: true
-[root] - Hornify  ... 
-[root] - Check if program has one entry ... 
-[root] - Interprocedural Push/Pull Ordering
-[root] - Building type hierarchy ... 
-[root] - Generating Method Contract ... 
-[root] - Transform Program Methods into Horn Clauses ... 
 Running test: athrow1
 	expected result: false
 [root] - Hornify  ... 
@@ -1217,20 +1550,8 @@ Running test: basic2
 [root] - Transform Program Methods into Horn Clauses ... 
 Running test: cast1
 	expected result: true
-[root] - Hornify  ... 
-[root] - Check if program has one entry ... 
-[root] - Interprocedural Push/Pull Ordering
-[root] - Building type hierarchy ... 
-[root] - Generating Method Contract ... 
-[root] - Transform Program Methods into Horn Clauses ... 
 Running test: catch1
 	expected result: true
-[root] - Hornify  ... 
-[root] - Check if program has one entry ... 
-[root] - Interprocedural Push/Pull Ordering
-[root] - Building type hierarchy ... 
-[root] - Generating Method Contract ... 
-[root] - Transform Program Methods into Horn Clauses ... 
 Running test: classpath1
 	expected result: true
 [root] - Hornify  ... 
@@ -1257,12 +1578,6 @@ Running test: constructor1
 [root] - Transform Program Methods into Horn Clauses ... 
 Running test: double1
 	expected result: true
-[root] - Hornify  ... 
-[root] - Check if program has one entry ... 
-[root] - Interprocedural Push/Pull Ordering
-[root] - Building type hierarchy ... 
-[root] - Generating Method Contract ... 
-[root] - Transform Program Methods into Horn Clauses ... 
 Running test: farith1
 	expected result: true
 [root] - Hornify  ... 
@@ -1281,12 +1596,6 @@ Running test: fcmpx_dcmpx1
 [root] - Transform Program Methods into Horn Clauses ... 
 Running test: float1
 	expected result: true
-[root] - Hornify  ... 
-[root] - Check if program has one entry ... 
-[root] - Interprocedural Push/Pull Ordering
-[root] - Building type hierarchy ... 
-[root] - Generating Method Contract ... 
-[root] - Transform Program Methods into Horn Clauses ... 
 Running test: iarith1
 	expected result: true
 [root] - Hornify  ... 
@@ -1337,12 +1646,6 @@ Running test: list1
 [root] - Transform Program Methods into Horn Clauses ... 
 Running test: long1
 	expected result: true
-[root] - Hornify  ... 
-[root] - Check if program has one entry ... 
-[root] - Interprocedural Push/Pull Ordering
-[root] - Building type hierarchy ... 
-[root] - Generating Method Contract ... 
-[root] - Transform Program Methods into Horn Clauses ... 
 Running test: lookupswitch1
 	expected result: true
 [root] - Hornify  ... 
@@ -1401,12 +1704,6 @@ Running test: return1
 [root] - Transform Program Methods into Horn Clauses ... 
 Running test: short1
 	expected result: true
-[root] - Hornify  ... 
-[root] - Check if program has one entry ... 
-[root] - Interprocedural Push/Pull Ordering
-[root] - Building type hierarchy ... 
-[root] - Generating Method Contract ... 
-[root] - Transform Program Methods into Horn Clauses ... 
 Running test: store_load1
 	expected result: true
 [root] - Hornify  ... 
@@ -1471,72 +1768,79 @@ Running test: virtual4
 <span class="code">
 <pre>Pull not reachable from program entry: this_$length_9490, this_$elType_9501, this_$dynamicType_9512, this_atIndex_0_9523, this_atIndex_1_9534, this_atIndex_2_9545, this_atIndex_3_9556, this_atIndex_4_9567 := pull(JayArray_what_not, this)
 Pull not reachable from program entry: this_$length_9490, this_$elType_9501, this_$dynamicType_9512, this_atIndex_0_9523, this_atIndex_1_9534, this_atIndex_2_9545, this_atIndex_3_9556, this_atIndex_4_9567 := pull(JayArray_what_not, this)
+Pull not reachable from program entry: this_$length_9490, this_$elType_9501, this_$dynamicType_9512, this_atIndex_0_9523, this_atIndex_1_9534, this_atIndex_2_9545, this_atIndex_3_9556, this_atIndex_4_9567 := pull(JayArray_what_not, this)
+Pull not reachable from program entry: this_$length_9490, this_$elType_9501, this_$dynamicType_9512, this_atIndex_0_9523, this_atIndex_1_9534, this_atIndex_2_9545, this_atIndex_3_9556, this_atIndex_4_9567 := pull(JayArray_what_not, this)
 Pull not reachable from program entry: this_$length_6180, this_$elType_6191, this_$dynamicType_6202, this_atIndex_0_03, this_atIndex_1_04, this_atIndex_2_05, this_atIndex_3_06, this_atIndex_4_07 := pull(JayArray_int, this)
 Pull not reachable from program entry: this_$length_6180, this_$elType_6191, this_$dynamicType_6202, this_atIndex_0_03, this_atIndex_1_04, this_atIndex_2_05, this_atIndex_3_06, this_atIndex_4_07 := pull(JayArray_int, this)
-Not guarding cast from double to int. This should be done by the compiler.
-Not guarding cast from double to int. This should be done by the compiler.
-Not guarding cast from double to int. This should be done by the compiler.
-Not guarding cast from int to double. This should be done by the compiler.
-Not guarding cast from double to int. This should be done by the compiler.
-Not guarding cast from double to int. This should be done by the compiler.
+Pull not reachable from program entry: this_$length_6180, this_$elType_6191, this_$dynamicType_6202, this_atIndex_0_03, this_atIndex_1_04, this_atIndex_2_05, this_atIndex_3_06, this_atIndex_4_07 := pull(JayArray_int, this)
+Pull not reachable from program entry: this_$length_6180, this_$elType_6191, this_$dynamicType_6202, this_atIndex_0_03, this_atIndex_1_04, this_atIndex_2_05, this_atIndex_3_06, this_atIndex_4_07 := pull(JayArray_int, this)
+Not guarding cast from int to long. This should be done by the compiler.
 Not guarding cast from int to byte. This should be done by the compiler.
 Not guarding cast from double to int. This should be done by the compiler.
 Not guarding cast from double to int. This should be done by the compiler.
 Not guarding cast from double to int. This should be done by the compiler.
+Not guarding cast from int to short. This should be done by the compiler.
+Not guarding cast from int to double. This should be done by the compiler.
+Not guarding cast from double to int. This should be done by the compiler.
+Not guarding cast from double to int. This should be done by the compiler.
+Not guarding cast from double to int. This should be done by the compiler.
+Not guarding cast from double to int. This should be done by the compiler.
+Not guarding cast from double to int. This should be done by the compiler.
+Not guarding cast from double to int. This should be done by the compiler.
 Not guarding cast from int to char. This should be done by the compiler.
+Not guarding cast from double to int. This should be done by the compiler.
 Not guarding cast from int to float. This should be done by the compiler.
-Not guarding cast from double to int. This should be done by the compiler.
-Not guarding cast from int to short. This should be done by the compiler.
-Not guarding cast from double to int. This should be done by the compiler.
-Not guarding cast from int to long. This should be done by the compiler.
-Pull not reachable from program entry: this_$length_6480, this_$elType_6491, this_$dynamicType_6502, this_atIndex_0_03, this_atIndex_1_04, this_atIndex_2_05, this_atIndex_3_06, this_atIndex_4_07 := pull(JayArray_float, this)
 Not guarding cast from byte to long. This should be done by the compiler.
+Not guarding cast from double to float. This should be done by the compiler.
 Not guarding cast from byte to float. This should be done by the compiler.
-Not guarding cast from byte to char. This should be done by the compiler.
-Not guarding cast from double to long. This should be done by the compiler.
 Not guarding cast from byte to byte. This should be done by the compiler.
+Not guarding cast from double to long. This should be done by the compiler.
+Not guarding cast from byte to char. This should be done by the compiler.
 Not guarding cast from byte to double. This should be done by the compiler.
+Not guarding cast from double to float. This should be done by the compiler.
 Not guarding cast from byte to short. This should be done by the compiler.
-Not guarding cast from byte to float. This should be done by the compiler.
+Not guarding cast from int to long. This should be done by the compiler.
 Not guarding cast from byte to double. This should be done by the compiler.
+Not guarding cast from double to int. This should be done by the compiler.
+Not guarding cast from byte to float. This should be done by the compiler.
 Not guarding cast from double to int. This should be done by the compiler.
 Not guarding cast from byte to long. This should be done by the compiler.
-Not guarding cast from int to long. This should be done by the compiler.
-Not guarding cast from double to float. This should be done by the compiler.
-Not guarding cast from double to int. This should be done by the compiler.
-Not guarding cast from double to float. This should be done by the compiler.
 Not guarding cast from int to short. This should be done by the compiler.
+Not guarding cast from double to float. This should be done by the compiler.
 Not guarding cast from double to int. This should be done by the compiler.
 Not guarding cast from double to long. This should be done by the compiler.
+Not guarding cast from double to int. This should be done by the compiler.
+Not guarding cast from double to int. This should be done by the compiler.
 Not guarding cast from int to char. This should be done by the compiler.
-Not guarding cast from double to float. This should be done by the compiler.
-Not guarding cast from double to int. This should be done by the compiler.
-Not guarding cast from double to int. This should be done by the compiler.
-Not guarding cast from int to short. This should be done by the compiler.
-Not guarding cast from float to double. This should be done by the compiler.
 Not guarding cast from float to long. This should be done by the compiler.
 Not guarding cast from float to int. This should be done by the compiler.
+Not guarding cast from float to int. This should be done by the compiler.
+Not guarding cast from float to double. This should be done by the compiler.
 Not guarding cast from int to char. This should be done by the compiler.
 Not guarding cast from float to int. This should be done by the compiler.
-Not guarding cast from float to int. This should be done by the compiler.
+Not guarding cast from int to short. This should be done by the compiler.
 Pull not reachable from program entry: r0_Head_3540, r0_$dynamicType_5861 := pull(LinkedList, r0)
 Pull not reachable from program entry: r1_Next_3552, r1_Value_03, r1_$dynamicType_5874 := pull(LinkedListEntry, r1)
 Pull not reachable from program entry: r0_Head_3540, r0_$dynamicType_5861 := pull(LinkedList, r0)
 Pull not reachable from program entry: r1_Next_3552, r1_Value_03, r1_$dynamicType_5874 := pull(LinkedListEntry, r1)
 Pull not reachable from program entry: JayHornAssertions_lastExceptionThrown8 := pull(JayhornGlobalsClassVar, JayhornGlobals)
 Pull not reachable from program entry: r1_Next_3552, r1_Value_03, r1_$dynamicType_5874 := pull(LinkedListEntry, r1)
-Not guarding cast from int to char. This should be done by the compiler.
-Not guarding cast from char to long. This should be done by the compiler.
-Not guarding cast from long to double. This should be done by the compiler.
-Not guarding cast from long to int. This should be done by the compiler.
-Not guarding cast from short to long. This should be done by the compiler.
-Not guarding cast from int to long. This should be done by the compiler.
-Not guarding cast from long to int. This should be done by the compiler.
+Pull not reachable from program entry: r0_Head_3540, r0_$dynamicType_5861 := pull(LinkedList, r0)
+Pull not reachable from program entry: r1_Next_3552, r1_Value_03, r1_$dynamicType_5874 := pull(LinkedListEntry, r1)
 Not guarding cast from int to short. This should be done by the compiler.
 Not guarding cast from long to int. This should be done by the compiler.
 Not guarding cast from long to float. This should be done by the compiler.
+Not guarding cast from int to long. This should be done by the compiler.
+Not guarding cast from char to long. This should be done by the compiler.
+Not guarding cast from long to int. This should be done by the compiler.
+Not guarding cast from long to int. This should be done by the compiler.
+Not guarding cast from int to char. This should be done by the compiler.
+Not guarding cast from long to double. This should be done by the compiler.
+Not guarding cast from short to long. This should be done by the compiler.
+Pull not reachable from program entry: this_$length_9490, this_$elType_9501, this_$dynamicType_9512, this_atIndex_0_9523, this_atIndex_1_9534, this_atIndex_2_9545, this_atIndex_3_9556, this_atIndex_4_9567 := pull(JayArray_JayArray_int, this)
 Pull not reachable from program entry: this_$length_9490, this_$elType_9501, this_$dynamicType_9512, this_atIndex_0_9523, this_atIndex_1_9534, this_atIndex_2_9545, this_atIndex_3_9556, this_atIndex_4_9567 := pull(JayArray_JayArray_int, this)
 Not guarding cast from int to short. This should be done by the compiler.
+Pull not reachable from program entry: this_$length_6180, this_$elType_6191, this_$dynamicType_6202, this_atIndex_0_03, this_atIndex_1_04, this_atIndex_2_05, this_atIndex_3_06, this_atIndex_4_07 := pull(JayArray_int, this)
 Pull not reachable from program entry: this_$length_6180, this_$elType_6191, this_$dynamicType_6202, this_atIndex_0_03, this_atIndex_1_04, this_atIndex_2_05, this_atIndex_3_06, this_atIndex_4_07 := pull(JayArray_int, this)
 </pre>
 </span>
@@ -1544,7 +1848,7 @@ Pull not reachable from program entry: this_$length_6180, this_$elType_6191, thi
 </div>
 <div id="footer">
 <p>Generated by 
-<a href="http://www.gradle.org">Gradle 2.2.1</a> at Sep 7, 2016 6:34:37 PM</p>
+<a href="http://www.gradle.org">Gradle 2.2.1</a> at Sep 7, 2016 6:38:48 PM</p>
 </div>
 </div>
 </body>

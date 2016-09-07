@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">6.081s</div>
+<div class="counter">6.980s</div>
 <p>duration</p>
 </div>
 </td>
@@ -344,32 +344,32 @@
 </thead>
 <tr>
 <td class="success">testWithPrincess[0: check (UnsatLong.java)]</td>
-<td>1.103s</td>
+<td>1.062s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[1: check (SatFloats.java)]</td>
-<td>1.022s</td>
+<td>1.046s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[2: check (SatLong.java)]</td>
-<td>1.041s</td>
+<td>1.060s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[3: check (UnsatBitOps.java)]</td>
-<td>0.906s</td>
+<td>1.284s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[4: check (SatBitOps.java)]</td>
-<td>0.953s</td>
+<td>1.167s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="success">testWithPrincess[5: check (UnsatFloats.java)]</td>
-<td>1.056s</td>
+<td>1.361s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -386,54 +386,58 @@ Running test UnsatLong.java with class jayhorn.solver.princess.PrincessProverFac
 [root] - Building type hierarchy ... 
 [root] - Generating Method Contract ... 
 [root] - Transform Program Methods into Horn Clauses ... 
-		iUnsatLongggvoidgiinitkopk_Block1(kin_0_180341, kin_0_180341, kthis__180342, UnsatLong_180343, r0_180344, r0_kdynamicType_5840_180345) :- iUnsatLongggvoidgiinitkopk_pre(kin_0_180341).
-		iUnsatLongggvoidgiinitkopk_Block1_1(kin_0_180340, kin_0_180346, UnsatLong_180348) :- iUnsatLongggvoidgiinitkopk_Block1(kin_0_180340, kin_0_180346, kthis__180347, UnsatLong_180348, r0_180349, r0_kdynamicType_5840_180350).
-		iUnsatLongggvoidgiinitkopk_Block1_2(kin_0_180340, UnsatLong_180352, kthis__180351) :- iUnsatLongggvoidgiinitkopk_Block1_1(kin_0_180340, kthis__180351, UnsatLong_180352).
-		iUnsatLongggvoidgiinitkopk_Block1_3(kin_0_180340, r0_180355, 77) :- iUnsatLongggvoidgiinitkopk_Block1_2(kin_0_180340, UnsatLong_180354, r0_180355).
-		inv_UnsatLong(r0_180357, r0_kdynamicType_5840_180358) :- iUnsatLongggvoidgiinitkopk_Block1_3(kin_0_180340, r0_180357, r0_kdynamicType_5840_180358).
-		iUnsatLongggvoidgiinitkopk_Block1_4(kin_0_180340, r0_180357) :- iUnsatLongggvoidgiinitkopk_Block1_3(kin_0_180340, r0_180357, r0_kdynamicType_5840_180358).
-		ijavaulanguObjectggvoidgiinitkopk_pre(r0_180359) :- iUnsatLongggvoidgiinitkopk_Block1_4(kin_0_180340, r0_180359).
-		iUnsatLongggvoidgiinitkopk_Block1_5(kin_0_180340) :- iUnsatLongggvoidgiinitkopk_Block1_4(kin_0_180340, r0_180359), ijavaulanguObjectggvoidgiinitkopk_post(r0_180359, callRes_180361).
-		iUnsatLongggvoidgiinitkopk_Block0(kin_0_180340) :- iUnsatLongggvoidgiinitkopk_Block1_5(kin_0_180340).
-		iUnsatLongggvoidgiinitkopk_post(kin_0_180362, resultVar0_180363, resultVar1_180364) :- iUnsatLongggvoidgiinitkopk_Block0(kin_0_180362).
-		ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_180366, kin_0_180366, javavlangvObject_180367) :- ijavaulanguObjectggvoidgiinitkopk_pre(kin_0_180366).
-		inv_javavlangvObject(kin_0_180368, 1) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_180365, kin_0_180368, javavlangvObject_180369).
-		ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_180365) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_180365, kin_0_180368, javavlangvObject_180369).
-		ijavaulanguObjectggvoidgiinitkopk_post(kin_0_180370, resultVar0_180371) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_180370).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_180375, kassert_7_180373, kb3_180374, kin_0_180375, kl2_180376, kndet8_180377, JayArray_java_lang_String_180378, i1_180379, l0_180380, undef_field0_180381, undef_field1_180382, undef_field2_180383, undef_field3_180384, undef_field4_180385, undef_size_180386) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_pre(kin_0_180375).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_180372, kassert_7_180387, kin_0_180389, JayArray_java_lang_String_180392, undef_field0_180395, undef_field1_180396, undef_field2_180397, undef_field3_180398, undef_field4_180399, undef_size_180400) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_180372, kassert_7_180387, kb3_180388, kin_0_180389, kl2_180390, kndet8_180391, JayArray_java_lang_String_180392, i1_180393, l0_180394, undef_field0_180395, undef_field1_180396, undef_field2_180397, undef_field3_180398, undef_field4_180399, undef_size_180400), undef_size_180400 &gt;= 0.
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_180372, kassert_7_180401, kin_0_180402, JayArray_java_lang_String_180403, undef_field0_180404, undef_field1_180405, undef_field2_180406, undef_field3_180407, undef_field4_180408, undef_size_180409) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_180372, kassert_7_180401, kin_0_180402, JayArray_java_lang_String_180403, undef_field0_180404, undef_field1_180405, undef_field2_180406, undef_field3_180407, undef_field4_180408, undef_size_180409).
-		inv_JayArray_java_lang_String(kin_0_180411, undef_size_180418, 78, 78, undef_field0_180413, undef_field1_180414, undef_field2_180415, undef_field3_180416, undef_field4_180417) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_180372, kassert_7_180410, kin_0_180411, JayArray_java_lang_String_180412, undef_field0_180413, undef_field1_180414, undef_field2_180415, undef_field3_180416, undef_field4_180417, undef_size_180418).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_180372, kassert_7_180410) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_180372, kassert_7_180410, kin_0_180411, JayArray_java_lang_String_180412, undef_field0_180413, undef_field1_180414, undef_field2_180415, undef_field3_180416, undef_field4_180417, undef_size_180418).
-		iJayHornAssertionsggvoidgiclinitkopk_pre :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_180372, kassert_7_180419).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_180372, kassert_7_180419) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_180372, kassert_7_180419), iJayHornAssertionsggvoidgiclinitkopk_post.
-		iUnsatLongggvoidgiclinitkopk_pre :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_180372, kassert_7_180420).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_180372, kassert_7_180420) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_180372, kassert_7_180420), iUnsatLongggvoidgiclinitkopk_post.
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_180372, kassert_7_180421, 4620693217682128896) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_180372, kassert_7_180421).
-		iHavoc_Classggintghavoc_intopk_pre :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_180372, kassert_7_180423, l0_180424).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_180372, kassert_7_180423, callRes_180426, l0_180424) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_180372, kassert_7_180423, l0_180424), iHavoc_Classggintghavoc_intopk_post(callRes_180426).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_180372, kassert_7_180427, kndet8_180428, l0_180429) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_180372, kassert_7_180427, kndet8_180428, l0_180429).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_180372, kassert_7_180431, i1_180432, l0_180433) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_180372, kassert_7_180431, i1_180432, l0_180433).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_180372, kassert_7_180435, \if (l0_180437 &gt;= kl2_180436) \ then (\if (kl2_180436 = l0_180437) \ then (0) \ else (-1*1)) \ else (1)) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_180372, kassert_7_180435, kl2_180436, l0_180437).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_180372) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_180372, kassert_7_180439, kb3_180440), kb3_180440 = 0.
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_180372, kassert_7_180439) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_180372, kassert_7_180439, kb3_180440), !(kb3_180440 = 0).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_180372) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_180372).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_180372, \if (false) \ then (0) \ else (1)) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_180372, kassert_7_180441).
-		false :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_180372, kassert_7_180442), !(kassert_7_180442 = 0).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_180372) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_180372, kassert_7_180442).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_180372) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_180372).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_post(kin_0_180443) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_180443).
-		iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_180444, JayHornAssertions_lastExceptionThrown0_180445, JayhornGlobals_180446) :- iJayHornAssertionsggvoidgiclinitkopk_pre.
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_1(knull_180447, JayhornGlobals_180449) :- iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_180447, JayHornAssertions_lastExceptionThrown0_180448, JayhornGlobals_180449).
-		inv_JayhornGlobalsClassVar(JayhornGlobals_180451, JayHornAssertions_lastExceptionThrown0_180450) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_180450, JayhornGlobals_180451).
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_2 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_180450, JayhornGlobals_180451).
-		iJayHornAssertionsggvoidgiclinitkopk_Block0 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2.
+		iHavoc_Classggintghavoc_intopk_Block0 :- iHavoc_Classggintghavoc_intopk_pre.
+		iHavoc_Classggintghavoc_intopk_post(resultVar0_23289) :- iHavoc_Classggintghavoc_intopk_Block0.
+		iUnsatLongggvoidgiinitkopk_Block1(kin_0_23291, kin_0_23291, kthis__23292, UnsatLong_23293, lastpush_23294, r0_23295, r0_kdynamicType_5840_23296) :- iUnsatLongggvoidgiinitkopk_pre(kin_0_23291).
+		iUnsatLongggvoidgiinitkopk_Block1_1(kin_0_23290, kin_0_23297, UnsatLong_23299) :- iUnsatLongggvoidgiinitkopk_Block1(kin_0_23290, kin_0_23297, kthis__23298, UnsatLong_23299, lastpush_23300, r0_23301, r0_kdynamicType_5840_23302).
+		iUnsatLongggvoidgiinitkopk_Block1_2(kin_0_23290, UnsatLong_23304, kthis__23303) :- iUnsatLongggvoidgiinitkopk_Block1_1(kin_0_23290, kthis__23303, UnsatLong_23304).
+		iUnsatLongggvoidgiinitkopk_Block1_3(kin_0_23290, r0_23307, 77) :- iUnsatLongggvoidgiinitkopk_Block1_2(kin_0_23290, UnsatLong_23306, r0_23307).
+		iUnsatLongggvoidgiinitkopk_Block1_4(kin_0_23290, 576, r0_23309, r0_kdynamicType_5840_23310) :- iUnsatLongggvoidgiinitkopk_Block1_3(kin_0_23290, r0_23309, r0_kdynamicType_5840_23310).
+		inv_UnsatLong(r0_23313, r0_kdynamicType_5840_23314, lastpush_23312) :- iUnsatLongggvoidgiinitkopk_Block1_4(kin_0_23290, lastpush_23312, r0_23313, r0_kdynamicType_5840_23314).
+		iUnsatLongggvoidgiinitkopk_Block1_5(kin_0_23290, r0_23313) :- iUnsatLongggvoidgiinitkopk_Block1_4(kin_0_23290, lastpush_23312, r0_23313, r0_kdynamicType_5840_23314).
+		ijavaulanguObjectggvoidgiinitkopk_pre(r0_23315) :- iUnsatLongggvoidgiinitkopk_Block1_5(kin_0_23290, r0_23315).
+		iUnsatLongggvoidgiinitkopk_Block1_6(kin_0_23290) :- iUnsatLongggvoidgiinitkopk_Block1_5(kin_0_23290, r0_23315), ijavaulanguObjectggvoidgiinitkopk_post(r0_23315, callRes_23317).
+		iUnsatLongggvoidgiinitkopk_Block0(kin_0_23290) :- iUnsatLongggvoidgiinitkopk_Block1_6(kin_0_23290).
+		iUnsatLongggvoidgiinitkopk_post(kin_0_23318, resultVar0_23319, resultVar1_23320) :- iUnsatLongggvoidgiinitkopk_Block0(kin_0_23318).
+		ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23322, kin_0_23322, javavlangvObject_23323, lastpush_23324) :- ijavaulanguObjectggvoidgiinitkopk_pre(kin_0_23322).
+		ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23321, kin_0_23325, javavlangvObject_23326, 578) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23321, kin_0_23325, javavlangvObject_23326, lastpush_23327).
+		inv_javavlangvObject(kin_0_23328, 1, lastpush_23330) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23321, kin_0_23328, javavlangvObject_23329, lastpush_23330).
+		ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23321) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23321, kin_0_23328, javavlangvObject_23329, lastpush_23330).
+		ijavaulanguObjectggvoidgiinitkopk_post(kin_0_23331, resultVar0_23332) :- ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23331).
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23336, kassert_7_23334, kb3_23335, kin_0_23336, kl2_23337, kndet8_23338, JayArray_java_lang_String_23339, i1_23340, l0_23341, lastpush_23342, undef_field0_23343, undef_field1_23344, undef_field2_23345, undef_field3_23346, undef_field4_23347, undef_size_23348) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_pre(kin_0_23336).
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23333, kassert_7_23349, kin_0_23351, JayArray_java_lang_String_23354, undef_field0_23358, undef_field1_23359, undef_field2_23360, undef_field3_23361, undef_field4_23362, undef_size_23363) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23333, kassert_7_23349, kb3_23350, kin_0_23351, kl2_23352, kndet8_23353, JayArray_java_lang_String_23354, i1_23355, l0_23356, lastpush_23357, undef_field0_23358, undef_field1_23359, undef_field2_23360, undef_field3_23361, undef_field4_23362, undef_size_23363), undef_size_23363 &gt;= 0.
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23333, kassert_7_23364, kin_0_23365, JayArray_java_lang_String_23366, undef_field0_23367, undef_field1_23368, undef_field2_23369, undef_field3_23370, undef_field4_23371, undef_size_23372) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23333, kassert_7_23364, kin_0_23365, JayArray_java_lang_String_23366, undef_field0_23367, undef_field1_23368, undef_field2_23369, undef_field3_23370, undef_field4_23371, undef_size_23372).
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23333, kassert_7_23373, kin_0_23374, JayArray_java_lang_String_23375, 579, undef_field0_23376, undef_field1_23377, undef_field2_23378, undef_field3_23379, undef_field4_23380, undef_size_23381) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23333, kassert_7_23373, kin_0_23374, JayArray_java_lang_String_23375, undef_field0_23376, undef_field1_23377, undef_field2_23378, undef_field3_23379, undef_field4_23380, undef_size_23381).
+		inv_JayArray_java_lang_String(kin_0_23384, undef_size_23392, 78, 78, undef_field0_23387, undef_field1_23388, undef_field2_23389, undef_field3_23390, undef_field4_23391, lastpush_23386) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23333, kassert_7_23383, kin_0_23384, JayArray_java_lang_String_23385, lastpush_23386, undef_field0_23387, undef_field1_23388, undef_field2_23389, undef_field3_23390, undef_field4_23391, undef_size_23392).
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23333, kassert_7_23383) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23333, kassert_7_23383, kin_0_23384, JayArray_java_lang_String_23385, lastpush_23386, undef_field0_23387, undef_field1_23388, undef_field2_23389, undef_field3_23390, undef_field4_23391, undef_size_23392).
+		iJayHornAssertionsggvoidgiclinitkopk_pre :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23333, kassert_7_23393).
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23333, kassert_7_23393) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23333, kassert_7_23393), iJayHornAssertionsggvoidgiclinitkopk_post.
+		iUnsatLongggvoidgiclinitkopk_pre :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23333, kassert_7_23394).
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23333, kassert_7_23394) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23333, kassert_7_23394), iUnsatLongggvoidgiclinitkopk_post.
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23333, kassert_7_23395, 4620693217682128896) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23333, kassert_7_23395).
+		iHavoc_Classggintghavoc_intopk_pre :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23333, kassert_7_23397, l0_23398).
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23333, kassert_7_23397, callRes_23400, l0_23398) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23333, kassert_7_23397, l0_23398), iHavoc_Classggintghavoc_intopk_post(callRes_23400).
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23333, kassert_7_23401, kndet8_23402, l0_23403) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23333, kassert_7_23401, kndet8_23402, l0_23403).
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_23333, kassert_7_23405, i1_23406, l0_23407) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23333, kassert_7_23405, i1_23406, l0_23407).
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_11(kin_0_23333, kassert_7_23409, \if (l0_23411 &gt;= kl2_23410) \ then (\if (kl2_23410 = l0_23411) \ then (0) \ else (-1*1)) \ else (1)) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_23333, kassert_7_23409, kl2_23410, l0_23411).
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23333) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_11(kin_0_23333, kassert_7_23413, kb3_23414), kb3_23414 = 0.
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23333, kassert_7_23413) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_11(kin_0_23333, kassert_7_23413, kb3_23414), !(kb3_23414 = 0).
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23333) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23333).
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23333, \if (false) \ then (0) \ else (1)) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23333, kassert_7_23415).
+		false :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23333, kassert_7_23416), !(kassert_7_23416 = 0).
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23333) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23333, kassert_7_23416).
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23333) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23333).
+		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_post(kin_0_23417) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23417).
+		iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_23418, JayHornAssertions_lastExceptionThrown0_23419, JayhornGlobals_23420, lastpush_23421) :- iJayHornAssertionsggvoidgiclinitkopk_pre.
+		iJayHornAssertionsggvoidgiclinitkopk_Block1_1(knull_23422, JayhornGlobals_23424) :- iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_23422, JayHornAssertions_lastExceptionThrown0_23423, JayhornGlobals_23424, lastpush_23425).
+		iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23426, JayhornGlobals_23427, 577) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_23426, JayhornGlobals_23427).
+		inv_JayhornGlobalsClassVar(JayhornGlobals_23430, JayHornAssertions_lastExceptionThrown0_23429, lastpush_23431) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23429, JayhornGlobals_23430, lastpush_23431).
+		iJayHornAssertionsggvoidgiclinitkopk_Block1_3 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23429, JayhornGlobals_23430, lastpush_23431).
+		iJayHornAssertionsggvoidgiclinitkopk_Block0 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_3.
 		iJayHornAssertionsggvoidgiclinitkopk_post :- iJayHornAssertionsggvoidgiclinitkopk_Block0.
 		iUnsatLongggvoidgiclinitkopk_Block1 :- iUnsatLongggvoidgiclinitkopk_pre.
 		iUnsatLongggvoidgiclinitkopk_Block0 :- iUnsatLongggvoidgiclinitkopk_Block1.
 		iUnsatLongggvoidgiclinitkopk_post :- iUnsatLongggvoidgiclinitkopk_Block0.
-		iHavoc_Classggintghavoc_intopk_Block0 :- iHavoc_Classggintghavoc_intopk_pre.
-		iHavoc_Classggintghavoc_intopk_post(resultVar0_180452) :- iHavoc_Classggintghavoc_intopk_Block0.
 		-------------
 
 
@@ -445,48 +449,54 @@ Running test SatFloats.java with class jayhorn.solver.princess.PrincessProverFac
 [root] - Building type hierarchy ... 
 [root] - Generating Method Contract ... 
 [root] - Transform Program Methods into Horn Clauses ... 
-		iSatFloatsggvoidgiinitkopk_Block1(kin_0_180455, kin_0_180455, kthis__180456, SatFloats_180457, r0_180458, r0_kdynamicType_5840_180459) :- iSatFloatsggvoidgiinitkopk_pre(kin_0_180455).
-		iSatFloatsggvoidgiinitkopk_Block1_1(kin_0_180454, kin_0_180460, SatFloats_180462) :- iSatFloatsggvoidgiinitkopk_Block1(kin_0_180454, kin_0_180460, kthis__180461, SatFloats_180462, r0_180463, r0_kdynamicType_5840_180464).
-		iSatFloatsggvoidgiinitkopk_Block1_2(kin_0_180454, SatFloats_180466, kthis__180465) :- iSatFloatsggvoidgiinitkopk_Block1_1(kin_0_180454, kthis__180465, SatFloats_180466).
-		iSatFloatsggvoidgiinitkopk_Block1_3(kin_0_180454, r0_180469, 77) :- iSatFloatsggvoidgiinitkopk_Block1_2(kin_0_180454, SatFloats_180468, r0_180469).
-		inv_SatFloats(r0_180471, r0_kdynamicType_5840_180472) :- iSatFloatsggvoidgiinitkopk_Block1_3(kin_0_180454, r0_180471, r0_kdynamicType_5840_180472).
-		iSatFloatsggvoidgiinitkopk_Block1_4(kin_0_180454, r0_180471) :- iSatFloatsggvoidgiinitkopk_Block1_3(kin_0_180454, r0_180471, r0_kdynamicType_5840_180472).
-		ijavaulanguObjectggvoidgiinitkopk_pre(r0_180473) :- iSatFloatsggvoidgiinitkopk_Block1_4(kin_0_180454, r0_180473).
-		iSatFloatsggvoidgiinitkopk_Block1_5(kin_0_180454) :- iSatFloatsggvoidgiinitkopk_Block1_4(kin_0_180454, r0_180473), ijavaulanguObjectggvoidgiinitkopk_post(r0_180473, callRes_180475).
-		iSatFloatsggvoidgiinitkopk_Block0(kin_0_180454) :- iSatFloatsggvoidgiinitkopk_Block1_5(kin_0_180454).
-		iSatFloatsggvoidgiinitkopk_post(kin_0_180476, resultVar0_180477, resultVar1_180478) :- iSatFloatsggvoidgiinitkopk_Block0(kin_0_180476).
-		ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_180480, kin_0_180480, javavlangvObject_180481) :- ijavaulanguObjectggvoidgiinitkopk_pre(kin_0_180480).
-		inv_javavlangvObject(kin_0_180482, 1) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_180479, kin_0_180482, javavlangvObject_180483).
-		ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_180479) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_180479, kin_0_180482, javavlangvObject_180483).
-		ijavaulanguObjectggvoidgiinitkopk_post(kin_0_180484, resultVar0_180485) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_180484).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_180492, kassert_6_180487, kb0_180488, kfloat79_180489, kfloat80_180490, kfloat81_180491, kin_0_180492, JayArray_java_lang_String_180493, f0_180494, f1_180495, undef_field0_180496, undef_field1_180497, undef_field2_180498, undef_field3_180499, undef_field4_180500, undef_size_180501) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_pre(kin_0_180492).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_180486, kassert_6_180502, kfloat79_180504, kfloat80_180505, kfloat81_180506, kin_0_180507, JayArray_java_lang_String_180508, undef_field0_180511, undef_field1_180512, undef_field2_180513, undef_field3_180514, undef_field4_180515, undef_size_180516) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_180486, kassert_6_180502, kb0_180503, kfloat79_180504, kfloat80_180505, kfloat81_180506, kin_0_180507, JayArray_java_lang_String_180508, f0_180509, f1_180510, undef_field0_180511, undef_field1_180512, undef_field2_180513, undef_field3_180514, undef_field4_180515, undef_size_180516), undef_size_180516 &gt;= 0.
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_180486, kassert_6_180517, kfloat79_180518, kfloat80_180519, kfloat81_180520, kin_0_180521, JayArray_java_lang_String_180522, undef_field0_180523, undef_field1_180524, undef_field2_180525, undef_field3_180526, undef_field4_180527, undef_size_180528) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_180486, kassert_6_180517, kfloat79_180518, kfloat80_180519, kfloat81_180520, kin_0_180521, JayArray_java_lang_String_180522, undef_field0_180523, undef_field1_180524, undef_field2_180525, undef_field3_180526, undef_field4_180527, undef_size_180528).
-		inv_JayArray_java_lang_String(kin_0_180533, undef_size_180540, 78, 78, undef_field0_180535, undef_field1_180536, undef_field2_180537, undef_field3_180538, undef_field4_180539) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_180486, kassert_6_180529, kfloat79_180530, kfloat80_180531, kfloat81_180532, kin_0_180533, JayArray_java_lang_String_180534, undef_field0_180535, undef_field1_180536, undef_field2_180537, undef_field3_180538, undef_field4_180539, undef_size_180540).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_180486, kassert_6_180529, kfloat79_180530, kfloat80_180531, kfloat81_180532) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_180486, kassert_6_180529, kfloat79_180530, kfloat80_180531, kfloat81_180532, kin_0_180533, JayArray_java_lang_String_180534, undef_field0_180535, undef_field1_180536, undef_field2_180537, undef_field3_180538, undef_field4_180539, undef_size_180540).
-		iSatFloatsggvoidgiclinitkopk_pre :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_180486, kassert_6_180541, kfloat79_180542, kfloat80_180543, kfloat81_180544).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_180486, kassert_6_180541, kfloat79_180542, kfloat80_180543, kfloat81_180544) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_180486, kassert_6_180541, kfloat79_180542, kfloat80_180543, kfloat81_180544), iSatFloatsggvoidgiclinitkopk_post.
-		iJayHornAssertionsggvoidgiclinitkopk_pre :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_180486, kassert_6_180545, kfloat79_180546, kfloat80_180547, kfloat81_180548).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_180486, kassert_6_180545, kfloat79_180546, kfloat80_180547, kfloat81_180548) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_180486, kassert_6_180545, kfloat79_180546, kfloat80_180547, kfloat81_180548), iJayHornAssertionsggvoidgiclinitkopk_post.
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_180486, kassert_6_180549, kfloat80_180551, kfloat81_180552, kfloat79_180550) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_180486, kassert_6_180549, kfloat79_180550, kfloat80_180551, kfloat81_180552).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_180486, kassert_6_180554, kfloat81_180556, f0_180557 * kfloat80_180555) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_180486, kassert_6_180554, kfloat80_180555, kfloat81_180556, f0_180557).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_180486, kassert_6_180559, \if (f1_180561 &gt;= kfloat81_180560) \ then (\if (kfloat81_180560 = f1_180561) \ then (0) \ else (-1*1)) \ else (1)) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_180486, kassert_6_180559, kfloat81_180560, f1_180561).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_180486) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_180486, kassert_6_180563, kb0_180564), kb0_180564 = 0.
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_180486, kassert_6_180563) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_180486, kassert_6_180563, kb0_180564), !(kb0_180564 = 0).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_180486) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_180486).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_180486, \if (false) \ then (0) \ else (1)) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_180486, kassert_6_180565).
-		false :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_180486, kassert_6_180566), !(kassert_6_180566 = 0).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_180486) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_180486, kassert_6_180566).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_180486) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_180486).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_post(kin_0_180567) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_180567).
+		iHavoc_Classggintghavoc_intopk_Block0 :- iHavoc_Classggintghavoc_intopk_pre.
+		iHavoc_Classggintghavoc_intopk_post(resultVar0_23433) :- iHavoc_Classggintghavoc_intopk_Block0.
+		iSatFloatsggvoidgiinitkopk_Block1(kin_0_23435, kin_0_23435, kthis__23436, SatFloats_23437, lastpush_23438, r0_23439, r0_kdynamicType_5840_23440) :- iSatFloatsggvoidgiinitkopk_pre(kin_0_23435).
+		iSatFloatsggvoidgiinitkopk_Block1_1(kin_0_23434, kin_0_23441, SatFloats_23443) :- iSatFloatsggvoidgiinitkopk_Block1(kin_0_23434, kin_0_23441, kthis__23442, SatFloats_23443, lastpush_23444, r0_23445, r0_kdynamicType_5840_23446).
+		iSatFloatsggvoidgiinitkopk_Block1_2(kin_0_23434, SatFloats_23448, kthis__23447) :- iSatFloatsggvoidgiinitkopk_Block1_1(kin_0_23434, kthis__23447, SatFloats_23448).
+		iSatFloatsggvoidgiinitkopk_Block1_3(kin_0_23434, r0_23451, 77) :- iSatFloatsggvoidgiinitkopk_Block1_2(kin_0_23434, SatFloats_23450, r0_23451).
+		iSatFloatsggvoidgiinitkopk_Block1_4(kin_0_23434, 580, r0_23453, r0_kdynamicType_5840_23454) :- iSatFloatsggvoidgiinitkopk_Block1_3(kin_0_23434, r0_23453, r0_kdynamicType_5840_23454).
+		inv_SatFloats(r0_23457, r0_kdynamicType_5840_23458, lastpush_23456) :- iSatFloatsggvoidgiinitkopk_Block1_4(kin_0_23434, lastpush_23456, r0_23457, r0_kdynamicType_5840_23458).
+		iSatFloatsggvoidgiinitkopk_Block1_5(kin_0_23434, r0_23457) :- iSatFloatsggvoidgiinitkopk_Block1_4(kin_0_23434, lastpush_23456, r0_23457, r0_kdynamicType_5840_23458).
+		ijavaulanguObjectggvoidgiinitkopk_pre(r0_23459) :- iSatFloatsggvoidgiinitkopk_Block1_5(kin_0_23434, r0_23459).
+		iSatFloatsggvoidgiinitkopk_Block1_6(kin_0_23434) :- iSatFloatsggvoidgiinitkopk_Block1_5(kin_0_23434, r0_23459), ijavaulanguObjectggvoidgiinitkopk_post(r0_23459, callRes_23461).
+		iSatFloatsggvoidgiinitkopk_Block0(kin_0_23434) :- iSatFloatsggvoidgiinitkopk_Block1_6(kin_0_23434).
+		iSatFloatsggvoidgiinitkopk_post(kin_0_23462, resultVar0_23463, resultVar1_23464) :- iSatFloatsggvoidgiinitkopk_Block0(kin_0_23462).
+		ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23466, kin_0_23466, javavlangvObject_23467, lastpush_23468) :- ijavaulanguObjectggvoidgiinitkopk_pre(kin_0_23466).
+		ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23465, kin_0_23469, javavlangvObject_23470, 582) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23465, kin_0_23469, javavlangvObject_23470, lastpush_23471).
+		inv_javavlangvObject(kin_0_23472, 1, lastpush_23474) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23465, kin_0_23472, javavlangvObject_23473, lastpush_23474).
+		ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23465) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23465, kin_0_23472, javavlangvObject_23473, lastpush_23474).
+		ijavaulanguObjectggvoidgiinitkopk_post(kin_0_23475, resultVar0_23476) :- ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23475).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23483, kassert_6_23478, kb0_23479, kfloat79_23480, kfloat80_23481, kfloat81_23482, kin_0_23483, JayArray_java_lang_String_23484, f0_23485, f1_23486, lastpush_23487, undef_field0_23488, undef_field1_23489, undef_field2_23490, undef_field3_23491, undef_field4_23492, undef_size_23493) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_pre(kin_0_23483).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23477, kassert_6_23494, kfloat79_23496, kfloat80_23497, kfloat81_23498, kin_0_23499, JayArray_java_lang_String_23500, undef_field0_23504, undef_field1_23505, undef_field2_23506, undef_field3_23507, undef_field4_23508, undef_size_23509) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23477, kassert_6_23494, kb0_23495, kfloat79_23496, kfloat80_23497, kfloat81_23498, kin_0_23499, JayArray_java_lang_String_23500, f0_23501, f1_23502, lastpush_23503, undef_field0_23504, undef_field1_23505, undef_field2_23506, undef_field3_23507, undef_field4_23508, undef_size_23509), undef_size_23509 &gt;= 0.
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23477, kassert_6_23510, kfloat79_23511, kfloat80_23512, kfloat81_23513, kin_0_23514, JayArray_java_lang_String_23515, undef_field0_23516, undef_field1_23517, undef_field2_23518, undef_field3_23519, undef_field4_23520, undef_size_23521) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23477, kassert_6_23510, kfloat79_23511, kfloat80_23512, kfloat81_23513, kin_0_23514, JayArray_java_lang_String_23515, undef_field0_23516, undef_field1_23517, undef_field2_23518, undef_field3_23519, undef_field4_23520, undef_size_23521).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23477, kassert_6_23522, kfloat79_23523, kfloat80_23524, kfloat81_23525, kin_0_23526, JayArray_java_lang_String_23527, 583, undef_field0_23528, undef_field1_23529, undef_field2_23530, undef_field3_23531, undef_field4_23532, undef_size_23533) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23477, kassert_6_23522, kfloat79_23523, kfloat80_23524, kfloat81_23525, kin_0_23526, JayArray_java_lang_String_23527, undef_field0_23528, undef_field1_23529, undef_field2_23530, undef_field3_23531, undef_field4_23532, undef_size_23533).
+		inv_JayArray_java_lang_String(kin_0_23539, undef_size_23547, 78, 78, undef_field0_23542, undef_field1_23543, undef_field2_23544, undef_field3_23545, undef_field4_23546, lastpush_23541) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23477, kassert_6_23535, kfloat79_23536, kfloat80_23537, kfloat81_23538, kin_0_23539, JayArray_java_lang_String_23540, lastpush_23541, undef_field0_23542, undef_field1_23543, undef_field2_23544, undef_field3_23545, undef_field4_23546, undef_size_23547).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23477, kassert_6_23535, kfloat79_23536, kfloat80_23537, kfloat81_23538) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23477, kassert_6_23535, kfloat79_23536, kfloat80_23537, kfloat81_23538, kin_0_23539, JayArray_java_lang_String_23540, lastpush_23541, undef_field0_23542, undef_field1_23543, undef_field2_23544, undef_field3_23545, undef_field4_23546, undef_size_23547).
+		iSatFloatsggvoidgiclinitkopk_pre :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23477, kassert_6_23548, kfloat79_23549, kfloat80_23550, kfloat81_23551).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23477, kassert_6_23548, kfloat79_23549, kfloat80_23550, kfloat81_23551) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23477, kassert_6_23548, kfloat79_23549, kfloat80_23550, kfloat81_23551), iSatFloatsggvoidgiclinitkopk_post.
+		iJayHornAssertionsggvoidgiclinitkopk_pre :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23477, kassert_6_23552, kfloat79_23553, kfloat80_23554, kfloat81_23555).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23477, kassert_6_23552, kfloat79_23553, kfloat80_23554, kfloat81_23555) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23477, kassert_6_23552, kfloat79_23553, kfloat80_23554, kfloat81_23555), iJayHornAssertionsggvoidgiclinitkopk_post.
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23477, kassert_6_23556, kfloat80_23558, kfloat81_23559, kfloat79_23557) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23477, kassert_6_23556, kfloat79_23557, kfloat80_23558, kfloat81_23559).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23477, kassert_6_23561, kfloat81_23563, f0_23564 * kfloat80_23562) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23477, kassert_6_23561, kfloat80_23562, kfloat81_23563, f0_23564).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23477, kassert_6_23566, \if (f1_23568 &gt;= kfloat81_23567) \ then (\if (kfloat81_23567 = f1_23568) \ then (0) \ else (-1*1)) \ else (1)) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23477, kassert_6_23566, kfloat81_23567, f1_23568).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23477) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23477, kassert_6_23570, kb0_23571), kb0_23571 = 0.
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23477, kassert_6_23570) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23477, kassert_6_23570, kb0_23571), !(kb0_23571 = 0).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23477) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23477).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23477, \if (false) \ then (0) \ else (1)) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23477, kassert_6_23572).
+		false :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23477, kassert_6_23573), !(kassert_6_23573 = 0).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23477) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23477, kassert_6_23573).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23477) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23477).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_post(kin_0_23574) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23574).
 		iSatFloatsggvoidgiclinitkopk_Block1 :- iSatFloatsggvoidgiclinitkopk_pre.
 		iSatFloatsggvoidgiclinitkopk_Block0 :- iSatFloatsggvoidgiclinitkopk_Block1.
 		iSatFloatsggvoidgiclinitkopk_post :- iSatFloatsggvoidgiclinitkopk_Block0.
-		iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_180568, JayHornAssertions_lastExceptionThrown0_180569, JayhornGlobals_180570) :- iJayHornAssertionsggvoidgiclinitkopk_pre.
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_1(knull_180571, JayhornGlobals_180573) :- iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_180571, JayHornAssertions_lastExceptionThrown0_180572, JayhornGlobals_180573).
-		inv_JayhornGlobalsClassVar(JayhornGlobals_180575, JayHornAssertions_lastExceptionThrown0_180574) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_180574, JayhornGlobals_180575).
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_2 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_180574, JayhornGlobals_180575).
-		iJayHornAssertionsggvoidgiclinitkopk_Block0 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2.
+		iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_23575, JayHornAssertions_lastExceptionThrown0_23576, JayhornGlobals_23577, lastpush_23578) :- iJayHornAssertionsggvoidgiclinitkopk_pre.
+		iJayHornAssertionsggvoidgiclinitkopk_Block1_1(knull_23579, JayhornGlobals_23581) :- iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_23579, JayHornAssertions_lastExceptionThrown0_23580, JayhornGlobals_23581, lastpush_23582).
+		iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23583, JayhornGlobals_23584, 581) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_23583, JayhornGlobals_23584).
+		inv_JayhornGlobalsClassVar(JayhornGlobals_23587, JayHornAssertions_lastExceptionThrown0_23586, lastpush_23588) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23586, JayhornGlobals_23587, lastpush_23588).
+		iJayHornAssertionsggvoidgiclinitkopk_Block1_3 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23586, JayhornGlobals_23587, lastpush_23588).
+		iJayHornAssertionsggvoidgiclinitkopk_Block0 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_3.
 		iJayHornAssertionsggvoidgiclinitkopk_post :- iJayHornAssertionsggvoidgiclinitkopk_Block0.
 		-------------
 
@@ -499,55 +509,59 @@ Running test SatLong.java with class jayhorn.solver.princess.PrincessProverFacto
 [root] - Building type hierarchy ... 
 [root] - Generating Method Contract ... 
 [root] - Transform Program Methods into Horn Clauses ... 
-		iSatLongggvoidgiinitkopk_Block1(kin_0_180578, kin_0_180578, kthis__180579, SatLong_180580, r0_180581, r0_kdynamicType_5840_180582) :- iSatLongggvoidgiinitkopk_pre(kin_0_180578).
-		iSatLongggvoidgiinitkopk_Block1_1(kin_0_180577, kin_0_180583, SatLong_180585) :- iSatLongggvoidgiinitkopk_Block1(kin_0_180577, kin_0_180583, kthis__180584, SatLong_180585, r0_180586, r0_kdynamicType_5840_180587).
-		iSatLongggvoidgiinitkopk_Block1_2(kin_0_180577, SatLong_180589, kthis__180588) :- iSatLongggvoidgiinitkopk_Block1_1(kin_0_180577, kthis__180588, SatLong_180589).
-		iSatLongggvoidgiinitkopk_Block1_3(kin_0_180577, r0_180592, 77) :- iSatLongggvoidgiinitkopk_Block1_2(kin_0_180577, SatLong_180591, r0_180592).
-		inv_SatLong(r0_180594, r0_kdynamicType_5840_180595) :- iSatLongggvoidgiinitkopk_Block1_3(kin_0_180577, r0_180594, r0_kdynamicType_5840_180595).
-		iSatLongggvoidgiinitkopk_Block1_4(kin_0_180577, r0_180594) :- iSatLongggvoidgiinitkopk_Block1_3(kin_0_180577, r0_180594, r0_kdynamicType_5840_180595).
-		ijavaulanguObjectggvoidgiinitkopk_pre(r0_180596) :- iSatLongggvoidgiinitkopk_Block1_4(kin_0_180577, r0_180596).
-		iSatLongggvoidgiinitkopk_Block1_5(kin_0_180577) :- iSatLongggvoidgiinitkopk_Block1_4(kin_0_180577, r0_180596), ijavaulanguObjectggvoidgiinitkopk_post(r0_180596, callRes_180598).
-		iSatLongggvoidgiinitkopk_Block0(kin_0_180577) :- iSatLongggvoidgiinitkopk_Block1_5(kin_0_180577).
-		iSatLongggvoidgiinitkopk_post(kin_0_180599, resultVar0_180600, resultVar1_180601) :- iSatLongggvoidgiinitkopk_Block0(kin_0_180599).
-		ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_180603, kin_0_180603, javavlangvObject_180604) :- ijavaulanguObjectggvoidgiinitkopk_pre(kin_0_180603).
-		inv_javavlangvObject(kin_0_180605, 1) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_180602, kin_0_180605, javavlangvObject_180606).
-		ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_180602) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_180602, kin_0_180605, javavlangvObject_180606).
-		ijavaulanguObjectggvoidgiinitkopk_post(kin_0_180607, resultVar0_180608) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_180607).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_180612, kassert_8_180610, kb4_180611, kin_0_180612, kl2_180613, kl3_180614, kndet9_180615, JayArray_java_lang_String_180616, i1_180617, l0_180618, undef_field0_180619, undef_field1_180620, undef_field2_180621, undef_field3_180622, undef_field4_180623, undef_size_180624) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_pre(kin_0_180612).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_180609, kassert_8_180625, kin_0_180627, JayArray_java_lang_String_180631, undef_field0_180634, undef_field1_180635, undef_field2_180636, undef_field3_180637, undef_field4_180638, undef_size_180639) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_180609, kassert_8_180625, kb4_180626, kin_0_180627, kl2_180628, kl3_180629, kndet9_180630, JayArray_java_lang_String_180631, i1_180632, l0_180633, undef_field0_180634, undef_field1_180635, undef_field2_180636, undef_field3_180637, undef_field4_180638, undef_size_180639), undef_size_180639 &gt;= 0.
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_180609, kassert_8_180640, kin_0_180641, JayArray_java_lang_String_180642, undef_field0_180643, undef_field1_180644, undef_field2_180645, undef_field3_180646, undef_field4_180647, undef_size_180648) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_180609, kassert_8_180640, kin_0_180641, JayArray_java_lang_String_180642, undef_field0_180643, undef_field1_180644, undef_field2_180645, undef_field3_180646, undef_field4_180647, undef_size_180648).
-		inv_JayArray_java_lang_String(kin_0_180650, undef_size_180657, 78, 78, undef_field0_180652, undef_field1_180653, undef_field2_180654, undef_field3_180655, undef_field4_180656) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_180609, kassert_8_180649, kin_0_180650, JayArray_java_lang_String_180651, undef_field0_180652, undef_field1_180653, undef_field2_180654, undef_field3_180655, undef_field4_180656, undef_size_180657).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_180609, kassert_8_180649) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_180609, kassert_8_180649, kin_0_180650, JayArray_java_lang_String_180651, undef_field0_180652, undef_field1_180653, undef_field2_180654, undef_field3_180655, undef_field4_180656, undef_size_180657).
-		iSatLongggvoidgiclinitkopk_pre :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_180609, kassert_8_180658).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_180609, kassert_8_180658) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_180609, kassert_8_180658), iSatLongggvoidgiclinitkopk_post.
-		iJayHornAssertionsggvoidgiclinitkopk_pre :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_180609, kassert_8_180659).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_180609, kassert_8_180659) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_180609, kassert_8_180659), iJayHornAssertionsggvoidgiclinitkopk_post.
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_180609, kassert_8_180660, 4620693217682128896) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_180609, kassert_8_180660).
-		iHavoc_Classggintghavoc_intopk_pre :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_180609, kassert_8_180662, l0_180663).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_180609, kassert_8_180662, callRes_180665, l0_180663) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_180609, kassert_8_180662, l0_180663), iHavoc_Classggintghavoc_intopk_post(callRes_180665).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_180609, kassert_8_180666, kndet9_180667, l0_180668) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_180609, kassert_8_180666, kndet9_180667, l0_180668).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_180609, kassert_8_180670, i1_180671, l0_180672) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_180609, kassert_8_180670, i1_180671, l0_180672).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_180609, kassert_8_180674, HACK_FreeVar8, kl3_180675) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_180609, kassert_8_180674, kl3_180675, l0_180676).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_11(kin_0_180609, kassert_8_180678, \if (kl2_180679 &gt;= kl3_180680) \ then (\if (kl3_180680 = kl2_180679) \ then (0) \ else (-1*1)) \ else (1)) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_180609, kassert_8_180678, kl2_180679, kl3_180680).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_180609) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_11(kin_0_180609, kassert_8_180682, kb4_180683), kb4_180683 = 0.
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_180609, kassert_8_180682) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_11(kin_0_180609, kassert_8_180682, kb4_180683), !(kb4_180683 = 0).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_180609) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_180609).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_180609, \if (false) \ then (0) \ else (1)) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_180609, kassert_8_180684).
-		false :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_180609, kassert_8_180685), !(kassert_8_180685 = 0).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_180609) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_180609, kassert_8_180685).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_180609) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_180609).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_post(kin_0_180686) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_180686).
+		iHavoc_Classggintghavoc_intopk_Block0 :- iHavoc_Classggintghavoc_intopk_pre.
+		iHavoc_Classggintghavoc_intopk_post(resultVar0_23590) :- iHavoc_Classggintghavoc_intopk_Block0.
+		iSatLongggvoidgiinitkopk_Block1(kin_0_23592, kin_0_23592, kthis__23593, SatLong_23594, lastpush_23595, r0_23596, r0_kdynamicType_5840_23597) :- iSatLongggvoidgiinitkopk_pre(kin_0_23592).
+		iSatLongggvoidgiinitkopk_Block1_1(kin_0_23591, kin_0_23598, SatLong_23600) :- iSatLongggvoidgiinitkopk_Block1(kin_0_23591, kin_0_23598, kthis__23599, SatLong_23600, lastpush_23601, r0_23602, r0_kdynamicType_5840_23603).
+		iSatLongggvoidgiinitkopk_Block1_2(kin_0_23591, SatLong_23605, kthis__23604) :- iSatLongggvoidgiinitkopk_Block1_1(kin_0_23591, kthis__23604, SatLong_23605).
+		iSatLongggvoidgiinitkopk_Block1_3(kin_0_23591, r0_23608, 77) :- iSatLongggvoidgiinitkopk_Block1_2(kin_0_23591, SatLong_23607, r0_23608).
+		iSatLongggvoidgiinitkopk_Block1_4(kin_0_23591, 584, r0_23610, r0_kdynamicType_5840_23611) :- iSatLongggvoidgiinitkopk_Block1_3(kin_0_23591, r0_23610, r0_kdynamicType_5840_23611).
+		inv_SatLong(r0_23614, r0_kdynamicType_5840_23615, lastpush_23613) :- iSatLongggvoidgiinitkopk_Block1_4(kin_0_23591, lastpush_23613, r0_23614, r0_kdynamicType_5840_23615).
+		iSatLongggvoidgiinitkopk_Block1_5(kin_0_23591, r0_23614) :- iSatLongggvoidgiinitkopk_Block1_4(kin_0_23591, lastpush_23613, r0_23614, r0_kdynamicType_5840_23615).
+		ijavaulanguObjectggvoidgiinitkopk_pre(r0_23616) :- iSatLongggvoidgiinitkopk_Block1_5(kin_0_23591, r0_23616).
+		iSatLongggvoidgiinitkopk_Block1_6(kin_0_23591) :- iSatLongggvoidgiinitkopk_Block1_5(kin_0_23591, r0_23616), ijavaulanguObjectggvoidgiinitkopk_post(r0_23616, callRes_23618).
+		iSatLongggvoidgiinitkopk_Block0(kin_0_23591) :- iSatLongggvoidgiinitkopk_Block1_6(kin_0_23591).
+		iSatLongggvoidgiinitkopk_post(kin_0_23619, resultVar0_23620, resultVar1_23621) :- iSatLongggvoidgiinitkopk_Block0(kin_0_23619).
+		ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23623, kin_0_23623, javavlangvObject_23624, lastpush_23625) :- ijavaulanguObjectggvoidgiinitkopk_pre(kin_0_23623).
+		ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23622, kin_0_23626, javavlangvObject_23627, 586) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23622, kin_0_23626, javavlangvObject_23627, lastpush_23628).
+		inv_javavlangvObject(kin_0_23629, 1, lastpush_23631) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23622, kin_0_23629, javavlangvObject_23630, lastpush_23631).
+		ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23622) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23622, kin_0_23629, javavlangvObject_23630, lastpush_23631).
+		ijavaulanguObjectggvoidgiinitkopk_post(kin_0_23632, resultVar0_23633) :- ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23632).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23637, kassert_8_23635, kb4_23636, kin_0_23637, kl2_23638, kl3_23639, kndet9_23640, JayArray_java_lang_String_23641, i1_23642, l0_23643, lastpush_23644, undef_field0_23645, undef_field1_23646, undef_field2_23647, undef_field3_23648, undef_field4_23649, undef_size_23650) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_pre(kin_0_23637).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23634, kassert_8_23651, kin_0_23653, JayArray_java_lang_String_23657, undef_field0_23661, undef_field1_23662, undef_field2_23663, undef_field3_23664, undef_field4_23665, undef_size_23666) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23634, kassert_8_23651, kb4_23652, kin_0_23653, kl2_23654, kl3_23655, kndet9_23656, JayArray_java_lang_String_23657, i1_23658, l0_23659, lastpush_23660, undef_field0_23661, undef_field1_23662, undef_field2_23663, undef_field3_23664, undef_field4_23665, undef_size_23666), undef_size_23666 &gt;= 0.
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23634, kassert_8_23667, kin_0_23668, JayArray_java_lang_String_23669, undef_field0_23670, undef_field1_23671, undef_field2_23672, undef_field3_23673, undef_field4_23674, undef_size_23675) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23634, kassert_8_23667, kin_0_23668, JayArray_java_lang_String_23669, undef_field0_23670, undef_field1_23671, undef_field2_23672, undef_field3_23673, undef_field4_23674, undef_size_23675).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23634, kassert_8_23676, kin_0_23677, JayArray_java_lang_String_23678, 587, undef_field0_23679, undef_field1_23680, undef_field2_23681, undef_field3_23682, undef_field4_23683, undef_size_23684) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23634, kassert_8_23676, kin_0_23677, JayArray_java_lang_String_23678, undef_field0_23679, undef_field1_23680, undef_field2_23681, undef_field3_23682, undef_field4_23683, undef_size_23684).
+		inv_JayArray_java_lang_String(kin_0_23687, undef_size_23695, 78, 78, undef_field0_23690, undef_field1_23691, undef_field2_23692, undef_field3_23693, undef_field4_23694, lastpush_23689) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23634, kassert_8_23686, kin_0_23687, JayArray_java_lang_String_23688, lastpush_23689, undef_field0_23690, undef_field1_23691, undef_field2_23692, undef_field3_23693, undef_field4_23694, undef_size_23695).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23634, kassert_8_23686) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23634, kassert_8_23686, kin_0_23687, JayArray_java_lang_String_23688, lastpush_23689, undef_field0_23690, undef_field1_23691, undef_field2_23692, undef_field3_23693, undef_field4_23694, undef_size_23695).
+		iSatLongggvoidgiclinitkopk_pre :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23634, kassert_8_23696).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23634, kassert_8_23696) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23634, kassert_8_23696), iSatLongggvoidgiclinitkopk_post.
+		iJayHornAssertionsggvoidgiclinitkopk_pre :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23634, kassert_8_23697).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23634, kassert_8_23697) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23634, kassert_8_23697), iJayHornAssertionsggvoidgiclinitkopk_post.
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23634, kassert_8_23698, 4620693217682128896) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23634, kassert_8_23698).
+		iHavoc_Classggintghavoc_intopk_pre :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23634, kassert_8_23700, l0_23701).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23634, kassert_8_23700, callRes_23703, l0_23701) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23634, kassert_8_23700, l0_23701), iHavoc_Classggintghavoc_intopk_post(callRes_23703).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23634, kassert_8_23704, kndet9_23705, l0_23706) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23634, kassert_8_23704, kndet9_23705, l0_23706).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_23634, kassert_8_23708, i1_23709, l0_23710) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23634, kassert_8_23708, i1_23709, l0_23710).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_11(kin_0_23634, kassert_8_23712, HACK_FreeVar5, kl3_23713) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_23634, kassert_8_23712, kl3_23713, l0_23714).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_12(kin_0_23634, kassert_8_23716, \if (kl2_23717 &gt;= kl3_23718) \ then (\if (kl3_23718 = kl2_23717) \ then (0) \ else (-1*1)) \ else (1)) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_11(kin_0_23634, kassert_8_23716, kl2_23717, kl3_23718).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23634) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_12(kin_0_23634, kassert_8_23720, kb4_23721), kb4_23721 = 0.
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23634, kassert_8_23720) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_12(kin_0_23634, kassert_8_23720, kb4_23721), !(kb4_23721 = 0).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23634) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23634).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23634, \if (false) \ then (0) \ else (1)) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23634, kassert_8_23722).
+		false :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23634, kassert_8_23723), !(kassert_8_23723 = 0).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23634) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23634, kassert_8_23723).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23634) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23634).
+		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_post(kin_0_23724) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23724).
 		iSatLongggvoidgiclinitkopk_Block1 :- iSatLongggvoidgiclinitkopk_pre.
 		iSatLongggvoidgiclinitkopk_Block0 :- iSatLongggvoidgiclinitkopk_Block1.
 		iSatLongggvoidgiclinitkopk_post :- iSatLongggvoidgiclinitkopk_Block0.
-		iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_180687, JayHornAssertions_lastExceptionThrown0_180688, JayhornGlobals_180689) :- iJayHornAssertionsggvoidgiclinitkopk_pre.
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_1(knull_180690, JayhornGlobals_180692) :- iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_180690, JayHornAssertions_lastExceptionThrown0_180691, JayhornGlobals_180692).
-		inv_JayhornGlobalsClassVar(JayhornGlobals_180694, JayHornAssertions_lastExceptionThrown0_180693) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_180693, JayhornGlobals_180694).
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_2 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_180693, JayhornGlobals_180694).
-		iJayHornAssertionsggvoidgiclinitkopk_Block0 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2.
+		iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_23725, JayHornAssertions_lastExceptionThrown0_23726, JayhornGlobals_23727, lastpush_23728) :- iJayHornAssertionsggvoidgiclinitkopk_pre.
+		iJayHornAssertionsggvoidgiclinitkopk_Block1_1(knull_23729, JayhornGlobals_23731) :- iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_23729, JayHornAssertions_lastExceptionThrown0_23730, JayhornGlobals_23731, lastpush_23732).
+		iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23733, JayhornGlobals_23734, 585) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_23733, JayhornGlobals_23734).
+		inv_JayhornGlobalsClassVar(JayhornGlobals_23737, JayHornAssertions_lastExceptionThrown0_23736, lastpush_23738) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23736, JayhornGlobals_23737, lastpush_23738).
+		iJayHornAssertionsggvoidgiclinitkopk_Block1_3 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23736, JayhornGlobals_23737, lastpush_23738).
+		iJayHornAssertionsggvoidgiclinitkopk_Block0 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_3.
 		iJayHornAssertionsggvoidgiclinitkopk_post :- iJayHornAssertionsggvoidgiclinitkopk_Block0.
-		iHavoc_Classggintghavoc_intopk_Block0 :- iHavoc_Classggintghavoc_intopk_pre.
-		iHavoc_Classggintghavoc_intopk_post(resultVar0_180695) :- iHavoc_Classggintghavoc_intopk_Block0.
 		-------------
 
 
@@ -577,46 +591,52 @@ Running test UnsatFloats.java with class jayhorn.solver.princess.PrincessProverF
 [root] - Building type hierarchy ... 
 [root] - Generating Method Contract ... 
 [root] - Transform Program Methods into Horn Clauses ... 
-		iUnsatFloatsggvoidgiinitkopk_Block1(kin_0_180822, kin_0_180822, kthis__180823, UnsatFloats_180824, r0_180825, r0_kdynamicType_5840_180826) :- iUnsatFloatsggvoidgiinitkopk_pre(kin_0_180822).
-		iUnsatFloatsggvoidgiinitkopk_Block1_1(kin_0_180821, kin_0_180827, UnsatFloats_180829) :- iUnsatFloatsggvoidgiinitkopk_Block1(kin_0_180821, kin_0_180827, kthis__180828, UnsatFloats_180829, r0_180830, r0_kdynamicType_5840_180831).
-		iUnsatFloatsggvoidgiinitkopk_Block1_2(kin_0_180821, UnsatFloats_180833, kthis__180832) :- iUnsatFloatsggvoidgiinitkopk_Block1_1(kin_0_180821, kthis__180832, UnsatFloats_180833).
-		iUnsatFloatsggvoidgiinitkopk_Block1_3(kin_0_180821, r0_180836, 77) :- iUnsatFloatsggvoidgiinitkopk_Block1_2(kin_0_180821, UnsatFloats_180835, r0_180836).
-		inv_UnsatFloats(r0_180838, r0_kdynamicType_5840_180839) :- iUnsatFloatsggvoidgiinitkopk_Block1_3(kin_0_180821, r0_180838, r0_kdynamicType_5840_180839).
-		iUnsatFloatsggvoidgiinitkopk_Block1_4(kin_0_180821, r0_180838) :- iUnsatFloatsggvoidgiinitkopk_Block1_3(kin_0_180821, r0_180838, r0_kdynamicType_5840_180839).
-		ijavaulanguObjectggvoidgiinitkopk_pre(r0_180840) :- iUnsatFloatsggvoidgiinitkopk_Block1_4(kin_0_180821, r0_180840).
-		iUnsatFloatsggvoidgiinitkopk_Block1_5(kin_0_180821) :- iUnsatFloatsggvoidgiinitkopk_Block1_4(kin_0_180821, r0_180840), ijavaulanguObjectggvoidgiinitkopk_post(r0_180840, callRes_180842).
-		iUnsatFloatsggvoidgiinitkopk_Block0(kin_0_180821) :- iUnsatFloatsggvoidgiinitkopk_Block1_5(kin_0_180821).
-		iUnsatFloatsggvoidgiinitkopk_post(kin_0_180843, resultVar0_180844, resultVar1_180845) :- iUnsatFloatsggvoidgiinitkopk_Block0(kin_0_180843).
-		ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_180847, kin_0_180847, javavlangvObject_180848) :- ijavaulanguObjectggvoidgiinitkopk_pre(kin_0_180847).
-		inv_javavlangvObject(kin_0_180849, 1) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_180846, kin_0_180849, javavlangvObject_180850).
-		ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_180846) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_180846, kin_0_180849, javavlangvObject_180850).
-		ijavaulanguObjectggvoidgiinitkopk_post(kin_0_180851, resultVar0_180852) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_180851).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_180860, kassert_7_180854, kb0_180855, kd0_180856, kdouble81_180857, kfloat79_180858, kfloat80_180859, kin_0_180860, JayArray_java_lang_String_180861, f0_180862, f1_180863, undef_field0_180864, undef_field1_180865, undef_field2_180866, undef_field3_180867, undef_field4_180868, undef_size_180869) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_pre(kin_0_180860).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_180853, kassert_7_180870, kdouble81_180873, kfloat79_180874, kfloat80_180875, kin_0_180876, JayArray_java_lang_String_180877, undef_field0_180880, undef_field1_180881, undef_field2_180882, undef_field3_180883, undef_field4_180884, undef_size_180885) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_180853, kassert_7_180870, kb0_180871, kd0_180872, kdouble81_180873, kfloat79_180874, kfloat80_180875, kin_0_180876, JayArray_java_lang_String_180877, f0_180878, f1_180879, undef_field0_180880, undef_field1_180881, undef_field2_180882, undef_field3_180883, undef_field4_180884, undef_size_180885), undef_size_180885 &gt;= 0.
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_180853, kassert_7_180886, kdouble81_180887, kfloat79_180888, kfloat80_180889, kin_0_180890, JayArray_java_lang_String_180891, undef_field0_180892, undef_field1_180893, undef_field2_180894, undef_field3_180895, undef_field4_180896, undef_size_180897) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_180853, kassert_7_180886, kdouble81_180887, kfloat79_180888, kfloat80_180889, kin_0_180890, JayArray_java_lang_String_180891, undef_field0_180892, undef_field1_180893, undef_field2_180894, undef_field3_180895, undef_field4_180896, undef_size_180897).
-		inv_JayArray_java_lang_String(kin_0_180902, undef_size_180909, 78, 78, undef_field0_180904, undef_field1_180905, undef_field2_180906, undef_field3_180907, undef_field4_180908) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_180853, kassert_7_180898, kdouble81_180899, kfloat79_180900, kfloat80_180901, kin_0_180902, JayArray_java_lang_String_180903, undef_field0_180904, undef_field1_180905, undef_field2_180906, undef_field3_180907, undef_field4_180908, undef_size_180909).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_180853, kassert_7_180898, kdouble81_180899, kfloat79_180900, kfloat80_180901) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_180853, kassert_7_180898, kdouble81_180899, kfloat79_180900, kfloat80_180901, kin_0_180902, JayArray_java_lang_String_180903, undef_field0_180904, undef_field1_180905, undef_field2_180906, undef_field3_180907, undef_field4_180908, undef_size_180909).
-		iJayHornAssertionsggvoidgiclinitkopk_pre :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_180853, kassert_7_180910, kdouble81_180911, kfloat79_180912, kfloat80_180913).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_180853, kassert_7_180910, kdouble81_180911, kfloat79_180912, kfloat80_180913) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_180853, kassert_7_180910, kdouble81_180911, kfloat79_180912, kfloat80_180913), iJayHornAssertionsggvoidgiclinitkopk_post.
-		iUnsatFloatsggvoidgiclinitkopk_pre :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_180853, kassert_7_180914, kdouble81_180915, kfloat79_180916, kfloat80_180917).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_180853, kassert_7_180914, kdouble81_180915, kfloat79_180916, kfloat80_180917) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_180853, kassert_7_180914, kdouble81_180915, kfloat79_180916, kfloat80_180917), iUnsatFloatsggvoidgiclinitkopk_post.
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_180853, kassert_7_180918, kdouble81_180919, kfloat80_180921, kfloat79_180920) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_180853, kassert_7_180918, kdouble81_180919, kfloat79_180920, kfloat80_180921).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_180853, kassert_7_180923, kdouble81_180924, f0_180926 * kfloat80_180925) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_180853, kassert_7_180923, kdouble81_180924, kfloat80_180925, f0_180926).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_180853, kassert_7_180928, f1_180930, kdouble81_180929) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_180853, kassert_7_180928, kdouble81_180929, f1_180930).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_180853, kassert_7_180932, \if (kd0_180933 &gt;= kdouble81_180934) \ then (\if (kdouble81_180934 = kd0_180933) \ then (0) \ else (-1*1)) \ else (1)) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_180853, kassert_7_180932, kd0_180933, kdouble81_180934).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_180853) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_180853, kassert_7_180936, kb0_180937), kb0_180937 = 0.
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_180853, kassert_7_180936) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_180853, kassert_7_180936, kb0_180937), !(kb0_180937 = 0).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_180853) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_180853).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_180853, \if (false) \ then (0) \ else (1)) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_180853, kassert_7_180938).
-		false :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_180853, kassert_7_180939), !(kassert_7_180939 = 0).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_180853) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_180853, kassert_7_180939).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_180853) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_180853).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_post(kin_0_180940) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_180940).
-		iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_180941, JayHornAssertions_lastExceptionThrown0_180942, JayhornGlobals_180943) :- iJayHornAssertionsggvoidgiclinitkopk_pre.
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_1(knull_180944, JayhornGlobals_180946) :- iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_180944, JayHornAssertions_lastExceptionThrown0_180945, JayhornGlobals_180946).
-		inv_JayhornGlobalsClassVar(JayhornGlobals_180948, JayHornAssertions_lastExceptionThrown0_180947) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_180947, JayhornGlobals_180948).
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_2 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_180947, JayhornGlobals_180948).
-		iJayHornAssertionsggvoidgiclinitkopk_Block0 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2.
+		iHavoc_Classggintghavoc_intopk_Block0 :- iHavoc_Classggintghavoc_intopk_pre.
+		iHavoc_Classggintghavoc_intopk_post(resultVar0_23888) :- iHavoc_Classggintghavoc_intopk_Block0.
+		iUnsatFloatsggvoidgiinitkopk_Block1(kin_0_23890, kin_0_23890, kthis__23891, UnsatFloats_23892, lastpush_23893, r0_23894, r0_kdynamicType_5840_23895) :- iUnsatFloatsggvoidgiinitkopk_pre(kin_0_23890).
+		iUnsatFloatsggvoidgiinitkopk_Block1_1(kin_0_23889, kin_0_23896, UnsatFloats_23898) :- iUnsatFloatsggvoidgiinitkopk_Block1(kin_0_23889, kin_0_23896, kthis__23897, UnsatFloats_23898, lastpush_23899, r0_23900, r0_kdynamicType_5840_23901).
+		iUnsatFloatsggvoidgiinitkopk_Block1_2(kin_0_23889, UnsatFloats_23903, kthis__23902) :- iUnsatFloatsggvoidgiinitkopk_Block1_1(kin_0_23889, kthis__23902, UnsatFloats_23903).
+		iUnsatFloatsggvoidgiinitkopk_Block1_3(kin_0_23889, r0_23906, 77) :- iUnsatFloatsggvoidgiinitkopk_Block1_2(kin_0_23889, UnsatFloats_23905, r0_23906).
+		iUnsatFloatsggvoidgiinitkopk_Block1_4(kin_0_23889, 596, r0_23908, r0_kdynamicType_5840_23909) :- iUnsatFloatsggvoidgiinitkopk_Block1_3(kin_0_23889, r0_23908, r0_kdynamicType_5840_23909).
+		inv_UnsatFloats(r0_23912, r0_kdynamicType_5840_23913, lastpush_23911) :- iUnsatFloatsggvoidgiinitkopk_Block1_4(kin_0_23889, lastpush_23911, r0_23912, r0_kdynamicType_5840_23913).
+		iUnsatFloatsggvoidgiinitkopk_Block1_5(kin_0_23889, r0_23912) :- iUnsatFloatsggvoidgiinitkopk_Block1_4(kin_0_23889, lastpush_23911, r0_23912, r0_kdynamicType_5840_23913).
+		ijavaulanguObjectggvoidgiinitkopk_pre(r0_23914) :- iUnsatFloatsggvoidgiinitkopk_Block1_5(kin_0_23889, r0_23914).
+		iUnsatFloatsggvoidgiinitkopk_Block1_6(kin_0_23889) :- iUnsatFloatsggvoidgiinitkopk_Block1_5(kin_0_23889, r0_23914), ijavaulanguObjectggvoidgiinitkopk_post(r0_23914, callRes_23916).
+		iUnsatFloatsggvoidgiinitkopk_Block0(kin_0_23889) :- iUnsatFloatsggvoidgiinitkopk_Block1_6(kin_0_23889).
+		iUnsatFloatsggvoidgiinitkopk_post(kin_0_23917, resultVar0_23918, resultVar1_23919) :- iUnsatFloatsggvoidgiinitkopk_Block0(kin_0_23917).
+		ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23921, kin_0_23921, javavlangvObject_23922, lastpush_23923) :- ijavaulanguObjectggvoidgiinitkopk_pre(kin_0_23921).
+		ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23920, kin_0_23924, javavlangvObject_23925, 598) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23920, kin_0_23924, javavlangvObject_23925, lastpush_23926).
+		inv_javavlangvObject(kin_0_23927, 1, lastpush_23929) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23920, kin_0_23927, javavlangvObject_23928, lastpush_23929).
+		ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23920) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23920, kin_0_23927, javavlangvObject_23928, lastpush_23929).
+		ijavaulanguObjectggvoidgiinitkopk_post(kin_0_23930, resultVar0_23931) :- ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23930).
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23939, kassert_7_23933, kb0_23934, kd0_23935, kdouble81_23936, kfloat79_23937, kfloat80_23938, kin_0_23939, JayArray_java_lang_String_23940, f0_23941, f1_23942, lastpush_23943, undef_field0_23944, undef_field1_23945, undef_field2_23946, undef_field3_23947, undef_field4_23948, undef_size_23949) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_pre(kin_0_23939).
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23932, kassert_7_23950, kdouble81_23953, kfloat79_23954, kfloat80_23955, kin_0_23956, JayArray_java_lang_String_23957, undef_field0_23961, undef_field1_23962, undef_field2_23963, undef_field3_23964, undef_field4_23965, undef_size_23966) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23932, kassert_7_23950, kb0_23951, kd0_23952, kdouble81_23953, kfloat79_23954, kfloat80_23955, kin_0_23956, JayArray_java_lang_String_23957, f0_23958, f1_23959, lastpush_23960, undef_field0_23961, undef_field1_23962, undef_field2_23963, undef_field3_23964, undef_field4_23965, undef_size_23966), undef_size_23966 &gt;= 0.
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23932, kassert_7_23967, kdouble81_23968, kfloat79_23969, kfloat80_23970, kin_0_23971, JayArray_java_lang_String_23972, undef_field0_23973, undef_field1_23974, undef_field2_23975, undef_field3_23976, undef_field4_23977, undef_size_23978) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23932, kassert_7_23967, kdouble81_23968, kfloat79_23969, kfloat80_23970, kin_0_23971, JayArray_java_lang_String_23972, undef_field0_23973, undef_field1_23974, undef_field2_23975, undef_field3_23976, undef_field4_23977, undef_size_23978).
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23932, kassert_7_23979, kdouble81_23980, kfloat79_23981, kfloat80_23982, kin_0_23983, JayArray_java_lang_String_23984, 599, undef_field0_23985, undef_field1_23986, undef_field2_23987, undef_field3_23988, undef_field4_23989, undef_size_23990) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23932, kassert_7_23979, kdouble81_23980, kfloat79_23981, kfloat80_23982, kin_0_23983, JayArray_java_lang_String_23984, undef_field0_23985, undef_field1_23986, undef_field2_23987, undef_field3_23988, undef_field4_23989, undef_size_23990).
+		inv_JayArray_java_lang_String(kin_0_23996, undef_size_24004, 78, 78, undef_field0_23999, undef_field1_24000, undef_field2_24001, undef_field3_24002, undef_field4_24003, lastpush_23998) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23932, kassert_7_23992, kdouble81_23993, kfloat79_23994, kfloat80_23995, kin_0_23996, JayArray_java_lang_String_23997, lastpush_23998, undef_field0_23999, undef_field1_24000, undef_field2_24001, undef_field3_24002, undef_field4_24003, undef_size_24004).
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23932, kassert_7_23992, kdouble81_23993, kfloat79_23994, kfloat80_23995) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23932, kassert_7_23992, kdouble81_23993, kfloat79_23994, kfloat80_23995, kin_0_23996, JayArray_java_lang_String_23997, lastpush_23998, undef_field0_23999, undef_field1_24000, undef_field2_24001, undef_field3_24002, undef_field4_24003, undef_size_24004).
+		iJayHornAssertionsggvoidgiclinitkopk_pre :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23932, kassert_7_24005, kdouble81_24006, kfloat79_24007, kfloat80_24008).
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23932, kassert_7_24005, kdouble81_24006, kfloat79_24007, kfloat80_24008) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23932, kassert_7_24005, kdouble81_24006, kfloat79_24007, kfloat80_24008), iJayHornAssertionsggvoidgiclinitkopk_post.
+		iUnsatFloatsggvoidgiclinitkopk_pre :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23932, kassert_7_24009, kdouble81_24010, kfloat79_24011, kfloat80_24012).
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23932, kassert_7_24009, kdouble81_24010, kfloat79_24011, kfloat80_24012) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23932, kassert_7_24009, kdouble81_24010, kfloat79_24011, kfloat80_24012), iUnsatFloatsggvoidgiclinitkopk_post.
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23932, kassert_7_24013, kdouble81_24014, kfloat80_24016, kfloat79_24015) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23932, kassert_7_24013, kdouble81_24014, kfloat79_24015, kfloat80_24016).
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23932, kassert_7_24018, kdouble81_24019, f0_24021 * kfloat80_24020) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23932, kassert_7_24018, kdouble81_24019, kfloat80_24020, f0_24021).
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23932, kassert_7_24023, f1_24025, kdouble81_24024) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23932, kassert_7_24023, kdouble81_24024, f1_24025).
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_23932, kassert_7_24027, \if (kd0_24028 &gt;= kdouble81_24029) \ then (\if (kdouble81_24029 = kd0_24028) \ then (0) \ else (-1*1)) \ else (1)) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23932, kassert_7_24027, kd0_24028, kdouble81_24029).
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23932) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_23932, kassert_7_24031, kb0_24032), kb0_24032 = 0.
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23932, kassert_7_24031) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_23932, kassert_7_24031, kb0_24032), !(kb0_24032 = 0).
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23932) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23932).
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23932, \if (false) \ then (0) \ else (1)) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23932, kassert_7_24033).
+		false :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23932, kassert_7_24034), !(kassert_7_24034 = 0).
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23932) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23932, kassert_7_24034).
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23932) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23932).
+		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_post(kin_0_24035) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_24035).
+		iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_24036, JayHornAssertions_lastExceptionThrown0_24037, JayhornGlobals_24038, lastpush_24039) :- iJayHornAssertionsggvoidgiclinitkopk_pre.
+		iJayHornAssertionsggvoidgiclinitkopk_Block1_1(knull_24040, JayhornGlobals_24042) :- iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_24040, JayHornAssertions_lastExceptionThrown0_24041, JayhornGlobals_24042, lastpush_24043).
+		iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_24044, JayhornGlobals_24045, 597) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_24044, JayhornGlobals_24045).
+		inv_JayhornGlobalsClassVar(JayhornGlobals_24048, JayHornAssertions_lastExceptionThrown0_24047, lastpush_24049) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_24047, JayhornGlobals_24048, lastpush_24049).
+		iJayHornAssertionsggvoidgiclinitkopk_Block1_3 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_24047, JayhornGlobals_24048, lastpush_24049).
+		iJayHornAssertionsggvoidgiclinitkopk_Block0 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_3.
 		iJayHornAssertionsggvoidgiclinitkopk_post :- iJayHornAssertionsggvoidgiclinitkopk_Block0.
 		iUnsatFloatsggvoidgiclinitkopk_Block1 :- iUnsatFloatsggvoidgiclinitkopk_pre.
 		iUnsatFloatsggvoidgiclinitkopk_Block0 :- iUnsatFloatsggvoidgiclinitkopk_Block1.
@@ -631,8 +651,8 @@ Running test UnsatFloats.java with class jayhorn.solver.princess.PrincessProverF
 <span class="code">
 <pre>Not guarding cast from int to long. This should be done by the compiler.
 Not guarding cast from long to int. This should be done by the compiler.
-Not guarding cast from int to long. This should be done by the compiler.
 Not guarding cast from long to int. This should be done by the compiler.
+Not guarding cast from int to long. This should be done by the compiler.
 Not guarding cast from float to double. This should be done by the compiler.
 </pre>
 </span>
@@ -640,7 +660,7 @@ Not guarding cast from float to double. This should be done by the compiler.
 </div>
 <div id="footer">
 <p>Generated by 
-<a href="http://www.gradle.org">Gradle 2.2.1</a> at Sep 7, 2016 6:34:37 PM</p>
+<a href="http://www.gradle.org">Gradle 2.2.1</a> at Sep 7, 2016 6:38:48 PM</p>
 </div>
 </div>
 </body>
