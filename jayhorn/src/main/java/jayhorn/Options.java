@@ -95,6 +95,11 @@ public class Options {
 
 	@Option(name = "-specs", usage = "Use built-in specs", required = false)
 	public boolean useSpecs = false;
+	
+	
+	@Option(name = "-stats", usage = "Generate Stats", required = false)
+	public boolean stats = false;
+
 
 	
 	// /**
