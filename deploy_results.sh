@@ -9,7 +9,7 @@ if [ -n "$GITHUB_API_KEY" ]; then
     cp -r ./../jayhorn/build/reports/tests ./$TRAVIS_BRANCH/
     echo "$PWD"
     git add ./$TRAVIS_BRANCH
-    git -c user.name='martinschaef' -c user.email='martinschaef@gmail.com' commit -m "AUTO UPDATE from Travis." --no-verify
+    git -c user.name='martinschaef' -c user.email='martinschaef@gmail.com' commit -am "AUTO UPDATE from Travis." --no-verify
     git push -f -q https://martinschaef:$GITHUB_API_KEY@github.com/jayhorn/jayhorn gh-pages 
     cd .. 
     echo "DONE updating results"   

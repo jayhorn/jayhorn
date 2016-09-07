@@ -34,6 +34,7 @@ import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
 import soot.jimple.StaticFieldRef;
 import soot.jimple.toolkits.scalar.UnreachableCodeEliminator;
+import soottocfg.Options;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.Variable;
@@ -71,12 +72,6 @@ public class SootToCfg {
 
 	private final List<String> resolvedClassNames;
 	private boolean debug = false;
-
-	boolean useSpec = false;
-	
-	public void setUseSpec(boolean use) {
-		this.useSpec = use;
-	}
 	
 	private final boolean resolveVirtualCalls;
 	private final boolean createAssertionsForUncaughtExceptions;
@@ -138,7 +133,7 @@ public class SootToCfg {
 	 */
 	public void run(String input, String classPath) {
 		// run soot to load all classes.
-		SootRunner runner = new SootRunner(this.useSpec);
+		SootRunner runner = new SootRunner();
 		runner.run(input, classPath);
 		performBehaviorPreservingTransformations();
 		performAbstractionTransformations();
@@ -183,7 +178,7 @@ public class SootToCfg {
 	 * @param classPath
 	 */
 	public void runPreservingTransformationOnly(String input, String classPath) {
-		SootRunner runner = new SootRunner(this.useSpec, this.resolvedClassNames);
+		SootRunner runner = new SootRunner(this.resolvedClassNames);
 		runner.run(input, classPath);
 		performBehaviorPreservingTransformations();
 		SootTranslationHelpers.v().reset();
@@ -291,7 +286,7 @@ public class SootToCfg {
 		ArrayTransformer atrans = new ArrayTransformer();
 		atrans.applyTransformation();
 
-		if (useSpec) {
+		if (Options.v().useBuiltInSpecs()) {
 			SpecClassTransformer spctrans = new SpecClassTransformer();
 			spctrans.applyTransformation();
 		}

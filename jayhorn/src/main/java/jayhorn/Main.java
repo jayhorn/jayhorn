@@ -40,7 +40,7 @@ public class Main {
   			outName = in.substring(in.lastIndexOf('/') + 1, in.length()).replace(".java", "").replace(".class", "");
   		}
   		SootToCfg soot2cfg = new SootToCfg(true, false, MemModel.PullPush, outDir, outName);
-  		soot2cfg.setUseSpec(Options.v().useSpecs);
+  		soottocfg.Options.v().setBuiltInSpecs(Options.v().useSpecs);
   		soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());	
   	
   		Program program = soot2cfg.getProgram();

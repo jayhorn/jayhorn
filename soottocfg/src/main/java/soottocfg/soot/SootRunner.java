@@ -52,6 +52,7 @@ import soot.Type;
 import soot.VoidType;
 import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
+import soottocfg.Options;
 
 /**
  * The Soot Runner
@@ -64,14 +65,11 @@ public class SootRunner {
 	private final soot.options.Options sootOpt;
 	// private final List<String> resolvedClassNames;
 
-	private final boolean useSpecs;
-
-	public SootRunner(boolean useSpecs) {
-		this(useSpecs, new ArrayList<String>());
+	public SootRunner() {
+		this(new ArrayList<String>());
 	}
 
-	public SootRunner(boolean useSpecs, List<String> resolvedClassNames) {
-		this.useSpecs = useSpecs;
+	public SootRunner(List<String> resolvedClassNames) {
 		this.sootOpt = soot.options.Options.v();
 	}
 
@@ -176,7 +174,7 @@ public class SootRunner {
 			List<String> processDirs = new LinkedList<String>();
 			processDirs.add(path);
 
-			if (useSpecs) {
+			if (Options.v().useBuiltInSpecs()) {
 				File specDir = new File("spec_stuff/");
 				writeSpecPackageToDisc(specDir);
 				processDirs.add(specDir.getAbsolutePath());
