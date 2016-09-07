@@ -29,7 +29,7 @@
 </td>
 <td>
 <div class="infoBox" id="failures">
-<div class="counter">4</div>
+<div class="counter">6</div>
 <p>failures</p>
 </div>
 </td>
@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">6.037s</div>
+<div class="counter">5.874s</div>
 <p>duration</p>
 </div>
 </td>
@@ -51,7 +51,7 @@
 </td>
 <td>
 <div class="infoBox failures" id="successRate">
-<div class="percent">33%</div>
+<div class="percent">0%</div>
 <p>successful</p>
 </div>
 </td>
@@ -76,6 +76,72 @@
 <div id="tab0" class="tab">
 <h2>Failed tests</h2>
 <div class="test">
+<a name="testWithPrincess[0: check (UnsatLong.java)]"></a>
+<h3 class="failures">testWithPrincess[0: check (UnsatLong.java)]</h3>
+<span class="code">
+<pre>com.google.common.base.VerifyException: Cannot find a push that affects this pull. This would introduce an assume(false): JayHornAssertions_lastExceptionThrown3 := pull(JayhornGlobalsClassVar, JayhornGlobals)
+	at com.google.common.base.Verify.verify(Verify.java:123)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getFPOsInfluencing(InterProceduralPullPushOrdering.java:178)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getPushsInfluencing(InterProceduralPullPushOrdering.java:133)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addToPushesAndPulls(PushIdentifierAdder.java:83)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addIDs(PushIdentifierAdder.java:41)
+	at soottocfg.soot.SootToCfg.run(SootToCfg.java:136)
+	at jayhorn.test.integration_tests.FailingNumericTests.verifyAssertions(FailingNumericTests.java:81)
+	at jayhorn.test.integration_tests.FailingNumericTests.testWithPrincess(FailingNumericTests.java:67)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.junit.runners.Suite.runChild(Suite.java:128)
+	at org.junit.runners.Suite.runChild(Suite.java:27)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.runTestClass(JUnitTestClassExecuter.java:86)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.execute(JUnitTestClassExecuter.java:49)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:69)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:48)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
+	at org.gradle.messaging.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:93)
+	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:105)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
+	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+</pre>
+</span>
+</div>
+<div class="test">
 <a name="testWithPrincess[1: check (SatFloats.java)]"></a>
 <h3 class="failures">testWithPrincess[1: check (SatFloats.java)]</h3>
 <span class="code">
@@ -85,9 +151,9 @@
 	at jayhorn.test.integration_tests.FailingNumericTests.verifyAssertions(FailingNumericTests.java:87)
 	at jayhorn.test.integration_tests.FailingNumericTests.testWithPrincess(FailingNumericTests.java:67)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:606)
+	at java.lang.reflect.Method.invoke(Method.java:498)
 	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
 	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
 	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
@@ -114,9 +180,9 @@
 	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:69)
 	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:48)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:606)
+	at java.lang.reflect.Method.invoke(Method.java:498)
 	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
 	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
 	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
@@ -124,15 +190,15 @@
 	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
 	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:105)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:606)
+	at java.lang.reflect.Method.invoke(Method.java:498)
 	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
 	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
 	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
 	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
 	at java.lang.Thread.run(Thread.java:745)
 </pre>
 </span>
@@ -141,15 +207,19 @@
 <a name="testWithPrincess[2: check (SatLong.java)]"></a>
 <h3 class="failures">testWithPrincess[2: check (SatLong.java)]</h3>
 <span class="code">
-<pre>java.lang.AssertionError: For SatLong.java: expected true but got false
-	at org.junit.Assert.fail(Assert.java:88)
-	at org.junit.Assert.assertTrue(Assert.java:41)
-	at jayhorn.test.integration_tests.FailingNumericTests.verifyAssertions(FailingNumericTests.java:87)
+<pre>com.google.common.base.VerifyException: Cannot find a push that affects this pull. This would introduce an assume(false): JayHornAssertions_lastExceptionThrown3 := pull(JayhornGlobalsClassVar, JayhornGlobals)
+	at com.google.common.base.Verify.verify(Verify.java:123)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getFPOsInfluencing(InterProceduralPullPushOrdering.java:178)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getPushsInfluencing(InterProceduralPullPushOrdering.java:133)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addToPushesAndPulls(PushIdentifierAdder.java:83)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addIDs(PushIdentifierAdder.java:41)
+	at soottocfg.soot.SootToCfg.run(SootToCfg.java:136)
+	at jayhorn.test.integration_tests.FailingNumericTests.verifyAssertions(FailingNumericTests.java:81)
 	at jayhorn.test.integration_tests.FailingNumericTests.testWithPrincess(FailingNumericTests.java:67)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:606)
+	at java.lang.reflect.Method.invoke(Method.java:498)
 	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
 	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
 	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
@@ -176,9 +246,9 @@
 	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:69)
 	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:48)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:606)
+	at java.lang.reflect.Method.invoke(Method.java:498)
 	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
 	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
 	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
@@ -186,15 +256,15 @@
 	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
 	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:105)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:606)
+	at java.lang.reflect.Method.invoke(Method.java:498)
 	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
 	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
 	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
 	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
 	at java.lang.Thread.run(Thread.java:745)
 </pre>
 </span>
@@ -213,9 +283,9 @@
 	at jayhorn.test.integration_tests.FailingNumericTests.verifyAssertions(FailingNumericTests.java:85)
 	at jayhorn.test.integration_tests.FailingNumericTests.testWithPrincess(FailingNumericTests.java:67)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:606)
+	at java.lang.reflect.Method.invoke(Method.java:498)
 	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
 	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
 	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
@@ -242,9 +312,9 @@
 	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:69)
 	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:48)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:606)
+	at java.lang.reflect.Method.invoke(Method.java:498)
 	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
 	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
 	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
@@ -252,15 +322,15 @@
 	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
 	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:105)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:606)
+	at java.lang.reflect.Method.invoke(Method.java:498)
 	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
 	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
 	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
 	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
 	at java.lang.Thread.run(Thread.java:745)
 </pre>
 </span>
@@ -279,9 +349,9 @@
 	at jayhorn.test.integration_tests.FailingNumericTests.verifyAssertions(FailingNumericTests.java:85)
 	at jayhorn.test.integration_tests.FailingNumericTests.testWithPrincess(FailingNumericTests.java:67)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:606)
+	at java.lang.reflect.Method.invoke(Method.java:498)
 	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
 	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
 	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
@@ -308,9 +378,9 @@
 	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:69)
 	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:48)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:606)
+	at java.lang.reflect.Method.invoke(Method.java:498)
 	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
 	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
 	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
@@ -318,15 +388,81 @@
 	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
 	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:105)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:606)
+	at java.lang.reflect.Method.invoke(Method.java:498)
 	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
 	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
 	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
 	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+</pre>
+</span>
+</div>
+<div class="test">
+<a name="testWithPrincess[5: check (UnsatFloats.java)]"></a>
+<h3 class="failures">testWithPrincess[5: check (UnsatFloats.java)]</h3>
+<span class="code">
+<pre>com.google.common.base.VerifyException: Cannot find a push that affects this pull. This would introduce an assume(false): JayHornAssertions_lastExceptionThrown3 := pull(JayhornGlobalsClassVar, JayhornGlobals)
+	at com.google.common.base.Verify.verify(Verify.java:123)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getFPOsInfluencing(InterProceduralPullPushOrdering.java:178)
+	at soottocfg.cfg.util.InterProceduralPullPushOrdering.getPushsInfluencing(InterProceduralPullPushOrdering.java:133)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addToPushesAndPulls(PushIdentifierAdder.java:83)
+	at soottocfg.soot.memory_model.PushIdentifierAdder.addIDs(PushIdentifierAdder.java:41)
+	at soottocfg.soot.SootToCfg.run(SootToCfg.java:136)
+	at jayhorn.test.integration_tests.FailingNumericTests.verifyAssertions(FailingNumericTests.java:81)
+	at jayhorn.test.integration_tests.FailingNumericTests.testWithPrincess(FailingNumericTests.java:67)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.junit.runners.Suite.runChild(Suite.java:128)
+	at org.junit.runners.Suite.runChild(Suite.java:27)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.runTestClass(JUnitTestClassExecuter.java:86)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecuter.execute(JUnitTestClassExecuter.java:49)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor.processTestClass(JUnitTestClassProcessor.java:69)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:48)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:32)
+	at org.gradle.messaging.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:93)
+	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:105)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:35)
+	at org.gradle.messaging.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.messaging.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:360)
+	at org.gradle.internal.concurrent.DefaultExecutorFactory$StoppableExecutorImpl$1.run(DefaultExecutorFactory.java:64)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
 	at java.lang.Thread.run(Thread.java:745)
 </pre>
 </span>
@@ -343,34 +479,34 @@
 </tr>
 </thead>
 <tr>
-<td class="success">testWithPrincess[0: check (UnsatLong.java)]</td>
-<td>1.287s</td>
-<td class="success">passed</td>
+<td class="failures">testWithPrincess[0: check (UnsatLong.java)]</td>
+<td>1.117s</td>
+<td class="failures">failed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[1: check (SatFloats.java)]</td>
-<td>1.112s</td>
+<td>1.039s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[2: check (SatLong.java)]</td>
-<td>0.972s</td>
+<td>0.902s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[3: check (UnsatBitOps.java)]</td>
-<td>0.865s</td>
+<td>0.924s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
 <td class="failures">testWithPrincess[4: check (SatBitOps.java)]</td>
-<td>0.833s</td>
+<td>1.021s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
-<td class="success">testWithPrincess[5: check (UnsatFloats.java)]</td>
-<td>0.968s</td>
-<td class="success">passed</td>
+<td class="failures">testWithPrincess[5: check (UnsatFloats.java)]</td>
+<td>0.871s</td>
+<td class="failures">failed</td>
 </tr>
 </table>
 </div>
@@ -379,66 +515,6 @@
 <span class="code">
 <pre>
 Running test UnsatLong.java with class jayhorn.solver.princess.PrincessProverFactory
-
-[root] - Hornify  ... 
-[root] - Check if program has one entry ... 
-[root] - Interprocedural Push/Pull Ordering
-[root] - Building type hierarchy ... 
-[root] - Generating Method Contract ... 
-[root] - Transform Program Methods into Horn Clauses ... 
-		iHavoc_Classggintghavoc_intopk_Block0 :- iHavoc_Classggintghavoc_intopk_pre.
-		iHavoc_Classggintghavoc_intopk_post(resultVar0_23193) :- iHavoc_Classggintghavoc_intopk_Block0.
-		iUnsatLongggvoidgiinitkopk_Block1(kin_0_23195, kin_0_23195, kthis__23196, UnsatLong_23197, lastpush_23198, r0_23199, r0_kdynamicType_5350_23200) :- iUnsatLongggvoidgiinitkopk_pre(kin_0_23195).
-		iUnsatLongggvoidgiinitkopk_Block1_1(kin_0_23194, kin_0_23201, UnsatLong_23203) :- iUnsatLongggvoidgiinitkopk_Block1(kin_0_23194, kin_0_23201, kthis__23202, UnsatLong_23203, lastpush_23204, r0_23205, r0_kdynamicType_5350_23206).
-		iUnsatLongggvoidgiinitkopk_Block1_2(kin_0_23194, UnsatLong_23208, kthis__23207) :- iUnsatLongggvoidgiinitkopk_Block1_1(kin_0_23194, kthis__23207, UnsatLong_23208).
-		iUnsatLongggvoidgiinitkopk_Block1_3(kin_0_23194, r0_23211, 67) :- iUnsatLongggvoidgiinitkopk_Block1_2(kin_0_23194, UnsatLong_23210, r0_23211).
-		iUnsatLongggvoidgiinitkopk_Block1_4(kin_0_23194, 576, r0_23213, r0_kdynamicType_5350_23214) :- iUnsatLongggvoidgiinitkopk_Block1_3(kin_0_23194, r0_23213, r0_kdynamicType_5350_23214).
-		inv_UnsatLong(r0_23217, r0_kdynamicType_5350_23218, lastpush_23216) :- iUnsatLongggvoidgiinitkopk_Block1_4(kin_0_23194, lastpush_23216, r0_23217, r0_kdynamicType_5350_23218).
-		iUnsatLongggvoidgiinitkopk_Block1_5(kin_0_23194, r0_23217) :- iUnsatLongggvoidgiinitkopk_Block1_4(kin_0_23194, lastpush_23216, r0_23217, r0_kdynamicType_5350_23218).
-		ijavaulanguObjectggvoidgiinitkopk_pre(r0_23219) :- iUnsatLongggvoidgiinitkopk_Block1_5(kin_0_23194, r0_23219).
-		iUnsatLongggvoidgiinitkopk_Block1_6(kin_0_23194) :- iUnsatLongggvoidgiinitkopk_Block1_5(kin_0_23194, r0_23219), ijavaulanguObjectggvoidgiinitkopk_post(r0_23219, callRes_23221).
-		iUnsatLongggvoidgiinitkopk_Block0(kin_0_23194) :- iUnsatLongggvoidgiinitkopk_Block1_6(kin_0_23194).
-		iUnsatLongggvoidgiinitkopk_post(kin_0_23222, resultVar0_23223, resultVar1_23224) :- iUnsatLongggvoidgiinitkopk_Block0(kin_0_23222).
-		ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23226, kin_0_23226, javavlangvObject_23227, lastpush_23228) :- ijavaulanguObjectggvoidgiinitkopk_pre(kin_0_23226).
-		ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23225, kin_0_23229, javavlangvObject_23230, 578) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23225, kin_0_23229, javavlangvObject_23230, lastpush_23231).
-		inv_javavlangvObject(kin_0_23232, 1, lastpush_23234) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23225, kin_0_23232, javavlangvObject_23233, lastpush_23234).
-		ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23225) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23225, kin_0_23232, javavlangvObject_23233, lastpush_23234).
-		ijavaulanguObjectggvoidgiinitkopk_post(kin_0_23235, resultVar0_23236) :- ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23235).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23240, kassert_7_23238, kb3_23239, kin_0_23240, kl2_23241, kndet8_23242, JayArray_java_lang_String_23243, i1_23244, l0_23245, lastpush_23246, undef_field0_23247, undef_field1_23248, undef_field2_23249, undef_field3_23250, undef_field4_23251, undef_size_23252) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_pre(kin_0_23240).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23237, kassert_7_23253, kin_0_23255, JayArray_java_lang_String_23258, undef_field0_23262, undef_field1_23263, undef_field2_23264, undef_field3_23265, undef_field4_23266, undef_size_23267) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23237, kassert_7_23253, kb3_23254, kin_0_23255, kl2_23256, kndet8_23257, JayArray_java_lang_String_23258, i1_23259, l0_23260, lastpush_23261, undef_field0_23262, undef_field1_23263, undef_field2_23264, undef_field3_23265, undef_field4_23266, undef_size_23267), undef_size_23267 &gt;= 0.
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23237, kassert_7_23268, kin_0_23269, JayArray_java_lang_String_23270, undef_field0_23271, undef_field1_23272, undef_field2_23273, undef_field3_23274, undef_field4_23275, undef_size_23276) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23237, kassert_7_23268, kin_0_23269, JayArray_java_lang_String_23270, undef_field0_23271, undef_field1_23272, undef_field2_23273, undef_field3_23274, undef_field4_23275, undef_size_23276).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23237, kassert_7_23277, kin_0_23278, JayArray_java_lang_String_23279, 579, undef_field0_23280, undef_field1_23281, undef_field2_23282, undef_field3_23283, undef_field4_23284, undef_size_23285) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23237, kassert_7_23277, kin_0_23278, JayArray_java_lang_String_23279, undef_field0_23280, undef_field1_23281, undef_field2_23282, undef_field3_23283, undef_field4_23284, undef_size_23285).
-		inv_JayArray_java_lang_String(kin_0_23288, undef_size_23296, 68, 68, undef_field0_23291, undef_field1_23292, undef_field2_23293, undef_field3_23294, undef_field4_23295, lastpush_23290) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23237, kassert_7_23287, kin_0_23288, JayArray_java_lang_String_23289, lastpush_23290, undef_field0_23291, undef_field1_23292, undef_field2_23293, undef_field3_23294, undef_field4_23295, undef_size_23296).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23237, kassert_7_23287) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23237, kassert_7_23287, kin_0_23288, JayArray_java_lang_String_23289, lastpush_23290, undef_field0_23291, undef_field1_23292, undef_field2_23293, undef_field3_23294, undef_field4_23295, undef_size_23296).
-		iUnsatLongggvoidgiclinitkopk_pre :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23237, kassert_7_23297).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23237, kassert_7_23297) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23237, kassert_7_23297), iUnsatLongggvoidgiclinitkopk_post.
-		iJayHornAssertionsggvoidgiclinitkopk_pre :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23237, kassert_7_23298).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23237, kassert_7_23298) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23237, kassert_7_23298), iJayHornAssertionsggvoidgiclinitkopk_post.
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23237, kassert_7_23299, 4620693217682128896) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23237, kassert_7_23299).
-		iHavoc_Classggintghavoc_intopk_pre :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23237, kassert_7_23301, l0_23302).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23237, kassert_7_23301, callRes_23304, l0_23302) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23237, kassert_7_23301, l0_23302), iHavoc_Classggintghavoc_intopk_post(callRes_23304).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23237, kassert_7_23305, kndet8_23306, l0_23307) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23237, kassert_7_23305, kndet8_23306, l0_23307).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_23237, kassert_7_23309, i1_23310, l0_23311) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23237, kassert_7_23309, i1_23310, l0_23311).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_11(kin_0_23237, kassert_7_23313, \if (l0_23315 &gt;= kl2_23314) \ then (\if (kl2_23314 = l0_23315) \ then (0) \ else (-1*1)) \ else (1)) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_23237, kassert_7_23313, kl2_23314, l0_23315).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23237) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_11(kin_0_23237, kassert_7_23317, kb3_23318), kb3_23318 = 0.
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23237, kassert_7_23317) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_11(kin_0_23237, kassert_7_23317, kb3_23318), !(kb3_23318 = 0).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23237) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23237).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23237, \if (false) \ then (0) \ else (1)) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23237, kassert_7_23319).
-		false :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23237, kassert_7_23320), !(kassert_7_23320 = 0).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23237) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23237, kassert_7_23320).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23237) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23237).
-		iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_post(kin_0_23321) :- iUnsatLongggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23321).
-		iUnsatLongggvoidgiclinitkopk_Block1 :- iUnsatLongggvoidgiclinitkopk_pre.
-		iUnsatLongggvoidgiclinitkopk_Block0 :- iUnsatLongggvoidgiclinitkopk_Block1.
-		iUnsatLongggvoidgiclinitkopk_post :- iUnsatLongggvoidgiclinitkopk_Block0.
-		iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_23322, JayHornAssertions_lastExceptionThrown0_23323, JayhornGlobals_23324, lastpush_23325) :- iJayHornAssertionsggvoidgiclinitkopk_pre.
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_1(knull_23326, JayhornGlobals_23328) :- iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_23326, JayHornAssertions_lastExceptionThrown0_23327, JayhornGlobals_23328, lastpush_23329).
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23330, JayhornGlobals_23331, 577) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_23330, JayhornGlobals_23331).
-		inv_JayhornGlobalsClassVar(JayhornGlobals_23334, JayHornAssertions_lastExceptionThrown0_23333, lastpush_23335) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23333, JayhornGlobals_23334, lastpush_23335).
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_3 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23333, JayhornGlobals_23334, lastpush_23335).
-		iJayHornAssertionsggvoidgiclinitkopk_Block0 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_3.
-		iJayHornAssertionsggvoidgiclinitkopk_post :- iJayHornAssertionsggvoidgiclinitkopk_Block0.
-		-------------
 
 
 Running test SatFloats.java with class jayhorn.solver.princess.PrincessProverFactory
@@ -450,49 +526,49 @@ Running test SatFloats.java with class jayhorn.solver.princess.PrincessProverFac
 [root] - Generating Method Contract ... 
 [root] - Transform Program Methods into Horn Clauses ... 
 		iHavoc_Classggintghavoc_intopk_Block0 :- iHavoc_Classggintghavoc_intopk_pre.
-		iHavoc_Classggintghavoc_intopk_post(resultVar0_23337) :- iHavoc_Classggintghavoc_intopk_Block0.
-		iSatFloatsggvoidgiinitkopk_Block1(kin_0_23339, kin_0_23339, kthis__23340, SatFloats_23341, lastpush_23342, r0_23343, r0_kdynamicType_5350_23344) :- iSatFloatsggvoidgiinitkopk_pre(kin_0_23339).
-		iSatFloatsggvoidgiinitkopk_Block1_1(kin_0_23338, kin_0_23345, SatFloats_23347) :- iSatFloatsggvoidgiinitkopk_Block1(kin_0_23338, kin_0_23345, kthis__23346, SatFloats_23347, lastpush_23348, r0_23349, r0_kdynamicType_5350_23350).
-		iSatFloatsggvoidgiinitkopk_Block1_2(kin_0_23338, SatFloats_23352, kthis__23351) :- iSatFloatsggvoidgiinitkopk_Block1_1(kin_0_23338, kthis__23351, SatFloats_23352).
-		iSatFloatsggvoidgiinitkopk_Block1_3(kin_0_23338, r0_23355, 67) :- iSatFloatsggvoidgiinitkopk_Block1_2(kin_0_23338, SatFloats_23354, r0_23355).
-		iSatFloatsggvoidgiinitkopk_Block1_4(kin_0_23338, 580, r0_23357, r0_kdynamicType_5350_23358) :- iSatFloatsggvoidgiinitkopk_Block1_3(kin_0_23338, r0_23357, r0_kdynamicType_5350_23358).
-		inv_SatFloats(r0_23361, r0_kdynamicType_5350_23362, lastpush_23360) :- iSatFloatsggvoidgiinitkopk_Block1_4(kin_0_23338, lastpush_23360, r0_23361, r0_kdynamicType_5350_23362).
-		iSatFloatsggvoidgiinitkopk_Block1_5(kin_0_23338, r0_23361) :- iSatFloatsggvoidgiinitkopk_Block1_4(kin_0_23338, lastpush_23360, r0_23361, r0_kdynamicType_5350_23362).
-		ijavaulanguObjectggvoidgiinitkopk_pre(r0_23363) :- iSatFloatsggvoidgiinitkopk_Block1_5(kin_0_23338, r0_23363).
-		iSatFloatsggvoidgiinitkopk_Block1_6(kin_0_23338) :- iSatFloatsggvoidgiinitkopk_Block1_5(kin_0_23338, r0_23363), ijavaulanguObjectggvoidgiinitkopk_post(r0_23363, callRes_23365).
-		iSatFloatsggvoidgiinitkopk_Block0(kin_0_23338) :- iSatFloatsggvoidgiinitkopk_Block1_6(kin_0_23338).
-		iSatFloatsggvoidgiinitkopk_post(kin_0_23366, resultVar0_23367, resultVar1_23368) :- iSatFloatsggvoidgiinitkopk_Block0(kin_0_23366).
-		ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23370, kin_0_23370, javavlangvObject_23371, lastpush_23372) :- ijavaulanguObjectggvoidgiinitkopk_pre(kin_0_23370).
-		ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23369, kin_0_23373, javavlangvObject_23374, 582) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23369, kin_0_23373, javavlangvObject_23374, lastpush_23375).
-		inv_javavlangvObject(kin_0_23376, 1, lastpush_23378) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23369, kin_0_23376, javavlangvObject_23377, lastpush_23378).
-		ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23369) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23369, kin_0_23376, javavlangvObject_23377, lastpush_23378).
-		ijavaulanguObjectggvoidgiinitkopk_post(kin_0_23379, resultVar0_23380) :- ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23379).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23387, kassert_6_23382, kb0_23383, kfloat69_23384, kfloat70_23385, kfloat71_23386, kin_0_23387, JayArray_java_lang_String_23388, f0_23389, f1_23390, lastpush_23391, undef_field0_23392, undef_field1_23393, undef_field2_23394, undef_field3_23395, undef_field4_23396, undef_size_23397) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_pre(kin_0_23387).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23381, kassert_6_23398, kfloat69_23400, kfloat70_23401, kfloat71_23402, kin_0_23403, JayArray_java_lang_String_23404, undef_field0_23408, undef_field1_23409, undef_field2_23410, undef_field3_23411, undef_field4_23412, undef_size_23413) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23381, kassert_6_23398, kb0_23399, kfloat69_23400, kfloat70_23401, kfloat71_23402, kin_0_23403, JayArray_java_lang_String_23404, f0_23405, f1_23406, lastpush_23407, undef_field0_23408, undef_field1_23409, undef_field2_23410, undef_field3_23411, undef_field4_23412, undef_size_23413), undef_size_23413 &gt;= 0.
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23381, kassert_6_23414, kfloat69_23415, kfloat70_23416, kfloat71_23417, kin_0_23418, JayArray_java_lang_String_23419, undef_field0_23420, undef_field1_23421, undef_field2_23422, undef_field3_23423, undef_field4_23424, undef_size_23425) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23381, kassert_6_23414, kfloat69_23415, kfloat70_23416, kfloat71_23417, kin_0_23418, JayArray_java_lang_String_23419, undef_field0_23420, undef_field1_23421, undef_field2_23422, undef_field3_23423, undef_field4_23424, undef_size_23425).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23381, kassert_6_23426, kfloat69_23427, kfloat70_23428, kfloat71_23429, kin_0_23430, JayArray_java_lang_String_23431, 583, undef_field0_23432, undef_field1_23433, undef_field2_23434, undef_field3_23435, undef_field4_23436, undef_size_23437) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23381, kassert_6_23426, kfloat69_23427, kfloat70_23428, kfloat71_23429, kin_0_23430, JayArray_java_lang_String_23431, undef_field0_23432, undef_field1_23433, undef_field2_23434, undef_field3_23435, undef_field4_23436, undef_size_23437).
-		inv_JayArray_java_lang_String(kin_0_23443, undef_size_23451, 68, 68, undef_field0_23446, undef_field1_23447, undef_field2_23448, undef_field3_23449, undef_field4_23450, lastpush_23445) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23381, kassert_6_23439, kfloat69_23440, kfloat70_23441, kfloat71_23442, kin_0_23443, JayArray_java_lang_String_23444, lastpush_23445, undef_field0_23446, undef_field1_23447, undef_field2_23448, undef_field3_23449, undef_field4_23450, undef_size_23451).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23381, kassert_6_23439, kfloat69_23440, kfloat70_23441, kfloat71_23442) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23381, kassert_6_23439, kfloat69_23440, kfloat70_23441, kfloat71_23442, kin_0_23443, JayArray_java_lang_String_23444, lastpush_23445, undef_field0_23446, undef_field1_23447, undef_field2_23448, undef_field3_23449, undef_field4_23450, undef_size_23451).
-		iJayHornAssertionsggvoidgiclinitkopk_pre :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23381, kassert_6_23452, kfloat69_23453, kfloat70_23454, kfloat71_23455).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23381, kassert_6_23452, kfloat69_23453, kfloat70_23454, kfloat71_23455) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23381, kassert_6_23452, kfloat69_23453, kfloat70_23454, kfloat71_23455), iJayHornAssertionsggvoidgiclinitkopk_post.
-		iSatFloatsggvoidgiclinitkopk_pre :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23381, kassert_6_23456, kfloat69_23457, kfloat70_23458, kfloat71_23459).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23381, kassert_6_23456, kfloat69_23457, kfloat70_23458, kfloat71_23459) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23381, kassert_6_23456, kfloat69_23457, kfloat70_23458, kfloat71_23459), iSatFloatsggvoidgiclinitkopk_post.
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23381, kassert_6_23460, kfloat70_23462, kfloat71_23463, kfloat69_23461) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23381, kassert_6_23460, kfloat69_23461, kfloat70_23462, kfloat71_23463).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23381, kassert_6_23465, kfloat71_23467, f0_23468 * kfloat70_23466) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23381, kassert_6_23465, kfloat70_23466, kfloat71_23467, f0_23468).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23381, kassert_6_23470, \if (f1_23472 &gt;= kfloat71_23471) \ then (\if (kfloat71_23471 = f1_23472) \ then (0) \ else (-1*1)) \ else (1)) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23381, kassert_6_23470, kfloat71_23471, f1_23472).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23381) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23381, kassert_6_23474, kb0_23475), kb0_23475 = 0.
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23381, kassert_6_23474) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23381, kassert_6_23474, kb0_23475), !(kb0_23475 = 0).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23381) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23381).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23381, \if (false) \ then (0) \ else (1)) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23381, kassert_6_23476).
-		false :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23381, kassert_6_23477), !(kassert_6_23477 = 0).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23381) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23381, kassert_6_23477).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23381) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23381).
-		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_post(kin_0_23478) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23478).
-		iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_23479, JayHornAssertions_lastExceptionThrown0_23480, JayhornGlobals_23481, lastpush_23482) :- iJayHornAssertionsggvoidgiclinitkopk_pre.
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_1(knull_23483, JayhornGlobals_23485) :- iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_23483, JayHornAssertions_lastExceptionThrown0_23484, JayhornGlobals_23485, lastpush_23486).
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23487, JayhornGlobals_23488, 581) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_23487, JayhornGlobals_23488).
-		inv_JayhornGlobalsClassVar(JayhornGlobals_23491, JayHornAssertions_lastExceptionThrown0_23490, lastpush_23492) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23490, JayhornGlobals_23491, lastpush_23492).
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_3 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23490, JayhornGlobals_23491, lastpush_23492).
+		iHavoc_Classggintghavoc_intopk_post(resultVar0_23286) :- iHavoc_Classggintghavoc_intopk_Block0.
+		iSatFloatsggvoidgiinitkopk_Block1(kin_0_23288, kin_0_23288, kthis__23289, SatFloats_23290, lastpush_23291, r0_23292, r0_kdynamicType_5840_23293) :- iSatFloatsggvoidgiinitkopk_pre(kin_0_23288).
+		iSatFloatsggvoidgiinitkopk_Block1_1(kin_0_23287, kin_0_23294, SatFloats_23296) :- iSatFloatsggvoidgiinitkopk_Block1(kin_0_23287, kin_0_23294, kthis__23295, SatFloats_23296, lastpush_23297, r0_23298, r0_kdynamicType_5840_23299).
+		iSatFloatsggvoidgiinitkopk_Block1_2(kin_0_23287, SatFloats_23301, kthis__23300) :- iSatFloatsggvoidgiinitkopk_Block1_1(kin_0_23287, kthis__23300, SatFloats_23301).
+		iSatFloatsggvoidgiinitkopk_Block1_3(kin_0_23287, r0_23304, 77) :- iSatFloatsggvoidgiinitkopk_Block1_2(kin_0_23287, SatFloats_23303, r0_23304).
+		iSatFloatsggvoidgiinitkopk_Block1_4(kin_0_23287, 582, r0_23306, r0_kdynamicType_5840_23307) :- iSatFloatsggvoidgiinitkopk_Block1_3(kin_0_23287, r0_23306, r0_kdynamicType_5840_23307).
+		inv_SatFloats(r0_23310, r0_kdynamicType_5840_23311, lastpush_23309) :- iSatFloatsggvoidgiinitkopk_Block1_4(kin_0_23287, lastpush_23309, r0_23310, r0_kdynamicType_5840_23311).
+		iSatFloatsggvoidgiinitkopk_Block1_5(kin_0_23287, r0_23310) :- iSatFloatsggvoidgiinitkopk_Block1_4(kin_0_23287, lastpush_23309, r0_23310, r0_kdynamicType_5840_23311).
+		ijavaulanguObjectggvoidgiinitkopk_pre(r0_23312) :- iSatFloatsggvoidgiinitkopk_Block1_5(kin_0_23287, r0_23312).
+		iSatFloatsggvoidgiinitkopk_Block1_6(kin_0_23287) :- iSatFloatsggvoidgiinitkopk_Block1_5(kin_0_23287, r0_23312), ijavaulanguObjectggvoidgiinitkopk_post(r0_23312, callRes_23314).
+		iSatFloatsggvoidgiinitkopk_Block0(kin_0_23287) :- iSatFloatsggvoidgiinitkopk_Block1_6(kin_0_23287).
+		iSatFloatsggvoidgiinitkopk_post(kin_0_23315, resultVar0_23316, resultVar1_23317) :- iSatFloatsggvoidgiinitkopk_Block0(kin_0_23315).
+		ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23319, kin_0_23319, javavlangvObject_23320, lastpush_23321) :- ijavaulanguObjectggvoidgiinitkopk_pre(kin_0_23319).
+		ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23318, kin_0_23322, javavlangvObject_23323, 584) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23318, kin_0_23322, javavlangvObject_23323, lastpush_23324).
+		inv_javavlangvObject(kin_0_23325, 1, lastpush_23327) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23318, kin_0_23325, javavlangvObject_23326, lastpush_23327).
+		ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23318) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23318, kin_0_23325, javavlangvObject_23326, lastpush_23327).
+		ijavaulanguObjectggvoidgiinitkopk_post(kin_0_23328, resultVar0_23329) :- ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23328).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23336, kassert_6_23331, kb0_23332, kfloat79_23333, kfloat80_23334, kfloat81_23335, kin_0_23336, JayArray_java_lang_String_23337, f0_23338, f1_23339, lastpush_23340, undef_field0_23341, undef_field1_23342, undef_field2_23343, undef_field3_23344, undef_field4_23345, undef_size_23346) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_pre(kin_0_23336).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23330, kassert_6_23347, kfloat79_23349, kfloat80_23350, kfloat81_23351, kin_0_23352, JayArray_java_lang_String_23353, undef_field0_23357, undef_field1_23358, undef_field2_23359, undef_field3_23360, undef_field4_23361, undef_size_23362) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23330, kassert_6_23347, kb0_23348, kfloat79_23349, kfloat80_23350, kfloat81_23351, kin_0_23352, JayArray_java_lang_String_23353, f0_23354, f1_23355, lastpush_23356, undef_field0_23357, undef_field1_23358, undef_field2_23359, undef_field3_23360, undef_field4_23361, undef_size_23362), undef_size_23362 &gt;= 0.
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23330, kassert_6_23363, kfloat79_23364, kfloat80_23365, kfloat81_23366, kin_0_23367, JayArray_java_lang_String_23368, undef_field0_23369, undef_field1_23370, undef_field2_23371, undef_field3_23372, undef_field4_23373, undef_size_23374) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23330, kassert_6_23363, kfloat79_23364, kfloat80_23365, kfloat81_23366, kin_0_23367, JayArray_java_lang_String_23368, undef_field0_23369, undef_field1_23370, undef_field2_23371, undef_field3_23372, undef_field4_23373, undef_size_23374).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23330, kassert_6_23375, kfloat79_23376, kfloat80_23377, kfloat81_23378, kin_0_23379, JayArray_java_lang_String_23380, 585, undef_field0_23381, undef_field1_23382, undef_field2_23383, undef_field3_23384, undef_field4_23385, undef_size_23386) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23330, kassert_6_23375, kfloat79_23376, kfloat80_23377, kfloat81_23378, kin_0_23379, JayArray_java_lang_String_23380, undef_field0_23381, undef_field1_23382, undef_field2_23383, undef_field3_23384, undef_field4_23385, undef_size_23386).
+		inv_JayArray_java_lang_String(kin_0_23392, undef_size_23400, 78, 78, undef_field0_23395, undef_field1_23396, undef_field2_23397, undef_field3_23398, undef_field4_23399, lastpush_23394) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23330, kassert_6_23388, kfloat79_23389, kfloat80_23390, kfloat81_23391, kin_0_23392, JayArray_java_lang_String_23393, lastpush_23394, undef_field0_23395, undef_field1_23396, undef_field2_23397, undef_field3_23398, undef_field4_23399, undef_size_23400).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23330, kassert_6_23388, kfloat79_23389, kfloat80_23390, kfloat81_23391) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23330, kassert_6_23388, kfloat79_23389, kfloat80_23390, kfloat81_23391, kin_0_23392, JayArray_java_lang_String_23393, lastpush_23394, undef_field0_23395, undef_field1_23396, undef_field2_23397, undef_field3_23398, undef_field4_23399, undef_size_23400).
+		iJayHornAssertionsggvoidgiclinitkopk_pre :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23330, kassert_6_23401, kfloat79_23402, kfloat80_23403, kfloat81_23404).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23330, kassert_6_23401, kfloat79_23402, kfloat80_23403, kfloat81_23404) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23330, kassert_6_23401, kfloat79_23402, kfloat80_23403, kfloat81_23404), iJayHornAssertionsggvoidgiclinitkopk_post.
+		iSatFloatsggvoidgiclinitkopk_pre :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23330, kassert_6_23405, kfloat79_23406, kfloat80_23407, kfloat81_23408).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23330, kassert_6_23405, kfloat79_23406, kfloat80_23407, kfloat81_23408) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23330, kassert_6_23405, kfloat79_23406, kfloat80_23407, kfloat81_23408), iSatFloatsggvoidgiclinitkopk_post.
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23330, kassert_6_23409, kfloat80_23411, kfloat81_23412, kfloat79_23410) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23330, kassert_6_23409, kfloat79_23410, kfloat80_23411, kfloat81_23412).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23330, kassert_6_23414, kfloat81_23416, f0_23417 * kfloat80_23415) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23330, kassert_6_23414, kfloat80_23415, kfloat81_23416, f0_23417).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23330, kassert_6_23419, \if (f1_23421 &gt;= kfloat81_23420) \ then (\if (kfloat81_23420 = f1_23421) \ then (0) \ else (-1*1)) \ else (1)) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23330, kassert_6_23419, kfloat81_23420, f1_23421).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23330) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23330, kassert_6_23423, kb0_23424), kb0_23424 = 0.
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23330, kassert_6_23423) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23330, kassert_6_23423, kb0_23424), !(kb0_23424 = 0).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23330) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23330).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23330, \if (false) \ then (0) \ else (1)) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23330, kassert_6_23425).
+		false :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23330, kassert_6_23426), !(kassert_6_23426 = 0).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23330) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23330, kassert_6_23426).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23330) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23330).
+		iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_post(kin_0_23427) :- iSatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23427).
+		iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_23428, JayHornAssertions_lastExceptionThrown0_23429, JayhornGlobals_23430, lastpush_23431) :- iJayHornAssertionsggvoidgiclinitkopk_pre.
+		iJayHornAssertionsggvoidgiclinitkopk_Block1_1(knull_23432, JayhornGlobals_23434) :- iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_23432, JayHornAssertions_lastExceptionThrown0_23433, JayhornGlobals_23434, lastpush_23435).
+		iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23436, JayhornGlobals_23437, 583) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_23436, JayhornGlobals_23437).
+		inv_JayhornGlobalsClassVar(JayhornGlobals_23440, JayHornAssertions_lastExceptionThrown0_23439, lastpush_23441) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23439, JayhornGlobals_23440, lastpush_23441).
+		iJayHornAssertionsggvoidgiclinitkopk_Block1_3 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23439, JayhornGlobals_23440, lastpush_23441).
 		iJayHornAssertionsggvoidgiclinitkopk_Block0 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_3.
 		iJayHornAssertionsggvoidgiclinitkopk_post :- iJayHornAssertionsggvoidgiclinitkopk_Block0.
 		iSatFloatsggvoidgiclinitkopk_Block1 :- iSatFloatsggvoidgiclinitkopk_pre.
@@ -502,67 +578,6 @@ Running test SatFloats.java with class jayhorn.solver.princess.PrincessProverFac
 
 
 Running test SatLong.java with class jayhorn.solver.princess.PrincessProverFactory
-
-[root] - Hornify  ... 
-[root] - Check if program has one entry ... 
-[root] - Interprocedural Push/Pull Ordering
-[root] - Building type hierarchy ... 
-[root] - Generating Method Contract ... 
-[root] - Transform Program Methods into Horn Clauses ... 
-		iHavoc_Classggintghavoc_intopk_Block0 :- iHavoc_Classggintghavoc_intopk_pre.
-		iHavoc_Classggintghavoc_intopk_post(resultVar0_23494) :- iHavoc_Classggintghavoc_intopk_Block0.
-		iSatLongggvoidgiinitkopk_Block1(kin_0_23496, kin_0_23496, kthis__23497, SatLong_23498, lastpush_23499, r0_23500, r0_kdynamicType_5350_23501) :- iSatLongggvoidgiinitkopk_pre(kin_0_23496).
-		iSatLongggvoidgiinitkopk_Block1_1(kin_0_23495, kin_0_23502, SatLong_23504) :- iSatLongggvoidgiinitkopk_Block1(kin_0_23495, kin_0_23502, kthis__23503, SatLong_23504, lastpush_23505, r0_23506, r0_kdynamicType_5350_23507).
-		iSatLongggvoidgiinitkopk_Block1_2(kin_0_23495, SatLong_23509, kthis__23508) :- iSatLongggvoidgiinitkopk_Block1_1(kin_0_23495, kthis__23508, SatLong_23509).
-		iSatLongggvoidgiinitkopk_Block1_3(kin_0_23495, r0_23512, 67) :- iSatLongggvoidgiinitkopk_Block1_2(kin_0_23495, SatLong_23511, r0_23512).
-		iSatLongggvoidgiinitkopk_Block1_4(kin_0_23495, 584, r0_23514, r0_kdynamicType_5350_23515) :- iSatLongggvoidgiinitkopk_Block1_3(kin_0_23495, r0_23514, r0_kdynamicType_5350_23515).
-		inv_SatLong(r0_23518, r0_kdynamicType_5350_23519, lastpush_23517) :- iSatLongggvoidgiinitkopk_Block1_4(kin_0_23495, lastpush_23517, r0_23518, r0_kdynamicType_5350_23519).
-		iSatLongggvoidgiinitkopk_Block1_5(kin_0_23495, r0_23518) :- iSatLongggvoidgiinitkopk_Block1_4(kin_0_23495, lastpush_23517, r0_23518, r0_kdynamicType_5350_23519).
-		ijavaulanguObjectggvoidgiinitkopk_pre(r0_23520) :- iSatLongggvoidgiinitkopk_Block1_5(kin_0_23495, r0_23520).
-		iSatLongggvoidgiinitkopk_Block1_6(kin_0_23495) :- iSatLongggvoidgiinitkopk_Block1_5(kin_0_23495, r0_23520), ijavaulanguObjectggvoidgiinitkopk_post(r0_23520, callRes_23522).
-		iSatLongggvoidgiinitkopk_Block0(kin_0_23495) :- iSatLongggvoidgiinitkopk_Block1_6(kin_0_23495).
-		iSatLongggvoidgiinitkopk_post(kin_0_23523, resultVar0_23524, resultVar1_23525) :- iSatLongggvoidgiinitkopk_Block0(kin_0_23523).
-		ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23527, kin_0_23527, javavlangvObject_23528, lastpush_23529) :- ijavaulanguObjectggvoidgiinitkopk_pre(kin_0_23527).
-		ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23526, kin_0_23530, javavlangvObject_23531, 586) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23526, kin_0_23530, javavlangvObject_23531, lastpush_23532).
-		inv_javavlangvObject(kin_0_23533, 1, lastpush_23535) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23526, kin_0_23533, javavlangvObject_23534, lastpush_23535).
-		ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23526) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23526, kin_0_23533, javavlangvObject_23534, lastpush_23535).
-		ijavaulanguObjectggvoidgiinitkopk_post(kin_0_23536, resultVar0_23537) :- ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23536).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23541, kassert_8_23539, kb4_23540, kin_0_23541, kl2_23542, kl3_23543, kndet9_23544, JayArray_java_lang_String_23545, i1_23546, l0_23547, lastpush_23548, undef_field0_23549, undef_field1_23550, undef_field2_23551, undef_field3_23552, undef_field4_23553, undef_size_23554) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_pre(kin_0_23541).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23538, kassert_8_23555, kin_0_23557, JayArray_java_lang_String_23561, undef_field0_23565, undef_field1_23566, undef_field2_23567, undef_field3_23568, undef_field4_23569, undef_size_23570) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23538, kassert_8_23555, kb4_23556, kin_0_23557, kl2_23558, kl3_23559, kndet9_23560, JayArray_java_lang_String_23561, i1_23562, l0_23563, lastpush_23564, undef_field0_23565, undef_field1_23566, undef_field2_23567, undef_field3_23568, undef_field4_23569, undef_size_23570), undef_size_23570 &gt;= 0.
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23538, kassert_8_23571, kin_0_23572, JayArray_java_lang_String_23573, undef_field0_23574, undef_field1_23575, undef_field2_23576, undef_field3_23577, undef_field4_23578, undef_size_23579) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23538, kassert_8_23571, kin_0_23572, JayArray_java_lang_String_23573, undef_field0_23574, undef_field1_23575, undef_field2_23576, undef_field3_23577, undef_field4_23578, undef_size_23579).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23538, kassert_8_23580, kin_0_23581, JayArray_java_lang_String_23582, 587, undef_field0_23583, undef_field1_23584, undef_field2_23585, undef_field3_23586, undef_field4_23587, undef_size_23588) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23538, kassert_8_23580, kin_0_23581, JayArray_java_lang_String_23582, undef_field0_23583, undef_field1_23584, undef_field2_23585, undef_field3_23586, undef_field4_23587, undef_size_23588).
-		inv_JayArray_java_lang_String(kin_0_23591, undef_size_23599, 68, 68, undef_field0_23594, undef_field1_23595, undef_field2_23596, undef_field3_23597, undef_field4_23598, lastpush_23593) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23538, kassert_8_23590, kin_0_23591, JayArray_java_lang_String_23592, lastpush_23593, undef_field0_23594, undef_field1_23595, undef_field2_23596, undef_field3_23597, undef_field4_23598, undef_size_23599).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23538, kassert_8_23590) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23538, kassert_8_23590, kin_0_23591, JayArray_java_lang_String_23592, lastpush_23593, undef_field0_23594, undef_field1_23595, undef_field2_23596, undef_field3_23597, undef_field4_23598, undef_size_23599).
-		iJayHornAssertionsggvoidgiclinitkopk_pre :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23538, kassert_8_23600).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23538, kassert_8_23600) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23538, kassert_8_23600), iJayHornAssertionsggvoidgiclinitkopk_post.
-		iSatLongggvoidgiclinitkopk_pre :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23538, kassert_8_23601).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23538, kassert_8_23601) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23538, kassert_8_23601), iSatLongggvoidgiclinitkopk_post.
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23538, kassert_8_23602, 4620693217682128896) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23538, kassert_8_23602).
-		iHavoc_Classggintghavoc_intopk_pre :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23538, kassert_8_23604, l0_23605).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23538, kassert_8_23604, callRes_23607, l0_23605) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23538, kassert_8_23604, l0_23605), iHavoc_Classggintghavoc_intopk_post(callRes_23607).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23538, kassert_8_23608, kndet9_23609, l0_23610) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23538, kassert_8_23608, kndet9_23609, l0_23610).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_23538, kassert_8_23612, i1_23613, l0_23614) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23538, kassert_8_23612, i1_23613, l0_23614).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_11(kin_0_23538, kassert_8_23616, HACK_FreeVar5, kl3_23617) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_23538, kassert_8_23616, kl3_23617, l0_23618).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_12(kin_0_23538, kassert_8_23620, \if (kl2_23621 &gt;= kl3_23622) \ then (\if (kl3_23622 = kl2_23621) \ then (0) \ else (-1*1)) \ else (1)) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_11(kin_0_23538, kassert_8_23620, kl2_23621, kl3_23622).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23538) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_12(kin_0_23538, kassert_8_23624, kb4_23625), kb4_23625 = 0.
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23538, kassert_8_23624) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block1_12(kin_0_23538, kassert_8_23624, kb4_23625), !(kb4_23625 = 0).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23538) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23538).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23538, \if (false) \ then (0) \ else (1)) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23538, kassert_8_23626).
-		false :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23538, kassert_8_23627), !(kassert_8_23627 = 0).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23538) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23538, kassert_8_23627).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23538) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23538).
-		iSatLongggvoidgmainoJayArray_java_lang_Stringpk_post(kin_0_23628) :- iSatLongggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23628).
-		iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_23629, JayHornAssertions_lastExceptionThrown0_23630, JayhornGlobals_23631, lastpush_23632) :- iJayHornAssertionsggvoidgiclinitkopk_pre.
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_1(knull_23633, JayhornGlobals_23635) :- iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_23633, JayHornAssertions_lastExceptionThrown0_23634, JayhornGlobals_23635, lastpush_23636).
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23637, JayhornGlobals_23638, 585) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_23637, JayhornGlobals_23638).
-		inv_JayhornGlobalsClassVar(JayhornGlobals_23641, JayHornAssertions_lastExceptionThrown0_23640, lastpush_23642) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23640, JayhornGlobals_23641, lastpush_23642).
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_3 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23640, JayhornGlobals_23641, lastpush_23642).
-		iJayHornAssertionsggvoidgiclinitkopk_Block0 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_3.
-		iJayHornAssertionsggvoidgiclinitkopk_post :- iJayHornAssertionsggvoidgiclinitkopk_Block0.
-		iSatLongggvoidgiclinitkopk_Block1 :- iSatLongggvoidgiclinitkopk_pre.
-		iSatLongggvoidgiclinitkopk_Block0 :- iSatLongggvoidgiclinitkopk_Block1.
-		iSatLongggvoidgiclinitkopk_post :- iSatLongggvoidgiclinitkopk_Block0.
-		-------------
 
 
 Running test UnsatBitOps.java with class jayhorn.solver.princess.PrincessProverFactory
@@ -585,74 +600,16 @@ Running test SatBitOps.java with class jayhorn.solver.princess.PrincessProverFac
 
 Running test UnsatFloats.java with class jayhorn.solver.princess.PrincessProverFactory
 
-[root] - Hornify  ... 
-[root] - Check if program has one entry ... 
-[root] - Interprocedural Push/Pull Ordering
-[root] - Building type hierarchy ... 
-[root] - Generating Method Contract ... 
-[root] - Transform Program Methods into Horn Clauses ... 
-		iHavoc_Classggintghavoc_intopk_Block0 :- iHavoc_Classggintghavoc_intopk_pre.
-		iHavoc_Classggintghavoc_intopk_post(resultVar0_23792) :- iHavoc_Classggintghavoc_intopk_Block0.
-		iUnsatFloatsggvoidgiinitkopk_Block1(kin_0_23794, kin_0_23794, kthis__23795, UnsatFloats_23796, lastpush_23797, r0_23798, r0_kdynamicType_5350_23799) :- iUnsatFloatsggvoidgiinitkopk_pre(kin_0_23794).
-		iUnsatFloatsggvoidgiinitkopk_Block1_1(kin_0_23793, kin_0_23800, UnsatFloats_23802) :- iUnsatFloatsggvoidgiinitkopk_Block1(kin_0_23793, kin_0_23800, kthis__23801, UnsatFloats_23802, lastpush_23803, r0_23804, r0_kdynamicType_5350_23805).
-		iUnsatFloatsggvoidgiinitkopk_Block1_2(kin_0_23793, UnsatFloats_23807, kthis__23806) :- iUnsatFloatsggvoidgiinitkopk_Block1_1(kin_0_23793, kthis__23806, UnsatFloats_23807).
-		iUnsatFloatsggvoidgiinitkopk_Block1_3(kin_0_23793, r0_23810, 67) :- iUnsatFloatsggvoidgiinitkopk_Block1_2(kin_0_23793, UnsatFloats_23809, r0_23810).
-		iUnsatFloatsggvoidgiinitkopk_Block1_4(kin_0_23793, 596, r0_23812, r0_kdynamicType_5350_23813) :- iUnsatFloatsggvoidgiinitkopk_Block1_3(kin_0_23793, r0_23812, r0_kdynamicType_5350_23813).
-		inv_UnsatFloats(r0_23816, r0_kdynamicType_5350_23817, lastpush_23815) :- iUnsatFloatsggvoidgiinitkopk_Block1_4(kin_0_23793, lastpush_23815, r0_23816, r0_kdynamicType_5350_23817).
-		iUnsatFloatsggvoidgiinitkopk_Block1_5(kin_0_23793, r0_23816) :- iUnsatFloatsggvoidgiinitkopk_Block1_4(kin_0_23793, lastpush_23815, r0_23816, r0_kdynamicType_5350_23817).
-		ijavaulanguObjectggvoidgiinitkopk_pre(r0_23818) :- iUnsatFloatsggvoidgiinitkopk_Block1_5(kin_0_23793, r0_23818).
-		iUnsatFloatsggvoidgiinitkopk_Block1_6(kin_0_23793) :- iUnsatFloatsggvoidgiinitkopk_Block1_5(kin_0_23793, r0_23818), ijavaulanguObjectggvoidgiinitkopk_post(r0_23818, callRes_23820).
-		iUnsatFloatsggvoidgiinitkopk_Block0(kin_0_23793) :- iUnsatFloatsggvoidgiinitkopk_Block1_6(kin_0_23793).
-		iUnsatFloatsggvoidgiinitkopk_post(kin_0_23821, resultVar0_23822, resultVar1_23823) :- iUnsatFloatsggvoidgiinitkopk_Block0(kin_0_23821).
-		ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23825, kin_0_23825, javavlangvObject_23826, lastpush_23827) :- ijavaulanguObjectggvoidgiinitkopk_pre(kin_0_23825).
-		ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23824, kin_0_23828, javavlangvObject_23829, 598) :- ijavaulanguObjectggvoidgiinitkopk_Block0(kin_0_23824, kin_0_23828, javavlangvObject_23829, lastpush_23830).
-		inv_javavlangvObject(kin_0_23831, 1, lastpush_23833) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23824, kin_0_23831, javavlangvObject_23832, lastpush_23833).
-		ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23824) :- ijavaulanguObjectggvoidgiinitkopk_Block0_1(kin_0_23824, kin_0_23831, javavlangvObject_23832, lastpush_23833).
-		ijavaulanguObjectggvoidgiinitkopk_post(kin_0_23834, resultVar0_23835) :- ijavaulanguObjectggvoidgiinitkopk_Block0_2(kin_0_23834).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23843, kassert_7_23837, kb0_23838, kd0_23839, kdouble71_23840, kfloat69_23841, kfloat70_23842, kin_0_23843, JayArray_java_lang_String_23844, f0_23845, f1_23846, lastpush_23847, undef_field0_23848, undef_field1_23849, undef_field2_23850, undef_field3_23851, undef_field4_23852, undef_size_23853) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_pre(kin_0_23843).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23836, kassert_7_23854, kdouble71_23857, kfloat69_23858, kfloat70_23859, kin_0_23860, JayArray_java_lang_String_23861, undef_field0_23865, undef_field1_23866, undef_field2_23867, undef_field3_23868, undef_field4_23869, undef_size_23870) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1(kin_0_23836, kassert_7_23854, kb0_23855, kd0_23856, kdouble71_23857, kfloat69_23858, kfloat70_23859, kin_0_23860, JayArray_java_lang_String_23861, f0_23862, f1_23863, lastpush_23864, undef_field0_23865, undef_field1_23866, undef_field2_23867, undef_field3_23868, undef_field4_23869, undef_size_23870), undef_size_23870 &gt;= 0.
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23836, kassert_7_23871, kdouble71_23872, kfloat69_23873, kfloat70_23874, kin_0_23875, JayArray_java_lang_String_23876, undef_field0_23877, undef_field1_23878, undef_field2_23879, undef_field3_23880, undef_field4_23881, undef_size_23882) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_1(kin_0_23836, kassert_7_23871, kdouble71_23872, kfloat69_23873, kfloat70_23874, kin_0_23875, JayArray_java_lang_String_23876, undef_field0_23877, undef_field1_23878, undef_field2_23879, undef_field3_23880, undef_field4_23881, undef_size_23882).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23836, kassert_7_23883, kdouble71_23884, kfloat69_23885, kfloat70_23886, kin_0_23887, JayArray_java_lang_String_23888, 599, undef_field0_23889, undef_field1_23890, undef_field2_23891, undef_field3_23892, undef_field4_23893, undef_size_23894) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_2(kin_0_23836, kassert_7_23883, kdouble71_23884, kfloat69_23885, kfloat70_23886, kin_0_23887, JayArray_java_lang_String_23888, undef_field0_23889, undef_field1_23890, undef_field2_23891, undef_field3_23892, undef_field4_23893, undef_size_23894).
-		inv_JayArray_java_lang_String(kin_0_23900, undef_size_23908, 68, 68, undef_field0_23903, undef_field1_23904, undef_field2_23905, undef_field3_23906, undef_field4_23907, lastpush_23902) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23836, kassert_7_23896, kdouble71_23897, kfloat69_23898, kfloat70_23899, kin_0_23900, JayArray_java_lang_String_23901, lastpush_23902, undef_field0_23903, undef_field1_23904, undef_field2_23905, undef_field3_23906, undef_field4_23907, undef_size_23908).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23836, kassert_7_23896, kdouble71_23897, kfloat69_23898, kfloat70_23899) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_3(kin_0_23836, kassert_7_23896, kdouble71_23897, kfloat69_23898, kfloat70_23899, kin_0_23900, JayArray_java_lang_String_23901, lastpush_23902, undef_field0_23903, undef_field1_23904, undef_field2_23905, undef_field3_23906, undef_field4_23907, undef_size_23908).
-		iUnsatFloatsggvoidgiclinitkopk_pre :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23836, kassert_7_23909, kdouble71_23910, kfloat69_23911, kfloat70_23912).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23836, kassert_7_23909, kdouble71_23910, kfloat69_23911, kfloat70_23912) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_4(kin_0_23836, kassert_7_23909, kdouble71_23910, kfloat69_23911, kfloat70_23912), iUnsatFloatsggvoidgiclinitkopk_post.
-		iJayHornAssertionsggvoidgiclinitkopk_pre :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23836, kassert_7_23913, kdouble71_23914, kfloat69_23915, kfloat70_23916).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23836, kassert_7_23913, kdouble71_23914, kfloat69_23915, kfloat70_23916) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_5(kin_0_23836, kassert_7_23913, kdouble71_23914, kfloat69_23915, kfloat70_23916), iJayHornAssertionsggvoidgiclinitkopk_post.
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23836, kassert_7_23917, kdouble71_23918, kfloat70_23920, kfloat69_23919) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_6(kin_0_23836, kassert_7_23917, kdouble71_23918, kfloat69_23919, kfloat70_23920).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23836, kassert_7_23922, kdouble71_23923, f0_23925 * kfloat70_23924) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_7(kin_0_23836, kassert_7_23922, kdouble71_23923, kfloat70_23924, f0_23925).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23836, kassert_7_23927, f1_23929, kdouble71_23928) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_8(kin_0_23836, kassert_7_23927, kdouble71_23928, f1_23929).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_23836, kassert_7_23931, \if (kd0_23932 &gt;= kdouble71_23933) \ then (\if (kdouble71_23933 = kd0_23932) \ then (0) \ else (-1*1)) \ else (1)) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_9(kin_0_23836, kassert_7_23931, kd0_23932, kdouble71_23933).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23836) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_23836, kassert_7_23935, kb0_23936), kb0_23936 = 0.
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23836, kassert_7_23935) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block1_10(kin_0_23836, kassert_7_23935, kb0_23936), !(kb0_23936 = 0).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23836) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23836).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23836, \if (false) \ then (0) \ else (1)) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3(kin_0_23836, kassert_7_23937).
-		false :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23836, kassert_7_23938), !(kassert_7_23938 = 0).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23836) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_1(kin_0_23836, kassert_7_23938).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block2(kin_0_23836) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block3_2(kin_0_23836).
-		iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_post(kin_0_23939) :- iUnsatFloatsggvoidgmainoJayArray_java_lang_Stringpk_Block0(kin_0_23939).
-		iUnsatFloatsggvoidgiclinitkopk_Block1 :- iUnsatFloatsggvoidgiclinitkopk_pre.
-		iUnsatFloatsggvoidgiclinitkopk_Block0 :- iUnsatFloatsggvoidgiclinitkopk_Block1.
-		iUnsatFloatsggvoidgiclinitkopk_post :- iUnsatFloatsggvoidgiclinitkopk_Block0.
-		iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_23940, JayHornAssertions_lastExceptionThrown0_23941, JayhornGlobals_23942, lastpush_23943) :- iJayHornAssertionsggvoidgiclinitkopk_pre.
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_1(knull_23944, JayhornGlobals_23946) :- iJayHornAssertionsggvoidgiclinitkopk_Block1(knull_23944, JayHornAssertions_lastExceptionThrown0_23945, JayhornGlobals_23946, lastpush_23947).
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23948, JayhornGlobals_23949, 597) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_1(JayHornAssertions_lastExceptionThrown0_23948, JayhornGlobals_23949).
-		inv_JayhornGlobalsClassVar(JayhornGlobals_23952, JayHornAssertions_lastExceptionThrown0_23951, lastpush_23953) :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23951, JayhornGlobals_23952, lastpush_23953).
-		iJayHornAssertionsggvoidgiclinitkopk_Block1_3 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_2(JayHornAssertions_lastExceptionThrown0_23951, JayhornGlobals_23952, lastpush_23953).
-		iJayHornAssertionsggvoidgiclinitkopk_Block0 :- iJayHornAssertionsggvoidgiclinitkopk_Block1_3.
-		iJayHornAssertionsggvoidgiclinitkopk_post :- iJayHornAssertionsggvoidgiclinitkopk_Block0.
-		-------------
-
 </pre>
 </span>
 </div>
 <div id="tab3" class="tab">
 <h2>Standard error</h2>
 <span class="code">
-<pre>Not guarding cast from int to long. This should be done by the compiler.
-Not guarding cast from long to int. This should be done by the compiler.
+<pre>Not guarding cast from long to int. This should be done by the compiler.
 Not guarding cast from int to long. This should be done by the compiler.
 Not guarding cast from long to int. This should be done by the compiler.
+Not guarding cast from int to long. This should be done by the compiler.
 Not guarding cast from float to double. This should be done by the compiler.
 </pre>
 </span>
@@ -660,7 +617,7 @@ Not guarding cast from float to double. This should be done by the compiler.
 </div>
 <div id="footer">
 <p>Generated by 
-<a href="http://www.gradle.org">Gradle 2.2.1</a> at Sep 7, 2016 8:20:54 PM</p>
+<a href="http://www.gradle.org">Gradle 2.2.1</a> at Sep 7, 2016 8:52:52 PM</p>
 </div>
 </div>
 </body>
