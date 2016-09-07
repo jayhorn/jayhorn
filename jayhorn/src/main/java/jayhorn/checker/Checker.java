@@ -15,8 +15,8 @@ import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
 import soottocfg.cfg.Program;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.variable.Variable;
 
 import java.util.ArrayList;
 import java.util.HashMap;

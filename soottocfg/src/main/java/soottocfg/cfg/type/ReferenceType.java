@@ -3,7 +3,7 @@
  */
 package soottocfg.cfg.type;
 
-import soottocfg.cfg.ClassVariable;
+import soottocfg.cfg.variable.ClassVariable;
 
 /**
  * @author schaef

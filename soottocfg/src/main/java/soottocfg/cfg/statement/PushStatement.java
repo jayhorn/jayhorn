@@ -10,11 +10,11 @@ import java.util.Set;
 
 import com.google.common.base.Verify;
 
-import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.cfg.variable.Variable;
 
 /**
  * @author schaef

@@ -23,6 +23,8 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.cfg.variable.Variable;
 
 /**
  * @author schaef
@@ -69,7 +71,7 @@ public class Program {
 	
 	public ClassVariable findClassVariableByName(final String name) {
 		for (ClassVariable cv : this.typeGraph.vertexSet()) {
-			if (name.equals(cv.variableName)) {
+			if (name.equals(cv.getName())) {
 				return cv;
 			}
 		}

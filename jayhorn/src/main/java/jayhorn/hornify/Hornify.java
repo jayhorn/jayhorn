@@ -16,9 +16,9 @@ import jayhorn.solver.Prover;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
-import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.variable.ClassVariable;
 
 /**
  * Class to hornify Java program

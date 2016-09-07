@@ -12,7 +12,6 @@ import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.StaticFieldRef;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.statement.ArrayReadStatement;
@@ -20,6 +19,7 @@ import soottocfg.cfg.statement.ArrayStoreStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.type.MapType;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.SootTranslationHelpers;
 
 /**

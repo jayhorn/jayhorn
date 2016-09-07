@@ -18,8 +18,8 @@ import com.google.common.base.Preconditions;
 
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Node;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.variable.Variable;
 import soottocfg.util.SetOperations;
 
 /**

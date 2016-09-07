@@ -5,6 +5,8 @@ package soottocfg.cfg;
 
 import java.util.Set;
 
+import soottocfg.cfg.variable.Variable;
+
 /**
  * @author schaef
  *

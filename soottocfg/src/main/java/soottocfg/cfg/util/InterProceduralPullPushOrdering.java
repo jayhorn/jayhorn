@@ -18,7 +18,6 @@ import org.jgrapht.graph.DefaultEdge;
 import com.google.common.base.Optional;
 import com.google.common.base.Verify;
 
-import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
@@ -26,6 +25,7 @@ import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.util.Pair;
 
 /**

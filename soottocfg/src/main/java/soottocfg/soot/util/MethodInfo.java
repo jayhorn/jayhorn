@@ -20,13 +20,13 @@ import soot.Unit;
 import soot.VoidType;
 import soot.jimple.ParameterRef;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.variable.Variable;
 
 /**
  * @author schaef

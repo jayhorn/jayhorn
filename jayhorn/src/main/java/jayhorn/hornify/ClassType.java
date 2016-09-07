@@ -3,7 +3,7 @@ package jayhorn.hornify;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import soottocfg.cfg.ClassVariable;
+import soottocfg.cfg.variable.ClassVariable;
 
 public class ClassType {
 	

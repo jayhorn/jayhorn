@@ -14,9 +14,7 @@ import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverType;
-import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.Program;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
@@ -24,6 +22,8 @@ import soottocfg.cfg.type.MapType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.util.InterProceduralPullPushOrdering;
+import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.cfg.variable.Variable;
 
 public class HornHelper {
 

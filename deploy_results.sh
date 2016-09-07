@@ -5,6 +5,7 @@ if [ -n "$GITHUB_API_KEY" ]; then
     mkdir -p web
     git clone https://github.com/jayhorn/jayhorn.git  --branch gh-pages --single-branch web/
     cd web
+    git rm -r ./$TRAVIS_BRANCH || true 
     mkdir -p ./$TRAVIS_BRANCH
     cp -r ./../jayhorn/build/reports/tests ./$TRAVIS_BRANCH/
     echo "$PWD"

@@ -7,10 +7,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import soot.SootMethod;
-import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
@@ -22,6 +20,8 @@ import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.SootTranslationHelpers;
 
 /**

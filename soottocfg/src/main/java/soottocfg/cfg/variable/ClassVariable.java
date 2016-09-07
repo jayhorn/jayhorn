@@ -1,7 +1,7 @@
 /**
  * 
  */
-package soottocfg.cfg;
+package soottocfg.cfg.variable;
 
 import java.util.Collection;
 import java.util.Collections;

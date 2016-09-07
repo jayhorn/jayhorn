@@ -30,11 +30,11 @@ import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Node;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.variable.Variable;
 import soottocfg.util.SetOperations;
 
 /**

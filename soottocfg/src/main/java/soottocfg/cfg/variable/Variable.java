@@ -1,7 +1,7 @@
 /**
  * 
  */
-package soottocfg.cfg;
+package soottocfg.cfg.variable;
 
 import java.io.Serializable;
 

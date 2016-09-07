@@ -3,7 +3,7 @@ package jayhorn.hornify;
 import java.util.List;
 
 import jayhorn.solver.ProverFun;
-import soottocfg.cfg.Variable;
+import soottocfg.cfg.variable.Variable;
 
 public class HornPredicate {
 	

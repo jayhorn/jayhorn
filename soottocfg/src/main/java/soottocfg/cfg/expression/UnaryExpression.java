@@ -7,9 +7,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.variable.Variable;
 
 /**
  * @author schaef

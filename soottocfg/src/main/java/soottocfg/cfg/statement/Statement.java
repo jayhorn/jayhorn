@@ -9,8 +9,8 @@ import java.util.Set;
 
 import soottocfg.cfg.Node;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.variable.Variable;
 
 /**
  * @author schaef
