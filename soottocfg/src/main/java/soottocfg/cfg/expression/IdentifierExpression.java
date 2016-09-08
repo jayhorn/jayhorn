@@ -23,28 +23,11 @@ public class IdentifierExpression extends Expression {
 	 */
 	private static final long serialVersionUID = 4897450861767209309L;
 	private final Variable variable;
-	private Integer ssaIncarnation = -1;
 
-	/**
-	 * 
-	 */
 	public IdentifierExpression(SourceLocation loc, Variable v) {
-		this(loc, v, 0);
-	}
-
-	public IdentifierExpression(SourceLocation loc, Variable v, int incarnation) {
 		super(loc);
 		Preconditions.checkNotNull(v);
 		this.variable = v;
-		this.ssaIncarnation = incarnation;
-	}
-
-	public Integer getIncarnation() {
-		return ssaIncarnation;
-	}
-
-	public void setIncarnation(Integer inc) {
-		ssaIncarnation = inc;
 	}
 
 	@Override
@@ -81,6 +64,6 @@ public class IdentifierExpression extends Expression {
 
 	@Override
 	public IdentifierExpression deepCopy() {		
-		return new IdentifierExpression(getSourceLocation(), variable, ssaIncarnation);
+		return new IdentifierExpression(getSourceLocation(), variable);
 	}
 }

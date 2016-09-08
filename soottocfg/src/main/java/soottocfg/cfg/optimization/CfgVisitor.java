@@ -11,8 +11,6 @@ import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.statement.ArrayReadStatement;
-import soottocfg.cfg.statement.ArrayStoreStatement;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
@@ -64,10 +62,6 @@ public abstract class CfgVisitor {
 			return processStatement((AssumeStatement) s);
 		} else if (s instanceof CallStatement) {
 			return processStatement((CallStatement) s);
-		} else if (s instanceof ArrayReadStatement) {
-			return processStatement((ArrayReadStatement) s);
-		} else if (s instanceof ArrayStoreStatement) {
-			return processStatement((ArrayStoreStatement) s);
 		} else {
 			throw new RuntimeException("unexpected statement type: " + s);
 		}
@@ -82,10 +76,6 @@ public abstract class CfgVisitor {
 	protected abstract Statement processStatement(AssumeStatement s);
 
 	protected abstract Statement processStatement(CallStatement s);
-
-	protected abstract Statement processStatement(ArrayReadStatement s);
-
-	protected abstract Statement processStatement(ArrayStoreStatement s);
 
 	protected Expression processExpression(Expression e) {
 		if (e instanceof BinaryExpression) {

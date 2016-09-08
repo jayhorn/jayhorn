@@ -11,8 +11,6 @@ import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.statement.ArrayReadStatement;
-import soottocfg.cfg.statement.ArrayStoreStatement;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
@@ -71,26 +69,6 @@ public class CfgScanner extends CfgVisitor {
 		for (Expression e : s.getReceiver()) {
 			processExpression(e);
 		}
-		return s;
-	}
-
-	@Override
-	protected Statement processStatement(ArrayReadStatement s) {
-		Expression[] ids = s.getIndices();
-		for (int i = 0; i < ids.length; i++) {
-			processExpression(ids[i]);
-		}
-		processExpression(s.getLeftValue());
-		return s;
-	}
-
-	@Override
-	protected Statement processStatement(ArrayStoreStatement s) {
-		Expression[] ids = s.getIndices();
-		for (int i = 0; i < ids.length; i++) {
-			processExpression(ids[i]);
-		}
-		processExpression(s.getValue());
 		return s;
 	}
 

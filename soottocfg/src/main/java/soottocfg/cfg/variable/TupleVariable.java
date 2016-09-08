@@ -4,7 +4,6 @@
 package soottocfg.cfg.variable;
 
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.TupleType;
 
 /**
@@ -32,7 +31,6 @@ public class TupleVariable extends Variable {
 		
 	}
 	
-	
 	/**
 	 * @param name
 	 * @param t
@@ -47,6 +45,11 @@ public class TupleVariable extends Variable {
 	public TupleVariable(String name, TupleType t, SourceLocation allocSite, boolean constant, boolean unique) {
 		this(name, t, constant, unique);
 		
+	}
+
+	@Override
+	public TupleType getType() {
+		return (TupleType)this.type;
 	}
 
 	

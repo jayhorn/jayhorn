@@ -13,8 +13,6 @@ import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.statement.ArrayReadStatement;
-import soottocfg.cfg.statement.ArrayStoreStatement;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
@@ -79,32 +77,6 @@ public class CfgUpdater extends CfgVisitor {
 		Expression lhs = processExpression(s.getLeft());
 		Expression rhs = processExpression(s.getRight());
 		return new AssignStatement(s.getSourceLocation(), lhs, rhs);
-	}
-
-	@Override
-	protected Statement processStatement(ArrayReadStatement s) {
-		IdentifierExpression base = (IdentifierExpression)processExpression(s.getBase());
-		Expression[] ids = s.getIndices();
-		List<Expression> indices = new LinkedList<Expression>();
-		for (int i = 0; i < ids.length; i++) {
-			indices.add(processExpression(ids[i]));
-		}
-		IdentifierExpression lhs = (IdentifierExpression) processExpression(s.getLeftValue());
-		return new ArrayReadStatement(s.getSourceLocation(), base, indices.toArray(new Expression[indices.size()]),
-				lhs);
-	}
-
-	@Override
-	protected Statement processStatement(ArrayStoreStatement s) {
-		IdentifierExpression base = (IdentifierExpression)processExpression(s.getBase());
-		Expression[] ids = s.getIndices();
-		List<Expression> indices = new LinkedList<Expression>();
-		for (int i = 0; i < ids.length; i++) {
-			indices.add(processExpression(ids[i]));
-		}
-		Expression value = processExpression(s.getValue());
-		return new ArrayStoreStatement(s.getSourceLocation(), base, indices.toArray(new Expression[indices.size()]),
-				value);
 	}
 
 	@Override
