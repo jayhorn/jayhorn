@@ -35,6 +35,7 @@ import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.TupleExpression;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
@@ -42,6 +43,7 @@ import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceLikeType;
 import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.type.TupleType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
@@ -93,29 +95,35 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkNewExpr(NewExpr arg0) {
 		Type newType = this.lookupType(arg0.getBaseType());
-
 		// make this an application class to make sure that we analyze the
 		// constructor
 		arg0.getBaseType().getSootClass().setApplicationClass();
-
 		MethodInfo mi = this.statementSwitch.getMethodInfo();
-		Variable newLocal = mi.createFreshLocal("$new", newType, true, true);
-		// add: assume newLocal!=null
-		this.statementSwitch.push(new AssumeStatement(statementSwitch.getCurrentLoc(),
-				new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
-						new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
-						this.mkNullConstant())));
-		// TODO add: assume newLocal instanceof newType
-		// Expression instof = foo(new
-		// IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
-		// newType);
-		// this.statementSwitch.push(
-		// new AssumeStatement(statementSwitch.getCurrentLoc(),
-		// new BinaryExpression(this.statementSwitch.getCurrentLoc(),
-		// BinaryOperator.Ne, instof,
-		// IntegerLiteral.zero())));
 
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
+		if (soottocfg.Options.v().useTupleEncoding()) {
+			TupleType ttype = (TupleType)newType;
+			Type refType = ttype.getElementTypes().get(0);
+			Variable newLocal = mi.createFreshLocal("$new", refType, true, true);
+			
+			this.statementSwitch.push(new AssumeStatement(statementSwitch.getCurrentLoc(),
+					new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
+							new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
+							this.mkNullConstant())));
+
+			List<Expression> elem = new LinkedList<Expression>();
+			elem.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal));
+			//TODO: add more tuple fields here.
+			return new TupleExpression(statementSwitch.getCurrentLoc(), elem);
+		} else {
+			Variable newLocal = mi.createFreshLocal("$new", newType, true, true);
+			// add: assume newLocal!=null
+			this.statementSwitch.push(new AssumeStatement(statementSwitch.getCurrentLoc(),
+					new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
+							new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
+							this.mkNullConstant())));
+
+			return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
+		}
 	}
 
 	// new InstanceOfExpression(, new
@@ -296,22 +304,16 @@ public abstract class BasicMemoryModel extends MemoryModel {
 
 	protected ReferenceLikeType lookupRefLikeType(RefLikeType t) {
 		if (t instanceof ArrayType) {
-			// ArrayType at = (ArrayType) t;
-			// Type baseType = lookupType(at.baseType);
-			// List<Type> ids = new LinkedList<Type>();
-			// for (int i = 0; i < at.numDimensions; i++) {
-			// ids.add(IntType.instance());
-			// }
-			// return new MapType(ids, baseType);
-			// TODO test!
-			//
-			// SootClass fakeArrayClass =
-			// SootTranslationHelpers.v().getFakeArrayClass(at);
-			// return lookupRefLikeType(RefType.v(fakeArrayClass));	
-			
 			throw new RuntimeException("Remove Arrays first. " + t);
 		} else if (t instanceof RefType) {
-			return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)));
+			if (soottocfg.Options.v().useTupleEncoding()) {
+				List<Type> tupleTypes = new LinkedList<Type>();
+				tupleTypes.add(new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t))));
+				// TODO add fields depending on encoding.
+				return new TupleType(tupleTypes);
+			} else {
+				return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)));
+			}
 		} else if (t instanceof NullType) {
 			return (ReferenceType) this.nullConstant.getType();
 		}
@@ -381,7 +383,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	}
 
 	protected Variable lookupField(SootField field) {
-		if (!this.fieldGlobals.containsKey(field)) {			
+		if (!this.fieldGlobals.containsKey(field)) {
 			final String fieldName = field.getDeclaringClass().getName() + "." + field.getName();
 			Variable fieldVar = this.program.lookupGlobalVariable(fieldName, this.lookupType(field.getType()),
 					field.isFinal(), field.isStatic());

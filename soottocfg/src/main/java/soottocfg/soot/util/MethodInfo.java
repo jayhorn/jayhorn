@@ -184,6 +184,14 @@ public class MethodInfo {
 	}
 
 	public Variable createFreshLocal(String prefix, Type t, boolean constant, boolean unique) {
+
+		
+//		List<Type> elementTypes = new LinkedList<Type>();
+//		elementTypes.add(newType);
+//		TupleType ttype = new TupleType(elementTypes);
+//		TupleVariable tupleVar = new TupleVariable("$new", ttype, true, true);
+//		
+
 		Variable v = new Variable(prefix + this.freshLocals.size(), t, constant, unique);
 		this.freshLocals.add(v);
 		return v;

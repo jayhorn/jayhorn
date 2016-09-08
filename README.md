@@ -16,5 +16,8 @@ For information on how to download and run JayHorn check [our website](http://ja
 
 Join the chat [![Join the chat at https://gitter.im/jayhorn/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jayhorn/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+## Waffle Statistics
 Waffel.io [![Stories in Ready](https://badge.waffle.io/jayhorn/jayhorn.svg?label=ready&title=Ready)](http://waffle.io/jayhorn/jayhorn)
+
+
 [![Throughput Graph](https://graphs.waffle.io/jayhorn/jayhorn/throughput.svg)](https://waffle.io/jayhorn/jayhorn/metrics/throughput)

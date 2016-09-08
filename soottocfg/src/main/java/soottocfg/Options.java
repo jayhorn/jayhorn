@@ -67,6 +67,20 @@ public class Options {
 		this.resolveVirtualCalls = r;
 	}
 	
+	/**
+	 * Encode references as tuples containing 
+	 * dynamic type, etc.
+	 */
+	private boolean tupleEncoding = false;
+	
+	public boolean useTupleEncoding() {
+		return this.tupleEncoding;
+	}
+	
+	public void setTupleEncoding(boolean val) {
+		this.tupleEncoding = val;
+	}
+	
 	/* 
 	 * Create Assertions For Uncaught Exceptions
 	 */

@@ -20,6 +20,7 @@ import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.type.TupleType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -45,7 +46,7 @@ public class CfgStubber {
 				if (method.getMethodName().contains(SootMethod.constructorName)) {
 					//TODO
 					Variable thisPointer = method.getInParams().get(0);
-					ReferenceType rt = (ReferenceType)thisPointer.getType();
+					ReferenceType rt = getRefTypeFrom(thisPointer);
 					
 					List<Expression> rhs = new LinkedList<Expression>();
 					int i=0;
@@ -66,7 +67,7 @@ public class CfgStubber {
 			} else if (method.isProgramEntryPoint()) {
 				if (method.getInParams().size() == 1 && method.getMethodName().contains("main")) {
 					Variable argsParam = method.getInParams().get(0);
-					ReferenceType argsType = (ReferenceType) argsParam.getType();
+					ReferenceType argsType = getRefTypeFrom(argsParam);
 					CfgBlock entry = method.getSource();
 					SourceLocation loc = method.getLocation();
 					Variable sizeLocal = new Variable("undef_size", IntType.instance());
@@ -79,7 +80,7 @@ public class CfgStubber {
 					List<Expression> rhs = new LinkedList<Expression>();
 					rhs.add(new IdentifierExpression(loc, sizeLocal));
 					rhs.add(new IdentifierExpression(loc, argsType.getClassVariable()));
-					ClassVariable c = ((ReferenceType) argsParam.getType()).getClassVariable();
+					ClassVariable c = argsType.getClassVariable();
 					rhs.add(new IdentifierExpression(loc, c));
 					// this is an array, so initialize the remaining fields with
 					// sth as well
@@ -94,9 +95,15 @@ public class CfgStubber {
 				}
 			}
 		}
-		
-		
-		
 	}
 
+	private ReferenceType getRefTypeFrom(Variable var) {
+		ReferenceType rt;
+		if (soottocfg.Options.v().useTupleEncoding()) {
+			rt = (ReferenceType)((TupleType)var.getType()).getElementTypes().get(0);
+		} else {
+			rt = (ReferenceType)var.getType();
+		}
+		return rt;
+	}
 }

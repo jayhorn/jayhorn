@@ -16,7 +16,6 @@ before_install:
 
 script:   
    - gradle check
-   - travis_wait 30 gradle integration_test || true
 
 after_success:
    - gradle jacocoRootReport coveralls

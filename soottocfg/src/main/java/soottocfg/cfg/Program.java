@@ -46,6 +46,11 @@ public class Program {
 	public Variable[] getGlobalVariables() {
 		return this.globalVariables.values().toArray(new Variable[this.globalVariables.size()]);
 	}
+	
+	public Map<String, Variable> getGlobalsMap() {
+		return this.globalVariables;
+	}
+	
 
 	public Variable createFreshGlobal(String prefix, Type t) {
 		final String vname = prefix + this.globalVariables.size();

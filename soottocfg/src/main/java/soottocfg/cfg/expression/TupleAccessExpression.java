@@ -9,8 +9,8 @@ import java.util.Set;
 import com.google.common.base.Preconditions;
 
 import soottocfg.cfg.SourceLocation;
+import soottocfg.cfg.type.TupleType;
 import soottocfg.cfg.type.Type;
-import soottocfg.cfg.variable.TupleVariable;
 import soottocfg.cfg.variable.Variable;
 
 /**
@@ -23,16 +23,17 @@ public class TupleAccessExpression extends Expression {
 	 * 
 	 */
 	private static final long serialVersionUID = -1822090397563051877L;
-	private final TupleVariable tupleVariable;
+	private final Variable tupleVariable;
 	private final Integer position;
 	
 	/**
 	 * @param loc
 	 */
-	public TupleAccessExpression(SourceLocation loc, TupleVariable tvar, int position) {
+	public TupleAccessExpression(SourceLocation loc, Variable tvar, int position) {
 		super(loc);
 		Preconditions.checkNotNull(tvar);
-		Preconditions.checkPositionIndex(position, tvar.getType().getElementTypes().size(), "Index "+position+" out of bounds for type "+tvar.getType());
+		Preconditions.checkArgument(tvar.getType() instanceof TupleType);
+		Preconditions.checkPositionIndex(position, ((TupleType)tvar.getType()).getElementTypes().size(), "Index "+position+" out of bounds for type "+tvar.getType());
 		this.tupleVariable = tvar; 
 		this.position = position;
 	}
@@ -58,7 +59,7 @@ public class TupleAccessExpression extends Expression {
 	 */
 	@Override
 	public Type getType() {		
-		return this.tupleVariable.getType().getElementTypes().get(this.position);
+		return ((TupleType)this.tupleVariable.getType()).getElementTypes().get(this.position);
 	}
 
 	/* (non-Javadoc)

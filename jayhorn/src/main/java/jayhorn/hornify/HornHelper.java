@@ -82,11 +82,12 @@ public class HornHelper {
 	public ProverFun freshHornPredicate(Prover p, String name, List<Variable> sortedVars) {
 		return genHornPredicate(p, name, sortedVars);
 	}
-
+	
 	public ProverFun genHornPredicate(Prover p, String name, List<Variable> sortedVars) {
 		final List<ProverType> types = new LinkedList<ProverType>();
-		for (Variable v : sortedVars)
+		for (Variable v : sortedVars) {
 			types.add(getProverType(p, v.getType()));
+		}
 		return p.mkHornPredicate(name, types.toArray(new ProverType[types.size()]));
 	}
 	
