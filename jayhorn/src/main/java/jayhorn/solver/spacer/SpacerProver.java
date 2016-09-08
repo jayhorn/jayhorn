@@ -81,10 +81,7 @@ public class SpacerProver implements Prover {
 
 	public SpacerProver() {
 		com.microsoft.z3.Global.ToggleWarningMessages(true);
-
 		this.cfg.put("model", "true");
-
-		// this.ctx = new Context(this.cfg);
 		this.ctx = new Context(this.cfg);
 		createSolver(useHornLogic);
 	}
