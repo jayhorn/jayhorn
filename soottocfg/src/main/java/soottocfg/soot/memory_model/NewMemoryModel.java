@@ -54,7 +54,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 
 	private static Variable staticFieldContainerVariable;
 	private static List<SootField> usedStaticFields;
-	private static final String globalsClassName = "JayhornGlobals";
+	public static final String globalsClassName = "JayhornGlobals";
 	private static final String globalsClassVarName = "JayhornGlobalsClassVar";
 	
 	protected static void resetGlobalState() {

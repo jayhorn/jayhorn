@@ -50,6 +50,7 @@ import soottocfg.soot.transformers.SpecClassTransformer;
 import soottocfg.soot.transformers.SwitchStatementRemover;
 import soottocfg.soot.transformers.VirtualCallResolver;
 import soottocfg.soot.util.DuplicatedCatchDetection;
+import soottocfg.soot.util.FlowBasedPointsToAnalysis;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.soot.visitors.SootStmtSwitch;
@@ -121,6 +122,12 @@ public class SootToCfg {
 
 		CfgStubber stubber = new CfgStubber();
 		stubber.stubUnboundFieldsAndMethods(program);
+		
+		// alias analysis
+		if (Options.v().memPrecision() >= 3) {
+			FlowBasedPointsToAnalysis pta = new FlowBasedPointsToAnalysis();
+			pta.run(program);
+		}
 
 		// simplify push-pull
 		if (Options.v().memPrecision() >= 1) {

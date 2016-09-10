@@ -18,6 +18,7 @@ import org.jgrapht.graph.DefaultEdge;
 import com.google.common.base.Optional;
 import com.google.common.base.Verify;
 
+import soottocfg.Options;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
@@ -26,6 +27,7 @@ import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.soot.util.FlowBasedPointsToAnalysis;
 import soottocfg.util.Pair;
 
 /**
@@ -159,7 +161,7 @@ public class InterProceduralPullPushOrdering {
 			boolean stopTravese = false;
 			if (cur.stmt.isPresent() && cur.stmt.get() instanceof PushStatement) {
 				PushStatement push = (PushStatement) cur.stmt.get();
-				if (mayAlias(push, pull)) {					
+				if (mayAlias(push, pull)) {		
 					ret.add(cur);
 					if (mustShadow(push, pull)) {
 						stopTravese = true;
@@ -190,12 +192,8 @@ public class InterProceduralPullPushOrdering {
 	 * @return true if the objects in pull and push may alias.
 	 */
 	protected boolean mayAlias(PushStatement push, PullStatement pull) {
-		// TODO implement using points-to information
-		// true is a sound approximation
-		
-		// Intermediate solution:
-		// we approximate by saying that two objects may only alias if their types
-		// are compatible (i.e., either sub or supertype relation).
+		if (Options.v().memPrecision() >= 3)
+			return FlowBasedPointsToAnalysis.mayAlias(pull.getObject(), push.getObject());
 		return canAffectPull(push, pull);
 	}
 
@@ -220,8 +218,8 @@ public class InterProceduralPullPushOrdering {
 	 * @return true if push shadows all preceding pushs that may affect pull. False otherwise.
 	 */
 	protected boolean mustShadow(PushStatement push, PullStatement pull) {
-		// TODO implement using points-to information
-		// false is a sound approximation
+		if (Options.v().memPrecision() >= 3)
+			return FlowBasedPointsToAnalysis.mustAlias(pull.getObject(), push.getObject());
 		return false;
 	}
 

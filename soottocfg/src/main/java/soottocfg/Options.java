@@ -43,7 +43,7 @@ public class Options {
 	 * Precision of push-pull memory model.
 	 */
 	
-	private int memPrecision = 2;
+	private int memPrecision = 3;
 	
 	public int memPrecision() { 
 		return memPrecision;

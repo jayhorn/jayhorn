@@ -26,6 +26,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 
+import soot.SootMethod;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Node;
 import soottocfg.cfg.Program;
@@ -96,7 +97,15 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	public SourceLocation getLocation() {
 		return location;
 	}
-
+	
+	public boolean isConstructor() {
+		return this.methodName.contains(SootMethod.constructorName);
+	}
+	
+	public boolean isStaticInitializer() {
+		return this.methodName.contains(SootMethod.staticInitializerName);
+	}
+	
 	public void initialize(Variable thisVariable, List<Variable> returnVariables,
 			Collection<Variable> locals, CfgBlock source, boolean isEntryPoint) {
 		Preconditions.checkNotNull(parameterList, "Parameter list must not be null");

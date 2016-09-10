@@ -60,8 +60,8 @@ public class CfgStubber {
 						}
 //						System.err.println("********* "+v);						
 					}
-					PushStatement pack = new PushStatement(loc, rt.getClassVariable(), new IdentifierExpression(loc, thisPointer), rhs);
-					block.addStatement(pack);
+					PushStatement push = new PushStatement(loc, rt.getClassVariable(), new IdentifierExpression(loc, thisPointer), rhs);
+					block.addStatement(push);
 				}
 				
 			} else if (method.isProgramEntryPoint()) {
@@ -90,8 +90,8 @@ public class CfgStubber {
 						Variable undefLocal = new Variable("undef_field" + (i++), IntType.instance());
 						rhs.add(new IdentifierExpression(loc, undefLocal));
 					}
-					PushStatement pack = new PushStatement(loc, c, new IdentifierExpression(loc, argsParam), rhs);
-					entry.addStatement(1, pack);
+					PushStatement push = new PushStatement(loc, c, new IdentifierExpression(loc, argsParam), rhs);
+					entry.addStatement(1, push);
 				}
 			}
 		}
