@@ -5,12 +5,11 @@ package jayhorn.hornify.encoder;
 
 import java.math.BigInteger;
 import java.util.Map;
-import java.util.Set;
 
+import jayhorn.hornify.ClassTypeEnumerator;
 import jayhorn.hornify.HornHelper;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
-import soottocfg.cfg.Program;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
@@ -18,7 +17,6 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
-import soottocfg.cfg.util.GraphUtil;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 
@@ -28,23 +26,21 @@ import soottocfg.cfg.variable.Variable;
  */
 public class ExpressionEncoder {
 
-	private final Prover p;
-	private final Map<ClassVariable, Integer> typeIds;
-	private final Program program;
+	private final Prover p;	
+	private final ClassTypeEnumerator classEnumerator;
 	/**
 	 * 
 	 */
-	public ExpressionEncoder(Prover p, Program prog, Map<ClassVariable, Integer> typeIds) {
+	public ExpressionEncoder(Prover p, ClassTypeEnumerator classEnumerator) {
 		this.p = p;
-		this.program = prog;
-		this.typeIds = typeIds;
+		this.classEnumerator = classEnumerator;
 	}
 
 	public ProverExpr exprToProverExpr(Expression e, Map<Variable, ProverExpr> varMap) {
 		if (e instanceof IdentifierExpression) {
 			Variable var = ((IdentifierExpression) e).getVariable();
 			if (var instanceof ClassVariable) {
-				return p.mkLiteral(typeIds.get(var));
+				return p.mkLiteral(classEnumerator.getTypeID((ClassVariable)var));
 			} else {
 				ProverExpr res = varMap.get(var);
 				if (res == null)
@@ -91,12 +87,9 @@ public class ExpressionEncoder {
 
 					final ClassVariable var = (ClassVariable) ((IdentifierExpression) be.getRight()).getVariable();
 
-					final Set<ClassVariable> subTypes = GraphUtil.getForwardReachableVertices(program.getTypeGraph(),
-							var);
-
 					ProverExpr disj = p.mkLiteral(false);
-					for (ClassVariable st : subTypes) {
-						disj = p.mkOr(disj, p.mkEq(left, p.mkLiteral(typeIds.get(st))));
+					for (Integer i : this.classEnumerator.getSubtypeIDs(var)) {
+						disj = p.mkOr(disj, p.mkEq(left, p.mkLiteral(i)));
 					}
 
 					return disj;

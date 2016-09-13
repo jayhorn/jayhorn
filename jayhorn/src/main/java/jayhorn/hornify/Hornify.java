@@ -54,7 +54,7 @@ public class Hornify {
 		HornHelper.hh().mkPPOrdering(program);
 
 		Log.info("Building type hierarchy ... ");
-		ClassTypeEnumerator cType = new ClassTypeEnumerator(program);
+		ClassTypeEnumerator classEnumerator = new ClassTypeEnumerator(program);
 
 		Log.info("Generating Method Contract ... ");
 		HornHelper.hh().mkMethodContract(program, prover);
@@ -62,9 +62,8 @@ public class Hornify {
 		Log.info("Transform Program Methods into Horn Clauses ... ");
 
 		for (Method method : program.getMethods()) {
-			final MethodEncoder encoder = new MethodEncoder(prover, program, method, cType);
-			encoder.encode();
-			clauses.addAll(encoder.clauses);		
+			final MethodEncoder encoder = new MethodEncoder(prover, method, classEnumerator);
+			clauses.addAll(encoder.encode());		
 		}
 		hornToSMTLIBFile(clauses, 0, prover);
 		hornToFile(clauses, 0);  

@@ -168,26 +168,12 @@ public class StatementEncoder {
 			final PullStatement pull = (PullStatement) s;
 			final List<IdentifierExpression> lhss = pull.getLeft();
 
-			/*
-			 * TODO
-			 * Martin's hack to handle the substype problem =============
-			 */
-			// final Set<ClassVariable> possibleTypes =
-			// ppOrdering.getBrutalOverapproximationOfPossibleType(pull);
 			final Set<ClassVariable> possibleTypes = HornHelper.hh().ppOrdering
 					.getBrutalOverapproximationOfPossibleType(pull);
-			// final List<ProverExpr> invariantDisjunction = new
-			// LinkedList<ProverExpr>();
+
 			for (ClassVariable sig : possibleTypes) {
-				// System.err.println("Possible type "+sig.getName() + " of "
-				// +us.getClassSignature().getName());
+
 				final ProverFun inv = HornHelper.hh().getClassInvariant(p, sig);
-
-				// Verify.verify(sig.getAssociatedFields()[sig.getAssociatedFields().length-1]
-				// .getName().equals(PushIdentifierAdder.LP),
-				// "Class is missing " + PushIdentifierAdder.LP + " field: " +
-				// sig);
-
 				int totalFields = Math.max(sig.getAssociatedFields().length, lhss.size());
 
 				final ProverExpr[] invArgs = new ProverExpr[1 + totalFields];
@@ -224,11 +210,6 @@ public class StatementEncoder {
 			final List<Expression> rhss = ps.getRight();
 			final ProverFun inv = HornHelper.hh().getClassInvariant(p, sig);
 
-			// check that last field is "lastpush" and that lhs and rhs lengths
-			// are equal
-			// Verify.verify(sig.getAssociatedFields()[sig.getAssociatedFields().length-1]
-			// .getName().equals(PushIdentifierAdder.LP),
-			// "Class is missing " + PushIdentifierAdder.LP + " field: " + sig);
 			Verify.verify(sig.getAssociatedFields().length == rhss.size(), "Unequal lengths: " + sig + " and " + rhss);
 
 			final ProverExpr[] invArgs = new ProverExpr[1 + rhss.size()];
