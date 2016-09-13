@@ -29,9 +29,9 @@ public class HornHelper {
 	private static HornHelper hh;
 
 	public static void resetInstance() {
-		hh = null;	
+		hh = null;
 	}
-		
+
 	public static HornHelper hh() {
 		if (null == hh) {
 			hh = new HornHelper();
@@ -43,17 +43,17 @@ public class HornHelper {
 	}
 
 	private Map<String, MethodContract> methodContracts = new LinkedHashMap<String, MethodContract>();
-	
+
 	private Map<ClassVariable, ProverFun> classInvariants = new LinkedHashMap<ClassVariable, ProverFun>();
-	
-	
+
 	public InterProceduralPullPushOrdering ppOrdering;
-	
+
 	/**
 	 * Make InterProcedural Push/Pull Ordering
+	 * 
 	 * @param program
 	 */
-	public void mkPPOrdering(Program program){
+	public void mkPPOrdering(Program program) {
 		ppOrdering = new InterProceduralPullPushOrdering(program.getEntryPoints()[0]);
 	}
 
@@ -78,11 +78,10 @@ public class HornHelper {
 		throw new IllegalArgumentException("don't know what to do with " + t);
 	}
 
-	
 	public ProverFun freshHornPredicate(Prover p, String name, List<Variable> sortedVars) {
 		return genHornPredicate(p, name, sortedVars);
 	}
-	
+
 	public ProverFun genHornPredicate(Prover p, String name, List<Variable> sortedVars) {
 		final List<ProverType> types = new LinkedList<ProverType>();
 		for (Variable v : sortedVars) {
@@ -90,24 +89,30 @@ public class HornHelper {
 		}
 		return p.mkHornPredicate(name, types.toArray(new ProverType[types.size()]));
 	}
-	
+
 	private int varNum = 0;
 
 	public int newVarNum() {
 		return varNum++;
 	}
-	
 
-	public void createVarMap(Prover p, List<Variable> cfgVars, List<ProverExpr> proverVars,
-			Map<Variable, ProverExpr> varMap) {
+	public List<ProverExpr> findOrCreateProverVar(Prover p, List<Variable> cfgVars, Map<Variable, ProverExpr> varMap) {
+		List<ProverExpr> res = new LinkedList<ProverExpr>();
 		for (Variable v : cfgVars) {
-			ProverExpr e = varMap.get(v);
-			if (e == null) {
-				e = p.mkHornVariable(v.getName() + "_" + newVarNum(), getProverType(p, v.getType()));
-				varMap.put(v, e);
+			if (!varMap.containsKey(v)) {
+				varMap.put(v, createVariable(p, v));
 			}
-			proverVars.add(e);
+			res.add(varMap.get(v));
 		}
+		return res;
+	}
+
+	public ProverExpr createVariable(Prover p, Variable v) {
+		return p.mkHornVariable(v.getName() + "_" + newVarNum(), getProverType(p, v.getType()));
+	}
+
+	public ProverExpr createVariable(Prover p, String prefix, Type tp) {
+		return p.mkHornVariable(prefix+ newVarNum(), getProverType(p, tp));
 	}
 
 	public List<Variable> setToSortedList(Set<Variable> set) {
@@ -122,8 +127,8 @@ public class HornHelper {
 		}
 		return res;
 	}
-	
-	public void mkMethodContract(Program program, Prover p){	
+
+	public void mkMethodContract(Program program, Prover p) {
 		for (Method method : program.getMethods()) {
 			final List<Variable> inParams = new ArrayList<Variable>();
 			inParams.addAll(method.getInParams());
@@ -138,8 +143,8 @@ public class HornHelper {
 				}
 			}
 
-			final ProverFun prePred = freshHornPredicate(p, method.getMethodName() + "_pre", inParams);
-			final ProverFun postPred = freshHornPredicate(p, method.getMethodName() + "_post", postParams);
+			final ProverFun prePred = genHornPredicate(p, method.getMethodName() + "_pre", inParams);
+			final ProverFun postPred = genHornPredicate(p, method.getMethodName() + "_post", postParams);
 
 			Log.debug("method: " + method.getMethodName());
 			Log.debug("pre: " + inParams);
@@ -151,24 +156,26 @@ public class HornHelper {
 			methodContracts.put(method.getMethodName(), new MethodContract(method, pre, post));
 		}
 	}
-	
+
 	/**
 	 * Return the method contract
+	 * 
 	 * @param methodName
 	 * @return
 	 */
-	public MethodContract getMethodContract(String methodName){
+	public MethodContract getMethodContract(String methodName) {
 		return methodContracts.get(methodName);
 	}
-	
+
 	private int hack_counter = 0;
-	
-	public int getHackCounter(){
+
+	public int getHackCounter() {
 		return hack_counter++;
 	}
-	
+
 	/**
 	 * TODO this should in its own class
+	 * 
 	 * @param p
 	 * @param sig
 	 * @return

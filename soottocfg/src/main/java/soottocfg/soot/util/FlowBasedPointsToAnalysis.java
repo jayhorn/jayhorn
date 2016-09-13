@@ -31,7 +31,6 @@ import soottocfg.soot.transformers.ArrayTransformer;
 public class FlowBasedPointsToAnalysis {
 	
 	public void run(Program program) {
-		
 		// first add allocation site / alias class to all constructor calls
 		for (Method m : program.getMethods()) {
 			if (m.isConstructor()) {

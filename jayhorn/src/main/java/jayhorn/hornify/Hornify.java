@@ -12,13 +12,13 @@ import java.util.Set;
 import com.google.common.base.Verify;
 
 import jayhorn.Log;
+import jayhorn.hornify.encoder.MethodEncoder;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.variable.ClassVariable;
 
 /**
  * Class to hornify Java program
@@ -54,10 +54,7 @@ public class Hornify {
 		HornHelper.hh().mkPPOrdering(program);
 
 		Log.info("Building type hierarchy ... ");
-		ClassType cType = new ClassType();
-		for (ClassVariable var : program.getTypeGraph().vertexSet()){
-			cType.addClassVar(var);
-		}
+		ClassTypeEnumerator cType = new ClassTypeEnumerator(program);
 
 		Log.info("Generating Method Contract ... ");
 		HornHelper.hh().mkMethodContract(program, prover);

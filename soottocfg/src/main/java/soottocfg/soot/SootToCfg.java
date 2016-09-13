@@ -181,62 +181,77 @@ public class SootToCfg {
 		SootTranslationHelpers.v().setCurrentClass(sc);
 		for (SootMethod sm : sc.getMethods()) {
 			if (sm.isConcrete()) {
-				if (sm.equals(SootTranslationHelpers.v().getAssertMethod())) {
-					// Do not translate the assertion method.
-					continue;
-				}
-				SootTranslationHelpers.v().setCurrentMethod(sm);
-
-				try {
-					Body body = null;
-					try {
-						body = sm.retrieveActiveBody();
-						// CopyPropagator.v().transform(body);
-					} catch (RuntimeException e) {
-						// TODO: print warning that body couldn't be retrieved.
-						continue;
-					}
-					MethodInfo mi = new MethodInfo(body.getMethod(),
-							SootTranslationHelpers.v().getCurrentSourceFileName());
-
-					// pre-calculate when to pull/push
-					MemoryModel mm = SootTranslationHelpers.v().getMemoryModel();
-					if (mm instanceof NewMemoryModel) {
-						((NewMemoryModel) mm).clearFieldToLocalMap();
-					}
-
-					// System.err.println(sm.getSignature()+"\n"+body);
-					SootStmtSwitch ss = new SootStmtSwitch(body, mi);
-					mi.setSource(ss.getEntryBlock());
-
-					mi.finalizeAndAddToProgram();
-					Method m = mi.getMethod();
-
-					if (debug) {
-						// System.out.println("adding method: " +
-						// m.getMethodName());
-						getProgram().addEntryPoint(m);
-					}
-				} catch (RuntimeException e) {
-					System.err.println("Soot failed to parse " + sm.getSignature());
-					e.printStackTrace(System.err);
-					// return;
-					throw e;
-				}
+				constructCfg(sm);
 			}
 		}
-
 	}
 
+	private void constructCfg(SootMethod sm) {
+		if (sm.equals(SootTranslationHelpers.v().getAssertMethod())) {
+			// Do not translate the assertion method.
+			return;
+		}
+		SootTranslationHelpers.v().setCurrentMethod(sm);
+
+		try {
+			Body body = null;
+			try {
+				body = sm.retrieveActiveBody();
+				// CopyPropagator.v().transform(body);
+			} catch (RuntimeException e) {
+				// TODO: print warning that body couldn't be retrieved.
+				return;
+			}
+			MethodInfo mi = new MethodInfo(body.getMethod(),
+					SootTranslationHelpers.v().getCurrentSourceFileName());
+
+			// pre-calculate when to pull/push
+			MemoryModel mm = SootTranslationHelpers.v().getMemoryModel();
+			if (mm instanceof NewMemoryModel) {
+				((NewMemoryModel) mm).clearFieldToLocalMap();
+			}
+
+			// System.err.println(sm.getSignature()+"\n"+body);
+			SootStmtSwitch ss = new SootStmtSwitch(body, mi);
+			mi.setSource(ss.getEntryBlock());
+
+			mi.finalizeAndAddToProgram();
+			Method m = mi.getMethod();
+
+			if (debug) {
+				// System.out.println("adding method: " +
+				// m.getMethodName());
+				getProgram().addEntryPoint(m);
+			}
+		} catch (RuntimeException e) {
+			System.err.println("Soot failed to parse " + sm.getSignature());
+			e.printStackTrace(System.err);
+			// return;
+			throw e;
+		}
+	}
+	
+	
 	private void constructCfg() {
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
 			// if (sc == SootTranslationHelpers.v().getAssertionClass()) {
 			// continue; // no need to process this guy.
 			// }
-			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass() && !sc.isJavaLibraryClass()
+			if (sc.resolvingLevel() >= SootClass.SIGNATURES) {
+				if (sc.isApplicationClass() && !sc.isJavaLibraryClass()
 					&& !sc.isLibraryClass()) {
-				constructCfg(sc);
+					constructCfg(sc);	
+				} else {
+					//TODO: this is a hack
+					//also translate library methods for which
+					//we generate a stub.
+					for (SootMethod sm : sc.getMethods()) {
+						if (sm.hasActiveBody() && sm.getSignature().contains("value")) {
+							constructCfg(sm);
+						}
+					}
+				}				
 			}
 		}
 		// now set the entry points.

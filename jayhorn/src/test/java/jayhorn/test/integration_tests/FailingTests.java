@@ -81,7 +81,7 @@ public class FailingTests {
 			SootToCfg soot2cfg = new SootToCfg();
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			jayhorn.Options.v().setTimeout(5);
-			jayhorn.Options.v().setPrintHorn(true);
+			jayhorn.Options.v().setPrintHorn(true);			
 			
 			Program program = soot2cfg.getProgram();
 	  		Checker hornChecker = new Checker(factory);

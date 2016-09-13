@@ -78,7 +78,7 @@ public class MethodStubber extends AbstractSceneTransformer {
 			//havoc the exception global.
 			Type exType = SootTranslationHelpers.v().getExceptionGlobal().getType();
 			SootMethod havocCall = SootTranslationHelpers.v().getHavocMethod(exType);
-			Local havocLocal = Jimple.v().newLocal("havoc", exType);
+			Local havocLocal = Jimple.v().newLocal("havocEx", exType);
 			body.getLocals().add(havocLocal);
 			body.getUnits().add(Jimple.v().newAssignStmt(havocLocal, Jimple.v().newStaticInvokeExpr(havocCall.makeRef())));
 			body.getUnits().add(Jimple.v().newAssignStmt(Jimple.v().newStaticFieldRef(SootTranslationHelpers.v().getExceptionGlobal().makeRef()) , havocLocal));		

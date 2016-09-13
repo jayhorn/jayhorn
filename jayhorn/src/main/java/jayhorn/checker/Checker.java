@@ -4,8 +4,14 @@
 package jayhorn.checker;
 
 
-import jayhorn.Log;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import com.google.common.base.Stopwatch;
+
+import jayhorn.Log;
 import jayhorn.Options;
 import jayhorn.hornify.HornHelper;
 import jayhorn.hornify.HornPredicate;
@@ -19,13 +25,6 @@ import jayhorn.utils.Stats;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.variable.Variable;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author teme
@@ -62,9 +61,7 @@ public class Checker {
         prover.push();
         // add an entry clause from the preconditions
         final HornPredicate entryPred = HornHelper.hh().getMethodContract(method.getMethodName()).precondition;
-        final List<ProverExpr> entryVars = new ArrayList<ProverExpr>();
-        final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
-        HornHelper.hh().createVarMap(prover, entryPred.variables, entryVars, varMap);
+        final List<ProverExpr> entryVars = HornHelper.hh().findOrCreateProverVar(prover, entryPred.variables, new HashMap<Variable, ProverExpr>());
 
         final ProverExpr entryAtom = entryPred.predicate.mkExpr(entryVars.toArray(new ProverExpr[0]));
         final ProverHornClause entryClause = prover.mkHornClause(entryAtom, new ProverExpr[0], prover.mkLiteral(true));
