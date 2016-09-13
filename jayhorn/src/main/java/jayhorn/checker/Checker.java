@@ -13,7 +13,7 @@ import com.google.common.base.Stopwatch;
 
 import jayhorn.Log;
 import jayhorn.Options;
-import jayhorn.hornify.HornHelper;
+import jayhorn.hornify.HornEncoderContext;
 import jayhorn.hornify.HornPredicate;
 import jayhorn.hornify.Hornify;
 import jayhorn.solver.Prover;
@@ -45,7 +45,7 @@ public class Checker {
     Log.info("Hornify  ... ");
     Hornify hf = new Hornify(factory);
     Stopwatch toHornTimer = Stopwatch.createStarted();
-    hf.toHorn(program);
+    HornEncoderContext hornContext = hf.toHorn(program);
     Stats.stats().add("ToHorn", String.valueOf(toHornTimer.stop()));
     prover = hf.getProver();
     allClauses.addAll(hf.clauses);
@@ -60,7 +60,7 @@ public class Checker {
       for (Method method : program.getEntryPoints()) {
         prover.push();
         // add an entry clause from the preconditions
-        final HornPredicate entryPred = HornHelper.hh().getMethodContract(method.getMethodName()).precondition;
+        final HornPredicate entryPred = hornContext.getMethodContract(method).precondition;
         final ProverExpr entryAtom = entryPred.instPredicate(new HashMap<Variable, ProverExpr>());
 
         final ProverHornClause entryClause = prover.mkHornClause(entryAtom, new ProverExpr[0], prover.mkLiteral(true));

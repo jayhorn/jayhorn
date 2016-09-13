@@ -43,7 +43,7 @@ public class Hornify {
 	 * Main method to encode into Horn
 	 * @param program
 	 */
-	public void toHorn(Program program){
+	public HornEncoderContext toHorn(Program program){
 		prover = factory.spawn();
 		prover.setHornLogic(true);
 
@@ -51,22 +51,19 @@ public class Hornify {
 		onlyOneEntry(program);
 
 		Log.info("Interprocedural Push/Pull Ordering");
-		HornHelper.hh().mkPPOrdering(program);
-
 		Log.info("Building type hierarchy ... ");
-		ClassTypeEnumerator classEnumerator = new ClassTypeEnumerator(program);
-
 		Log.info("Generating Method Contract ... ");
-		HornHelper.hh().mkMethodContract(program, prover);
+		HornEncoderContext hornContext = new HornEncoderContext(prover, program);
 
 		Log.info("Transform Program Methods into Horn Clauses ... ");
 
 		for (Method method : program.getMethods()) {
-			final MethodEncoder encoder = new MethodEncoder(prover, method, classEnumerator);
+			final MethodEncoder encoder = new MethodEncoder(prover, method, hornContext);
 			clauses.addAll(encoder.encode());		
 		}
 		hornToSMTLIBFile(clauses, 0, prover);
-		hornToFile(clauses, 0);  
+		hornToFile(clauses, 0);
+		return hornContext;
 	}
 
 

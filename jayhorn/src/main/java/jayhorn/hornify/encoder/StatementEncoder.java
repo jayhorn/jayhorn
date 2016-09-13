@@ -9,12 +9,12 @@ import java.util.Set;
 
 import com.google.common.base.Verify;
 
+import jayhorn.hornify.HornEncoderContext;
 import jayhorn.hornify.HornHelper;
 import jayhorn.hornify.HornPredicate;
 import jayhorn.hornify.MethodContract;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
@@ -35,10 +35,12 @@ public class StatementEncoder {
 	private final Prover p;
 
 	private final ExpressionEncoder expEncoder;
+	private final HornEncoderContext hornContext;
 
 	public StatementEncoder(Prover p, ExpressionEncoder expEnc) {
 		this.p = p;
 		this.expEncoder = expEnc;
+		this.hornContext = expEncoder.getContext();
 	}
 
 	/**
@@ -159,7 +161,7 @@ public class StatementEncoder {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
 		final Method calledMethod = cs.getCallTarget();
-		final MethodContract contract = HornHelper.hh().getMethodContract(calledMethod.getMethodName());
+		final MethodContract contract = hornContext.getMethodContract(calledMethod);
 
 		Verify.verify(calledMethod.getInParams().size() == cs.getArguments().size()
 				&& calledMethod.getInParams().size() == contract.precondition.variables.size());
@@ -218,41 +220,27 @@ public class StatementEncoder {
 			Map<Variable, ProverExpr> varMap) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
-		final List<IdentifierExpression> lhss = pull.getLeft();
-
-		final Set<ClassVariable> possibleTypes = HornHelper.hh().ppOrdering
+		final Set<ClassVariable> possibleTypes = this.hornContext.ppOrdering
 				.getBrutalOverapproximationOfPossibleType(pull);
 
 		for (ClassVariable sig : possibleTypes) {
 
-			final ProverFun inv = HornHelper.hh().getClassInvariant(p, sig);
-			int totalFields = Math.max(sig.getAssociatedFields().length, lhss.size());
-
-			final ProverExpr[] invArgs = new ProverExpr[1 + totalFields];
-			int cnt = 0;
-			invArgs[cnt++] = expEncoder.exprToProverExpr(pull.getObject(), varMap);
-
-			for (IdentifierExpression lhs : lhss) {
-				final ProverExpr lhsExpr = HornHelper.hh().createVariable(p, "pullRes_", lhs.getType());
-				invArgs[cnt++] = lhsExpr;
-
-				varMap.put(lhs.getVariable(), lhsExpr);
+			final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig);
+			final List<Expression> invariantArgs = new LinkedList<Expression>();
+			invariantArgs.add(pull.getObject());
+			invariantArgs.addAll(pull.getLeft());
+			//we don't have to fill up the missing ones.
+			for (int i=0; i<invariantArgs.size(); i++) {
+				varMap.put(invariant.variables.get(i), expEncoder.exprToProverExpr(invariantArgs.get(i), varMap));			
 			}
-			while (cnt < totalFields + 1) {
-				// fill up the fields that are not being used
-				// this should only happen if sig is a subtype of what we
-				// are trying to pull (and thus declares more fields).
-				final ProverExpr lhsExpr = HornHelper.hh().createVariable(p, "pullStub_",
-						sig.getAssociatedFields()[cnt - 1].getType());
-				invArgs[cnt++] = lhsExpr;
+			for (int i=invariantArgs.size(); i<invariant.variables.size();i++) {
+				final ProverExpr stub = HornHelper.hh().createVariable(p, "pullStub_",invariant.variables.get(i).getType());
+				varMap.put(invariant.variables.get(i), stub);
 			}
-			// invariantDisjunction.add(inv.mkExpr(invArgs));
-
-			final ProverExpr invAtom = inv.mkExpr(invArgs);
+			final ProverExpr invAtom = invariant.instPredicate(varMap);
 			final ProverExpr postAtom = postPred.instPredicate(varMap);
 			
 			clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom }, p.mkLiteral(true)));
-
 		}
 		return clauses;
 	}
@@ -260,26 +248,22 @@ public class StatementEncoder {
 	public List<ProverHornClause> pushToClause(PushStatement ps, HornPredicate postPred, ProverExpr preAtom,
 			Map<Variable, ProverExpr> varMap) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
-
-		final ClassVariable sig = ps.getClassSignature();
-		final List<Expression> rhss = ps.getRight();
-		final ProverFun inv = HornHelper.hh().getClassInvariant(p, sig);
-
-		Verify.verify(sig.getAssociatedFields().length == rhss.size(), "Unequal lengths: " + sig + " and " + rhss);
-
-		final ProverExpr[] invArgs = new ProverExpr[1 + rhss.size()];
-		int cnt = 0;
-		invArgs[cnt++] = expEncoder.exprToProverExpr(ps.getObject(), varMap);
-
-		for (Expression rhs : rhss)
-			invArgs[cnt++] = expEncoder.exprToProverExpr(rhs, varMap);
-
-		final ProverExpr invAtom = inv.mkExpr(invArgs);
+		final ClassVariable sig = ps.getClassSignature();		
+		Verify.verify(sig.getAssociatedFields().length == ps.getRight().size(), "Unequal lengths: " + sig + " and " + ps.getRight());
+		
+		final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig);
+		final List<Expression> invariantArgs = new LinkedList<Expression>();
+		invariantArgs.add(ps.getObject());
+		invariantArgs.addAll(ps.getRight());
+		//assign the variables of the invariant pred to the respective value.
+		for (int i=0; i<invariantArgs.size(); i++) {
+			varMap.put(invariant.variables.get(i), expEncoder.exprToProverExpr(invariantArgs.get(i), varMap));			
+		}
+		final ProverExpr invAtom = invariant.instPredicate(varMap);
 
 		clauses.add(p.mkHornClause(invAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
-
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 		return clauses;
 	}

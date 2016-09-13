@@ -6,7 +6,7 @@ package jayhorn.hornify.encoder;
 import java.math.BigInteger;
 import java.util.Map;
 
-import jayhorn.hornify.ClassTypeEnumerator;
+import jayhorn.hornify.HornEncoderContext;
 import jayhorn.hornify.HornHelper;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
@@ -27,25 +27,26 @@ import soottocfg.cfg.variable.Variable;
 public class ExpressionEncoder {
 
 	private final Prover p;	
-	private final ClassTypeEnumerator classEnumerator;
+	private final HornEncoderContext hornContext;
 	/**
 	 * 
 	 */
-	public ExpressionEncoder(Prover p, ClassTypeEnumerator classEnumerator) {
+	public ExpressionEncoder(Prover p, HornEncoderContext hornContext) {
 		this.p = p;
-		this.classEnumerator = classEnumerator;
+		this.hornContext = hornContext;
 	}
 
+	public HornEncoderContext getContext() {
+		return this.hornContext;
+	}
+	
 	public ProverExpr exprToProverExpr(Expression e, Map<Variable, ProverExpr> varMap) {
 		if (e instanceof IdentifierExpression) {
 			Variable var = ((IdentifierExpression) e).getVariable();
 			if (var instanceof ClassVariable) {
-				return p.mkLiteral(classEnumerator.getTypeID((ClassVariable)var));
+				return p.mkLiteral(hornContext.getTypeID((ClassVariable)var));
 			} else {
-				ProverExpr res = varMap.get(var);
-				if (res == null)
-					throw new RuntimeException("Could not resolve variable " + e);
-				return res;
+				return HornHelper.hh().findOrCreateProverVar(p, var, varMap);
 			}
 		} else if (e instanceof IntegerLiteral) {
 			return p.mkLiteral(BigInteger.valueOf(((IntegerLiteral) e).getValue()));
@@ -88,7 +89,7 @@ public class ExpressionEncoder {
 					final ClassVariable var = (ClassVariable) ((IdentifierExpression) be.getRight()).getVariable();
 
 					ProverExpr disj = p.mkLiteral(false);
-					for (Integer i : this.classEnumerator.getSubtypeIDs(var)) {
+					for (Integer i : this.hornContext.getSubtypeIDs(var)) {
 						disj = p.mkOr(disj, p.mkEq(left, p.mkLiteral(i)));
 					}
 
@@ -107,7 +108,7 @@ public class ExpressionEncoder {
 			case BAnd:
 			case BOr:
 			case Xor:
-				return p.mkVariable("HACK_FreeVar" + HornHelper.hh().getHackCounter(), p.getIntType());
+				return p.mkVariable("HACK_FreeVar" + HornHelper.hh().newVarNum(), p.getIntType());
 			// Verify.verify(left.getType()==p.getIntType() &&
 			// right.getType()==p.getIntType());
 			// return binopFun.mkExpr(new ProverExpr[]{left, right});

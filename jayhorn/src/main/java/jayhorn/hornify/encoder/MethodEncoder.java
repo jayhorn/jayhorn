@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import jayhorn.Log;
-import jayhorn.hornify.ClassTypeEnumerator;
+import jayhorn.hornify.HornEncoderContext;
 import jayhorn.hornify.HornHelper;
 import jayhorn.hornify.HornPredicate;
 import jayhorn.hornify.MethodContract;
@@ -36,14 +36,14 @@ public class MethodEncoder {
 
 	private final ExpressionEncoder expEnc;
 
-	public MethodEncoder(Prover p, Method method, ClassTypeEnumerator classEnumerator) {
+	public MethodEncoder(Prover p, Method method, HornEncoderContext hornContext) {
 		this.p = p;
 		this.method = method;
 
-		MethodContract mc = HornHelper.hh().getMethodContract(method.getMethodName());
+		MethodContract mc = hornContext.getMethodContract(method);
 		this.precondition = mc.precondition;
 		this.postcondition = mc.postcondition;		
-		this.expEnc = new ExpressionEncoder(p, classEnumerator);
+		this.expEnc = new ExpressionEncoder(p, hornContext);
 	}
 
 	/**
