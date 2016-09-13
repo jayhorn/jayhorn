@@ -78,9 +78,6 @@ public class HornHelper {
 		throw new IllegalArgumentException("don't know what to do with " + t);
 	}
 
-	public ProverFun freshHornPredicate(Prover p, String name, List<Variable> sortedVars) {
-		return genHornPredicate(p, name, sortedVars);
-	}
 
 	public ProverFun genHornPredicate(Prover p, String name, List<Variable> sortedVars) {
 		final List<ProverType> types = new LinkedList<ProverType>();
@@ -143,15 +140,12 @@ public class HornHelper {
 				}
 			}
 
-			final ProverFun prePred = genHornPredicate(p, method.getMethodName() + "_pre", inParams);
-			final ProverFun postPred = genHornPredicate(p, method.getMethodName() + "_post", postParams);
-
 			Log.debug("method: " + method.getMethodName());
 			Log.debug("pre: " + inParams);
 			Log.debug("post: " + postParams);
 
-			final HornPredicate pre = new HornPredicate(method.getMethodName() + "_pre", inParams, prePred);
-			final HornPredicate post = new HornPredicate(method.getMethodName() + "_post", postParams, postPred);
+			final HornPredicate pre = new HornPredicate(p, method.getMethodName() + "_pre", inParams);
+			final HornPredicate post = new HornPredicate(p, method.getMethodName() + "_post", postParams);
 
 			methodContracts.put(method.getMethodName(), new MethodContract(method, pre, post));
 		}

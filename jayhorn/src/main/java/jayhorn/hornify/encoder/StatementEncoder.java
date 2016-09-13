@@ -34,12 +34,10 @@ public class StatementEncoder {
 
 	private final Prover p;
 
-	private final List<ProverExpr> methodPreExprs;
 	private final ExpressionEncoder expEncoder;
 
-	public StatementEncoder(Prover p, List<ProverExpr> methodPreExprs, ExpressionEncoder expEnc) {
+	public StatementEncoder(Prover p, ExpressionEncoder expEnc) {
 		this.p = p;
-		this.methodPreExprs = methodPreExprs;
 		this.expEncoder = expEnc;
 	}
 
@@ -78,7 +76,7 @@ public class StatementEncoder {
 		final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
 		// First create the atom for prePred.
 		HornHelper.hh().findOrCreateProverVar(p, prePred.variables, varMap);
-		final ProverExpr preAtom = prePred.instPredicate(prePred, methodPreExprs, varMap);
+		final ProverExpr preAtom = prePred.instPredicate(varMap);
 		HornHelper.hh().findOrCreateProverVar(p, postPred.variables, varMap);
 
 		if (s instanceof AssertStatement) {
@@ -116,7 +114,7 @@ public class StatementEncoder {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 		final ProverExpr cond = expEncoder.exprToProverExpr(as.getExpression(), varMap);
 		clauses.add(p.mkHornClause(p.mkLiteral(false), new ProverExpr[] { preAtom }, p.mkNot(cond)));
-		final ProverExpr postAtom = postPred.instPredicate(postPred, methodPreExprs, varMap);
+		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 		return clauses;
 	}
@@ -136,7 +134,7 @@ public class StatementEncoder {
 			Map<Variable, ProverExpr> varMap) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 		final ProverExpr cond = expEncoder.exprToProverExpr(as.getExpression(), varMap);
-		final ProverExpr postAtom = postPred.instPredicate(postPred, methodPreExprs, varMap);
+		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, cond));
 		return clauses;
 	}
@@ -150,7 +148,7 @@ public class StatementEncoder {
 		final IdentifierExpression idLhs = (IdentifierExpression) as.getLeft();
 		varMap.put(idLhs.getVariable(), expEncoder.exprToProverExpr(as.getRight(), varMap));
 
-		final ProverExpr postAtom = postPred.instPredicate(postPred, methodPreExprs, varMap);
+		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 
 		return clauses;
@@ -209,7 +207,7 @@ public class StatementEncoder {
 
 		final ProverExpr postCondAtom = contract.postcondition.predicate.mkExpr(actualPostParams);
 
-		final ProverExpr postAtom = postPred.instPredicate(postPred, methodPreExprs, varMap);
+		final ProverExpr postAtom = postPred.instPredicate(varMap);
 
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom, postCondAtom }, p.mkLiteral(true)));
 
@@ -251,7 +249,7 @@ public class StatementEncoder {
 			// invariantDisjunction.add(inv.mkExpr(invArgs));
 
 			final ProverExpr invAtom = inv.mkExpr(invArgs);
-			final ProverExpr postAtom = postPred.instPredicate(postPred, methodPreExprs, varMap);
+			final ProverExpr postAtom = postPred.instPredicate(varMap);
 			
 			clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom }, p.mkLiteral(true)));
 
@@ -280,7 +278,7 @@ public class StatementEncoder {
 
 		clauses.add(p.mkHornClause(invAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 
-		final ProverExpr postAtom = postPred.instPredicate(postPred, methodPreExprs, varMap);
+		final ProverExpr postAtom = postPred.instPredicate(varMap);
 
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 		return clauses;

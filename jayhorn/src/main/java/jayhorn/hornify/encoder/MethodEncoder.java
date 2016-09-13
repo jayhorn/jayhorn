@@ -1,6 +1,5 @@
 package jayhorn.hornify.encoder;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -17,7 +16,6 @@ import jayhorn.hornify.HornPredicate;
 import jayhorn.hornify.MethodContract;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.method.CfgBlock;
@@ -61,8 +59,8 @@ public class MethodEncoder {
 			return clauses;
 		}
 		
-		final List<ProverExpr> preVars = makeEntryPredicate();
-		blocksToHorn(liveVariables, preVars);
+		makeEntryPredicate();
+		blocksToHorn(liveVariables);
 		return clauses;
 	}
 
@@ -75,10 +73,8 @@ public class MethodEncoder {
 	private void encodeEmptyMethod() {
 		Log.debug("No implementation available for " + method.getMethodName());
 		final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
-		final List<ProverExpr> entryVars = HornHelper.hh().findOrCreateProverVar(p, precondition.variables, varMap);
-		final List<ProverExpr> exitVars = HornHelper.hh().findOrCreateProverVar(p, postcondition.variables, varMap);
-		final ProverExpr entryAtom = precondition.predicate.mkExpr(entryVars.toArray(new ProverExpr[entryVars.size()]));
-		final ProverExpr exitAtom = postcondition.predicate.mkExpr(exitVars.toArray(new ProverExpr[exitVars.size()]));
+		final ProverExpr entryAtom = precondition.instPredicate(varMap);
+		final ProverExpr exitAtom = postcondition.instPredicate(varMap);
 		clauses.add(p.mkHornClause(exitAtom, new ProverExpr[] { entryAtom }, p.mkLiteral(true)));	
 	}
 	
@@ -88,22 +84,13 @@ public class MethodEncoder {
 	 * This method precondition args comprise all method parameters and 
 	 * other variables that should be visible to the method. The args of
 	 * the predicate of the first block (entryVars) contain all local vars.
-	 * 
-	 * @return
 	 */
-	private List<ProverExpr> makeEntryPredicate() {
+	private void makeEntryPredicate() {
 		// add an entry clause connecting with the precondition
 		Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
-		final List<ProverExpr> preVars = HornHelper.hh().findOrCreateProverVar(p, precondition.variables, varMap);
-		final HornPredicate entryPred = blockPredicates.get(method.getSource());
-		final List<ProverExpr> entryVars = HornHelper.hh().findOrCreateProverVar(p, entryPred.variables, varMap);
-		final ProverExpr preAtom = precondition.predicate.mkExpr(preVars.toArray(new ProverExpr[0]));
-		final List<ProverExpr> allEntryArgs = new ArrayList<ProverExpr>();
-		allEntryArgs.addAll(preVars);
-		allEntryArgs.addAll(entryVars);
-		final ProverExpr entryAtom = entryPred.predicate.mkExpr(allEntryArgs.toArray(new ProverExpr[0]));
+		final ProverExpr preAtom = precondition.instPredicate(varMap);		
+		final ProverExpr entryAtom = blockPredicates.get(method.getSource()).instPredicate(varMap);
 		clauses.add(p.mkHornClause(entryAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
-		return preVars;
 	}
 	
 	/**
@@ -126,20 +113,29 @@ public class MethodEncoder {
 			allLive.addAll(entry.getValue());
 			// sort the list of variables by name to make access
 			// and reading easier.
-			List<Variable> sortedVars = HornHelper.hh().setToSortedList(allLive);
-			String name = entry.getKey().getLabel();
-			ProverFun pred = freshHornPredicate(name, sortedVars);
-			blockPredicates.put(entry.getKey(), new HornPredicate(name, sortedVars, pred));
+			List<Variable> sortedVars = new LinkedList<Variable>(); 	
+			sortedVars.addAll(HornHelper.hh().setToSortedList(allLive));
+			blockPredicates.put(entry.getKey(), freshHornPredicate(entry.getKey().getLabel(), sortedVars));
 		}
 	}
 	
-	private ProverFun freshHornPredicate(String name, List<Variable> sortedVars) {
-		final List<Variable> allArgs = new LinkedList<Variable>();
+	/**
+	 * Creates a fresh HornPredicate with arity of
+	 * |precondition.variables| + |sortedVars|.
+	 * 
+	 * This is because we need to move the precondition variables through
+	 * all Horn clauses until the exit.
+	 * @param name
+	 * @param sortedVars
+	 * @return Horn Predicate of arity |precondition.variables| + |sortedVars|
+	 */
+	private HornPredicate freshHornPredicate(String name, List<Variable> sortedVars) {
 		// add types for the method arguments, which
 		// are later needed for the post-conditions
+		final List<Variable> allArgs = new LinkedList<Variable>();
 		allArgs.addAll(precondition.variables);
 		allArgs.addAll(sortedVars);
-		return HornHelper.hh().genHornPredicate(p, method.getMethodName() + "_" + name, allArgs);
+		return new HornPredicate(p, name, allArgs);
 	}
 
 
@@ -149,7 +145,7 @@ public class MethodEncoder {
 	 * @param liveVariables
 	 * @param preVars
 	 */
-	private void blocksToHorn(LiveVars<CfgBlock> liveVariables, List<ProverExpr> preVars) {
+	private void blocksToHorn(LiveVars<CfgBlock> liveVariables) {
 		List<CfgBlock> todo = new LinkedList<CfgBlock>();
 		todo.add(method.getSource());
 		Set<CfgBlock> done = new HashSet<CfgBlock>();
@@ -162,11 +158,9 @@ public class MethodEncoder {
 			 * This gives us the exitPred which is the last predicate
 			 * used in this basic block.
 			 */
-			final HornPredicate exitPred = blockToHorn(current, liveVariables.liveOut.get(current), preVars);
+			final HornPredicate exitPred = blockToHorn(current, liveVariables.liveOut.get(current));
 			//reset the varMap here. 
 			Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
-			final List<ProverExpr> exitVars = HornHelper.hh().findOrCreateProverVar(p, exitPred.variables, varMap);
-
 			/*
 			 * Now distinguish two cases: 
 			 * THEN-CASE: Our block has no successors and leaves the method.
@@ -182,23 +176,12 @@ public class MethodEncoder {
 			 */
 			if (method.outgoingEdgesOf(current).isEmpty()) {
 				// block ends with a return
-
-				final List<ProverExpr> postVars = HornHelper.hh().findOrCreateProverVar(p, postcondition.variables,
-						varMap);
-				final ProverExpr postAtom = postcondition.predicate
-						.mkExpr(postVars.toArray(new ProverExpr[postVars.size()]));
-
-				final List<ProverExpr> allExitArgs = new ArrayList<ProverExpr>();
-				allExitArgs.addAll(postVars.subList(0, precondition.variables.size()));
-				allExitArgs.addAll(exitVars);
-
-				final ProverExpr exitAtom = exitPred.predicate
-						.mkExpr(allExitArgs.toArray(new ProverExpr[allExitArgs.size()]));
-
+				final ProverExpr postAtom =  postcondition.instPredicate(varMap);
+				final ProverExpr exitAtom = exitPred.instPredicate(varMap);				
 				clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { exitAtom }, p.mkLiteral(true)));
 			} else {
 				// link to the successor blocks
-				final ProverExpr exitAtom = instPredicate(exitPred, exitVars, preVars);
+				final ProverExpr exitAtom = exitPred.instPredicate(varMap);						
 				for (CfgEdge edge : method.outgoingEdgesOf(current)) {
 					CfgBlock succ = method.getEdgeTarget(edge);
 					if (!todo.contains(succ) && !done.contains(succ)) {
@@ -210,21 +193,11 @@ public class MethodEncoder {
 					} else {
 						exitCondExpr = p.mkLiteral(true);
 					}
-					final HornPredicate succPred = blockPredicates.get(succ);
-					final ProverExpr succAtom = instPredicate(succPred,
-							HornHelper.hh().findOrCreateProverVar(p, succPred.variables, varMap), preVars);
+					final ProverExpr succAtom = blockPredicates.get(succ).instPredicate(varMap); 
 					clauses.add(p.mkHornClause(succAtom, new ProverExpr[] { exitAtom }, exitCondExpr));
 				}
 			}
 		}	
-	}
-	
-	
-	private ProverExpr instPredicate(HornPredicate pred, List<ProverExpr> args, List<ProverExpr> methodPreExprs) {
-		List<ProverExpr> allArgs = new ArrayList<ProverExpr>();
-		allArgs.addAll(methodPreExprs);
-		allArgs.addAll(args);
-		return pred.predicate.mkExpr(allArgs.toArray(new ProverExpr[allArgs.size()]));
 	}
 
 	
@@ -232,11 +205,9 @@ public class MethodEncoder {
 	 * Creates the Horn clauses for the statements in a single block.
 	 * @param block The block that is to be translated.
 	 * @param liveOutVars The set of variables that are live after the block.
-	 * @param methodPreExprs
 	 * @return 
 	 */
-	private HornPredicate blockToHorn(CfgBlock block, Set<Variable> liveOutVars,
-			List<ProverExpr> methodPreExprs) {
+	private HornPredicate blockToHorn(CfgBlock block, Set<Variable> liveOutVars) {
 		//get the predicate that is associated with the entry of the block.
 		final HornPredicate initPred = blockPredicates.get(block);
 
@@ -253,10 +224,9 @@ public class MethodEncoder {
 		for (Statement s : block.getStatements()) {
 			final String postName = initName + "_" + (++counter);
 			final List<Variable> interVarList = HornHelper.hh().setToSortedList(liveAfter.get(s));
-			final HornPredicate postPred = new HornPredicate(postName, interVarList,
-					freshHornPredicate(postName, interVarList));
+			final HornPredicate postPred = freshHornPredicate(postName, interVarList);
 
-			StatementEncoder senc = new StatementEncoder(p, methodPreExprs, this.expEnc);
+			StatementEncoder senc = new StatementEncoder(p, this.expEnc);
 			this.clauses.addAll(senc.statementToClause(s, prePred, postPred));
 
 			prePred = postPred;

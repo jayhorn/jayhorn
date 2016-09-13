@@ -19,10 +19,10 @@
 
 package jayhorn;
 
-import org.kohsuke.args4j.Option;
-
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
+
+import org.kohsuke.args4j.Option;
 
 /**
  * Options

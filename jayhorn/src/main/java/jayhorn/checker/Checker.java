@@ -61,9 +61,8 @@ public class Checker {
         prover.push();
         // add an entry clause from the preconditions
         final HornPredicate entryPred = HornHelper.hh().getMethodContract(method.getMethodName()).precondition;
-        final List<ProverExpr> entryVars = HornHelper.hh().findOrCreateProverVar(prover, entryPred.variables, new HashMap<Variable, ProverExpr>());
+        final ProverExpr entryAtom = entryPred.instPredicate(new HashMap<Variable, ProverExpr>());
 
-        final ProverExpr entryAtom = entryPred.predicate.mkExpr(entryVars.toArray(new ProverExpr[0]));
         final ProverHornClause entryClause = prover.mkHornClause(entryAtom, new ProverExpr[0], prover.mkLiteral(true));
 
         allClauses.add(entryClause);
