@@ -3,6 +3,7 @@ package jayhorn.solver.spacer;
 import java.math.BigInteger;
 
 import com.microsoft.z3.Expr;
+import com.microsoft.z3.Z3Exception;
 import com.microsoft.z3.enumerations.Z3_lbool;
 
 import jayhorn.solver.ProverExpr;
@@ -39,7 +40,11 @@ class SpacerTermExpr implements ProverExpr {
 	}
 
 	public boolean getBooleanLiteralValue() {
-		return this.term.getBoolValue()==Z3_lbool.Z3_L_TRUE;
+		try {
+			return this.term.getBoolValue()==Z3_lbool.Z3_L_TRUE;
+		} catch (Z3Exception e) {
+			throw new RuntimeException(e.getMessage());
+		}
 	}
 
 	public int hashCode() {

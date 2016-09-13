@@ -17,13 +17,13 @@ import jayhorn.solver.ProverType;
  * @author schaef
  *
  */
-public class SapcerHornExpr implements ProverHornClause {
+public class SpacerHornExpr implements ProverHornClause {
 
 	private final ProverExpr head;
 	private final List<ProverExpr> body;
 	private final ProverExpr constraint;
 	
-	public SapcerHornExpr(ProverExpr head, ProverExpr[] body,
+	public SpacerHornExpr(ProverExpr head, ProverExpr[] body,
 			ProverExpr constraint) {
 		this.head = head;
 		this.body = new LinkedList<ProverExpr>();

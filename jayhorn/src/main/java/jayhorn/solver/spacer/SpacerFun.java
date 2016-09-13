@@ -37,10 +37,14 @@ class SpacerFun implements ProverFun {
 			}			
 		}
 		
-		if (this.resType == BoolType.INSTANCE) {
-			return new SpacerBoolExpr((BoolExpr) ctx.mkApp(this.fun, z3args));
-		} else {
-			return new SpacerTermExpr(ctx.mkApp(this.fun, z3args), this.resType);
+		try {
+			if (this.resType == BoolType.INSTANCE) {
+				return new SpacerBoolExpr((BoolExpr) ctx.mkApp(this.fun, z3args));
+			} else {
+				return new SpacerTermExpr(ctx.mkApp(this.fun, z3args), this.resType);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e.getMessage());
 		}
 	}
 	
