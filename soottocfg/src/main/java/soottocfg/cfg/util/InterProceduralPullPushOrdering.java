@@ -26,6 +26,7 @@ import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.soot.util.FlowBasedPointsToAnalysis;
 import soottocfg.util.Pair;
@@ -158,18 +159,18 @@ public class InterProceduralPullPushOrdering {
 		while (!todo.isEmpty()) {
 			FixedPointObject cur = todo.remove();
 			done.add(cur);
-			boolean stopTravese = false;
+			boolean stopTraverse = false;
 			if (cur.stmt.isPresent() && cur.stmt.get() instanceof PushStatement) {
 				PushStatement push = (PushStatement) cur.stmt.get();
 				if (mayAlias(push, pull)) {		
 					ret.add(cur);
 					if (mustShadow(push, pull)) {
-						stopTravese = true;
+						stopTraverse = true;
 					}
 				}
 			}
 			
-			if (!stopTravese) {
+			if (!stopTraverse) {
 				for (FixedPointObject pre : Graphs.predecessorListOf(ipgraph, cur)) {
 					if (!todo.contains(pre) && !done.contains(pre)) {
 						todo.add(pre);

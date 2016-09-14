@@ -136,6 +136,10 @@ public class FlowBasedPointsToAnalysis {
 	public static boolean mayAlias(Expression ref1, Expression ref2) {
 		Set<Integer> pt1 = getPointsToSet(ref1);
 		Set<Integer> pt2 = getPointsToSet(ref2);
+		
+		// If we did not collect points to info, err on the safe side
+		if (pt1.isEmpty() || pt2.isEmpty()) return true;
+		
 		return !(Collections.disjoint(pt1,pt2));
 	}
 	
@@ -157,8 +161,8 @@ public class FlowBasedPointsToAnalysis {
 		Set<Integer> pt = rt.getPointsToSet();
 		
 //		System.out.println("Ref: " + e + " of type " + rt + " points to " + pt);
-		Verify.verify(!pt.isEmpty(), 
-				"Points to information missing, did you run the points-to analysis?");
+//		Verify.verify(!pt.isEmpty(), 
+//				"Points to information missing, did you run the points-to analysis?");
 		return pt;
 	}
 }

@@ -118,7 +118,7 @@ public class Options {
 	 * Memory precision
 	 */
 	@Option(name = "-mem-prec", usage = "Precision of memory model", required = false)
-	private int memPrecision = 2;
+	private int memPrecision = 3;
 	
 	public int memPrecision() { 
 		return memPrecision;

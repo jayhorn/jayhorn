@@ -245,6 +245,10 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		}
 		return new LinkedList<Variable>(this.returnVariable);
 	}
+	
+	public void setOutParam(List<Variable> returnVariables) {
+		this.returnVariable = returnVariables;
+	}
 
 	/**
 	 * Returns an {@link Optional} return type of the method.

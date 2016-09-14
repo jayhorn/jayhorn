@@ -55,6 +55,7 @@ public enum SootTranslationHelpers {
 
 	
 	public static final String HavocClassName = "Havoc_Class";
+	public static final String HavocMethodName = "havoc_";
 	/**
 	 * Get a method that returns an unknown value of type t.
 	 * @param t
@@ -68,7 +69,7 @@ public enum SootTranslationHelpers {
 			Scene.v().addClass(sClass);			
 		}
 		SootClass cls = Scene.v().getSootClass(HavocClassName);
-		final String havocMethodName = "havoc_" + t.toString();
+		final String havocMethodName = HavocMethodName + t.toString();
 		if (!cls.declaresMethodByName(havocMethodName)) {
 			cls.addMethod(new SootMethod(havocMethodName, Arrays.asList(new Type[] {}), t,
 					Modifier.PUBLIC | Modifier.STATIC));

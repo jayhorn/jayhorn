@@ -36,7 +36,7 @@ public class MethodInfo {
 
 	private final String sourceFileName;
 
-	private static final String returnVariableName = "$ret_";
+	public static final String returnVariableName = "$ret_";
 	private static final String thisVariableName = "$this_";
 
 	private final SootMethod sootMethod;
@@ -124,12 +124,13 @@ public class MethodInfo {
 		locals.addAll(this.localsMap.values());
 		locals.addAll(this.freshLocals);
 		m.initialize(this.thisVariable, this.returnVariables, locals, source, sootMethod.isEntryMethod());
+//		System.out.println("Initialized method " + m);
 		CfgBlock uniqueSink = m.findOrCreateUniqueSink();
 		if (sink != uniqueSink) {
 			System.err.println("Something strange with the CFG. More than one sink found for " + m.getMethodName());
 		}
 		if (m.inDegreeOf(sink) == 0) {
-			System.err.println("Mehtod " + sootMethod.getSignature() + " has no sink! Ignoring.");
+			System.err.println("Method " + sootMethod.getSignature() + " has no sink! Ignoring.");
 			for (CfgEdge e : new HashSet<CfgEdge>(m.edgeSet())) {
 				m.removeEdge(e);
 			}

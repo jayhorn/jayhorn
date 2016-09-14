@@ -39,9 +39,11 @@ import soottocfg.soot.util.SootTranslationHelpers;
  */
 public class MethodStubber extends AbstractSceneTransformer {
 
+	Set<SootClass> modifiedClasses;
+	
 	public void applyTransformation() {
 		Set<SootMethod> invokedLibraryMethods = getInvokedLibraryMethods();
-		Set<SootClass> modifiedClasses = new HashSet<SootClass>();
+		modifiedClasses = new HashSet<SootClass>();
 		for (SootMethod m : invokedLibraryMethods) {
 			JimpleBody body = Jimple.v().newBody(m);
 			SootClass cls = m.getDeclaringClass();
@@ -106,6 +108,10 @@ public class MethodStubber extends AbstractSceneTransformer {
 				}
 			}
 		}
+	}
+	
+	public Set<SootClass> getModifiedClasses() {
+		return this.modifiedClasses;
 	}
 
 	public Set<SootMethod> getInvokedLibraryMethods() {

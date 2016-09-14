@@ -84,6 +84,7 @@ public class SimpleHornTest {
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
 			soottocfg.Options.v().setPrintCFG(true);
+//			soottocfg.Options.v().setMemPrecision(0);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			
 			Program program = soot2cfg.getProgram();

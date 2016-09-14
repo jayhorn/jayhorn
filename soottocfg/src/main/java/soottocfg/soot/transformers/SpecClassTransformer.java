@@ -47,7 +47,6 @@ public class SpecClassTransformer extends AbstractSceneTransformer {
 		SootClass listSpec = Scene.v().loadClass(ListSimpleSpec.class.getName(), SootClass.SIGNATURES);
 		replacementMap.put(Scene.v().getSootClass(java.util.LinkedList.class.getName()), listSpec);
 		replacementMap.put(Scene.v().getSootClass(java.util.List.class.getName()), listSpec);
-		
 	}
 
 	/*

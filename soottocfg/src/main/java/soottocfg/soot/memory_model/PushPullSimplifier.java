@@ -9,6 +9,7 @@ import soot.PointsToAnalysis;
 import soot.PointsToSet;
 import soot.Scene;
 import soot.SootField;
+import soot.options.Options;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BooleanLiteral;
@@ -23,7 +24,9 @@ import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.soot.util.FlowBasedPointsToAnalysis;
 import soottocfg.soot.util.SootTranslationHelpers;
 
 public class PushPullSimplifier {
@@ -276,6 +279,22 @@ public class PushPullSimplifier {
 
 	/* Temporary: only compare the actual identifiers. TODO: points-to analysis */
 	private boolean distinct(Set<IdentifierExpression> vars1, Set<IdentifierExpression> vars2) {
+		// Code based on alias analysis, does not work yet
+//		if (soottocfg.Options.v().memPrecision() >= 3) {
+//			for (IdentifierExpression exp1 : vars1) {
+//				for (IdentifierExpression exp2 : vars2) {
+//					if (debug)
+//						System.out.println("Checking distinctness of " + exp1 + exp1.getType() + " and " + exp2 + exp2.getType());
+//					if (exp1.getType() instanceof ReferenceType 
+//							&& exp2.getType() instanceof ReferenceType 
+//							&& FlowBasedPointsToAnalysis.mayAlias(exp1, exp2))
+//						return false;
+//				}
+//			}
+//			return true;	
+//		}
+//		return false;
+		
 		NewMemoryModel mem = (NewMemoryModel) SootTranslationHelpers.v().getMemoryModel();
 		PointsToAnalysis pta = Scene.v().getPointsToAnalysis();
 		for (IdentifierExpression exp1 : vars1) {

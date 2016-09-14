@@ -45,7 +45,6 @@ import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.MethodStubber;
-import soottocfg.soot.transformers.NativeMethodStubber;
 import soottocfg.soot.transformers.SpecClassTransformer;
 import soottocfg.soot.transformers.SwitchStatementRemover;
 import soottocfg.soot.transformers.VirtualCallResolver;
@@ -74,6 +73,8 @@ public class SootToCfg {
 	private boolean debug = false;
 	
 	private final Set<SourceLocation> locations = new HashSet<SourceLocation>();
+	
+	private Set<SootClass> stubbedLibClasses;
 
 	// Create a new program
 	private final Program program = new Program();
@@ -235,23 +236,15 @@ public class SootToCfg {
 	private void constructCfg() {
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
-			// if (sc == SootTranslationHelpers.v().getAssertionClass()) {
-			// continue; // no need to process this guy.
-			// }
-			if (sc.resolvingLevel() >= SootClass.SIGNATURES) {
-				if (sc.isApplicationClass() && !sc.isJavaLibraryClass()
-					&& !sc.isLibraryClass()) {
+			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
+				if ((!sc.isJavaLibraryClass() && !sc.isLibraryClass()) 
+					|| (this.stubbedLibClasses.contains(sc) 
+							// HACK this next condition should not be here, but otherwise &^@#&@$%$
+							&& sc.getName().contains("java.lang.Integer")
+							)
+					) {
 					constructCfg(sc);	
-				} else {
-					//TODO: this is a hack
-					//also translate library methods for which
-					//we generate a stub.
-					for (SootMethod sm : sc.getMethods()) {
-						if (sm.hasActiveBody() && sm.getSignature().contains("value")) {
-							constructCfg(sm);
-						}
-					}
-				}				
+				}
 			}
 		}
 		// now set the entry points.
@@ -275,12 +268,10 @@ public class SootToCfg {
 
 	private void performAbstractionTransformations() {
 
-		NativeMethodStubber nms = new NativeMethodStubber();
-		nms.applyTransformation();
-
-		if (SootTranslationHelpers.v().getMemoryModel() instanceof NewMemoryModel) {
+		if (Options.v().memModel()==MemModel.PullPush) {
 			MethodStubber mstubber = new MethodStubber();
 			mstubber.applyTransformation();
+			this.stubbedLibClasses = mstubber.getModifiedClasses();
 		}
 
 		ArrayTransformer atrans = new ArrayTransformer();
