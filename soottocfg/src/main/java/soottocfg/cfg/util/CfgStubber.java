@@ -44,10 +44,6 @@ public class CfgStubber {
 				 */
 				CfgBlock block = new CfgBlock(method);
 				SourceLocation loc = method.getLocation();
-				
-				System.out.println("STUBBING METHOD " + method.getMethodName());
-				System.out.println("Out param: " + method.getOutParam());
-				System.out.println("Return types: " + method.getReturnType());
 
 				if (method.getMethodName().contains(SootMethod.constructorName)) {
 					//TODO
@@ -73,7 +69,6 @@ public class CfgStubber {
 					Type t = method.getReturnType().get(0);
 					if (t instanceof ReferenceType) {
 						ReferenceType rt = (ReferenceType) t;
-						System.out.println("Adding push for return type " + rt);
 						List<Expression> rhs = new LinkedList<Expression>();
 						int i=0;
 						for (Variable v : rt.getClassVariable().getAssociatedFields()) {
