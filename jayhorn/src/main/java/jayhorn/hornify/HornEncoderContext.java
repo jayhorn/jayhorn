@@ -63,8 +63,7 @@ public class HornEncoderContext {
 	 */
 	private void mkMethodContract(Program program, Prover p) {
 		for (Method method : program.getMethods()) {
-			final List<Variable> inParams = new ArrayList<Variable>();
-			inParams.addAll(method.getInParams());
+			final List<Variable> inParams = new ArrayList<Variable>(method.getInParams());
 			final List<Variable> postParams = new ArrayList<Variable>();
 			postParams.addAll(method.getInParams());
 			if (!method.getOutParam().isEmpty()) {
