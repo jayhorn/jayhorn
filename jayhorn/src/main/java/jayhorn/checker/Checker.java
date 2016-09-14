@@ -3,7 +3,6 @@
  */
 package jayhorn.checker;
 
-
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,76 +30,81 @@ import soottocfg.cfg.variable.Variable;
  */
 public class Checker {
 
-  private ProverFactory factory;
-  private Prover prover;
+	private ProverFactory factory;
+	private Prover prover;
 
-  public Checker(ProverFactory factory) {
-    this.factory = factory;
-  }
+	public Checker(ProverFactory factory) {
+		this.factory = factory;
+	}
 
-  private List<ProverHornClause> allClauses = new LinkedList<ProverHornClause>();
+	private List<ProverHornClause> allClauses = new LinkedList<ProverHornClause>();
 
-  public boolean checkProgram(Program program) {
+	public boolean checkProgram(Program program) {
 
-    Log.info("Hornify  ... ");
-    Hornify hf = new Hornify(factory);
-    Stopwatch toHornTimer = Stopwatch.createStarted();
-    HornEncoderContext hornContext = hf.toHorn(program);
-    Stats.stats().add("ToHorn", String.valueOf(toHornTimer.stop()));
-    prover = hf.getProver();
-    allClauses.addAll(hf.clauses);
-    
-    if (Options.v().getPrintHorn()) {
-      System.out.println(hf.writeHorn());
-    }
+		if (program.getEntryPoints()==null || program.getEntryPoints().length==0) {
+			Log.error("The program has no entry points and thus is trivially verified.");
+			return true;
+		}
+		Log.info("Hornify  ... ");
+		Hornify hf = new Hornify(factory);
+		Stopwatch toHornTimer = Stopwatch.createStarted();
+		HornEncoderContext hornContext = hf.toHorn(program);
+		Stats.stats().add("ToHorn", String.valueOf(toHornTimer.stop()));
+		prover = hf.getProver();
+		allClauses.addAll(hf.clauses);
 
-    ProverResult result = ProverResult.Unknown;
-    try {
-      int verifCount = 0;
-      for (Method method : program.getEntryPoints()) {
-        prover.push();
-        // add an entry clause from the preconditions
-        final HornPredicate entryPred = hornContext.getMethodContract(method).precondition;
-        final ProverExpr entryAtom = entryPred.instPredicate(new HashMap<Variable, ProverExpr>());
+		if (Options.v().getPrintHorn()) {
+			System.out.println(hf.writeHorn());
+		}
 
-        final ProverHornClause entryClause = prover.mkHornClause(entryAtom, new ProverExpr[0], prover.mkLiteral(true));
+		ProverResult result = ProverResult.Unknown;
+		try {
+			int verifCount = 0;
+			for (Method method : program.getEntryPoints()) {
+				prover.push();
+				// add an entry clause from the preconditions
+				final HornPredicate entryPred = hornContext.getMethodContract(method).precondition;
+				final ProverExpr entryAtom = entryPred.instPredicate(new HashMap<Variable, ProverExpr>());
 
-        allClauses.add(entryClause);
+				final ProverHornClause entryClause = prover.mkHornClause(entryAtom, new ProverExpr[0],
+						prover.mkLiteral(true));
 
-        Hornify.hornToSMTLIBFile(allClauses, verifCount, prover);
-        Hornify.hornToFile(allClauses, verifCount);
+				allClauses.add(entryClause);
 
-        for (ProverHornClause clause : allClauses)
-          prover.addAssertion(clause);
+				Hornify.hornToSMTLIBFile(allClauses, verifCount, prover);
+				Hornify.hornToFile(allClauses, verifCount);
 
-        Stopwatch satTimer = Stopwatch.createStarted();
-        if (jayhorn.Options.v().getTimeout() > 0) {
-          int timeoutInMsec = (int) TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());
-          
-          prover.checkSat(false);
-          result = prover.getResult(timeoutInMsec);
-        } else {
-          result = prover.checkSat(true);
-        }
-        Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));
-        allClauses.remove(allClauses.size() - 1);
-        prover.pop();
-        ++verifCount;
-      }
+				for (ProverHornClause clause : allClauses)
+					prover.addAssertion(clause);
 
-    } catch (Throwable t) {
-      t.printStackTrace();
-      throw new RuntimeException(t);
-    } finally {
-      prover.shutdown();
-    }
+				Stopwatch satTimer = Stopwatch.createStarted();
+				if (jayhorn.Options.v().getTimeout() > 0) {
+					int timeoutInMsec = (int) TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());
 
-    if (result == ProverResult.Sat) {
-      return true;
-    } else if (result == ProverResult.Unsat) {
-      return false;
-    }
-    throw new RuntimeException("Verification failed with prover code " + result);
-  }
+					prover.checkSat(false);
+					result = prover.getResult(timeoutInMsec);
+				} else {
+					result = prover.checkSat(true);
+				}
+				Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));
+				allClauses.remove(allClauses.size() - 1);
+				prover.pop();
+				++verifCount;
+			}
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			throw new RuntimeException(t);
+		} finally {
+			prover.shutdown();
+		}
+
+		if (result == ProverResult.Sat) {
+			return true;
+		} else if (result == ProverResult.Unsat) {
+			return false;
+		}
+		throw new RuntimeException("Verification failed with prover code " + result);
+	}
 
 }

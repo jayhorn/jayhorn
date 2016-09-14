@@ -113,15 +113,23 @@ public class SootToCfg {
 		// add havoc method for ints for lastpull
 		SootMethod havocSoot =
 				SootTranslationHelpers.v().getHavocMethod(soot.IntType.v());
+		SootTranslationHelpers.v().setCurrentMethod(havocSoot);
 		Method havoc =
 				SootTranslationHelpers.v().lookupOrCreateMethod(havocSoot);
 		
 		constructCfg();
-		if (Options.v().outDir() != null)
+		if (Options.v().outDir() != null) {
 			writeFile(".cfg", program.toString());
-
+		}
+		
 		CfgStubber stubber = new CfgStubber();
 		stubber.stubUnboundFieldsAndMethods(program);
+		
+		if (program.getEntryPoints()==null || program.getEntryPoints().length==0) {
+			System.err.println("WARNING: No entry point found in program!");
+			SootTranslationHelpers.v().reset();
+			return;
+		}
 		
 		// alias analysis
 		if (Options.v().memPrecision() >= 3) {
