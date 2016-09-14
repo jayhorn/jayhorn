@@ -165,7 +165,7 @@ public class StatementEncoder {
 
 		Verify.verify(calledMethod.getInParams().size() == cs.getArguments().size()
 				&& calledMethod.getInParams().size() == contract.precondition.variables.size());
-		Verify.verify(!cs.getReceiver().isEmpty() || calledMethod.getReturnType().isEmpty());
+//		Verify.verify(!cs.getReceiver().isEmpty() || calledMethod.getReturnType().isEmpty());
 
 		final List<Variable> receiverVars = new ArrayList<Variable>();
 		for (Expression e : cs.getReceiver()) {
