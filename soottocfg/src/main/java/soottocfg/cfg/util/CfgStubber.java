@@ -68,6 +68,7 @@ public class CfgStubber {
 					// add push with undef values to havoc methods
 					Type t = method.getReturnType().get(0);
 					if (t instanceof ReferenceType) {
+//						System.out.println("Stubbing: " + method.getMethodName());
 						ReferenceType rt = (ReferenceType) t;
 						List<Expression> rhs = new LinkedList<Expression>();
 						int i=0;
@@ -78,8 +79,7 @@ public class CfgStubber {
 							} else {
 								Variable undefLocal = new Variable("undef_field" + (i++), IntType.instance());
 								rhs.add(new IdentifierExpression(loc, undefLocal));
-							}
-							//							System.err.println("********* "+v);						
+							}					
 						}
 						Variable outVar = new Variable(MethodInfo.returnVariableName, rt);
 						LinkedList<Variable> rets = new LinkedList<Variable>();
@@ -88,6 +88,7 @@ public class CfgStubber {
 						IdentifierExpression ret = new IdentifierExpression(loc, outVar);
 						PushStatement push = new PushStatement(loc, rt.getClassVariable(), ret, rhs);
 						block.addStatement(push);
+//						System.out.println("Push: " + push);
 					}
 				}
 

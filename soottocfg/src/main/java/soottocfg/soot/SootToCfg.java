@@ -242,6 +242,7 @@ public class SootToCfg {
 	
 	
 	private void constructCfg() {
+		System.out.println("Stubbed classes: " + this.stubbedLibClasses);
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
@@ -325,8 +326,16 @@ public class SootToCfg {
 						addDefaultInitializers(sm, sc);
 
 						SootTranslationHelpers.v().setCurrentMethod(sm);
+
+						Body body = sm.retrieveActiveBody();
 						try {
-							Body body = sm.retrieveActiveBody();
+							body.validate();
+						} catch (soot.validation.ValidationException e) {
+							System.out.println("Unable to validate method body. Possible NullPointerException?");
+							e.printStackTrace();
+						}
+						
+						try {
 							// System.out.println(body);
 							UnreachableCodeEliminator.v().transform(body);
 							// detect duplicated finally blocks

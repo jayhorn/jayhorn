@@ -169,7 +169,7 @@ public class AssertionReconstruction extends AbstractSceneTransformer {
 	 * 
 	 * @param body
 	 */
-	public void reconstructJavaAssertions(Body body) {
+	public void reconstructJavaAssertions(Body body) {		
 		Set<Unit> unitsToRemove = new HashSet<Unit>();
 		Map<Unit, Value> assertionsToInsert = new HashMap<Unit, Value>();
 		Map<Unit, Unit> postAssertionGotos = new HashMap<Unit, Unit>();
@@ -279,7 +279,7 @@ public class AssertionReconstruction extends AbstractSceneTransformer {
 			unitsToRemove.add(entry.getKey());
 		}
 
-		body.getUnits().removeAll(unitsToRemove);		
+		body.getUnits().removeAll(unitsToRemove);
 		body.validate();
 	}
 
