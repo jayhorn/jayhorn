@@ -73,7 +73,7 @@ public class DeadCodeElimination extends CfgUpdater {
 				if (edge.getLabel().get().equals(BooleanLiteral.falseLiteral())) {
 					toRemove.add(edge);
 				} else {
-					System.err.println(edge.getLabel().get());
+					//TODO?
 				}
 			}
 		}

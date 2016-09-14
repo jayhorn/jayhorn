@@ -38,6 +38,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ClassInfo;
 
@@ -169,7 +170,7 @@ public class SootRunner {
 
 			// set soot-class-path
 			sootOpt.set_soot_classpath(cp);
-			sootOpt.set_src_prec(soot.options.Options.src_prec_class);
+			sootOpt.set_src_prec(soot.options.Options.src_prec_only_class);
 
 			List<String> processDirs = new LinkedList<String>();
 			processDirs.add(path);
@@ -179,7 +180,7 @@ public class SootRunner {
 				writeSpecPackageToDisc(specDir);
 				processDirs.add(specDir.getAbsolutePath());
 			}
-			
+			enforceNoSrcPolicy(processDirs);
 			sootOpt.set_process_dir(processDirs);
 
 			// finally, run soot
@@ -190,6 +191,30 @@ public class SootRunner {
 		}
 	}
 
+	/**
+	 * Soot only runs properly if there are only class files in the processed directory.
+	 * If there are source files mixed with class files, stange errors happen because
+	 * soot mixes them in the scene. 
+	 * To avoid these random error, we fail early.
+	 * @param dirs
+	 */
+	private void enforceNoSrcPolicy(List<String> dirs) {
+		for (String dir : dirs) {
+			for (File f : Files.fileTreeTraverser().preOrderTraversal(new File(dir))) {
+				if (f!=null && f.isFile() && f.getName().endsWith(".java")) {
+					StringBuilder sb = new StringBuilder();
+					sb.append("Found mix of source and class files in folder ");
+					sb.append(f.getParent());
+					sb.append("\nSoot expects a directory tree that only contains class files.\n");
+					sb.append("Please create a directory, compile your code with javac -d [dir]\n");
+					sb.append("and pass us this dir. Sorry for the inconvenience.");
+					System.err.println(sb.toString());
+					throw new UnsupportedOperationException("Bad value for -j argument.");
+				}
+			}
+		}
+	}
+	
 	/**
 	 * Run Soot and creates an inter-procedural callgraph that could be loaded
 	 * by Soot.
