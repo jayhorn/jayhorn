@@ -115,7 +115,8 @@ public class MethodEncoder {
 			// and reading easier.
 			List<Variable> sortedVars = new LinkedList<Variable>(); 	
 			sortedVars.addAll(HornHelper.hh().setToSortedList(allLive));
-			blockPredicates.put(entry.getKey(), freshHornPredicate(entry.getKey().getLabel(), sortedVars));
+			blockPredicates.put(entry.getKey(),
+                                            freshHornPredicate(method.getMethodName() + "_" + entry.getKey().getLabel(), sortedVars));
 		}
 	}
 	
