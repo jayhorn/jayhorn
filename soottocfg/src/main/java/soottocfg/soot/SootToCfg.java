@@ -292,7 +292,6 @@ public class SootToCfg {
 		}
 	}
 	
-
 	private Set<SootMethod> staticInitializers = new HashSet<SootMethod>();
 
 	/**
@@ -347,7 +346,7 @@ public class SootToCfg {
 								for (Unit u : entry.getValue()) {
 									locations.add(SootTranslationHelpers.v().getSourceLocation(u));
 								}
-							}
+							}							
 						} catch (RuntimeException e) {
 							e.printStackTrace();
 							throw new RuntimeException("Behavior preserving transformation failed " + sm.getSignature()

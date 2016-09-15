@@ -37,7 +37,7 @@ public class Main {
   		SootToCfg soot2cfg = new SootToCfg();
   		soottocfg.Options.v().setBuiltInSpecs(Options.v().useSpecs);
   		soottocfg.Options.v().setResolveVirtualCalls(true);
-  		soottocfg.Options.v().setExcAsAssert(false);
+  		soottocfg.Options.v().setExcAsAssert(Options.v().insertRuntimeAssertions());
   		soottocfg.Options.v().setMemModel(MemModel.PullPush);
   		if (Options.v().getOut()!=null) {
   			Path outDir = Paths.get(Options.v().getOut());

@@ -179,6 +179,18 @@ public class Options {
 		this.timeout = seconds;
 	}
 
+	
+	@Option(name = "-rta", usage = "Automatically inserts runtime assertions for Null deref, array bounds, and illegal casts.")
+	private boolean insertRuntimeAssertions = false;
+
+	public void setInsertRuntimeAssertions(boolean val) {
+		insertRuntimeAssertions = val;
+	}
+	
+	public boolean insertRuntimeAssertions() {
+		return insertRuntimeAssertions;
+	}
+	
 	/**
 	 * Determines, whether Joogie has an additional classpath
 	 * 
