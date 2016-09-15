@@ -99,16 +99,7 @@ public class Options {
 	@Option(name = "-cfg", usage = "Print CFG", required = false)
 	private boolean printCFG = false;
 
-	public boolean getPrintCFG() {
-		soottocfg.Options.v().setPrintCFG(printCFG);
-		return soottocfg.Options.v().printCFG();
-	}
-
-	public void setPrintCFG(boolean b) {
-		soottocfg.Options.v().setPrintCFG(b);
-		this.printCFG = b;
-	}
-
+	
 	@Option(name = "-specs", usage = "Use built-in specs", required = false)
 	public boolean useSpecs = false;
 	
@@ -121,14 +112,6 @@ public class Options {
 	 */
 	@Option(name = "-mem-prec", usage = "Precision of memory model", required = false)
 	private int memPrecision = 3;
-	
-	public int memPrecision() { 
-		return memPrecision;
-	}
-	
-	public void setMemPrecision(int prec) {
-		this.memPrecision = prec;
-	}
 	
 	
 	// /**
@@ -185,27 +168,8 @@ public class Options {
 	@Option(name = "-rta", usage = "Automatically inserts runtime assertions for Null deref, array bounds, and illegal casts.")
 	private boolean insertRuntimeAssertions = false;
 
-	public void setInsertRuntimeAssertions(boolean val) {
-		insertRuntimeAssertions = val;
-		soottocfg.Options.v().setExcAsAssert(val);
-	}
-	
-	public boolean insertRuntimeAssertions() {
-		return insertRuntimeAssertions;
-	}
-	
 	@Option(name = "-callid", usage = "Pass id of caller statement as argument to method")
 	private boolean passCallerID = soottocfg.Options.v().passCallerIdIntoMethods();
-
-	public void passCallerIdIntoMethods(boolean val) {
-		soottocfg.Options.v().passCallerIdIntoMethods(val);
-		insertRuntimeAssertions = val;
-	}
-	
-	public boolean passCallerIdIntoMethods() {
-		passCallerID = soottocfg.Options.v().passCallerIdIntoMethods();
-		return passCallerID;
-	}
 	
 	
 	/**
@@ -226,6 +190,13 @@ public class Options {
 		return classpath;
 	}
 
+	public void updateSootToCfgOptions() {
+		soottocfg.Options.v().passCallerIdIntoMethods(passCallerID);
+		soottocfg.Options.v().setExcAsAssert(insertRuntimeAssertions);
+		soottocfg.Options.v().setMemPrecision(memPrecision);
+		soottocfg.Options.v().setPrintCFG(printCFG);
+	}
+	
 	/**
 	 * Assigns the additional classpath
 	 * 

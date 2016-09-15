@@ -37,7 +37,6 @@ public class Main {
   		SootToCfg soot2cfg = new SootToCfg();
   		soottocfg.Options.v().setBuiltInSpecs(Options.v().useSpecs);
   		soottocfg.Options.v().setResolveVirtualCalls(true);
-  		soottocfg.Options.v().setExcAsAssert(Options.v().insertRuntimeAssertions());
   		soottocfg.Options.v().setMemModel(MemModel.PullPush);
   		if (Options.v().getOut()!=null) {
   			Path outDir = Paths.get(Options.v().getOut());
@@ -46,8 +45,6 @@ public class Main {
   			soottocfg.Options.v().setOutDir(outDir);
   			soottocfg.Options.v().setOutBaseName(outName);
   		}
-  		soottocfg.Options.v().setMemPrecision(Options.v().memPrecision());
-  		soottocfg.Options.v().setPrintCFG(Options.v().getPrintCFG());
   		soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());	
   	
   		Stopwatch sootTocfgTimer = Stopwatch.createStarted();
@@ -77,6 +74,7 @@ public class Main {
 		try {
 			// parse command-line arguments
 			parser.parseArgument(args);
+			options.updateSootToCfgOptions();
 			ProverFactory factory = null;
 			if ("z3".equals(Options.v().getSolver())) {
 				factory = new Z3ProverFactory();

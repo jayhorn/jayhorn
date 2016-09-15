@@ -78,15 +78,13 @@ public class FailingTests {
 		File classDir = null;
 		try {			
 			classDir = Util.compileJavaFile(this.sourceFile);
-			int mem_prec=1;
-			soottocfg.Options.v().setMemPrecision(mem_prec);
-			jayhorn.Options.v().setMemPrecision(mem_prec);
+//			soottocfg.Options.v().setMemPrecision(3);
 			SootToCfg soot2cfg = new SootToCfg();
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			jayhorn.Options.v().setTimeout(5);
 			
 			jayhorn.Options.v().setPrintHorn(true);			
-			jayhorn.Options.v().setPrintCFG(true);
+			soottocfg.Options.v().setPrintCFG(true);
 			Program program = soot2cfg.getProgram();
 	  		Checker hornChecker = new Checker(factory);
 	  		boolean result = hornChecker.checkProgram(program);
