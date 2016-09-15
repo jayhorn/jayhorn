@@ -112,11 +112,11 @@ public class SootToCfg {
 		program.setExceptionGlobal(exceptionGlobal);
 
 		// add havoc method for ints for lastpull
-		SootMethod havocSoot =
-				SootTranslationHelpers.v().getHavocMethod(soot.IntType.v());
-		SootTranslationHelpers.v().setCurrentMethod(havocSoot);
-		Method havoc =
-				SootTranslationHelpers.v().lookupOrCreateMethod(havocSoot);
+//		SootMethod havocSoot =
+//				SootTranslationHelpers.v().getHavocMethod(soot.IntType.v());
+//		SootTranslationHelpers.v().setCurrentMethod(havocSoot);
+//		Method havoc =
+//				SootTranslationHelpers.v().lookupOrCreateMethod(havocSoot);
 		
 		constructCfg();
 		if (Options.v().outDir() != null) {
@@ -149,7 +149,7 @@ public class SootToCfg {
 		// add push IDs
 		if (Options.v().memPrecision() >= 2) {
 			PushIdentifierAdder pia = new PushIdentifierAdder();
-			pia.addIDs(program, havoc);
+			pia.addIDs(program);
 			if (Options.v().outDir() != null)
 				writeFile("precise.cfg", program.toString());
 		}

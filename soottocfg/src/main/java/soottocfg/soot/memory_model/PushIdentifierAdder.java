@@ -18,7 +18,6 @@ import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
-import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
@@ -38,9 +37,9 @@ public class PushIdentifierAdder {
 
 	public final static String LP = "lastpush";
 
-	public void addIDs(Program p, Method havoc) {
+	public void addIDs(Program p) {
 		addGhostFieldToClasses(p);
-		addToPushesAndPulls(p, havoc);
+		addToPushesAndPulls(p);
 	}
 
 	private void addGhostFieldToClasses(Program p) {
@@ -51,7 +50,7 @@ public class PushIdentifierAdder {
 		}
 	}
 
-	private void addToPushesAndPulls(Program p, Method havoc) {
+	private void addToPushesAndPulls(Program p) {
 		InterProceduralPullPushOrdering ordering = new InterProceduralPullPushOrdering(p.getEntryPoints()[0]);
 		Variable lp = new Variable(LP, IntType.instance());
 		Method[] ms = p.getMethods();
@@ -106,11 +105,6 @@ public class PushIdentifierAdder {
 							if (Options.v().passCallerIdIntoMethods()) {
 								args.add(new IntegerLiteral(loc, SootTranslationHelpers.v().getUniqueNumberForUnit(s)));
 							}
-							// add havoc of LP
-							List<Expression> rec = new ArrayList<Expression>();
-							rec.add(lpid);
-							CallStatement havocCall = new CallStatement(loc, havoc, args, rec);
-							b.addStatement(i++, havocCall);
 
 							Iterator<Expression> it = disj.iterator();
 							Expression toAssume = it.next();
