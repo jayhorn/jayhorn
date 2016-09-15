@@ -26,6 +26,7 @@ import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 
@@ -179,44 +180,57 @@ public class StatementEncoder {
 		final Method calledMethod = cs.getCallTarget();
 		final MethodContract contract = hornContext.getMethodContract(calledMethod);
 
+		Verify.verify(calledMethod.getInParams().size() == cs.getArguments().size()
+				&& calledMethod.getInParams().size() == contract.precondition.variables.size());
+		Verify.verify(!cs.getReceiver().isEmpty() || calledMethod.getReturnType().isEmpty());
+
 		final List<Variable> receiverVars = new ArrayList<Variable>();
 		for (Expression e : cs.getReceiver()) {
 			receiverVars.add(((IdentifierExpression) e).getVariable());
 		}
+		// final List<ProverExpr> receiverExprs =
 		HornHelper.hh().findOrCreateProverVar(p, receiverVars, varMap);
-		
-		for (int i = 0; i < calledMethod.getInParams().size(); i++) {
-			ProverExpr arg = expEncoder.exprToProverExpr(cs.getArguments().get(i), varMap);
-			varMap.put(contract.precondition.variables.get(i), arg);
-			varMap.put(contract.postcondition.variables.get(i), arg);
+
+		final ProverExpr[] actualInParams = new ProverExpr[calledMethod.getInParams().size()];
+		final ProverExpr[] actualPostParams = new ProverExpr[calledMethod.getInParams().size()
+				+ calledMethod.getReturnType().size()];
+
+		int cnt = 0;
+		for (Expression e : cs.getArguments()) {
+			final ProverExpr expr = expEncoder.exprToProverExpr(e, varMap);
+			actualInParams[cnt] = expr;
+			actualPostParams[cnt] = expr;
+			++cnt;
 		}
-		/*
-		 * The contract.postcondition Predicate has the following sequence of variabls:
-		 * calledMethod.getInParams() followed by calledMethod.getOutParams().
-		 * However, if calledMethod.getOutParams() is empty, the predicate will
-		 * also have variables named resultVar0 ... resultVarN for each return
-		 * type.
-		 */
-		List<Variable> outVarsInPostcondition = new LinkedList<Variable>();
-		outVarsInPostcondition.addAll(contract.postcondition.variables.subList(calledMethod.getInParams().size(), contract.postcondition.variables.size()));
-		
-		for (int i=0; i<outVarsInPostcondition.size(); i++) {			
-			ProverExpr pe = HornHelper.hh().findOrCreateProverVar(p, outVarsInPostcondition.get(i), varMap);
-			if (i<cs.getReceiver().size()) {
-				IdentifierExpression lhs = (IdentifierExpression)cs.getReceiver().get(i);
-				varMap.put(lhs.getVariable(), pe);
+
+		if (!cs.getReceiver().isEmpty()) {
+			for (Expression lhs : cs.getReceiver()) {
+
+				final ProverExpr callRes = HornHelper.hh().createVariable(p, "callRes_", lhs.getType());
+				actualPostParams[cnt++] = callRes;
+
+				Verify.verify(lhs instanceof IdentifierExpression,
+						"only assignments to variables are supported, not to " + lhs);
+				//update the receiver var to the expression that we use in the call pred.	
+				varMap.put( ((IdentifierExpression) lhs).getVariable(), callRes);					
+			}
+		} else if (!calledMethod.getReturnType().isEmpty()) {
+			for (Type tp : calledMethod.getReturnType()) {
+				final ProverExpr callRes = HornHelper.hh().createVariable(p, "callRes_", tp);
+				actualPostParams[cnt++] = callRes;
 			}
 		}
 
-		final ProverExpr preCondAtom = contract.precondition.instPredicate(varMap);
+		final ProverExpr preCondAtom = contract.precondition.predicate.mkExpr(actualInParams);
 		clauses.add(p.mkHornClause(preCondAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 
-		final ProverExpr postCondAtom = contract.postcondition.instPredicate(varMap);
+		final ProverExpr postCondAtom = contract.postcondition.predicate.mkExpr(actualPostParams);
+
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
+
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom, postCondAtom }, p.mkLiteral(true)));
 
 		return clauses;
-
 	}
 
 
