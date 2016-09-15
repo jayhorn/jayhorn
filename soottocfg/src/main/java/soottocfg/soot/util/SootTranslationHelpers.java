@@ -36,6 +36,8 @@ import soottocfg.Options;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.SootRunner;
 import soottocfg.soot.SootToCfg.MemModel;
@@ -163,6 +165,11 @@ public enum SootTranslationHelpers {
 			parameterList.add(new Variable(parameterPrefix + (parameterCount++),
 					getMemoryModel().lookupType(m.getDeclaringClass().getType())));
 		}
+		
+		if (Options.v().passCallerIdIntoMethods()) {
+			parameterList.add(new Variable(parameterPrefix + (parameterCount++), IntType.instance()));
+		}
+		
 		for (int i = 0; i < m.getParameterCount(); i++) {
 			parameterList.add(new Variable(parameterPrefix + (parameterCount++),
 					getMemoryModel().lookupType(m.getParameterType(i))));
@@ -321,4 +328,13 @@ public enum SootTranslationHelpers {
 	public int getJavaSourceLine(AbstractHost ah) {
 		return ah.getJavaSourceStartLineNumber();
 	}
+	
+	public int getUniqueNumberForUnit(Unit u) {
+		return u.hashCode();
+	}
+
+	public int getUniqueNumberForUnit(Statement s) {
+		return s.hashCode();
+	}
+
 }

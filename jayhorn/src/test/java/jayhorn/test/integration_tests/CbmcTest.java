@@ -82,6 +82,7 @@ public class CbmcTest {
 		
 		
 	private void verifyAssertions(ProverFactory factory) {
+		soottocfg.Options.v().checkMixedJavaClassFiles(false);
 		jayhorn.Options.v().setTimeout(15);
 		System.out.println("Running test: "+this.description);
 		System.out.println("\texpected result: "+ expectedResult);

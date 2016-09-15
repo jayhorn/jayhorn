@@ -185,11 +185,26 @@ public class Options {
 
 	public void setInsertRuntimeAssertions(boolean val) {
 		insertRuntimeAssertions = val;
+		soottocfg.Options.v().setExcAsAssert(val);
 	}
 	
 	public boolean insertRuntimeAssertions() {
 		return insertRuntimeAssertions;
 	}
+	
+	@Option(name = "-callid", usage = "Pass id of caller statement as argument to method")
+	private boolean passCallerID = soottocfg.Options.v().passCallerIdIntoMethods();
+
+	public void passCallerIdIntoMethods(boolean val) {
+		soottocfg.Options.v().passCallerIdIntoMethods(val);
+		insertRuntimeAssertions = val;
+	}
+	
+	public boolean passCallerIdIntoMethods() {
+		passCallerID = soottocfg.Options.v().passCallerIdIntoMethods();
+		return passCallerID;
+	}
+	
 	
 	/**
 	 * Determines, whether Joogie has an additional classpath

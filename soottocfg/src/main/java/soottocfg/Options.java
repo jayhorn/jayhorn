@@ -77,6 +77,21 @@ public class Options {
 		return this.tupleEncoding;
 	}
 	
+	/*
+	 * Pass the id of the call site as
+	 * method parameter to allow disjunctive
+	 * invariants
+	 */
+	private boolean passCallerIdIntoMethods = false;
+	
+	public boolean passCallerIdIntoMethods() {
+		return passCallerIdIntoMethods;
+	}
+	
+	public void passCallerIdIntoMethods(boolean val) {
+		this.passCallerIdIntoMethods = val;
+	}
+	
 	public void setTupleEncoding(boolean val) {
 		this.tupleEncoding = val;
 	}
@@ -128,6 +143,17 @@ public class Options {
 	
 	public void setOutBaseName(String s) {
 		this.outBaseName = s;
+	}
+	
+	private boolean checkMixedJavaClassFiles = true;
+	
+	
+	public boolean checkMixedJavaClassFiles() {
+		return checkMixedJavaClassFiles;
+	}
+	
+	public void checkMixedJavaClassFiles(boolean val) {
+		checkMixedJavaClassFiles = val;
 	}
 	
 	/*

@@ -1,4 +1,5 @@
-
+// use jayhorn.Options.setInsertRuntimeAssertions(boolean)
+// to insert runtime assertion.
 public class UnsatIssue61 {
     public int x;
     public static UnsatIssue61 a = null;

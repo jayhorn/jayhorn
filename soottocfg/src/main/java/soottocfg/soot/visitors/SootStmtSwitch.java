@@ -66,10 +66,12 @@ import soot.jimple.StmtSwitch;
 import soot.jimple.TableSwitchStmt;
 import soot.jimple.ThrowStmt;
 import soot.toolkits.graph.CompleteUnitGraph;
+import soottocfg.Options;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.method.CfgBlock;
@@ -410,6 +412,11 @@ public class SootStmtSwitch implements StmtSwitch {
 			throw new RuntimeException("Cannot compute instance for " + call.getClass().toString());
 		}
 
+		if (Options.v().passCallerIdIntoMethods()) {
+			int offset = (call instanceof InstanceInvokeExpr) ? 1 : 0;
+			args.add(offset, new IntegerLiteral(loc, u.hashCode()));
+		}
+		
 		List<Expression> receiver = new LinkedList<Expression>();
 		if (optionalLhs != null) {
 			optionalLhs.apply(valueSwitch);

@@ -19,6 +19,7 @@ import soot.SootMethod;
 import soot.Unit;
 import soot.VoidType;
 import soot.jimple.ParameterRef;
+import soottocfg.Options;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
@@ -106,7 +107,7 @@ public class MethodInfo {
 		if (!sm.isStatic()) {
 			this.thisVariable = new Variable(thisVariableName,
 					SootTranslationHelpers.v().getMemoryModel().lookupType(sm.getDeclaringClass().getType()));
-		}
+		}		
 	}
 
 	public Method getMethod() {
@@ -124,7 +125,7 @@ public class MethodInfo {
 		locals.addAll(this.localsMap.values());
 		locals.addAll(this.freshLocals);
 		m.initialize(this.thisVariable, this.returnVariables, locals, source, sootMethod.isEntryMethod());
-//		System.out.println("Initialized method " + m);
+		// System.out.println("Initialized method " + m);
 		CfgBlock uniqueSink = m.findOrCreateUniqueSink();
 		if (sink != uniqueSink) {
 			System.err.println("Something strange with the CFG. More than one sink found for " + m.getMethodName());
@@ -149,9 +150,9 @@ public class MethodInfo {
 	}
 
 	public Expression getReturnVariable() {
-		//TODO this is a hack that assumes that we only use that if there
-		//is a single return variable.
-		Verify.verify(this.returnVariables.size()==1);
+		// TODO this is a hack that assumes that we only use that if there
+		// is a single return variable.
+		Verify.verify(this.returnVariables.size() == 1);
 		return new IdentifierExpression(methodLoc, this.returnVariables.get(0));
 	}
 
@@ -165,6 +166,7 @@ public class MethodInfo {
 
 	public Expression lookupParameterRef(ParameterRef arg0) {
 		int offset = thisVariable == null ? 0 : 1;
+		offset += Options.v().passCallerIdIntoMethods() ? 1 : 0;
 		return new IdentifierExpression(methodLoc, cfgMethod.getInParam(arg0.getIndex() + offset));
 	}
 
@@ -186,12 +188,12 @@ public class MethodInfo {
 
 	public Variable createFreshLocal(String prefix, Type t, boolean constant, boolean unique) {
 
-		
-//		List<Type> elementTypes = new LinkedList<Type>();
-//		elementTypes.add(newType);
-//		TupleType ttype = new TupleType(elementTypes);
-//		TupleVariable tupleVar = new TupleVariable("$new", ttype, true, true);
-//		
+		// List<Type> elementTypes = new LinkedList<Type>();
+		// elementTypes.add(newType);
+		// TupleType ttype = new TupleType(elementTypes);
+		// TupleVariable tupleVar = new TupleVariable("$new", ttype, true,
+		// true);
+		//
 
 		Variable v = new Variable(prefix + this.freshLocals.size(), t, constant, unique);
 		this.freshLocals.add(v);

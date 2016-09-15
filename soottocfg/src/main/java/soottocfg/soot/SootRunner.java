@@ -180,7 +180,9 @@ public class SootRunner {
 				writeSpecPackageToDisc(specDir);
 				processDirs.add(specDir.getAbsolutePath());
 			}
-			enforceNoSrcPolicy(processDirs);
+			if (Options.v().checkMixedJavaClassFiles()) {
+				enforceNoSrcPolicy(processDirs);
+			}
 			sootOpt.set_process_dir(processDirs);
 
 			// finally, run soot
@@ -198,7 +200,7 @@ public class SootRunner {
 	 * To avoid these random error, we fail early.
 	 * @param dirs
 	 */
-	private void enforceNoSrcPolicy(List<String> dirs) {
+	private void enforceNoSrcPolicy(List<String> dirs) {		
 		for (String dir : dirs) {
 			for (File f : Files.fileTreeTraverser().preOrderTraversal(new File(dir))) {
 				if (f!=null && f.isFile() && f.getName().endsWith(".java")) {
