@@ -261,7 +261,7 @@ public class StatementEncoder {
 		// TODO: find a more precise implementation.
 		final Set<ClassVariable> possibleTypes = this.hornContext.ppOrdering
 				.getBrutalOverapproximationOfPossibleType(pull);
-
+		
 		for (ClassVariable sig : possibleTypes) {
 			// get the invariant for this subtype.
 			final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig);

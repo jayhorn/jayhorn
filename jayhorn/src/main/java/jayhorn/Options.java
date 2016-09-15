@@ -100,10 +100,12 @@ public class Options {
 	private boolean printCFG = false;
 
 	public boolean getPrintCFG() {
-		return this.printCFG;
+		soottocfg.Options.v().setPrintCFG(printCFG);
+		return soottocfg.Options.v().printCFG();
 	}
 
 	public void setPrintCFG(boolean b) {
+		soottocfg.Options.v().setPrintCFG(b);
 		this.printCFG = b;
 	}
 
