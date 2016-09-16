@@ -63,86 +63,56 @@
  <tr class = "success">
 <td><b>Benchmark</a></td>
       <td><b>Result</a></td>
+      <td><b>Expected</a></td>
     <td><b>Soot2Cfg (Time)</b></td>
 <td><b>CheckSat (Time)</b></td>
 <td><b>Hornify (Time)</b></td>
     </tr>
 
  <tr class = "active">
-      <td>loops/loop1</td>
- <td>SAFE</td>
-    <td>423.7μs</td>
-<td>2.330s</td>
-<td>422.6ms</td>
+      <td>TestLoop2.java</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
+    <td>445.3μs</td>
+<td>648.0ms</td>
+<td>408.9ms</td>
     </tr>
 
 
  <tr class = "active">
-      <td>loops/loop3</td>
- <td>SAFE</td>
-    <td>292.7μs</td>
+      <td>TestLoop1.java</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
+    <td>439.4μs</td>
+<td>2.310s</td>
+<td>389.8ms</td>
+    </tr>
+
+
+ <tr class = "active">
+      <td>TestLoop3.java</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
+    <td>434.9μs</td>
 <td></td>
 <td></td>
     </tr>
 
 
  <tr class = "active">
-      <td>loops/loop2</td>
- <td>SAFE</td>
-    <td>419.6μs</td>
-<td>659.0ms</td>
-<td>393.9ms</td>
+      <td>Mysore.java</td>
+<td>UNSAFE</td>
+ <td>UNKNOWN</td>
+    <td>457.8μs</td>
+<td>1.172s</td>
+<td>424.7ms</td>
     </tr>
 
 
  <tr class = "active">
-      <td>termination/MenloPark</td>
- <td>UNSAFE</td>
-    <td>405.9μs</td>
-<td>1.224s</td>
-<td>422.2ms</td>
-    </tr>
-
-
- <tr class = "active">
-      <td>termination/Pure2Phase</td>
- <td>UNSAFE</td>
-    <td>426.4μs</td>
-<td>1.132s</td>
-<td>468.6ms</td>
-    </tr>
-
-
- <tr class = "active">
-      <td>termination/Aaron2</td>
- <td>SAFE</td>
-    <td>424.6μs</td>
-<td>1.857s</td>
-<td>462.1ms</td>
-    </tr>
-
-
- <tr class = "active">
-      <td>termination/Mysore</td>
- <td>UNSAFE</td>
-    <td>459.9μs</td>
-<td>1.086s</td>
-<td>463.6ms</td>
-    </tr>
-
-
- <tr class = "active">
-      <td>termination/Easy2</td>
- <td>SAFE</td>
-    <td>451.5μs</td>
-<td>1.045s</td>
-<td>449.7ms</td>
-    </tr>
-
-
- <tr class = "active">
-      <td>termination/Easy</td>
- <td>TIMEOUT</td>
+      <td>Easy.java</td>
+<td>TIMEOUT</td>
+ <td>UNKNOWN</td>
     <td></td>
 <td></td>
 <td></td>
@@ -150,314 +120,49 @@
 
 
  <tr class = "active">
-      <td>algorithms/HeapInsertJDK15</td>
- <td>SAFE</td>
-    <td>286.8μs</td>
+      <td>Test.java</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
+    <td>424.4μs</td>
+<td>1.819s</td>
+<td>460.9ms</td>
+    </tr>
+
+
+ <tr class = "active">
+      <td>MenloPark.java</td>
+<td>UNSAFE</td>
+ <td>UNKNOWN</td>
+    <td>428.8μs</td>
+<td>1.144s</td>
+<td>426.4ms</td>
+    </tr>
+
+
+ <tr class = "active">
+      <td>MergeSortJDK15.java</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
+    <td>401.4μs</td>
 <td></td>
 <td></td>
     </tr>
 
 
- <tr class = "active">
-      <td>algorithms/mccarthy</td>
+ <tr class = "danger">
+      <td>UnsafeMergeSortIterative2.java</td>
+<td></td>
  <td>UNSAFE</td>
-    <td>445.0μs</td>
-<td>1.113s</td>
-<td>459.4ms</td>
-    </tr>
-
-
- <tr class = "active">
-      <td>algorithms/SortedListInsert</td>
- <td>SAFE</td>
-    <td>310.3μs</td>
-<td>138.5ms</td>
-<td>765.4ms</td>
-    </tr>
-
-
- <tr class = "active">
-      <td>algorithms/MergeSortJDK15</td>
- <td>SAFE</td>
-    <td>304.9μs</td>
+    <td></td>
 <td></td>
 <td></td>
     </tr>
 
 
- <tr class = "active">
-      <td>algorithms/InsertionSort</td>
- <td>UNSAFE</td>
-    <td>299.6μs</td>
-<td>6.105s</td>
-<td>991.6ms</td>
-    </tr>
-
-
- <tr class = "active">
-      <td>algorithms/BinaryTreeSearch</td>
- <td>SAFE</td>
-    <td>300.8μs</td>
-<td>151.7ms</td>
-<td>927.1ms</td>
-    </tr>
-
-
- <tr class = "active">
-      <td>algorithms/Tsp</td>
- <td>SAFE</td>
-    <td>431.3μs</td>
-<td>143.9ms</td>
-<td>1.687s</td>
-    </tr>
-
-
- <tr class = "active">
-      <td>algorithms/MergeSortIterative</td>
+ <tr class = "danger">
+      <td>SafeSortedListInsert.java</td>
+<td>SAFE</td>
  <td></td>
-    <td></td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>algorithms/RedBlackTreeSearch</td>
- <td>SAFE</td>
-    <td>313.1μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>algorithms/BellmanFord</td>
- <td>TIMEOUT</td>
-    <td></td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>algorithms/Dijkstra</td>
- <td>TIMEOUT</td>
-    <td></td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>algorithms/maxsum</td>
- <td>UNSAFE</td>
-    <td>303.2μs</td>
-<td>5.917s</td>
-<td>1.242s</td>
-    </tr>
-
-
- <tr class = "active">
-      <td>algorithms/QuickSortJDK15</td>
- <td>SAFE</td>
-    <td>304.9μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>algorithms/SimpleObject</td>
- <td>SAFE</td>
-    <td>287.2μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>algorithms/trie</td>
- <td>TIMEOUT</td>
-    <td></td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>algorithms/rabinkarp</td>
- <td>TIMEOUT</td>
-    <td></td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product26</td>
- <td>SAFE</td>
-    <td>297.8μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product53</td>
- <td>SAFE</td>
-    <td>285.3μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product24</td>
- <td>SAFE</td>
-    <td>453.6μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product25</td>
- <td>SAFE</td>
-    <td>293.3μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product22</td>
- <td>SAFE</td>
-    <td>290.3μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product23</td>
- <td>SAFE</td>
-    <td>297.8μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product20</td>
- <td>SAFE</td>
-    <td>295.2μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product27</td>
- <td>SAFE</td>
-    <td>298.5μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product62</td>
- <td>SAFE</td>
-    <td>288.0μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product45</td>
- <td>SAFE</td>
-    <td>289.4μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product60</td>
- <td>SAFE</td>
-    <td>307.7μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product47</td>
- <td>SAFE</td>
-    <td>452.1μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product40</td>
- <td>SAFE</td>
-    <td>290.5μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product41</td>
- <td>SAFE</td>
-    <td>322.0μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product64</td>
- <td>SAFE</td>
-    <td>316.7μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product43</td>
- <td>SAFE</td>
-    <td>397.7μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product50</td>
- <td>SAFE</td>
-    <td>296.9μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product48</td>
- <td>SAFE</td>
-    <td>404.7μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product49</td>
- <td>SAFE</td>
     <td>287.7μs</td>
 <td></td>
 <td></td>
@@ -465,188 +170,89 @@
 
 
  <tr class = "active">
-      <td>MinePump/spec1-5/product14</td>
- <td>SAFE</td>
-    <td>298.9μs</td>
+      <td>MaxSum.java</td>
+<td>UNSAFE</td>
+ <td>UNKNOWN</td>
+    <td>302.9μs</td>
+<td>5.797s</td>
+<td>1.191s</td>
+    </tr>
+
+
+ <tr class = "active">
+      <td>MergeSortIterative.java</td>
+<td></td>
+ <td>UNKNOWN</td>
+    <td></td>
 <td></td>
 <td></td>
     </tr>
 
 
  <tr class = "active">
-      <td>MinePump/spec1-5/product33</td>
- <td>SAFE</td>
-    <td>401.4μs</td>
+      <td>Trie.java</td>
+<td>TIMEOUT</td>
+ <td>UNKNOWN</td>
+    <td></td>
 <td></td>
 <td></td>
     </tr>
 
 
  <tr class = "active">
-      <td>MinePump/spec1-5/product42</td>
- <td>SAFE</td>
-    <td>289.6μs</td>
+      <td>BinaryTreeSearch.java</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
+    <td>303.3μs</td>
+<td>161.2ms</td>
+<td>916.4ms</td>
+    </tr>
+
+
+ <tr class = "danger">
+      <td>UnsafeBinaryTreeSearch1.java</td>
+<td>SAFE</td>
+ <td>UNSAFE</td>
+    <td>303.4μs</td>
+<td>183.9ms</td>
+<td>905.4ms</td>
+    </tr>
+
+
+ <tr class = "active">
+      <td>InsertionSort.java</td>
+<td>UNSAFE</td>
+ <td>UNKNOWN</td>
+    <td>330.4μs</td>
+<td>6.330s</td>
+<td>980.4ms</td>
+    </tr>
+
+
+ <tr class = "active">
+      <td>Tsp.java</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
+    <td>474.4μs</td>
+<td>174.1ms</td>
+<td>1.564s</td>
+    </tr>
+
+
+ <tr class = "active">
+      <td>RedBlackTreeSearch.java</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
+    <td>421.4μs</td>
 <td></td>
 <td></td>
     </tr>
 
 
  <tr class = "active">
-      <td>MinePump/spec1-5/product61</td>
- <td>SAFE</td>
-    <td>302.7μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product21</td>
- <td>SAFE</td>
-    <td>291.1μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product31</td>
- <td>SAFE</td>
-    <td>374.7μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product44</td>
- <td>SAFE</td>
-    <td>304.5μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product63</td>
- <td>SAFE</td>
-    <td>283.8μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product46</td>
- <td>SAFE</td>
-    <td>314.6μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product35</td>
- <td>SAFE</td>
-    <td>305.3μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product52</td>
- <td>SAFE</td>
-    <td>288.3μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product37</td>
- <td>SAFE</td>
-    <td>297.6μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product36</td>
- <td>SAFE</td>
-    <td>323.4μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product57</td>
- <td>SAFE</td>
-    <td>292.2μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product56</td>
- <td>SAFE</td>
-    <td>455.7μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product55</td>
- <td>SAFE</td>
-    <td>293.1μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product54</td>
- <td>SAFE</td>
-    <td>429.4μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product59</td>
- <td>SAFE</td>
-    <td>306.0μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product58</td>
- <td>SAFE</td>
-    <td>409.6μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product39</td>
- <td>SAFE</td>
-    <td>432.2μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product38</td>
- <td>SAFE</td>
+      <td>SimpleObject.java</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
     <td>420.4μs</td>
 <td></td>
 <td></td>
@@ -654,216 +260,120 @@
 
 
  <tr class = "active">
-      <td>MinePump/spec1-5/product30</td>
- <td>SAFE</td>
-    <td>286.7μs</td>
+      <td>SatMccarthy91.java</td>
+<td>UNSAFE</td>
+ <td>UNKNOWN</td>
+    <td>418.1μs</td>
+<td>1.102s</td>
+<td>425.1ms</td>
+    </tr>
+
+
+ <tr class = "active">
+      <td>BellmanFord.java</td>
+<td>TIMEOUT</td>
+ <td>UNKNOWN</td>
+    <td></td>
+<td></td>
+<td></td>
+    </tr>
+
+
+ <tr class = "danger">
+      <td>UnsafeBinaryTreeSearch2.java</td>
+<td>SAFE</td>
+ <td>UNSAFE</td>
+    <td>303.1μs</td>
+<td>184.9ms</td>
+<td>928.6ms</td>
+    </tr>
+
+
+ <tr class = "active">
+      <td>RabinKarp.java</td>
+<td>TIMEOUT</td>
+ <td>UNKNOWN</td>
+    <td></td>
 <td></td>
 <td></td>
     </tr>
 
 
  <tr class = "active">
-      <td>MinePump/spec1-5/product51</td>
- <td>SAFE</td>
-    <td>297.1μs</td>
+      <td>HeapInsertJDK15.java</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
+    <td>294.9μs</td>
 <td></td>
 <td></td>
     </tr>
 
 
  <tr class = "active">
-      <td>MinePump/spec1-5/product28</td>
- <td>SAFE</td>
-    <td>295.9μs</td>
+      <td>Dijkstra.java</td>
+<td>TIMEOUT</td>
+ <td>UNKNOWN</td>
+    <td></td>
+<td></td>
+<td></td>
+    </tr>
+
+
+ <tr class = "danger">
+      <td>UnsafeMergeSortIterative1.java</td>
+<td></td>
+ <td>UNSAFE</td>
+    <td></td>
+<td></td>
+<td></td>
+    </tr>
+
+
+ <tr class = "danger">
+      <td>SafeMaxSum.java</td>
+<td>UNSAFE</td>
+ <td></td>
+    <td>303.3μs</td>
+<td>5.751s</td>
+<td>1.176s</td>
+    </tr>
+
+
+ <tr class = "active">
+      <td>UnsatMccarthy91.java</td>
+<td>UNSAFE</td>
+ <td>UNKNOWN</td>
+    <td>445.4μs</td>
+<td>1.133s</td>
+<td>430.4ms</td>
+    </tr>
+
+
+ <tr class = "active">
+      <td>QuickSortJDK15.java</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
+    <td>420.7μs</td>
 <td></td>
 <td></td>
     </tr>
 
 
  <tr class = "active">
-      <td>MinePump/spec1-5/product19</td>
- <td>SAFE</td>
-    <td>457.0μs</td>
+      <td>Actions.java</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
+    <td>299.6μs</td>
 <td></td>
 <td></td>
     </tr>
 
 
  <tr class = "active">
-      <td>MinePump/spec1-5/product18</td>
- <td>SAFE</td>
-    <td>293.0μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product17</td>
- <td>SAFE</td>
-    <td>295.3μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product16</td>
- <td>SAFE</td>
-    <td>300.8μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product15</td>
- <td>SAFE</td>
-    <td>402.4μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product29</td>
- <td>SAFE</td>
-    <td>291.7μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product13</td>
- <td>SAFE</td>
-    <td>296.0μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product12</td>
- <td>SAFE</td>
-    <td>289.6μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product11</td>
- <td>SAFE</td>
-    <td>298.8μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product10</td>
- <td>SAFE</td>
-    <td>289.3μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product34</td>
- <td>SAFE</td>
-    <td>287.0μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product32</td>
- <td>SAFE</td>
-    <td>288.6μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product9</td>
- <td>SAFE</td>
-    <td>304.8μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product8</td>
- <td>SAFE</td>
-    <td>402.3μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product7</td>
- <td>SAFE</td>
-    <td>355.4μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product6</td>
- <td>SAFE</td>
-    <td>286.6μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product5</td>
- <td>SAFE</td>
-    <td>283.9μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product4</td>
- <td>SAFE</td>
-    <td>346.4μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product3</td>
- <td>SAFE</td>
-    <td>287.4μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product2</td>
- <td>SAFE</td>
-    <td>290.7μs</td>
-<td></td>
-<td></td>
-    </tr>
-
-
- <tr class = "active">
-      <td>MinePump/spec1-5/product1</td>
- <td>SAFE</td>
-    <td>356.3μs</td>
+      <td>Main.java</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
+    <td>382.6μs</td>
 <td></td>
 <td></td>
     </tr>
