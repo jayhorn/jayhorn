@@ -242,7 +242,7 @@ public class SootToCfg {
 	
 	
 	private void constructCfg() {
-		System.out.println("Stubbed classes: " + this.stubbedLibClasses);
+//		System.out.println("Stubbed classes: " + this.stubbedLibClasses);
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {

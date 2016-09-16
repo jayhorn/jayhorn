@@ -15,6 +15,7 @@ public class SatIssue66 {
     public static void main(String[] args) {
         for (int i = 0; i < 3; ++i)
             a = new SatIssue66(i+1);
-        assert(a.x > 0);
+	if (a!=null)
+        	assert(a.x >= 0);
     }
 }

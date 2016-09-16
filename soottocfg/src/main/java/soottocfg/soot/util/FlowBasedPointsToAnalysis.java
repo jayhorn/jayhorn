@@ -121,21 +121,32 @@ public class FlowBasedPointsToAnalysis {
 						changes++;
 					}
 				}
-//				ptleft.addAll(ptright);
 			}
 		}
 		return changes;
 	}
 	
 	public static boolean mustAlias(Expression ref1, Expression ref2) {
-		Set<Integer> pt1 = getPointsToSet(ref1);
-		Set<Integer> pt2 = getPointsToSet(ref2);
+		ReferenceType rt1 = getReferenceType(ref1);
+		ReferenceType rt2 = getReferenceType(ref2);
+		if (!rt1.getClassVariable().subclassOf(rt2.getClassVariable()) 
+				&& !rt1.getClassVariable().superclassOf(rt2.getClassVariable()))
+			return false;
+		
+		Set<Integer> pt1 = getPointsToSet(rt1);
+		Set<Integer> pt2 = getPointsToSet(rt2);
 		return pt1.size()==1 && pt2.size()==1 && pt1.containsAll(pt2);
 	}
 	
 	public static boolean mayAlias(Expression ref1, Expression ref2) {
-		Set<Integer> pt1 = getPointsToSet(ref1);
-		Set<Integer> pt2 = getPointsToSet(ref2);
+		ReferenceType rt1 = getReferenceType(ref1);
+		ReferenceType rt2 = getReferenceType(ref2);
+		if (!rt1.getClassVariable().subclassOf(rt2.getClassVariable()) 
+				&& !rt1.getClassVariable().superclassOf(rt2.getClassVariable()))
+			return false;
+		
+		Set<Integer> pt1 = getPointsToSet(rt1);
+		Set<Integer> pt2 = getPointsToSet(rt2);
 		
 		// If we did not collect points to info, err on the safe side
 		if (pt1.isEmpty() || pt2.isEmpty()) return true;
@@ -143,24 +154,26 @@ public class FlowBasedPointsToAnalysis {
 		return !(Collections.disjoint(pt1,pt2));
 	}
 	
-	static private Set<Integer> getPointsToSet(Expression e) {
+	static private ReferenceType getReferenceType(Expression e) {
 		Type t = e.getType();
 		if (! (t instanceof ReferenceType)) {
-			Verify.verify(false, "Called mustAlias on non-reference type");
+			Verify.verify(false, "Called aliasing method on non-reference type");
 		}
+		return (ReferenceType) t;
+	}
+	
+	static private Set<Integer> getPointsToSet(ReferenceType rt) {
 		
 		// bit of a hack to get this to work with the Jayhorn classes
-		if (e.toString().equals(NewMemoryModel.globalsClassName)
-				|| t.toString().startsWith(ArrayTransformer.arrayTypeName)) {
+		if (rt.toString().startsWith(NewMemoryModel.globalsClassName)
+				|| rt.toString().startsWith(ArrayTransformer.arrayTypeName)) {
 			Set<Integer> pointsto = new HashSet<Integer>();
-			pointsto.add(-1);
+			int ptid = -rt.hashCode();
+			pointsto.add(ptid);
 			return pointsto;
 		}
-		
-		ReferenceType rt = (ReferenceType) t;
 		Set<Integer> pt = rt.getPointsToSet();
 		
-//		System.out.println("Ref: " + e + " of type " + rt + " points to " + pt);
 //		Verify.verify(!pt.isEmpty(), 
 //				"Points to information missing, did you run the points-to analysis?");
 		return pt;
