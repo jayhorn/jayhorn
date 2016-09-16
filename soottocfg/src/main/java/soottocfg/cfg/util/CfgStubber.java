@@ -31,6 +31,7 @@ import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
  * @author schaef
+ * @author rodykers
  *
  */
 public class CfgStubber {
@@ -71,32 +72,31 @@ public class CfgStubber {
 					PushStatement push = new PushStatement(loc, rt.getClassVariable(), new IdentifierExpression(loc, thisPointer), rhs);
 					block.addStatement(push);
 					
-//				} else if (method.getMethodName().contains(SootTranslationHelpers.HavocClassName)) {
 				} else if (method.getReturnType().size()>0) {
+					int i=0;
+					for (Type t : method.getReturnType()) {
+						// add push with undef values to havoc methods
+						if (t instanceof ReferenceType) {
+							ReferenceType rt = (ReferenceType) t;
+							List<Expression> rhs = new LinkedList<Expression>();
 
-					// add push with undef values to havoc methods
-					Type t = method.getReturnType().get(0);
-					if (t instanceof ReferenceType) {
-//						System.out.println("Stubbing: " + method.getMethodName());
-						ReferenceType rt = (ReferenceType) t;
-						List<Expression> rhs = new LinkedList<Expression>();
-						int i=0;
-						for (Variable v : rt.getClassVariable().getAssociatedFields()) {
-							if (v.getName().contains(SootTranslationHelpers.typeFieldName)) {
-								//Make sure that we set the correct dynamic type.
-								rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
-							} else {
-								Variable undefLocal = new Variable("undef_field" + (i++), IntType.instance());
-								rhs.add(new IdentifierExpression(loc, undefLocal));
-							}					
+							for (Variable v : rt.getClassVariable().getAssociatedFields()) {
+								if (v.getName().contains(SootTranslationHelpers.typeFieldName)) {
+									//Make sure that we set the correct dynamic type.
+									rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
+								} else {
+									Variable undefLocal = new Variable("undef_field" + (i++), IntType.instance());
+									rhs.add(new IdentifierExpression(loc, undefLocal));
+								}					
+							}
+							Variable outVar = new Variable(MethodInfo.returnVariableName, rt);
+							LinkedList<Variable> rets = new LinkedList<Variable>();
+							rets.add(outVar);
+							method.setOutParam(rets);
+							IdentifierExpression ret = new IdentifierExpression(loc, outVar);
+							PushStatement push = new PushStatement(loc, rt.getClassVariable(), ret, rhs);
+							block.addStatement(push);
 						}
-						Variable outVar = new Variable(MethodInfo.returnVariableName, rt);
-						LinkedList<Variable> rets = new LinkedList<Variable>();
-						rets.add(outVar);
-						method.setOutParam(rets);
-						IdentifierExpression ret = new IdentifierExpression(loc, outVar);
-						PushStatement push = new PushStatement(loc, rt.getClassVariable(), ret, rhs);
-						block.addStatement(push);
 					}
 				}
 
