@@ -76,7 +76,7 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 			arrayIndexOutOfBoundsExceptionClass, classCastExceptionClass, errorExceptionClass, throwableClass;
 	private final Hierarchy hierarchy;
 	
-	private final boolean treatUncaughtExceptionsAsAssertions;
+	private boolean treatUncaughtExceptionsAsAssertions;
 
 	private Body body;
 	private NullnessAnalysis nullnessAnalysis;
@@ -107,6 +107,10 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 
 	public void applyTransformation() {
 		for (JimpleBody body : this.getSceneBodies()) {
+			//TODO
+//			if (body.getMethod().isMain()) {
+//				treatUncaughtExceptionsAsAssertions = true;
+//			}
 			transform(body);
 		}
 	}
@@ -263,6 +267,10 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 					}
 				}
 			}
+			//TODO:
+			//every method could throw a runtime exception.
+//			addRuntimExceptionIfNecessary(possibleExceptions);
+			
 			// now sort the classes.
 			sortExceptionsTightestFirst(possibleExceptions);
 			
@@ -308,10 +316,25 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 			}
 			
 			if (throwsUncaughtException) {
-				//check if the exception global is non-null and return.				
-				Unit defaultReturn = SootTranslationHelpers.v().getDefaultReturnStatement(body.getMethod().getReturnType(), u);
-				body.getUnits().add(defaultReturn);				
-				toInsert.add(ifStmtFor(Jimple.v().newNeExpr(exceptionVarLocal, NullConstant.v()), defaultReturn, u));
+				//check if the exception global is non-null and return.								
+//TODO: if we add this assertion at the end of main, we
+//can't prove anything!
+				
+//				if (this.body.getMethod().isMain()) {
+//					//if this is main, we can't re-throw, so we
+//					//have to assert that the assertion is not null.
+//					Local assertionLocal = Jimple.v().newLocal("$assert_" + (body.getLocals().size()), BooleanType.v());
+//					body.getLocals().add(assertionLocal);
+//					toInsert.add(assignStmtFor(assertionLocal, Jimple.v().newEqExpr(exceptionVarLocal, NullConstant.v()), u));
+//					toInsert.add(SootTranslationHelpers.v().makeAssertion(assertionLocal, u));
+//				} else {
+					//normal case: if the exception isn't null, re-throw by
+					//returning a default value.
+					Unit defaultReturn = SootTranslationHelpers.v().getDefaultReturnStatement(body.getMethod().getReturnType(), u);
+					body.getUnits().add(defaultReturn);				
+					toInsert.add(ifStmtFor(Jimple.v().newNeExpr(exceptionVarLocal, NullConstant.v()), defaultReturn, u));
+//				}
+				
 			}
 			
 			// now insert everything after the call
@@ -320,6 +343,25 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 			}
 		}
 		return usedTraps;
+	}
+	
+	/**
+	 * Takes a list of SootClasses and adds the RuntimeException class
+	 * if the list does not contain RuntimeException or any or its
+	 * supertypes.
+	 * @param classes
+	 */
+	private void addRuntimExceptionIfNecessary(List<SootClass> classes) {
+		boolean containRteOrAbove = false;
+		for (SootClass c : classes) {
+			if (hierarchy.isClassSubclassOfIncluding(c, runtimeExceptionClass)) {
+				containRteOrAbove = true;
+				break;
+			}
+		}
+		if (!containRteOrAbove) {
+			classes.add(runtimeExceptionClass);
+		}
 	}
 
 	private void sortExceptionsTightestFirst(List<SootClass> exceptions) {
