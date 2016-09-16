@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import soottocfg.Options;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression;
@@ -25,7 +24,6 @@ import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.util.InterProceduralPullPushOrdering;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
-import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
  * @author Rody Kersten

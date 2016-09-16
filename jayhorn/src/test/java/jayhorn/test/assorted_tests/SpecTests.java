@@ -81,9 +81,9 @@ public class SpecTests {
 		try {
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
-			soottocfg.Options.v().setBuiltInSpecs(true);
+			soottocfg.Options.v().setBuiltInSpecs(false);
 			soottocfg.Options.v().setPrintCFG(true);
-			soottocfg.Options.v().setMemPrecision(2);
+			soottocfg.Options.v().setMemPrecision(3);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			jayhorn.Options.v().setTimeout(5);
 			jayhorn.Options.v().setPrintHorn(false);

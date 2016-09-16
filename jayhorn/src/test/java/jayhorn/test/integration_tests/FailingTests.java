@@ -78,14 +78,15 @@ public class FailingTests {
 		File classDir = null;
 		try {			
 			classDir = Util.compileJavaFile(this.sourceFile);
-			soottocfg.Options.v().setMemPrecision(3);
-			soottocfg.Options.v().setPrintCFG(true);
 			SootToCfg soot2cfg = new SootToCfg();
+			soottocfg.Options.v().setMemPrecision(3);
+//			soottocfg.Options.v().setExcAsAssert(true);
+			soottocfg.Options.v().setPrintCFG(true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
-			jayhorn.Options.v().setTimeout(5);
-			
-			jayhorn.Options.v().setPrintHorn(false);	
 			Program program = soot2cfg.getProgram();
+			
+			jayhorn.Options.v().setTimeout(5);
+			jayhorn.Options.v().setPrintHorn(false);	
 	  		Checker hornChecker = new Checker(factory);
 	  		boolean result = hornChecker.checkProgram(program);
 	  		

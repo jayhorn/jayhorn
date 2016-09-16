@@ -44,7 +44,6 @@ import soottocfg.soot.memory_model.PushPullSimplifier;
 import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
-import soottocfg.soot.transformers.MethodStubber;
 import soottocfg.soot.transformers.SpecClassTransformer;
 import soottocfg.soot.transformers.SwitchStatementRemover;
 import soottocfg.soot.transformers.VirtualCallResolver;
@@ -73,8 +72,6 @@ public class SootToCfg {
 	private boolean debug = false;
 	
 	private final Set<SourceLocation> locations = new HashSet<SourceLocation>();
-	
-	private Set<SootClass> stubbedLibClasses;
 
 	// Create a new program
 	private final Program program = new Program();
@@ -242,16 +239,10 @@ public class SootToCfg {
 	
 	
 	private void constructCfg() {
-//		System.out.println("Stubbed classes: " + this.stubbedLibClasses);
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
-				if ((!sc.isJavaLibraryClass() && !sc.isLibraryClass()) 
-					|| (this.stubbedLibClasses.contains(sc) 
-							// HACK this next condition should not be here, but otherwise &^@#&@$%$
-							&& sc.getName().contains("java.lang.Integer")
-							)
-					) {
+				if ((!sc.isJavaLibraryClass() && !sc.isLibraryClass())) {
 					constructCfg(sc);	
 				}
 			}
@@ -276,12 +267,6 @@ public class SootToCfg {
 	}
 
 	private void performAbstractionTransformations() {
-
-		if (Options.v().memModel()==MemModel.PullPush) {
-			MethodStubber mstubber = new MethodStubber();
-			mstubber.applyTransformation();
-			this.stubbedLibClasses = mstubber.getModifiedClasses();
-		}
 
 		ArrayTransformer atrans = new ArrayTransformer();
 		atrans.applyTransformation();

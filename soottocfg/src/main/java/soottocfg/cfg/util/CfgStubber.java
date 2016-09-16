@@ -3,8 +3,10 @@
  */
 package soottocfg.cfg.util;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import soot.SootMethod;
 import soottocfg.cfg.Program;
@@ -32,9 +34,14 @@ import soottocfg.soot.util.SootTranslationHelpers;
  *
  */
 public class CfgStubber {
-	
+
+	//TODO check if this works with the new exception stuff after Martin finishes #57
 	public void stubUnboundFieldsAndMethods(Program program) {
-		for (Method method : program.getMethods()) {
+		Queue<Method> todo = new LinkedList<Method>();
+		todo.addAll(Arrays.asList(program.getMethods()));
+		while (!todo.isEmpty()) {
+			Method method = todo.remove();
+			
 			if (method.getSource() == null) {
 				/*
 				 * If the method does not have a body, we just add a non-det assignment to the 
@@ -46,7 +53,6 @@ public class CfgStubber {
 				SourceLocation loc = method.getLocation();
 
 				if (method.getMethodName().contains(SootMethod.constructorName)) {
-					//TODO
 					Variable thisPointer = method.getInParams().get(0);
 					ReferenceType rt = getRefTypeFrom(thisPointer);
 					
@@ -61,9 +67,12 @@ public class CfgStubber {
 							rhs.add(new IdentifierExpression(loc, undefLocal));
 						}						
 					}
+
 					PushStatement push = new PushStatement(loc, rt.getClassVariable(), new IdentifierExpression(loc, thisPointer), rhs);
 					block.addStatement(push);
-				} else if (method.getMethodName().contains(SootTranslationHelpers.HavocClassName)) {
+					
+//				} else if (method.getMethodName().contains(SootTranslationHelpers.HavocClassName)) {
+				} else if (method.getReturnType().size()>0) {
 
 					// add push with undef values to havoc methods
 					Type t = method.getReturnType().get(0);
@@ -88,7 +97,6 @@ public class CfgStubber {
 						IdentifierExpression ret = new IdentifierExpression(loc, outVar);
 						PushStatement push = new PushStatement(loc, rt.getClassVariable(), ret, rhs);
 						block.addStatement(push);
-//						System.out.println("Push: " + push);
 					}
 				}
 
