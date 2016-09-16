@@ -166,7 +166,7 @@ public class MethodInfo {
 
 	public Expression lookupParameterRef(ParameterRef arg0) {
 		int offset = thisVariable == null ? 0 : 1;
-		offset += Options.v().passCallerIdIntoMethods() ? 1 : 0;
+//		offset += Options.v().passCallerIdIntoMethods() ? 1 : 0;
 		return new IdentifierExpression(methodLoc, cfgMethod.getInParam(arg0.getIndex() + offset));
 	}
 

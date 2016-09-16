@@ -18,6 +18,7 @@ import jayhorn.checker.Checker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.test.Util;
+import scala.actors.threadpool.Arrays;
 import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
 
@@ -47,6 +48,7 @@ public class CbmcSrcTests {
 	private static void collectFileNamesRecursively(File file, List<Object[]> filenames) {
 		File[] directoryListing = file.listFiles();
 		if (directoryListing != null) {
+			Arrays.sort(directoryListing);
 			for (File child : directoryListing) {
 				if (child.isFile() && child.getName().endsWith(".java")) {
 					filenames.add(new Object[] { child, child.getName() });
@@ -77,7 +79,7 @@ public class CbmcSrcTests {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
-			soottocfg.Options.v().passCallerIdIntoMethods(true);
+//			soottocfg.Options.v().passCallerIdIntoMethods(true);
 //			soottocfg.Options.v().setPrintCFG(false);
 			soottocfg.Options.v().setMemPrecision(1);
 //			soottocfg.Options.v().setExcAsAssert(true);

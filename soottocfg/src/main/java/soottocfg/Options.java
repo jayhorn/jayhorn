@@ -82,15 +82,15 @@ public class Options {
 	 * method parameter to allow disjunctive
 	 * invariants
 	 */
-	private boolean passCallerIdIntoMethods = false;
-	
-	public boolean passCallerIdIntoMethods() {
-		return passCallerIdIntoMethods;
-	}
-	
-	public void passCallerIdIntoMethods(boolean val) {
-		this.passCallerIdIntoMethods = val;
-	}
+//	private boolean passCallerIdIntoMethods = false;
+//	
+//	public boolean passCallerIdIntoMethods() {
+//		return passCallerIdIntoMethods;
+//	}
+//	
+//	public void passCallerIdIntoMethods(boolean val) {
+//		this.passCallerIdIntoMethods = val;
+//	}
 	
 	public void setTupleEncoding(boolean val) {
 		this.tupleEncoding = val;

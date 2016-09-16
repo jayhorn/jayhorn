@@ -38,6 +38,7 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.util.CfgStubber;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.memory_model.MemoryModel;
+import soottocfg.soot.memory_model.MissingPushAdder;
 import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.memory_model.PushIdentifierAdder;
 import soottocfg.soot.memory_model.PushPullSimplifier;
@@ -128,6 +129,9 @@ public class SootToCfg {
 			SootTranslationHelpers.v().reset();
 			return;
 		}
+		
+		// add missing pushes
+		MissingPushAdder.addMissingPushes(program);
 		
 		// alias analysis
 		if (Options.v().memPrecision() >= 3) {

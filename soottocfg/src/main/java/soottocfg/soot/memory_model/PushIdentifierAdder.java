@@ -99,12 +99,6 @@ public class PushIdentifierAdder {
 							IdentifierExpression lpid = new IdentifierExpression(pull.getSourceLocation(), lp);
 							SourceLocation loc = pull.getSourceLocation();
 
-							// findBugs noted this is not actually used
-//							List<Expression> args = new ArrayList<Expression>();
-//							if (Options.v().passCallerIdIntoMethods()) {
-//								args.add(new IntegerLiteral(loc, SootTranslationHelpers.v().getUniqueNumberForUnit(s)));
-//							}
-
 							Iterator<Expression> it = disj.iterator();
 							Expression toAssume = it.next();
 							while (it.hasNext()) {

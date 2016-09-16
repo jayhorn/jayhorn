@@ -166,9 +166,9 @@ public enum SootTranslationHelpers {
 					getMemoryModel().lookupType(m.getDeclaringClass().getType())));
 		}
 		
-		if (Options.v().passCallerIdIntoMethods()) {
-			parameterList.add(new Variable(parameterPrefix + (parameterCount++), IntType.instance()));
-		}
+//		if (Options.v().passCallerIdIntoMethods()) {
+//			parameterList.add(new Variable(parameterPrefix + (parameterCount++), IntType.instance()));
+//		}
 		
 		for (int i = 0; i < m.getParameterCount(); i++) {
 			parameterList.add(new Variable(parameterPrefix + (parameterCount++),

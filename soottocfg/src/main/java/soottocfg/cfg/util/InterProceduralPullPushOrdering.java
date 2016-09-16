@@ -177,8 +177,8 @@ public class InterProceduralPullPushOrdering {
 				}
 			}
 		}
-		Verify.verify(!ret.isEmpty(),
-				"Cannot find a push that affects this pull. This would introduce an assume(false): " + pull);
+//		Verify.verify(!ret.isEmpty(),
+//				"Cannot find a push that affects this pull. This would introduce an assume(false): " + pull);		
 		return ret;
 	}
 

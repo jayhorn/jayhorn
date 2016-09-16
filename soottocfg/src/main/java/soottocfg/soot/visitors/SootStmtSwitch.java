@@ -412,10 +412,10 @@ public class SootStmtSwitch implements StmtSwitch {
 			throw new RuntimeException("Cannot compute instance for " + call.getClass().toString());
 		}
 
-		if (Options.v().passCallerIdIntoMethods()) {
-			int offset = (call instanceof InstanceInvokeExpr) ? 1 : 0;
-			args.add(offset, new IntegerLiteral(loc, u.hashCode()));
-		}
+//		if (Options.v().passCallerIdIntoMethods()) {
+//			int offset = (call instanceof InstanceInvokeExpr) ? 1 : 0;
+//			args.add(offset, new IntegerLiteral(loc, u.hashCode()));
+//		}
 		
 		List<Expression> receiver = new LinkedList<Expression>();
 		if (optionalLhs != null) {

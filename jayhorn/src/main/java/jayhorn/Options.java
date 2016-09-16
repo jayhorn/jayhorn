@@ -168,8 +168,8 @@ public class Options {
 	@Option(name = "-rta", usage = "Automatically inserts runtime assertions for Null deref, array bounds, and illegal casts.")
 	private boolean insertRuntimeAssertions = false;
 
-	@Option(name = "-callid", usage = "Pass id of caller statement as argument to method")
-	private boolean passCallerID = soottocfg.Options.v().passCallerIdIntoMethods();
+//	@Option(name = "-callid", usage = "Pass id of caller statement as argument to method")
+//	private boolean passCallerID = soottocfg.Options.v().passCallerIdIntoMethods();
 	
 	
 	/**
@@ -191,7 +191,7 @@ public class Options {
 	}
 
 	public void updateSootToCfgOptions() {
-		soottocfg.Options.v().passCallerIdIntoMethods(passCallerID);
+//		soottocfg.Options.v().passCallerIdIntoMethods(passCallerID);
 		soottocfg.Options.v().setExcAsAssert(insertRuntimeAssertions);
 		soottocfg.Options.v().setMemPrecision(memPrecision);
 		soottocfg.Options.v().setPrintCFG(printCFG);
