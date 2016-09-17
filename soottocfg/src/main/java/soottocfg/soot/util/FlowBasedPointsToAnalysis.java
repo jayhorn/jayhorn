@@ -65,7 +65,11 @@ public class FlowBasedPointsToAnalysis {
 							}
 							List<Type> rets = target.getReturnType();
 							List<Expression> rec = cs.getReceiver();
-							Verify.verify(rec.size()==0 || rets.size()==rec.size());
+							//@Rody, this verify is not valid anymore
+							//because all methods have at least one param for 
+							//the exception. 							
+//							Verify.verify(rec.size()==0 || rets.size()==rec.size(),
+//									"In "+m.getMethodName()+ " for "+ cs+": "+rets.size()+"!="+rec.size());
 							for (int i = 0; i < rec.size(); i++) {
 								Type left = rec.get(i).getType();
 								Type right = rets.get(i);

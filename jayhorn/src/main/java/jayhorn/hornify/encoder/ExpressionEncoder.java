@@ -11,12 +11,13 @@ import jayhorn.hornify.HornHelper;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import soottocfg.cfg.expression.BinaryExpression;
-import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
+import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 
@@ -50,6 +51,8 @@ public class ExpressionEncoder {
 			}
 		} else if (e instanceof IntegerLiteral) {
 			return p.mkLiteral(BigInteger.valueOf(((IntegerLiteral) e).getValue()));
+		} else if (e instanceof NullLiteral) {
+			return p.mkLiteral(BigInteger.valueOf(1234));			
 		} else if (e instanceof BinaryExpression) {
 			final BinaryExpression be = (BinaryExpression) e;
 			final ProverExpr left = exprToProverExpr(be.getLeft(), varMap);
