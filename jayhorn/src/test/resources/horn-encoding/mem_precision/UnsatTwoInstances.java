@@ -1,11 +1,9 @@
-import java.util.Random;
-
 class A
 {
   public int i;
 };
 
-class Sat07
+class UnsatTwoInstances
 {
 	  public static void main(String[] args)
 	  {
@@ -14,7 +12,6 @@ class Sat07
 
 	    A a2 = new A();
 	    a2.i = 42;
-
-	    assert a1.i == 42;
+	    assert a1.i != a2.i;
 	  }
 }

@@ -37,7 +37,7 @@ public class SimpleHornTest {
 	@Parameterized.Parameters(name = "{index}: check ({1})")
 	public static Collection<Object[]> data() {
 		List<Object[]> filenames = new LinkedList<Object[]>();
-		final File source_dir = new File(testRoot + "horn-encoding/null");
+		final File source_dir = new File(testRoot + "horn-encoding/simple1");
 		collectFileNamesRecursively(source_dir, filenames);
 		if (filenames.isEmpty()) {
 			throw new RuntimeException("Test data not found!");
@@ -83,8 +83,8 @@ public class SimpleHornTest {
 		try {
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
-//			soottocfg.Options.v().setPrintCFG(true);
-//			soottocfg.Options.v().setMemPrecision(3);
+			soottocfg.Options.v().setPrintCFG(true);
+			soottocfg.Options.v().setMemPrecision(3);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			
 			Program program = soot2cfg.getProgram();
