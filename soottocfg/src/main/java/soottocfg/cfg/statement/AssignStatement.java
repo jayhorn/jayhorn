@@ -4,6 +4,7 @@
 package soottocfg.cfg.statement;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import soottocfg.cfg.SourceLocation;
@@ -12,6 +13,7 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
@@ -21,6 +23,7 @@ import soottocfg.soot.util.SootTranslationHelpers;
 public class AssignStatement extends Statement {
 
 	private static final long serialVersionUID = 6725099779878843508L;
+	private Expression left, right;
 
 	public Expression getLeft() {
 		return left;
@@ -29,8 +32,6 @@ public class AssignStatement extends Statement {
 	public Expression getRight() {
 		return right;
 	}
-
-	private final Expression left, right;
 
 	/**
 	 * @param createdFrom
@@ -85,6 +86,12 @@ public class AssignStatement extends Statement {
 	@Override
 	public Statement deepCopy() {
 		return new AssignStatement(getSourceLocation(), left.deepCopy(), right.deepCopy());
+	}
+
+	@Override
+	public void substitute(Map<Variable, Expression> subs) {
+		this.left = this.left.substitute(subs);
+		this.right = this.right.substitute(subs);
 	}
 
 }

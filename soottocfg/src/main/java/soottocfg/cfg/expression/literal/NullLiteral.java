@@ -4,6 +4,7 @@
 package soottocfg.cfg.expression.literal;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import soottocfg.cfg.SourceLocation;
@@ -67,4 +68,10 @@ public class NullLiteral extends Expression {
 	public Expression deepCopy() {		
 		return new NullLiteral(getSourceLocation());
 	}
+
+	@Override
+	public Expression substitute(Map<Variable, Expression> subs) {
+		return this;
+	}
+
 }

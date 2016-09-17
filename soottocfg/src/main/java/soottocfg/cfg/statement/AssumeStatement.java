@@ -4,12 +4,14 @@
 package soottocfg.cfg.statement;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.variable.Variable;
 
 /**
  * @author teme
@@ -21,7 +23,7 @@ public class AssumeStatement extends Statement {
 	 * 
 	 */
 	private static final long serialVersionUID = -4719730863944690585L;
-	private final Expression expression;
+	private Expression expression;
 
 	/**
 	 * @param createdFrom
@@ -59,6 +61,11 @@ public class AssumeStatement extends Statement {
 	@Override
 	public Statement deepCopy() {
 		return new AssumeStatement(getSourceLocation(), expression.deepCopy());
+	}
+
+	@Override
+	public void substitute(Map<Variable, Expression> subs) {
+		this.expression = this.expression.substitute(subs);
 	}
 
 }

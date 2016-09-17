@@ -4,6 +4,7 @@
 package soottocfg.cfg.expression;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
@@ -66,4 +67,11 @@ public class IdentifierExpression extends Expression {
 	public IdentifierExpression deepCopy() {		
 		return new IdentifierExpression(getSourceLocation(), variable);
 	}
+	
+	public Expression substitute(Map<Variable, Expression> subs) {
+		if (subs.containsKey(this.variable)) {
+			return subs.get(variable);
+		}
+		return this;
+	}	
 }

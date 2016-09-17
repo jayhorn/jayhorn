@@ -85,7 +85,6 @@ public class CbmcSrcTests {
 //			soottocfg.Options.v().setExcAsAssert(true);
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
-			soottocfg.Options.v().setTupleEncoding(false);
 			soottocfg.Options.v().setMemPrecision(0);
 
 			soot2cfg.run(classDir.getAbsolutePath(), null);

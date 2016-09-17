@@ -4,6 +4,7 @@
 package soottocfg.cfg.expression;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import soottocfg.cfg.SourceLocation;
@@ -17,7 +18,7 @@ import soottocfg.cfg.variable.Variable;
 public class IteExpression extends Expression {
 
 	private static final long serialVersionUID = -7138261822713810587L;
-	private final Expression condition, thenExpr, elseExpr;
+	private Expression condition, thenExpr, elseExpr;
 
 	public Expression getCondition() {
 		return condition;
@@ -78,4 +79,10 @@ public class IteExpression extends Expression {
 		return new IteExpression(getSourceLocation(), condition.deepCopy(), thenExpr.deepCopy(), elseExpr.deepCopy());
 	}
 
+	public Expression substitute(Map<Variable, Expression> subs) {
+		condition = condition.substitute(subs);
+		thenExpr = thenExpr.substitute(subs);
+		elseExpr = elseExpr.substitute(subs);
+		return this;
+	}
 }

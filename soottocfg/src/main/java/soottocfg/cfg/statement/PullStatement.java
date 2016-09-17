@@ -6,12 +6,14 @@ package soottocfg.cfg.statement;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.cfg.variable.Variable;
 
 /**
  * @author schaef
@@ -24,7 +26,7 @@ public class PullStatement extends Statement {
 	 */
 	private static final long serialVersionUID = 9221818898828469398L;
 	private final ClassVariable classConstant;
-	private final IdentifierExpression object;
+	private IdentifierExpression object;
 	private final List<IdentifierExpression> left;
 
 	/**
@@ -94,6 +96,14 @@ public class PullStatement extends Statement {
 			leftCopy.add(e.deepCopy());
 		}
 		return new PullStatement(getSourceLocation(), classConstant, object.deepCopy(), leftCopy);
+	}
+
+	@Override
+	public void substitute(Map<Variable, Expression> subs) {
+		for (int i=0;i<this.left.size(); i++) {
+			this.left.set(i, (IdentifierExpression)this.left.get(i).substitute(subs));
+		}
+		this.object = (IdentifierExpression)this.object.substitute(subs);
 	}
 
 }

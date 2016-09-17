@@ -4,6 +4,7 @@
 package soottocfg.cfg.expression;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
@@ -48,7 +49,7 @@ public class BinaryExpression extends Expression {
 		}
 	}
 
-	private final Expression left, right;
+	private Expression left, right;
 	private final BinaryOperator op;
 
 	public BinaryExpression(SourceLocation loc, BinaryOperator op, Expression left, Expression right) {
@@ -166,4 +167,9 @@ public class BinaryExpression extends Expression {
 		return new BinaryExpression(getSourceLocation(), op, left.deepCopy(), right.deepCopy());
 	}
 
+	public Expression substitute(Map<Variable, Expression> subs) {
+		this.left = this.left.substitute(subs);
+		this.right = this.right.substitute(subs);
+		return this;
+	}
 }

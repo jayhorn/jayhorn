@@ -6,6 +6,7 @@ package soottocfg.cfg.statement;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
@@ -14,6 +15,7 @@ import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.variable.Variable;
 
 /**
  * @author schaef
@@ -105,4 +107,15 @@ public class CallStatement extends Statement {
 		}
 		return new CallStatement(getSourceLocation(), method, argCopy, rec);
 	}
+	
+	@Override
+	public void substitute(Map<Variable, Expression> subs) {
+		for (int i=0;i<this.arguments.size(); i++) {
+			this.arguments.set(i, this.arguments.get(i).substitute(subs));
+		}
+		for (int i=0;i<this.returnReceiver.size(); i++) {
+			this.returnReceiver.set(i, this.returnReceiver.get(i).substitute(subs));
+		}
+	}
+
 }

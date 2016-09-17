@@ -4,6 +4,7 @@
 package soottocfg.cfg.expression.literal;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import soottocfg.cfg.SourceLocation;
@@ -84,4 +85,10 @@ public class BooleanLiteral extends Expression {
 	public Expression deepCopy() {
 		return new BooleanLiteral(getSourceLocation(), value);
 	}
+	
+	@Override
+	public Expression substitute(Map<Variable, Expression> subs) {
+		return this;
+	}
+
 }

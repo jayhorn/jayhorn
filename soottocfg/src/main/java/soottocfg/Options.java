@@ -67,15 +67,6 @@ public class Options {
 		this.resolveVirtualCalls = r;
 	}
 	
-	/**
-	 * Encode references as tuples containing 
-	 * dynamic type, etc.
-	 */
-	private boolean tupleEncoding = false;
-	
-	public boolean useTupleEncoding() {
-		return this.tupleEncoding;
-	}
 	
 	/*
 	 * Pass the id of the call site as
@@ -91,10 +82,6 @@ public class Options {
 //	public void passCallerIdIntoMethods(boolean val) {
 //		this.passCallerIdIntoMethods = val;
 //	}
-	
-	public void setTupleEncoding(boolean val) {
-		this.tupleEncoding = val;
-	}
 	
 	/* 
 	 * Create Assertions For Uncaught Exceptions

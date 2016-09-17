@@ -27,7 +27,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 
 import soot.RefType;
-import soot.Scene;
 import soot.SootMethod;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Node;

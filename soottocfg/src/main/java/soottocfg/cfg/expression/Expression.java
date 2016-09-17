@@ -5,6 +5,7 @@ package soottocfg.cfg.expression;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import soottocfg.cfg.Node;
@@ -68,4 +69,12 @@ public abstract class Expression implements Node, Serializable {
 	}
 
 	public abstract Expression deepCopy();
+	
+	/**
+	 * Substitute all IdentifierExpressions containing the
+	 * variables in subs by the corresponding expression.
+	 * @param subs
+	 * @return
+	 */
+	public abstract Expression substitute(Map<Variable, Expression> subs);
 }

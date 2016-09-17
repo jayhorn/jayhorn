@@ -4,11 +4,13 @@
 package soottocfg.cfg.statement;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.variable.Variable;
 
 /**
  * @author teme, schaef
@@ -17,7 +19,7 @@ import soottocfg.cfg.expression.IdentifierExpression;
 public class AssertStatement extends Statement {
 
 	private static final long serialVersionUID = -2043514337815140767L;
-	private final Expression expression;
+	private Expression expression;
 
 	/**
 	 * @param createdFrom
@@ -54,5 +56,10 @@ public class AssertStatement extends Statement {
 	@Override
 	public Statement deepCopy() {
 		return new AssertStatement(getSourceLocation(), expression.deepCopy());
+	}
+	
+	@Override
+	public void substitute(Map<Variable, Expression> subs) {
+		this.expression = this.expression.substitute(subs);
 	}
 }
