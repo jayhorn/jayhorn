@@ -8,7 +8,7 @@ import java.util.Set;
 import com.google.common.base.Preconditions;
 
 import soottocfg.cfg.LiveVars;
-import soottocfg.cfg.expression.BooleanLiteral;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
