@@ -264,34 +264,43 @@ public class StatementEncoder {
 		for (ClassVariable sig : possibleTypes) {
 			// get the invariant for this subtype.
 			final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig);
-			final List<Expression> invariantArgs = new LinkedList<Expression>();
-			// the first argument is always the reference to the object
-			invariantArgs.add(pull.getObject());
-			// all other arguments are the variables on the left of the
-			// statement
-			invariantArgs.addAll(pull.getLeft());
-			// translate all variables in ProverExpressions.
-			for (int i = 0; i < invariantArgs.size(); i++) {
-				varMap.put(invariant.variables.get(i), expEncoder.exprToProverExpr(invariantArgs.get(i), varMap));
-			}
-			/*
-			 * If our current invariant is a subtype of what the orginial pull
-			 * used,
-			 * it might have more fields (that were added in the subtype). For
-			 * this
-			 * case, we have to fill up our args with fresh, unbound variables
-			 * to
-			 * match the number of arguments.
-			 */
-			for (int i = invariantArgs.size(); i < invariant.variables.size(); i++) {
-				final ProverExpr stub = HornHelper.hh().createVariable(p, "pullStub_",
-						invariant.variables.get(i).getType());
-				varMap.put(invariant.variables.get(i), stub);
-			}
+
+			// the first argument is always the reference
+                        // to the object
+
+                        // PR: once the reference becomes a vector, we
+                        // have to properly map between the elements
+                        // of the vector and the fields of the object
+                        varMap.put(invariant.variables.get(0),
+                                   expEncoder.exprToProverExpr(pull.getObject(), varMap));
+
+                        // introduce fresh prover variables for all
+                        // the other invariant parameters, and map
+                        // them to the post-state
+                        for (int i = 1; i < invariant.variables.size(); i++) {
+                            final ProverExpr var =
+                                HornHelper.hh().createVariable(p, "pullVar_",
+                                                               invariant.variables.get(i).getType());
+                            varMap.put(invariant.variables.get(i), var);
+                            if (i <= pull.getLeft().size())
+                                varMap.put(pull.getLeft().get(i - 1).getVariable(), var);
+                            /*
+                             * If our current invariant is a subtype
+                             * of what the orginial pull used, it
+                             * might have more fields (that were added
+                             * in the subtype). For this case, we have
+                             * to fill up our args with fresh, unbound
+                             * variables to match the number of
+                             * arguments.
+                             */
+                        }
+
 			// now we can instantiate the invariant.
 			final ProverExpr invAtom = invariant.instPredicate(varMap);
 			final ProverExpr postAtom = postPred.instPredicate(varMap);
-			clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom }, p.mkLiteral(true)));
+                        final ProverHornClause clause =
+                            p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom }, p.mkLiteral(true));
+			clauses.add(clause);
 		}
 		return clauses;
 	}
