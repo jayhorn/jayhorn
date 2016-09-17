@@ -81,7 +81,7 @@ public class CbmcSrcTests {
 		try {
 //			soottocfg.Options.v().passCallerIdIntoMethods(true);
 //			soottocfg.Options.v().setPrintCFG(false);
-			soottocfg.Options.v().setMemPrecision(1);
+			soottocfg.Options.v().setMemPrecision(3);
 //			soottocfg.Options.v().setExcAsAssert(true);
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();

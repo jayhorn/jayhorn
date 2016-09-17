@@ -85,6 +85,7 @@ public class HornRegressionTest {
 			SootToCfg soot2cfg = new SootToCfg();
 //			soottocfg.Options.v().setPrintCFG(true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
+//			jayhorn.Options.v().setPrintHorn(true);
 			Program program = soot2cfg.getProgram();
 	  		Checker hornChecker = new Checker(factory);
 	  		boolean result = hornChecker.checkProgram(program);

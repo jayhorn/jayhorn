@@ -35,6 +35,7 @@ import soottocfg.Options;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.util.CfgStubber;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.memory_model.MemoryModel;
@@ -207,7 +208,8 @@ public class SootToCfg {
 			Body body = null;
 			try {
 				body = sm.retrieveActiveBody();
-				// CopyPropagator.v().transform(body);
+//				soot.jimple.toolkits.scalar.CopyPropagator.v().transform(body);
+//				soot.jimple.toolkits.annotation.nullcheck.NullPointerChecker.v().transform(body);
 			} catch (RuntimeException e) {
 				// TODO: print warning that body couldn't be retrieved.
 				return;

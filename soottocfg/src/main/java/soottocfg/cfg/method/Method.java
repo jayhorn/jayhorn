@@ -428,5 +428,4 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 
 		return new LiveVars<CfgBlock>(in, out);
 	}
-
 }

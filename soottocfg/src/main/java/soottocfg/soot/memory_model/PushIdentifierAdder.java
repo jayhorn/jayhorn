@@ -108,7 +108,6 @@ public class PushIdentifierAdder {
 							Statement assume = new AssumeStatement(loc, toAssume);
 							b.addStatement(++i, assume);
 							pull.addGhostField(lpid);
-							i++;
 						}
 					} else if (s instanceof PushStatement) {
 						PushStatement push = (PushStatement) s;
