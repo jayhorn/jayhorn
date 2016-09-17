@@ -9,7 +9,6 @@ import soot.PointsToAnalysis;
 import soot.PointsToSet;
 import soot.Scene;
 import soot.SootField;
-import soot.options.Options;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BooleanLiteral;
@@ -24,9 +23,7 @@ import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.Variable;
-import soottocfg.soot.util.FlowBasedPointsToAnalysis;
 import soottocfg.soot.util.SootTranslationHelpers;
 
 public class PushPullSimplifier {

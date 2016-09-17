@@ -310,8 +310,13 @@ public class NewMemoryModel extends BasicMemoryModel {
 								if (st.containsFieldRef()) {
 									SootField sf = st.getFieldRef().getField();
 									if (sf.isStatic() && !usedStaticFields.contains(sf)) {
+										
+										if (!sf.equals(SootTranslationHelpers.v().getExceptionGlobal())) {
+										//TODO hack to exclude the exception field.
 										fields.add(this.lookupField(sf));
 										usedStaticFields.add(sf);
+										
+										}
 									}
 								}
 							}
@@ -321,6 +326,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 					}
 				}
 			}
+
 			List<Variable> fieldList = new LinkedList<Variable>();
 			fieldList.addAll(fields);
 			classVar.setAssociatedFields(fieldList);
@@ -342,10 +348,10 @@ public class NewMemoryModel extends BasicMemoryModel {
 	// return getClassVariableFromVar(getVarFromExpression(e));
 	// }
 
-	private Variable getVarFromExpression(Expression e) {
-		IdentifierExpression base = (IdentifierExpression) e;
-		return base.getVariable();
-	}
+//	private Variable getVarFromExpression(Expression e) {
+//		IdentifierExpression base = (IdentifierExpression) e;
+//		return base.getVariable();
+//	}
 
 	// private ClassVariable getClassVariableFromVar(Variable v) {
 	// ReferenceType baseType =(ReferenceType)v.getType();
@@ -358,12 +364,15 @@ public class NewMemoryModel extends BasicMemoryModel {
 		Method method = SootTranslationHelpers.v().lookupOrCreateMethod(constructor);
 
 		List<Expression> receiver = new LinkedList<Expression>();
-		for (SootField sf : constructor.getDeclaringClass().getFields()) {
-			if (sf.isFinal()) {
-				Variable v = lookupFieldLocal(getVarFromExpression(args.get(0)), sf);
-				receiver.add(new IdentifierExpression(loc, v));
-			}
-		}
+		receiver.add(this.statementSwitch.getMethodInfo().getExceptionVariable());
+		
+//		for (SootField sf : constructor.getDeclaringClass().getFields()) {
+//			if (sf.isFinal()) {
+//				Variable v = lookupFieldLocal(getVarFromExpression(args.get(0)), sf);
+//				receiver.add(new IdentifierExpression(loc, v));
+//			}
+//		}
+
 		Verify.verify(method.getReturnType().size() == receiver.size(),
 				method.getMethodName() + " -> " + method.getReturnType().size() + "!=" + receiver.size());
 

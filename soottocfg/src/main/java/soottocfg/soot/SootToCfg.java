@@ -35,7 +35,6 @@ import soottocfg.Options;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.util.CfgStubber;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.memory_model.MemoryModel;

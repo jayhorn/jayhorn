@@ -37,7 +37,6 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.SootRunner;
 import soottocfg.soot.SootToCfg.MemModel;
@@ -178,24 +177,24 @@ public enum SootTranslationHelpers {
 		List<soottocfg.cfg.type.Type> outVarTypes = new LinkedList<soottocfg.cfg.type.Type>();
 		if (!m.getReturnType().equals(VoidType.v())) {
 			outVarTypes.add(memoryModel.lookupType(m.getReturnType()));
-		} else if (m.isConstructor()) {
-			/* For constructors, we assume that they return all final fields
-			 * that are assigned in this constructor and the parent constructors.
-			 */
-			SootClass cl = m.getDeclaringClass();
-//			while (cl != null) {
-			//TODO: what do we do about fields from supertypes?
-				for (SootField sf : cl.getFields()) {
-					if (sf.isFinal()) {
-						outVarTypes.add(memoryModel.lookupType(sf.getType()));
-					}
-				}
-//				if (cl.hasSuperclass()) {
-//					cl = cl.getSuperclass();
-//				} else {
-//					cl = null;
+//		} else if (m.isConstructor()) {
+//			/* For constructors, we assume that they return all final fields
+//			 * that are assigned in this constructor and the parent constructors.
+//			 */
+//			SootClass cl = m.getDeclaringClass();
+////			while (cl != null) {
+//			//TODO: what do we do about fields from supertypes?
+//				for (SootField sf : cl.getFields()) {
+//					if (sf.isFinal()) {
+//						outVarTypes.add(memoryModel.lookupType(sf.getType()));
+//					}
 //				}
-//			}			
+////				if (cl.hasSuperclass()) {
+////					cl = cl.getSuperclass();
+////				} else {
+////					cl = null;
+////				}
+////			}			
 		}
 		return Method.createMethodInProgram(program, m.getSignature(), parameterList, outVarTypes, SootTranslationHelpers.v().getSourceLocation(m));
 	}
