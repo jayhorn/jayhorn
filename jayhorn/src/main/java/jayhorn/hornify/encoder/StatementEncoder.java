@@ -202,23 +202,18 @@ public class StatementEncoder {
 			++cnt;
 		}
 
-		if (!cs.getReceiver().isEmpty()) {
-			for (Expression lhs : cs.getReceiver()) {
-
-				final ProverExpr callRes = HornHelper.hh().createVariable(p, "callRes_", lhs.getType());
-				actualPostParams[cnt++] = callRes;
-
-				Verify.verify(lhs instanceof IdentifierExpression,
-						"only assignments to variables are supported, not to " + lhs);
-				//update the receiver var to the expression that we use in the call pred.	
-				varMap.put( ((IdentifierExpression) lhs).getVariable(), callRes);					
-			}
-		} else if (!calledMethod.getReturnType().isEmpty()) {
-			for (Type tp : calledMethod.getReturnType()) {
-				final ProverExpr callRes = HornHelper.hh().createVariable(p, "callRes_", tp);
-				actualPostParams[cnt++] = callRes;
-			}
-		}
+                for (int i = 0; i < calledMethod.getReturnType().size(); ++i) {
+                    Type tp = calledMethod.getReturnType().get(i);
+                    final ProverExpr callRes = HornHelper.hh().createVariable(p, "callRes_", tp);
+                    actualPostParams[cnt++] = callRes;
+                    if (i < cs.getReceiver().size()) {
+                        Expression lhs = cs.getReceiver().get(i);
+                        Verify.verify(lhs instanceof IdentifierExpression,
+                                      "only assignments to variables are supported, not to " + lhs);
+                        //update the receiver var to the expression that we use in the call pred.	
+                        varMap.put( ((IdentifierExpression) lhs).getVariable(), callRes);
+                    }
+                }
 
 		final ProverExpr preCondAtom = contract.precondition.predicate.mkExpr(actualInParams);
 		clauses.add(p.mkHornClause(preCondAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
