@@ -660,6 +660,10 @@ textarea {
 	}
 }
 
+.hiddenRow {
+    padding: 0 !important;
+}
+
 /* Images Overlay
 ----------------------------------------------------------------------------- */
 .overlay-container {
