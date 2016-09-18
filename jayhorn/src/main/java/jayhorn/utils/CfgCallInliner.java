@@ -20,6 +20,7 @@ import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.optimization.ExpressionInliner;
 import soottocfg.cfg.optimization.FoldStraighLineSeq;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
@@ -117,8 +118,12 @@ public class CfgCallInliner {
 		for (Method m : program.getMethods()) {
 			if (!reachable.contains(m)) {
 				toRemove.add(m);
+			} else {
+				ExpressionInliner eil = new ExpressionInliner();
+				eil.inlineAllCandidates(m);
 			}
 		}
+		
 		program.removeMethods(toRemove);
 	}
 
