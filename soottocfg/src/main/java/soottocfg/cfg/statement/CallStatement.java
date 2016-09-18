@@ -96,7 +96,7 @@ public class CallStatement extends Statement {
 	}
 
 	@Override
-	public Statement deepCopy() {
+	public CallStatement deepCopy() {
 		List<Expression> argCopy = new LinkedList<Expression>();
 		for (Expression e : arguments) {
 			argCopy.add(e.deepCopy());
@@ -109,13 +109,16 @@ public class CallStatement extends Statement {
 	}
 	
 	@Override
-	public void substitute(Map<Variable, Expression> subs) {
-		for (int i=0;i<this.arguments.size(); i++) {
-			this.arguments.set(i, this.arguments.get(i).substitute(subs));
+	public CallStatement substitute(Map<Variable, Variable> subs) {
+		List<Expression> argCopy = new LinkedList<Expression>();
+		for (Expression e : arguments) {
+			argCopy.add(e.substitute(subs));
 		}
-		for (int i=0;i<this.returnReceiver.size(); i++) {
-			this.returnReceiver.set(i, this.returnReceiver.get(i).substitute(subs));
+		List<Expression> rec = new LinkedList<Expression>();
+		for (Expression e : returnReceiver) {
+			rec.add(e.substitute(subs));
 		}
+		return new CallStatement(getSourceLocation(), method, argCopy, rec);
 	}
 
 }

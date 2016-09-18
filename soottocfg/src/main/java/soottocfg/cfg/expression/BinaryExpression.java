@@ -163,13 +163,11 @@ public class BinaryExpression extends Expression {
 	}
 
 	@Override
-	public Expression deepCopy() {		
+	public BinaryExpression deepCopy() {		
 		return new BinaryExpression(getSourceLocation(), op, left.deepCopy(), right.deepCopy());
 	}
 
-	public Expression substitute(Map<Variable, Expression> subs) {
-		this.left = this.left.substitute(subs);
-		this.right = this.right.substitute(subs);
-		return this;
+	public BinaryExpression substitute(Map<Variable, Variable> subs) {
+		return new BinaryExpression(getSourceLocation(), op, left.substitute(subs), right.substitute(subs));
 	}
 }

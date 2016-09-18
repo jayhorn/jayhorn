@@ -68,10 +68,10 @@ public class IdentifierExpression extends Expression {
 		return new IdentifierExpression(getSourceLocation(), variable);
 	}
 	
-	public Expression substitute(Map<Variable, Expression> subs) {
-		if (subs.containsKey(this.variable)) {
-			return subs.get(variable);
+	public IdentifierExpression substitute(Map<Variable, Variable> subs) {
+		if (subs.containsKey(variable)) {
+			return new IdentifierExpression(getSourceLocation(), subs.get(variable));
 		}
-		return this;
+		return new IdentifierExpression(getSourceLocation(), variable);
 	}	
 }

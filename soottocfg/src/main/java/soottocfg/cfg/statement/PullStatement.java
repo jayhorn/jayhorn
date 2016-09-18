@@ -90,7 +90,7 @@ public class PullStatement extends Statement {
 	}
 
 	@Override
-	public Statement deepCopy() {
+	public PullStatement deepCopy() {
 		List<IdentifierExpression> leftCopy = new LinkedList<IdentifierExpression>();
 		for (IdentifierExpression e : left) {
 			leftCopy.add(e.deepCopy());
@@ -99,11 +99,12 @@ public class PullStatement extends Statement {
 	}
 
 	@Override
-	public void substitute(Map<Variable, Expression> subs) {
-		for (int i=0;i<this.left.size(); i++) {
-			this.left.set(i, (IdentifierExpression)this.left.get(i).substitute(subs));
+	public PullStatement substitute(Map<Variable, Variable> subs) {
+		List<IdentifierExpression> leftCopy = new LinkedList<IdentifierExpression>();
+		for (IdentifierExpression e : left) {
+			leftCopy.add(e.substitute(subs));
 		}
-		this.object = (IdentifierExpression)this.object.substitute(subs);
+		return new PullStatement(getSourceLocation(), classConstant, object.substitute(subs), leftCopy);
 	}
 
 }

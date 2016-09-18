@@ -133,10 +133,12 @@ public class PushStatement extends Statement {
 	}
 
 	@Override
-	public void substitute(Map<Variable, Expression> subs) {
-		for (int i=0;i<this.right.size(); i++) {
-			this.right.set(i, this.right.get(i).substitute(subs));
+	public PushStatement substitute(Map<Variable, Variable> subs) {
+		List<Expression> rightCopy = new LinkedList<Expression>();
+		for (Expression e : right) {
+			rightCopy.add(e.substitute(subs));
 		}
-		this.object = (IdentifierExpression)this.object.substitute(subs);
+		return new PushStatement(getSourceLocation(), classConstant, object.substitute(subs), rightCopy, this.id);
+
 	}
 }

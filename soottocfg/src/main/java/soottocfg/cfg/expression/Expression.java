@@ -71,10 +71,10 @@ public abstract class Expression implements Node, Serializable {
 	public abstract Expression deepCopy();
 	
 	/**
-	 * Substitute all IdentifierExpressions containing the
-	 * variables in subs by the corresponding expression.
+	 * Substitute variables in subs and return
+	 * a clone of the original expression
 	 * @param subs
 	 * @return
 	 */
-	public abstract Expression substitute(Map<Variable, Expression> subs);
+	public abstract Expression substitute(Map<Variable, Variable> subs);
 }

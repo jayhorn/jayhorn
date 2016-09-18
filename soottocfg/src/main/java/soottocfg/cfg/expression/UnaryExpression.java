@@ -90,14 +90,13 @@ public class UnaryExpression extends Expression {
 	}
 
 	@Override
-	public Expression deepCopy() {		
+	public UnaryExpression deepCopy() {		
 		return new UnaryExpression(getSourceLocation(), op, expression.deepCopy());
 	}
 
 	@Override
-	public Expression substitute(Map<Variable, Expression> subs) {
-		this.expression = this.expression.substitute(subs);
-		return this;
+	public UnaryExpression substitute(Map<Variable, Variable> subs) {
+		return new UnaryExpression(getSourceLocation(), op, expression.substitute(subs));
 	}
 
 }

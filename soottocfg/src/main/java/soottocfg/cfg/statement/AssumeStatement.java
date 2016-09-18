@@ -59,13 +59,13 @@ public class AssumeStatement extends Statement {
 	}
 
 	@Override
-	public Statement deepCopy() {
+	public AssumeStatement deepCopy() {
 		return new AssumeStatement(getSourceLocation(), expression.deepCopy());
 	}
 
 	@Override
-	public void substitute(Map<Variable, Expression> subs) {
-		this.expression = this.expression.substitute(subs);
+	public AssumeStatement substitute(Map<Variable, Variable> subs) {
+		return new AssumeStatement(getSourceLocation(), expression.substitute(subs));
 	}
 
 }

@@ -89,9 +89,8 @@ public class AssignStatement extends Statement {
 	}
 
 	@Override
-	public void substitute(Map<Variable, Expression> subs) {
-		this.left = this.left.substitute(subs);
-		this.right = this.right.substitute(subs);
+	public AssignStatement substitute(Map<Variable, Variable> subs) {
+		return new AssignStatement(getSourceLocation(), left.substitute(subs), right.substitute(subs));
 	}
 
 }

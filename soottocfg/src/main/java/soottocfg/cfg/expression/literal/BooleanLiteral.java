@@ -87,8 +87,8 @@ public class BooleanLiteral extends Expression {
 	}
 	
 	@Override
-	public Expression substitute(Map<Variable, Expression> subs) {
-		return this;
+	public Expression substitute(Map<Variable, Variable> subs) {
+		return this.deepCopy();
 	}
 
 }

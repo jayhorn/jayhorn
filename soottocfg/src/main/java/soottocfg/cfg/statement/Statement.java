@@ -10,7 +10,6 @@ import java.util.Set;
 
 import soottocfg.cfg.Node;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.variable.Variable;
 
@@ -80,5 +79,10 @@ public abstract class Statement implements Node, Serializable {
 	
 	public abstract Statement deepCopy();
 	
-	public abstract void substitute(Map<Variable, Expression> subs);
+	/**
+	 * Returns a deep copy of the statement where all
+	 * variables in the map have been substituted.
+	 * @param subs
+	 */
+	public abstract Statement substitute(Map<Variable, Variable> subs);
 }
