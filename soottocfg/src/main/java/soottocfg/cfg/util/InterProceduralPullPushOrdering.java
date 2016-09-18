@@ -162,14 +162,10 @@ public class InterProceduralPullPushOrdering {
 			if (cur.stmt.isPresent() && cur.stmt.get() instanceof PushStatement) {
 				PushStatement push = (PushStatement) cur.stmt.get();
 				if (mayAlias(push, pull)) {
-//					System.out.println("May Alias: " + push + " and " + pull);
 					ret.add(cur);
 					if (mustShadow(push, pull)) {
-						System.out.println("Must shadow: " + push + " this " + pull);
 						stopTraverse = true;
 					}
-//				} else {
-//					System.out.println("DO NOT alias: " + push + " and " + pull);
 				}
 			}
 			

@@ -97,7 +97,7 @@ public class BigSoundnessTests {
 
 
 			soot2cfg.run(classDir.getAbsolutePath(), null);
-			jayhorn.Options.v().setTimeout(5);
+			jayhorn.Options.v().setTimeout(20);
 			jayhorn.Options.v().setPrintHorn(false);
 
 			jayhorn.Options.v().setInlineMaxSize(20);

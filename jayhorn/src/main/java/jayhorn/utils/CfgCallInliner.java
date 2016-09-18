@@ -53,14 +53,14 @@ public class CfgCallInliner {
 	}
 
 	private void computeStats(Program p) {
-		Map<String, Integer> outgoingCalls = new HashMap<String, Integer>();
+//		Map<String, Integer> outgoingCalls = new HashMap<String, Integer>();
 		for (Method m : p.getMethods()) {
 			if (!totalCallsTo.containsKey(m.getMethodName())) {
 				totalCallsTo.put(m.getMethodName(), 0);
 			}
 
 			int stmtCount = 0;
-			int outgoingCallCounter = 0;
+//			int outgoingCallCounter = 0;
 			
 			for (Method callee : calledMethods(m)) {
 				if (!totalCallsTo.containsKey(callee.getMethodName())) {
@@ -69,7 +69,7 @@ public class CfgCallInliner {
 				totalCallsTo.put(callee.getMethodName(),
 						totalCallsTo.get(callee.getMethodName()) + 1);				
 			}
-			outgoingCalls.put(m.getMethodName(), outgoingCallCounter);
+//			outgoingCalls.put(m.getMethodName(), outgoingCallCounter);
 			totalStmts.put(m.getMethodName(), stmtCount);
 		}
 	}

@@ -99,7 +99,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 		
 		if (fr instanceof InstanceFieldRef) {
 			InstanceFieldRef ifr = (InstanceFieldRef) fr;
-			
+
 			// in constructor only push 'this' after the last access
 			if (m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal())) {
 				
@@ -112,7 +112,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 					Unit unit = todo.remove(0);
 					
 					// if it contains another access to 'this', stop exploring this path
-					Stmt s = (Stmt) u;
+					Stmt s = (Stmt) unit;
 					if (s.containsFieldRef()) {
 						FieldRef fr2 = s.getFieldRef();
 						if (fr2 instanceof InstanceFieldRef) {
@@ -143,7 +143,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 					Unit unit = todo.remove(0);
 					
 					// if it contains another access to a static field, stop exploring this path
-					Stmt s = (Stmt) u;
+					Stmt s = (Stmt) unit;
 					if (s.containsFieldRef()) {
 						FieldRef fr2 = s.getFieldRef();
 						if (fr2 instanceof StaticFieldRef && !fr2.equals(fr))

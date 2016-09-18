@@ -20,7 +20,7 @@ class A
   static int something_static = 3;
 };
 
-class SatConstructor
+class SatConstructor02
 {
   public static void main(String[] args)
   {
