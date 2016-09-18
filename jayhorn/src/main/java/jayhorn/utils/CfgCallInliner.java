@@ -104,7 +104,7 @@ public class CfgCallInliner {
 	
 	public void inlineFromMain(int maxSize, int maxOccurences) {
 		Method mainMethod = program.getEntryPoints()[0];
-		inlineCalls(mainMethod, 20, 2);
+		inlineCalls(mainMethod, maxSize, maxOccurences);
 		// FoldStraighLineSeq folder = new FoldStraighLineSeq();
 		// folder.fold(mainMethod);
 		
