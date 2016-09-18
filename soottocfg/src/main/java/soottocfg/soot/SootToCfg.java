@@ -76,6 +76,8 @@ public class SootToCfg {
 
 	// Create a new program
 	private final Program program = new Program();
+	
+	private static FlowBasedPointsToAnalysis pta;
 
 	public SootToCfg() {
 		this(new ArrayList<String>());
@@ -130,14 +132,14 @@ public class SootToCfg {
 			return;
 		}
 		
-		// add missing pushes
-		MissingPushAdder.addMissingPushes(program);
-		
 		// alias analysis
 		if (Options.v().memPrecision() >= 3) {
-			FlowBasedPointsToAnalysis pta = new FlowBasedPointsToAnalysis();
-			pta.run(program);
+			setPointsToAnalysis(new FlowBasedPointsToAnalysis());
+			getPointsToAnalysis().run(program);
 		}
+		
+		// add missing pushes
+		MissingPushAdder.addMissingPushes(program);
 
 		// simplify push-pull
 		if (Options.v().memPrecision() >= 1) {
@@ -490,4 +492,11 @@ public class SootToCfg {
 		}
 	}
 
+	public static FlowBasedPointsToAnalysis getPointsToAnalysis() {
+		return pta;
+	}
+	
+	private static void setPointsToAnalysis(FlowBasedPointsToAnalysis pointsto) {
+		pta = pointsto;
+	}
 }

@@ -37,7 +37,7 @@ public class SimpleHornTest {
 	@Parameterized.Parameters(name = "{index}: check ({1})")
 	public static Collection<Object[]> data() {
 		List<Object[]> filenames = new LinkedList<Object[]>();
-		final File source_dir = new File(testRoot + "horn-encoding/simple1");
+		final File source_dir = new File(testRoot + "horn-encoding/mem_precision");
 		collectFileNamesRecursively(source_dir, filenames);
 		if (filenames.isEmpty()) {
 			throw new RuntimeException("Test data not found!");

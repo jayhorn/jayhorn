@@ -10,12 +10,12 @@ public class SatIssue66 {
         this.x = x;
     }
 
-    public static SatIssue66 a = null;
+    public static SatIssue66 a;
 
     public static void main(String[] args) {
+	a = null;
         for (int i = 0; i < 3; ++i)
             a = new SatIssue66(i+1);
-	if (a!=null)
-        	assert(a.x >= 0);
+        assert(a==null || a.x >= 0);
     }
 }

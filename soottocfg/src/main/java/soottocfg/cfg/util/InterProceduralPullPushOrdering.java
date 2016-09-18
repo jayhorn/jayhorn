@@ -18,7 +18,6 @@ import org.jgrapht.graph.DefaultEdge;
 import com.google.common.base.Optional;
 import com.google.common.base.Verify;
 
-import soottocfg.Options;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
@@ -27,6 +26,7 @@ import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.soot.SootToCfg;
 import soottocfg.soot.util.FlowBasedPointsToAnalysis;
 import soottocfg.util.Pair;
 
@@ -161,11 +161,15 @@ public class InterProceduralPullPushOrdering {
 			boolean stopTraverse = false;
 			if (cur.stmt.isPresent() && cur.stmt.get() instanceof PushStatement) {
 				PushStatement push = (PushStatement) cur.stmt.get();
-				if (mayAlias(push, pull)) {		
+				if (mayAlias(push, pull)) {
+//					System.out.println("May Alias: " + push + " and " + pull);
 					ret.add(cur);
 					if (mustShadow(push, pull)) {
+						System.out.println("Must shadow: " + push + " this " + pull);
 						stopTraverse = true;
 					}
+//				} else {
+//					System.out.println("DO NOT alias: " + push + " and " + pull);
 				}
 			}
 			
@@ -192,8 +196,9 @@ public class InterProceduralPullPushOrdering {
 	 * @return true if the objects in pull and push may alias.
 	 */
 	protected boolean mayAlias(PushStatement push, PullStatement pull) {
-		if (Options.v().memPrecision() >= 3)
-			return FlowBasedPointsToAnalysis.mayAlias(pull.getObject(), push.getObject());
+		FlowBasedPointsToAnalysis pta = SootToCfg.getPointsToAnalysis();
+		if (pta != null)
+			return pta.mayAlias(pull.getObject(), push.getObject());
 		return canAffectPull(push, pull);
 	}
 
@@ -218,8 +223,9 @@ public class InterProceduralPullPushOrdering {
 	 * @return true if push shadows all preceding pushs that may affect pull. False otherwise.
 	 */
 	protected boolean mustShadow(PushStatement push, PullStatement pull) {
-		if (Options.v().memPrecision() >= 3)
-			return FlowBasedPointsToAnalysis.mustAlias(pull.getObject(), push.getObject());
+		FlowBasedPointsToAnalysis pta = SootToCfg.getPointsToAnalysis();
+		if (pta != null)
+			return pta.mustAlias(pull.getObject(), push.getObject());
 		return false;
 	}
 
