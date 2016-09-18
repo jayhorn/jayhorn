@@ -98,9 +98,9 @@ public class BigSoundnessTests {
 			jayhorn.Options.v().setTimeout(5);
 			jayhorn.Options.v().setPrintHorn(false);
 
-			// Checker checker = new Checker(factory);
-			// boolean result = checker.checkProgram(soot2cfg.getProgram());
-
+			jayhorn.Options.v().setInlineMaxSize(10);
+			jayhorn.Options.v().setInlineCount(2);
+			
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			boolean result = false;
 			try {

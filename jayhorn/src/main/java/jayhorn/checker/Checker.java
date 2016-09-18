@@ -48,7 +48,7 @@ public class Checker {
 		}
 		Log.info("Inlining");
 		CfgCallInliner inliner = new CfgCallInliner(program);
-		inliner.inlineFromMain(Options.v().getInlineMinSize(), Options.v().getInlineCount());
+		inliner.inlineFromMain(Options.v().getInlineMaxSize(), Options.v().getInlineCount());
 		Log.info("Hornify  ... ");
 		Hornify hf = new Hornify(factory);
 		Stopwatch toHornTimer = Stopwatch.createStarted();

@@ -151,20 +151,20 @@ public class Options {
 	 * Memory precision
 	 */
 	@Option(name = "-inline_size", usage = "Inline everything with less than N stmts", required = false)
-	private int inlineMinSize = -1;
+	private int inlineMaxSize = -1;
 
 	/**
 	 * @return the inlineMinSize
 	 */
-	public int getInlineMinSize() {
-		return inlineMinSize;
+	public int getInlineMaxSize() {
+		return inlineMaxSize;
 	}
 
 	/**
 	 * @param inlineMinSize the inlineMinSize to set
 	 */
-	public void setInlineMinSize(int inlineMinSize) {
-		this.inlineMinSize = inlineMinSize;
+	public void setInlineMaxSize(int inlineMaxSize) {
+		this.inlineMaxSize = inlineMaxSize;
 	}
 
 	/**
