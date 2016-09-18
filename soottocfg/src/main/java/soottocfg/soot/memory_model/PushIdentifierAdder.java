@@ -10,9 +10,9 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
@@ -108,7 +108,6 @@ public class PushIdentifierAdder {
 							Statement assume = new AssumeStatement(loc, toAssume);
 							b.addStatement(++i, assume);
 							pull.addGhostField(lpid);
-							i++;
 						}
 					} else if (s instanceof PushStatement) {
 						PushStatement push = (PushStatement) s;

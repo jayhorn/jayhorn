@@ -9,6 +9,8 @@ import java.util.Set;
 import com.google.common.base.Preconditions;
 
 import soottocfg.cfg.SourceLocation;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;

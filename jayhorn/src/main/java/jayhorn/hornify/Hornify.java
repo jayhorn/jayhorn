@@ -61,8 +61,6 @@ public class Hornify {
 			final MethodEncoder encoder = new MethodEncoder(prover, method, hornContext);
 			clauses.addAll(encoder.encode());		
 		}
-		hornToSMTLIBFile(clauses, 0, prover);
-		hornToFile(clauses, 0);
 		return hornContext;
 	}
 

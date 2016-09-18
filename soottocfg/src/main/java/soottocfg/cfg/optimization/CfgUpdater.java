@@ -4,12 +4,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 import soottocfg.cfg.expression.BinaryExpression;
-import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;

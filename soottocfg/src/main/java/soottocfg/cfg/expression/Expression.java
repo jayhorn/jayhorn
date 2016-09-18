@@ -10,6 +10,8 @@ import java.util.Set;
 import soottocfg.cfg.Node;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.Type;

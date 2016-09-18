@@ -4,18 +4,18 @@
  * Throws an exception for -mem-prec >= 2
  */
 
-public class SatIssue66 {
+public class UnsatIssue66 {
     public int x;
-    public SatIssue66 (int x) {
+    public UnsatIssue66 (int x) {
         this.x = x;
     }
 
-    public static SatIssue66 a;
+    public static UnsatIssue66 a = null;
 
     public static void main(String[] args) {
-	a = null;
         for (int i = 0; i < 3; ++i)
-            a = new SatIssue66(i+1);
-        assert(a==null || a.x >= 0);
+            a = new UnsatIssue66(i+1);
+	if (a!=null)
+        	assert(a.x == 0);
     }
 }

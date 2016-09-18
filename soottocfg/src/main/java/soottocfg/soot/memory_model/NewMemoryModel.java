@@ -23,8 +23,8 @@ import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.StaticFieldRef;
 import soot.jimple.Stmt;
-import soot.jimple.spark.geom.geomPA.GeomPointsTo;
-import soot.options.SparkOptions;
+//import soot.jimple.spark.geom.geomPA.GeomPointsTo;
+//import soot.options.SparkOptions;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soot.toolkits.graph.UnitGraph;
 import soottocfg.cfg.SourceLocation;
@@ -66,7 +66,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 		NewMemoryModel.resetGlobalState();
 		
 		// load points to analysis
-		setGeomPointsToAnalysis();
+//		setGeomPointsToAnalysis();
 	}
 
 	public void clearFieldToLocalMap() {
@@ -310,8 +310,13 @@ public class NewMemoryModel extends BasicMemoryModel {
 								if (st.containsFieldRef()) {
 									SootField sf = st.getFieldRef().getField();
 									if (sf.isStatic() && !usedStaticFields.contains(sf)) {
+										
+										if (!sf.equals(SootTranslationHelpers.v().getExceptionGlobal())) {
+										//TODO hack to exclude the exception field.
 										fields.add(this.lookupField(sf));
 										usedStaticFields.add(sf);
+										
+										}
 									}
 								}
 							}
@@ -321,6 +326,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 					}
 				}
 			}
+
 			List<Variable> fieldList = new LinkedList<Variable>();
 			fieldList.addAll(fields);
 			classVar.setAssociatedFields(fieldList);
@@ -342,10 +348,10 @@ public class NewMemoryModel extends BasicMemoryModel {
 	// return getClassVariableFromVar(getVarFromExpression(e));
 	// }
 
-	private Variable getVarFromExpression(Expression e) {
-		IdentifierExpression base = (IdentifierExpression) e;
-		return base.getVariable();
-	}
+//	private Variable getVarFromExpression(Expression e) {
+//		IdentifierExpression base = (IdentifierExpression) e;
+//		return base.getVariable();
+//	}
 
 	// private ClassVariable getClassVariableFromVar(Variable v) {
 	// ReferenceType baseType =(ReferenceType)v.getType();
@@ -358,12 +364,15 @@ public class NewMemoryModel extends BasicMemoryModel {
 		Method method = SootTranslationHelpers.v().lookupOrCreateMethod(constructor);
 
 		List<Expression> receiver = new LinkedList<Expression>();
-		for (SootField sf : constructor.getDeclaringClass().getFields()) {
-			if (sf.isFinal()) {
-				Variable v = lookupFieldLocal(getVarFromExpression(args.get(0)), sf);
-				receiver.add(new IdentifierExpression(loc, v));
-			}
-		}
+		receiver.add(this.statementSwitch.getMethodInfo().getExceptionVariable());
+		
+//		for (SootField sf : constructor.getDeclaringClass().getFields()) {
+//			if (sf.isFinal()) {
+//				Variable v = lookupFieldLocal(getVarFromExpression(args.get(0)), sf);
+//				receiver.add(new IdentifierExpression(loc, v));
+//			}
+//		}
+
 		Verify.verify(method.getReturnType().size() == receiver.size(),
 				method.getMethodName() + " -> " + method.getReturnType().size() + "!=" + receiver.size());
 
@@ -431,42 +440,42 @@ public class NewMemoryModel extends BasicMemoryModel {
 		return localToFieldMap.get(local);
 	}
 
-	private void setGeomPointsToAnalysis() {
-		HashMap<String, String> opt = new HashMap<String, String>();
-		opt.put("enabled", "true");
-		opt.put("verbose", "true");
-		opt.put("ignore-types", "false");
-		opt.put("force-gc", "false");
-		// opt.put("pre-jimplify","false");
-		// opt.put("vta","false");
-		// opt.put("rta","false");
-		// opt.put("field-based","false");
-		// opt.put("types-for-sites","false");
-		// opt.put("merge-stringbuffer","true");
-		// opt.put("string-constants","false");
-		// opt.put("simulate-natives","true");
-		// opt.put("simple-edges-bidirectional","false");
-		// opt.put("on-fly-cg","true");
-		// opt.put("simplify-offline","false");
-		// opt.put("simplify-sccs","false");
-		// opt.put("ignore-types-for-sccs","false");
-		// opt.put("propagator","worklist");
-		opt.put("set-impl", "double");
-		opt.put("double-set-old", "hybrid");
-		opt.put("double-set-new", "hybrid");
-		// opt.put("dump-html","false");
-		// opt.put("dump-pag","false");
-		// opt.put("dump-solution","false");
-		// opt.put("topo-sort","false");
-		// opt.put("dump-types","true");
-		// opt.put("class-method-var","true");
-		// opt.put("dump-answer","false");
-		// opt.put("add-tags","false");
-		// opt.put("set-mass","false");
-
-		// SparkTransformer.v().transform("",opt);
-		SparkOptions so = new SparkOptions(opt);
-		GeomPointsTo gpt = new GeomPointsTo(so);
-		Scene.v().setPointsToAnalysis(gpt);
-	}
+//	private void setGeomPointsToAnalysis() {
+//		HashMap<String, String> opt = new HashMap<String, String>();
+//		opt.put("enabled", "true");
+//		opt.put("verbose", "true");
+//		opt.put("ignore-types", "false");
+//		opt.put("force-gc", "false");
+//		// opt.put("pre-jimplify","false");
+//		// opt.put("vta","false");
+//		// opt.put("rta","false");
+//		// opt.put("field-based","false");
+//		// opt.put("types-for-sites","false");
+//		// opt.put("merge-stringbuffer","true");
+//		// opt.put("string-constants","false");
+//		// opt.put("simulate-natives","true");
+//		// opt.put("simple-edges-bidirectional","false");
+//		// opt.put("on-fly-cg","true");
+//		// opt.put("simplify-offline","false");
+//		// opt.put("simplify-sccs","false");
+//		// opt.put("ignore-types-for-sccs","false");
+//		// opt.put("propagator","worklist");
+//		opt.put("set-impl", "double");
+//		opt.put("double-set-old", "hybrid");
+//		opt.put("double-set-new", "hybrid");
+//		// opt.put("dump-html","false");
+//		// opt.put("dump-pag","false");
+//		// opt.put("dump-solution","false");
+//		// opt.put("topo-sort","false");
+//		// opt.put("dump-types","true");
+//		// opt.put("class-method-var","true");
+//		// opt.put("dump-answer","false");
+//		// opt.put("add-tags","false");
+//		// opt.put("set-mass","false");
+//
+//		// SparkTransformer.v().transform("",opt);
+//		SparkOptions so = new SparkOptions(opt);
+//		GeomPointsTo gpt = new GeomPointsTo(so);
+//		Scene.v().setPointsToAnalysis(gpt);
+//	}
 }

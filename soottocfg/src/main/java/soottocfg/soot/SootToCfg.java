@@ -76,6 +76,8 @@ public class SootToCfg {
 
 	// Create a new program
 	private final Program program = new Program();
+	
+	private static FlowBasedPointsToAnalysis pta;
 
 	public SootToCfg() {
 		this(new ArrayList<String>());
@@ -130,14 +132,14 @@ public class SootToCfg {
 			return;
 		}
 		
-		// add missing pushes
-		MissingPushAdder.addMissingPushes(program);
-		
 		// alias analysis
 		if (Options.v().memPrecision() >= 3) {
-			FlowBasedPointsToAnalysis pta = new FlowBasedPointsToAnalysis();
-			pta.run(program);
+			setPointsToAnalysis(new FlowBasedPointsToAnalysis());
+			getPointsToAnalysis().run(program);
 		}
+		
+		// add missing pushes
+		MissingPushAdder.addMissingPushes(program);
 
 		// simplify push-pull
 		if (Options.v().memPrecision() >= 1) {
@@ -207,7 +209,8 @@ public class SootToCfg {
 			Body body = null;
 			try {
 				body = sm.retrieveActiveBody();
-				// CopyPropagator.v().transform(body);
+//				soot.jimple.toolkits.scalar.CopyPropagator.v().transform(body);
+//				soot.jimple.toolkits.annotation.nullcheck.NullPointerChecker.v().transform(body);
 			} catch (RuntimeException e) {
 				// TODO: print warning that body couldn't be retrieved.
 				return;
@@ -489,4 +492,11 @@ public class SootToCfg {
 		}
 	}
 
+	public static FlowBasedPointsToAnalysis getPointsToAnalysis() {
+		return pta;
+	}
+	
+	private static void setPointsToAnalysis(FlowBasedPointsToAnalysis pointsto) {
+		pta = pointsto;
+	}
 }
