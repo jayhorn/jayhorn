@@ -6,6 +6,7 @@ package soottocfg.cfg.statement;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Verify;
@@ -24,7 +25,7 @@ public class PushStatement extends Statement {
 
 	private static final long serialVersionUID = 5776310555422969945L;
 	private final ClassVariable classConstant;
-	private final IdentifierExpression object;
+	private IdentifierExpression object;
 	private final List<Expression> right;
 	
 	private final int id;	
@@ -131,4 +132,13 @@ public class PushStatement extends Statement {
 		return new PushStatement(getSourceLocation(), classConstant, object.deepCopy(), rightCopy, this.id);
 	}
 
+	@Override
+	public PushStatement substitute(Map<Variable, Variable> subs) {
+		List<Expression> rightCopy = new LinkedList<Expression>();
+		for (Expression e : right) {
+			rightCopy.add(e.substitute(subs));
+		}
+		return new PushStatement(getSourceLocation(), classConstant, object.substitute(subs), rightCopy, this.id);
+
+	}
 }

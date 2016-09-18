@@ -147,6 +147,44 @@ public class Options {
 		this.out = s;
 	}
 
+	/*
+	 * Memory precision
+	 */
+	@Option(name = "-inline_size", usage = "Inline everything with less than N stmts", required = false)
+	private int inlineMaxSize = -1;
+
+	/**
+	 * @return the inlineMinSize
+	 */
+	public int getInlineMaxSize() {
+		return inlineMaxSize;
+	}
+
+	/**
+	 * @param inlineMinSize the inlineMinSize to set
+	 */
+	public void setInlineMaxSize(int inlineMaxSize) {
+		this.inlineMaxSize = inlineMaxSize;
+	}
+
+	/**
+	 * @return the inlineCount
+	 */
+	public int getInlineCount() {
+		return inlineCount;
+	}
+
+	/**
+	 * @param inlineCount the inlineCount to set
+	 */
+	public void setInlineCount(int inlineCount) {
+		this.inlineCount = inlineCount;
+	}
+
+	@Option(name = "-inline_count", usage = "Inline everything that's called less than N times", required = false)
+	private int inlineCount = -1;
+
+	
 	/**
 	 * Classpath
 	 */

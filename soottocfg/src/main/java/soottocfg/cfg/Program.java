@@ -108,6 +108,14 @@ public class Program {
 		modifiedGlobals=null;
 		this.methods.put(m.getMethodName(), m);
 	}
+	
+	public void removeMethods(Collection<Method> methods) {
+		callGraph=null;
+		modifiedGlobals=null;		
+		for (Method m : methods) {
+			this.methods.remove(m.getMethodName());
+		}
+	}
 
 	public void addEntryPoint(Method entry) {
 		entry.isProgramEntryPoint(true);

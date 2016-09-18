@@ -68,8 +68,8 @@ public class HornEncoderContext {
 			final List<Variable> inParams = new ArrayList<Variable>(method.getInParams());
 			final List<Variable> postParams = new ArrayList<Variable>();
 			postParams.addAll(method.getInParams());
-			if (!method.getOutParam().isEmpty()) {
-				postParams.addAll(method.getOutParam());
+			if (!method.getOutParams().isEmpty()) {
+				postParams.addAll(method.getOutParams());
 			} else if (!method.getReturnType().isEmpty()) {
 				int ctr = 0;
 				for (Type tp : method.getReturnType()) {

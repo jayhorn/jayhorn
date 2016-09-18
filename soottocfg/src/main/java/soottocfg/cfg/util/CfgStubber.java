@@ -10,9 +10,9 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
-import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
@@ -20,7 +20,6 @@ import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceType;
-import soottocfg.cfg.type.TupleType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
@@ -162,12 +161,6 @@ public class CfgStubber {
 	}
 
 	private ReferenceType getRefTypeFrom(Variable var) {
-		ReferenceType rt;
-		if (soottocfg.Options.v().useTupleEncoding()) {
-			rt = (ReferenceType) ((TupleType) var.getType()).getElementTypes().get(0);
-		} else {
-			rt = (ReferenceType) var.getType();
-		}
-		return rt;
+		return (ReferenceType) var.getType();
 	}
 }

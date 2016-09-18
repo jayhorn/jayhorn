@@ -4,6 +4,7 @@
 package soottocfg.cfg.expression.literal;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import soottocfg.cfg.SourceLocation;
@@ -94,4 +95,10 @@ public class IntegerLiteral extends Expression {
 	public Expression deepCopy() {		
 		return new IntegerLiteral(getSourceLocation(), value);
 	}
+	
+	@Override
+	public Expression substitute(Map<Variable, Variable> subs) {
+		return this.deepCopy();
+	}
+
 }

@@ -92,16 +92,17 @@ public class BigSoundnessTests {
 			// soottocfg.Options.v().setExcAsAssert(true);
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
-			soottocfg.Options.v().setTupleEncoding(false);
+
 			soottocfg.Options.v().setMemPrecision(3);
+
 
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			jayhorn.Options.v().setTimeout(5);
 			jayhorn.Options.v().setPrintHorn(false);
 
-			// Checker checker = new Checker(factory);
-			// boolean result = checker.checkProgram(soot2cfg.getProgram());
-
+			jayhorn.Options.v().setInlineMaxSize(20);
+			jayhorn.Options.v().setInlineCount(3);
+			
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			boolean result = false;
 			try {
@@ -124,7 +125,7 @@ public class BigSoundnessTests {
 				}
 			} catch (Exception e) {
 				resultException++;
-				throw new RuntimeException("Failed");
+				throw new RuntimeException(e.toString());
 			} finally {
 				StringBuilder sb = new StringBuilder();
 				sb.append("**************************************\n");

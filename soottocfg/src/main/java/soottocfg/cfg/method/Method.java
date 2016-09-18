@@ -27,7 +27,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 
 import soot.RefType;
-import soot.Scene;
 import soot.SootMethod;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Node;
@@ -66,11 +65,11 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 			SourceLocation sourceLocation) {
 		Preconditions.checkArgument(p.loopupMethod(uniqueName) == null,
 				"Method with name " + uniqueName + " already exists");
-		//add the exceptional return type to all methods that are generated.
+		// add the exceptional return type to all methods that are generated.
 		List<Type> returnTypes = new LinkedList<Type>();
 		RefType reftype = RefType.v("java.lang.Throwable");
 		Verify.verifyNotNull(reftype);
-		returnTypes.add( SootTranslationHelpers.v().getMemoryModel().lookupType(reftype) );
+		returnTypes.add(SootTranslationHelpers.v().getMemoryModel().lookupType(reftype));
 		returnTypes.addAll(outTypes);
 		Method m = new Method(sourceLocation, uniqueName, params, returnTypes);
 		p.addMethod(m);
@@ -117,6 +116,16 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		return this.methodName.contains(SootMethod.staticInitializerName);
 	}
 
+	@Override
+	public boolean removeVertex(CfgBlock v) {
+		if (this.source == v) {
+			this.source = null;
+		} else if (this.sink == v) {
+			this.sink = null;
+		}
+		return super.removeVertex(v);
+	}
+
 	public void initialize(Variable thisVariable, List<Variable> returnVariables, Collection<Variable> locals,
 			CfgBlock source, boolean isEntryPoint) {
 		Preconditions.checkNotNull(parameterList, "Parameter list must not be null");
@@ -129,10 +138,10 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		this.isProgramEntry = isEntryPoint;
 
 		SourceLocation loc = null; // TODO
-		//return var 0 is the exceptional return variable.
-		//first statement has to assign the exception local to null
+		// return var 0 is the exceptional return variable.
+		// first statement has to assign the exception local to null
 		this.source.addStatement(0, new AssignStatement(loc, new IdentifierExpression(loc, this.returnVariable.get(0)),
-				SootTranslationHelpers.v().getMemoryModel().mkNullConstant()  ));
+				SootTranslationHelpers.v().getMemoryModel().mkNullConstant()));
 
 		if (this.thisVariable != null) {
 			// then the first parameter must be the reference to the current
@@ -166,6 +175,19 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		this.isProgramEntry = b;
 	}
 
+	public void setSource(CfgBlock b) {
+		Preconditions.checkArgument(this.vertexSet().contains(b));
+		Preconditions.checkArgument(this.inDegreeOf(b)==0);
+		this.source=b;
+	}
+
+	public void setSink(CfgBlock b) {
+		Preconditions.checkArgument(this.vertexSet().contains(b));
+		Preconditions.checkArgument(this.outDegreeOf(b)==0);
+		this.sink=b;
+	}
+	
+	
 	public CfgBlock getSource() {
 		if (source == null) {
 			for (CfgBlock b : vertexSet()) {
@@ -257,7 +279,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	 * 
 	 * @return Optional return variable.
 	 */
-	public List<Variable> getOutParam() {
+	public List<Variable> getOutParams() {
 		if (this.returnVariable == null) {
 			return new LinkedList<Variable>();
 		}
