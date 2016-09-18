@@ -80,7 +80,7 @@ public class FlowBasedPointsToAnalysis {
 									changes += rightIntoLeft(right, left);
 								}
 							}
-							List<Variable> rets = target.getOutParam();
+							List<Variable> rets = target.getOutParams();
 							List<Expression> rec = cs.getReceiver();
 //							System.out.println("Rec: " + rec + "; rets: " + rets);
 							Verify.verify(rec.size()==1 || rets.size()==rec.size(),
