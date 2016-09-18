@@ -1,19 +1,17 @@
-
 class A
 {
   public int i;
 };
 
-class SatAliasing01
+class SatTwoInstances
 {
-
 	  public static void main(String[] args)
 	  {
 	    A a1 = new A();
-	    a1.i = 10;
-	    A a2 = a1;
-	    a2.i = 20;
+	    a1.i = 42;
 
-	    assert a1.i==20;
+	    A a2 = new A();
+	    a2.i = 42;
+	    assert a1.i == a2.i;
 	  }
 }

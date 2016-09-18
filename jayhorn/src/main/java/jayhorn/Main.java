@@ -60,10 +60,8 @@ public class Main {
   		
   		Stats.stats().add("Result", prettyResult);
   		
-  		if (Options.v().stats){ Stats.stats().printStats(); }
-      
   		Log.info("Safety Result ... " + prettyResult);
-  		
+		if (Options.v().stats){ Stats.stats().printStats(); }
       }
     
 	public static void main(String[] args) {
@@ -95,13 +93,17 @@ public class Main {
 			Log.error(e.toString());
 			Log.error("java -jar jayhorn.jar [options...] -j [JAR, DIR]");
 			parser.printUsage(System.err);
+		
 		} catch (Throwable t) {
 			Log.error(t.toString());
-			throw t;
+			Stats.stats().add("Result", "UNKNOWN");
+			if (Options.v().stats){ Stats.stats().printStats(); }
+			throw t;	
 		} finally {
 			Options.resetInstance();
 			soot.G.reset();
 		}
-	}
 
+	}
+	
 }

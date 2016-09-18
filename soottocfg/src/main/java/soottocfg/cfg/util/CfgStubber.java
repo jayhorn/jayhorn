@@ -1,6 +1,3 @@
-/**
- * 
- */
 package soottocfg.cfg.util;
 
 import java.util.Arrays;
@@ -36,8 +33,6 @@ import soottocfg.soot.util.SootTranslationHelpers;
  */
 public class CfgStubber {
 
-	// TODO check if this works with the new exception stuff after Martin
-	// finishes #57
 	public void stubUnboundFieldsAndMethods(Program program) {
 		Queue<Method> todo = new LinkedList<Method>();
 		todo.addAll(Arrays.asList(program.getMethods()));
@@ -91,6 +86,7 @@ public class CfgStubber {
 				} else if (method.getReturnType().size() > 0) {
 					LinkedList<Variable> rets = new LinkedList<Variable>();
 					//when stubbing, set the exceptional return to null.
+					System.out.println("Return types of " + method.getMethodName() + ": " + method.getReturnType());
 					Variable exceptionalRetVar = new Variable("exc", method.getReturnType().get(0));
 					rets.add(exceptionalRetVar);
 					AssignStatement noException = new AssignStatement(loc,
@@ -99,6 +95,7 @@ public class CfgStubber {
 					block.addStatement(noException);
 
 					//start from 1 because 0 is already the exceptional return.
+					int f = 0;
 					for (int i=1; i<method.getReturnType().size(); i++) {
 						Type t = method.getReturnType().get(i);
 						// add push with undef values to havoc methods
@@ -112,7 +109,7 @@ public class CfgStubber {
 									// type.
 									rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
 								} else {
-									Variable undefLocal = new Variable("undef_field" + (i++), IntType.instance());
+									Variable undefLocal = new Variable("undef_field" + (f++), IntType.instance());
 									rhs.add(new IdentifierExpression(loc, undefLocal));
 								}
 							}
@@ -122,7 +119,10 @@ public class CfgStubber {
 							IdentifierExpression ret = new IdentifierExpression(loc, outVar);
 							PushStatement push = new PushStatement(loc, rt.getClassVariable(), ret, rhs);
 							block.addStatement(push);
-						} 
+						} else {
+							Variable outVar = new Variable(MethodInfo.returnVariableName, IntType.instance());
+							rets.add(outVar);
+						}
 					}
 					method.setOutParam(rets);
 				}
