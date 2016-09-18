@@ -99,7 +99,7 @@ public class BigSoundnessTests {
 			jayhorn.Options.v().setPrintHorn(false);
 
 			jayhorn.Options.v().setInlineMaxSize(20);
-			jayhorn.Options.v().setInlineCount(4);
+			jayhorn.Options.v().setInlineCount(3);
 			
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			boolean result = false;

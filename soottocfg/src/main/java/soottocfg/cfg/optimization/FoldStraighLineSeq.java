@@ -8,6 +8,7 @@ import java.util.HashSet;
 import org.jgrapht.Graphs;
 
 import soottocfg.cfg.method.CfgBlock;
+import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
 
@@ -53,10 +54,16 @@ public class FoldStraighLineSeq {
 			if (m.inDegreeOf(b2)==1 && Graphs.predecessorListOf(m, b2).contains(b1)) {
 				//there is exactly one edge between b1 and b2
 				for (Statement s : b2.getStatements()) {
-					b1.addStatement(s);
+					b1.addStatement(s.deepCopy());
 				}
-				for (CfgBlock suc : Graphs.successorListOf(m, b2)) {					
-					m.addEdge(b1, suc, m.getEdge(b2, suc));
+				for (CfgBlock suc : Graphs.successorListOf(m, b2)) {
+					CfgEdge newEdge = new CfgEdge();
+					CfgEdge oldEdge = m.getEdge(b2, suc);
+					if (oldEdge.getLabel().isPresent()) {
+						newEdge.setLabel(oldEdge.getLabel().get().deepCopy());
+					}
+
+					m.addEdge(b1, suc, newEdge);
 					m.removeEdge(b2, suc);
 				}
 				return true;
