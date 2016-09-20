@@ -53,30 +53,38 @@ public class CfgCallInliner {
 	}
 
 	private void computeStats(Program p) {
-//		Map<String, Integer> outgoingCalls = new HashMap<String, Integer>();
+		// Map<String, Integer> outgoingCalls = new HashMap<String, Integer>();
 		for (Method m : p.getMethods()) {
 			if (!totalCallsTo.containsKey(m.getMethodName())) {
 				totalCallsTo.put(m.getMethodName(), 0);
 			}
 
 			int stmtCount = 0;
-//			int outgoingCallCounter = 0;
-			
 			for (Method callee : calledMethods(m)) {
 				if (!totalCallsTo.containsKey(callee.getMethodName())) {
 					totalCallsTo.put(callee.getMethodName(), 0);
 				}
-				totalCallsTo.put(callee.getMethodName(),
-						totalCallsTo.get(callee.getMethodName()) + 1);				
+				totalCallsTo.put(callee.getMethodName(), totalCallsTo.get(callee.getMethodName()) + 1);
 			}
-//			outgoingCalls.put(m.getMethodName(), outgoingCallCounter);
 			totalStmts.put(m.getMethodName(), stmtCount);
 		}
 	}
 
+//	private void moveEdgeLabelsIntoAssumes(Method m) {
+//		for (CfgBlock b : m.vertexSet()) {
+//			for (CfgEdge e : m.incomingEdgesOf(b)) {
+//				if (e.getLabel().isPresent()) {
+//					Expression guard = e.getLabel().get();
+//					e.removeLabel();
+//					b.addStatement(0, new AssumeStatement(null, guard));
+//				}
+//			}
+//		}
+//	}
+
 	private List<Method> calledMethods(Method m) {
 		List<Method> res = new LinkedList<Method>();
-		for (CfgBlock b : m.vertexSet()) {		
+		for (CfgBlock b : m.vertexSet()) {
 			for (Statement s : b.getStatements()) {
 				if (s instanceof CallStatement) {
 					CallStatement cs = (CallStatement) s;
@@ -86,7 +94,7 @@ public class CfgCallInliner {
 		}
 		return res;
 	}
-	
+
 	private Set<Method> reachableMethod(Method main) {
 		Set<Method> reachable = new HashSet<Method>();
 		List<Method> todo = new LinkedList<Method>();
@@ -102,32 +110,47 @@ public class CfgCallInliner {
 		}
 		return reachable;
 	}
-	
+
 	public void inlineFromMain(int maxSize, int maxOccurences) {
-		if (maxSize<=0 && maxOccurences<=0) {
+		if (maxSize <= 0 && maxOccurences <= 0) {
 			return;
 		}
 		Method mainMethod = program.getEntryPoints()[0];
 		inlineCalls(mainMethod, maxSize, maxOccurences);
-		 FoldStraighLineSeq folder = new FoldStraighLineSeq();
-		 folder.fold(mainMethod);
-		
+		FoldStraighLineSeq folder = new FoldStraighLineSeq();
+		folder.fold(mainMethod);
+
 		Set<Method> reachable = reachableMethod(mainMethod);
 		Set<Method> toRemove = new HashSet<Method>();
 		for (Method m : program.getMethods()) {
 			if (!reachable.contains(m)) {
 				toRemove.add(m);
 			} else {
-//				ExpressionInliner eil = new ExpressionInliner();
-//				eil.inlineAllCandidates(m);
+				
+//				if (m.isProgramEntryPoint()||true) {
+//					System.out.println(m);
+//				}
+//								
+//				moveEdgeLabelsIntoAssumes(m);
+//				 CfgUpdater ie = new ExpressionInliner();
+//				 CfgUpdater dce = new DeadCodeElimination();
+//				 CfgUpdater cp = new ConstantProp();
+//				 ie.runFixpt(m);
+//				 dce.runFixpt(m);
+//				 cp.runFixpt(m);
+				// dce.runFixpt(m);
+
+//				if (m.isProgramEntryPoint()||true) {
+//					System.err.println(m);
+//				}
+
 			}
 		}
-		
+
 		program.removeMethods(toRemove);
+
 	}
 
-	
-	
 	private void inlineCalls(Method method, int maxSize, int maxOccurences) {
 		if (alreadyInlined.contains(method.getMethodName())) {
 			return;
@@ -199,7 +222,7 @@ public class CfgCallInliner {
 							|| totalStmts.get(callee.getMethodName()) < maxSize) {
 						inlineableCalls++;
 					}
-				}				
+				}
 				if (inlineableCalls > 1) {
 					int idx = b.getStatements().indexOf(s);
 					// split the block.
@@ -216,7 +239,7 @@ public class CfgCallInliner {
 							newEdge.setLabel(oldEdge.getLabel().get().deepCopy());
 						}
 						m.removeEdge(b, suc);
-						m.addEdge(nextBlock, suc, newEdge);						
+						m.addEdge(nextBlock, suc, newEdge);
 					}
 					m.addEdge(b, nextBlock);
 					splitBlockIfNecessary(m, nextBlock, maxSize, maxOccurences);
@@ -257,7 +280,6 @@ public class CfgCallInliner {
 			}
 			caller.removeEdge(pre, block);
 			caller.addEdge(pre, preBlock, newEdge);
-
 		}
 		for (CfgBlock post : new LinkedList<CfgBlock>(Graphs.successorListOf(caller, block))) {
 			CfgEdge newEdge = new CfgEdge();
@@ -303,7 +325,7 @@ public class CfgCallInliner {
 		 */
 		Map<CfgBlock, CfgBlock> cloneMap = new HashMap<CfgBlock, CfgBlock>();
 
-		for (CfgBlock cur : callee.vertexSet()) {			
+		for (CfgBlock cur : callee.vertexSet()) {
 			CfgBlock clone = new CfgBlock(caller);
 			for (Statement s : cur.getStatements()) {
 				clone.addStatement(s.substitute(varSubstitionMap));
@@ -320,7 +342,7 @@ public class CfgCallInliner {
 				CfgEdge newEdge = new CfgEdge();
 				if (edge.getLabel().isPresent()) {
 					newEdge.setLabel(edge.getLabel().get().substitute(varSubstitionMap));
-					//newEdge.setLabel(edge.getLabel().get());
+					// newEdge.setLabel(edge.getLabel().get());
 				}
 				caller.addEdge(cloneMap.get(src), cloneMap.get(tgt), newEdge);
 			}

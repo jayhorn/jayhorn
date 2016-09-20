@@ -92,7 +92,7 @@ public class PushStatement extends Statement {
 		for (Expression e : right) {
 			used.addAll(e.getUseIdentifierExpressions());	
 		}
-                used.add(object);
+        used.add(object);
 		return used;
 	}
 
