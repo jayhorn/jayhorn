@@ -155,8 +155,8 @@ public enum SootTranslationHelpers {
 	}
 
 	public Method lookupOrCreateMethod(SootMethod m) {
-		if (this.program.loopupMethod(m.getSignature()) != null) {
-			return this.program.loopupMethod(m.getSignature());
+		if (this.program.lookupMethod(m.getSignature()) != null) {
+			return this.program.lookupMethod(m.getSignature());
 		}
 		int parameterCount = 0;
 		final List<Variable> parameterList = new LinkedList<Variable>();

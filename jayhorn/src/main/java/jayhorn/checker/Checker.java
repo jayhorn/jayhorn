@@ -66,6 +66,7 @@ public class Checker {
 		try {
 			int verifCount = 0;
 			for (Method method : program.getEntryPoints()) {
+				Log.info("Running from entry point: "+method.getMethodName());
 				prover.push();
 				// add an entry clause from the preconditions
 				final HornPredicate entryPred = hornContext.getMethodContract(method).precondition;

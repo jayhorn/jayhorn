@@ -70,8 +70,7 @@ public class SootToCfg {
 	}
 
 	private final List<String> resolvedClassNames;
-	private boolean debug = false;
-	
+
 	private final Set<SourceLocation> locations = new LinkedHashSet<SourceLocation>();
 
 	// Create a new program
@@ -104,13 +103,21 @@ public class SootToCfg {
 		// run soot to load all classes.
 		SootRunner runner = new SootRunner();
 		runner.run(input, classPath);
-		performBehaviorPreservingTransformations();
-		performAbstractionTransformations();
+		
+		/*
+		 * Get a reference for the main method. We have to get the
+		 * reference before applying the array transformation because
+		 * this changes this signature of main.
+		 */
+		final SootMethod mainMethod = Scene.v().getMainMethod();
+		
+		performBehaviorPreservingTransformations();				
+		performAbstractionTransformations();			
 		Variable exceptionGlobal = this.program
 				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
 						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
 		program.setExceptionGlobal(exceptionGlobal);
-
+		
 		// add havoc method for ints for lastpull
 //		SootMethod havocSoot =
 //				SootTranslationHelpers.v().getHavocMethod(soot.IntType.v());
@@ -119,6 +126,12 @@ public class SootToCfg {
 //				SootTranslationHelpers.v().lookupOrCreateMethod(havocSoot);
 		
 		constructCfg();
+		
+		// now set the entry points.
+		Method m = program.lookupMethod(mainMethod.getSignature());
+		program.addEntryPoint(m);
+
+		
 		if (Options.v().outDir() != null) {
 			writeFile(".cfg", program.toString());
 		}
@@ -229,13 +242,6 @@ public class SootToCfg {
 			mi.setSource(ss.getEntryBlock());
 
 			mi.finalizeAndAddToProgram();
-			Method m = mi.getMethod();
-
-			if (debug) {
-				// System.out.println("adding method: " +
-				// m.getMethodName());
-				getProgram().addEntryPoint(m);
-			}
 		} catch (RuntimeException e) {
 			System.err.println("Soot failed to parse " + sm.getSignature());
 			e.printStackTrace(System.err);
@@ -250,34 +256,15 @@ public class SootToCfg {
 		for (SootClass sc : classes) {
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
 				if ((!sc.isJavaLibraryClass() && !sc.isLibraryClass())) {
-					constructCfg(sc);	
-				}
-			}
-		}
-		// now set the entry points.
-		for (SootMethod entryPoint : Scene.v().getEntryPoints()) {
-			if (entryPoint.getDeclaringClass().isApplicationClass()) {
-				if (entryPoint.isStaticInitializer()) {
-					// TODO hack? do not use static initializers as entry
-					// points.
-					continue;
-				}
-				Method m = program.loopupMethod(entryPoint.getSignature());
-				if (m != null) {
-					// System.out.println("Adding entry point " +
-					// m.getMethodName());
-					// TODO
-					program.addEntryPoint(m);
+					constructCfg(sc);						
 				}
 			}
 		}
 	}
 
 	private void performAbstractionTransformations() {
-
 		ArrayTransformer atrans = new ArrayTransformer();
 		atrans.applyTransformation();
-
 		if (Options.v().useBuiltInSpecs()) {
 			SpecClassTransformer spctrans = new SpecClassTransformer();
 			spctrans.applyTransformation();
@@ -362,20 +349,7 @@ public class SootToCfg {
 	}
 
 	private void addStaticInitializerCallsToMain() {
-		SootMethod entry = null;
-		for (SootMethod entryPoint : Scene.v().getEntryPoints()) {
-			if (entryPoint.getDeclaringClass().isApplicationClass()) {
-				if (entryPoint.isStaticInitializer()) {
-					continue;
-				}
-				if (entry != null) {
-					// System.err.println("Found more than one main. Not adding
-					// static initializers to main :(");
-					return;
-				}
-				entry = entryPoint;
-			}
-		}
+		SootMethod entry = Scene.v().getMainMethod();
 		if (entry != null) {
 			// System.out.println("Adding " + staticInitializers.size() + "
 			// static init calls to " + entry.getSignature());

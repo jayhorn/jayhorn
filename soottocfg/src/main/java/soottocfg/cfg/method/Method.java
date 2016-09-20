@@ -63,7 +63,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 
 	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, List<Type> outTypes,
 			SourceLocation sourceLocation) {
-		Preconditions.checkArgument(p.loopupMethod(uniqueName) == null,
+		Preconditions.checkArgument(p.lookupMethod(uniqueName) == null,
 				"Method with name " + uniqueName + " already exists");
 		// add the exceptional return type to all methods that are generated.
 		List<Type> returnTypes = new LinkedList<Type>();

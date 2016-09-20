@@ -98,7 +98,7 @@ public class Program {
 		return this.globalVariables.get(varName);
 	}
 
-	public Method loopupMethod(String methodSignature) {		
+	public Method lookupMethod(String methodSignature) {		
 		return methods.get(methodSignature);
 	}
 	
