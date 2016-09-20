@@ -5,6 +5,7 @@ package jayhorn.test.soundness;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -57,6 +58,7 @@ public class BigSoundnessTests {
 	private static void collectFileNamesRecursively(File file, List<Object[]> filenames) {
 		File[] directoryListing = file.listFiles();
 		if (directoryListing != null) {
+			Arrays.sort(directoryListing);
 			for (File child : directoryListing) {
 				if (child.isFile() && child.getName().endsWith(".java")) {
 					filenames.add(new Object[] { child, child.getName() });
@@ -97,7 +99,7 @@ public class BigSoundnessTests {
 
 
 			soot2cfg.run(classDir.getAbsolutePath(), null);
-			jayhorn.Options.v().setTimeout(20);
+			jayhorn.Options.v().setTimeout(60);
 			jayhorn.Options.v().setPrintHorn(false);
 
 			jayhorn.Options.v().setInlineMaxSize(20);
