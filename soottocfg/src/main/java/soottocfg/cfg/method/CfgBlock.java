@@ -162,6 +162,15 @@ public class CfgBlock implements Node, Serializable {
 				used.addAll(edge.getLabel().get().getUseVariables());
 			}
 		}
+
+		//TODO: Martin also added the incoming edges.
+		for (CfgEdge edge : this.method.incomingEdgesOf(this)) {
+			if (edge.getLabel().isPresent()) {
+				used.addAll(edge.getLabel().get().getUseVariables());
+			}
+		}
+
+		
 		return used;
 	}
 
@@ -206,7 +215,11 @@ public class CfgBlock implements Node, Serializable {
 
 		// The live in of the 0th statement should be the same as the live in of
 		// the whole block
-		assert (currentLiveOut.equals(vars.liveIn.get(this)));
+//		assert (currentLiveOut.equals(vars.liveIn.get(this)));
+		//TODO: Martin says this assertion is not true anymore because the conditional
+		//also has to be live. Because in reality, there is an assume from the incoming
+		//edge at the beginning of the block. Otherwise the dead code elimination would
+		//eliminate the statement that assigns stuff to the conditional.
 		return new LiveVars<Statement>(in, out);
 	}
 

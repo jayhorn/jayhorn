@@ -20,6 +20,8 @@ import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.optimization.CfgUpdater;
+import soottocfg.cfg.optimization.DeadCodeElimination;
 import soottocfg.cfg.optimization.FoldStraighLineSeq;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
@@ -70,17 +72,6 @@ public class CfgCallInliner {
 		}
 	}
 
-//	private void moveEdgeLabelsIntoAssumes(Method m) {
-//		for (CfgBlock b : m.vertexSet()) {
-//			for (CfgEdge e : m.incomingEdgesOf(b)) {
-//				if (e.getLabel().isPresent()) {
-//					Expression guard = e.getLabel().get();
-//					e.removeLabel();
-//					b.addStatement(0, new AssumeStatement(null, guard));
-//				}
-//			}
-//		}
-//	}
 
 	private List<Method> calledMethods(Method m) {
 		List<Method> res = new LinkedList<Method>();
@@ -126,24 +117,14 @@ public class CfgCallInliner {
 			if (!reachable.contains(m)) {
 				toRemove.add(m);
 			} else {
-				
-//				if (m.isProgramEntryPoint()||true) {
-//					System.out.println(m);
-//				}
-//								
-//				moveEdgeLabelsIntoAssumes(m);
-//				 CfgUpdater ie = new ExpressionInliner();
-//				 CfgUpdater dce = new DeadCodeElimination();
+				CfgUpdater dce = new DeadCodeElimination();
+				 dce.runFixpt(m);
+				 
+//				CfgUpdater ie = new ExpressionInliner();
 //				 CfgUpdater cp = new ConstantProp();
 //				 ie.runFixpt(m);
+//				 cp.runFixpt(m);				 
 //				 dce.runFixpt(m);
-//				 cp.runFixpt(m);
-				// dce.runFixpt(m);
-
-//				if (m.isProgramEntryPoint()||true) {
-//					System.err.println(m);
-//				}
-
 			}
 		}
 
