@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +72,7 @@ public class SootToCfg {
 	private final List<String> resolvedClassNames;
 	private boolean debug = false;
 	
-	private final Set<SourceLocation> locations = new HashSet<SourceLocation>();
+	private final Set<SourceLocation> locations = new LinkedHashSet<SourceLocation>();
 
 	// Create a new program
 	private final Program program = new Program();
@@ -284,7 +284,7 @@ public class SootToCfg {
 		}
 	}
 	
-	private Set<SootMethod> staticInitializers = new HashSet<SootMethod>();
+	private Set<SootMethod> staticInitializers = new LinkedHashSet<SootMethod>();
 
 	/**
 	 * Perform a sequence of behavior preserving transformations to the body
@@ -389,7 +389,7 @@ public class SootToCfg {
 
 	private void initializeStaticFields(SootClass containingClass) {
 		// find all static fields of the class.
-		Set<SootField> staticFields = new HashSet<SootField>();
+		Set<SootField> staticFields = new LinkedHashSet<SootField>();
 		for (SootField f : containingClass.getFields()) {
 			if (f.isStatic()) {
 				staticFields.add(f);
@@ -434,7 +434,7 @@ public class SootToCfg {
 	private void addDefaultInitializers(SootMethod constructor, SootClass containingClass) {
 		if (constructor.isConstructor()) {
 			Preconditions.checkArgument(constructor.getDeclaringClass().equals(containingClass));
-			Set<SootField> instanceFields = new HashSet<SootField>();
+			Set<SootField> instanceFields = new LinkedHashSet<SootField>();
 			for (SootField f : containingClass.getFields()) {
 				if (!f.isStatic()) {
 					instanceFields.add(f);
