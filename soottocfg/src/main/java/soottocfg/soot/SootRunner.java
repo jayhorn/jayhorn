@@ -205,11 +205,11 @@ public class SootRunner {
 		boolean toManyMains = false;
 		StringBuilder sb = new StringBuilder();
 		for (SootClass c : Scene.v().getApplicationClasses()) {
-			if (c.declaresMethod("main", Arrays.asList(ArrayType.v(RefType.v("java.lang.String"), 1)), VoidType.v())) {
+			if (c.declaresMethod("main", Arrays.asList((Type)ArrayType.v(RefType.v("java.lang.String"), 1)), VoidType.v())) {
 				if (mainMethod != null) {
 					toManyMains = true;
 				}
-				mainMethod = c.getMethod("main", Arrays.asList(ArrayType.v(RefType.v("java.lang.String"), 1)),
+				mainMethod = c.getMethod("main", Arrays.asList((Type)ArrayType.v(RefType.v("java.lang.String"), 1)),
 						VoidType.v());
 				
 				mainClass = c;
