@@ -75,9 +75,9 @@
       <td>loops/loop1/TestLoop1.java</td>
 <td>SAFE</td>
  <td>UNKNOWN</td>
-    <td>318.3μs</td>
-<td>2.807s</td>
-<td>387.2ms</td>
+    <td>447.5μs</td>
+<td>3.204s</td>
+<td>482.0ms</td>
     </tr>
 
 
@@ -90,9 +90,9 @@
       <td>loops/loop2/TestLoop2.java</td>
 <td>SAFE</td>
  <td>UNKNOWN</td>
-    <td>329.8μs</td>
-<td>1.150s</td>
-<td>499.6ms</td>
+    <td>334.0μs</td>
+<td>1.196s</td>
+<td>410.2ms</td>
     </tr>
 
 
@@ -120,9 +120,9 @@
       <td>termination/Easy2/Test.java</td>
 <td>SAFE</td>
  <td>UNKNOWN</td>
-    <td>319.5μs</td>
-<td>1.971s</td>
-<td>414.3ms</td>
+    <td>448.9μs</td>
+<td>2.274s</td>
+<td>474.6ms</td>
     </tr>
 
 
@@ -135,9 +135,9 @@
       <td>termination/MenloPark/MenloPark.java</td>
 <td>UNSAFE</td>
  <td>UNKNOWN</td>
-    <td>327.6μs</td>
-<td>3.101s</td>
-<td>502.7ms</td>
+    <td>343.5μs</td>
+<td>3.159s</td>
+<td>457.3ms</td>
     </tr>
 
 
@@ -150,9 +150,9 @@
       <td>termination/Mysore/Mysore.java</td>
 <td>UNSAFE</td>
  <td>UNKNOWN</td>
-    <td>303.3μs</td>
-<td>2.908s</td>
-<td>442.0ms</td>
+    <td>397.7μs</td>
+<td>3.012s</td>
+<td>505.2ms</td>
     </tr>
 
 
@@ -165,9 +165,9 @@
       <td>termination/Pure2Phase/Test.java</td>
 <td>UNSAFE</td>
  <td>UNKNOWN</td>
-    <td>317.4μs</td>
-<td>3.140s</td>
-<td>461.9ms</td>
+    <td>364.9μs</td>
+<td>3.181s</td>
+<td>491.7ms</td>
     </tr>
 
 
@@ -178,16 +178,16 @@
 
  <tr data-toggle="collapse" data-target="#7" class="accordion-toggle active">
       <td>termination/Easy/Easy.java</td>
-<td>SAFE</td>
+<td>TIMEOUT</td>
  <td>UNKNOWN</td>
-    <td>324.8μs</td>
-<td>16.86s</td>
-<td>427.6ms</td>
+    <td></td>
+<td></td>
+<td></td>
     </tr>
 
 
 <tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="7"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Easy: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="7"> Timeout </div> </td>
 </tr>
 
 
@@ -195,9 +195,9 @@
       <td>termination/Aaron2/Test.java</td>
 <td>SAFE</td>
  <td>UNKNOWN</td>
-    <td>294.9μs</td>
-<td>2.650s</td>
-<td>469.8ms</td>
+    <td>364.2μs</td>
+<td>2.922s</td>
+<td>495.3ms</td>
     </tr>
 
 
@@ -206,18 +206,18 @@
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#9" class="accordion-toggle active">
-      <td>algorithms/trie/Trie.java</td>
-<td>UNSAFE</td>
- <td>UNKNOWN</td>
-    <td>434.3μs</td>
-<td>8.707s</td>
-<td>1.486s</td>
+ <tr data-toggle="collapse" data-target="#9" class="accordion-toggle danger">
+      <td>algorithms/maxsum/MaxSum_false.java</td>
+<td>TIMEOUT</td>
+ <td>SAFE</td>
+    <td></td>
+<td></td>
+<td></td>
     </tr>
 
 
-<tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="9"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.lang.String: char charAt(int)>: [java.lang.Throwable, int]<br>Return types of <java.lang.String: java.lang.String substring(int,int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: Trie$Node havoc_Trie$Node()>: [java.lang.Throwable, Trie$Node]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Trie: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+<tr class = danger>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="9"> Timeout </div> </td>
 </tr>
 
 
@@ -237,32 +237,32 @@
 
 
  <tr data-toggle="collapse" data-target="#11" class="accordion-toggle active">
-      <td>algorithms/Tsp/Tsp.java</td>
+      <td>algorithms/trie/Trie.java</td>
 <td>UNSAFE</td>
  <td>UNKNOWN</td>
-    <td>431.7μs</td>
-<td>11.87s</td>
-<td>1.686s</td>
+    <td>421.4μs</td>
+<td>9.050s</td>
+<td>1.523s</td>
     </tr>
 
 
 <tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="11"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <JayArray_int: void set(int,int)>: [java.lang.Throwable]<br>Return types of <JayArray_int: int get(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: boolean havoc_boolean()>: [java.lang.Throwable, boolean]<br>Return types of <Havoc_Class: JayArray_int havoc_JayArray_int()>: [java.lang.Throwable, JayArray_int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Tsp: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="11"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.lang.String: char charAt(int)>: [java.lang.Throwable, int]<br>Return types of <java.lang.String: java.lang.String substring(int,int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: Trie$Node havoc_Trie$Node()>: [java.lang.Throwable, Trie$Node]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Trie: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#12" class="accordion-toggle danger">
-      <td>algorithms/InsertionSort/InsertionSort_true.java</td>
+ <tr data-toggle="collapse" data-target="#12" class="accordion-toggle active">
+      <td>algorithms/Tsp/Tsp.java</td>
 <td>UNSAFE</td>
- <td>SAFE</td>
-    <td>328.2μs</td>
-<td>9.337s</td>
-<td>1.251s</td>
+ <td>UNKNOWN</td>
+    <td>488.1μs</td>
+<td>12.21s</td>
+<td>2.123s</td>
     </tr>
 
 
-<tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="12"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <InsertionSort_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+<tr class = active>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="12"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <JayArray_int: void set(int,int)>: [java.lang.Throwable]<br>Return types of <JayArray_int: int get(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: boolean havoc_boolean()>: [java.lang.Throwable, boolean]<br>Return types of <Havoc_Class: JayArray_int havoc_JayArray_int()>: [java.lang.Throwable, JayArray_int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Tsp: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -270,9 +270,9 @@
       <td>algorithms/BellmanFord/BellmanFord_true.java</td>
 <td>UNSAFE</td>
  <td>SAFE</td>
-    <td>461.5μs</td>
-<td>11.78s</td>
-<td>1.710s</td>
+    <td>458.7μs</td>
+<td>11.73s</td>
+<td>1.818s</td>
     </tr>
 
 
@@ -281,23 +281,23 @@
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#14" class="accordion-toggle active">
-      <td>algorithms/maxsum/SafeMaxSum.java</td>
+ <tr data-toggle="collapse" data-target="#14" class="accordion-toggle danger">
+      <td>algorithms/InsertionSort/InsertionSort_true.java</td>
 <td>UNSAFE</td>
- <td>UNKNOWN</td>
-    <td>431.0μs</td>
-<td>5.430s</td>
-<td>1.252s</td>
+ <td>SAFE</td>
+    <td>475.8μs</td>
+<td>9.819s</td>
+<td>1.311s</td>
     </tr>
 
 
-<tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="14"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <MaxSum: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+<tr class = danger>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="14"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <InsertionSort_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
  <tr data-toggle="collapse" data-target="#15" class="accordion-toggle danger">
-      <td>algorithms/MergeSortIterative/MergeSortIterative1_false.java</td>
+      <td>algorithms/mccarthy/Mccarthy91_true.java</td>
 <td>UNKNOWN</td>
  <td>SAFE</td>
     <td></td>
@@ -356,37 +356,22 @@
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#19" class="accordion-toggle active">
-      <td>algorithms/maxsum/MaxSum.java</td>
-<td>UNSAFE</td>
- <td>UNKNOWN</td>
-    <td>446.6μs</td>
-<td>5.536s</td>
-<td>1.307s</td>
-    </tr>
-
-
-<tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="19"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <MaxSum: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
-</tr>
-
-
- <tr data-toggle="collapse" data-target="#20" class="accordion-toggle danger">
+ <tr data-toggle="collapse" data-target="#19" class="accordion-toggle danger">
       <td>algorithms/BellmanFord/BellmanFord_false.java</td>
 <td>UNSAFE</td>
  <td>SAFE</td>
-    <td>452.3μs</td>
-<td>11.74s</td>
-<td>1.724s</td>
+    <td>467.8μs</td>
+<td>11.81s</td>
+<td>1.830s</td>
     </tr>
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="20"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: boolean havoc_boolean()>: [java.lang.Throwable, boolean]<br>Return types of <Havoc_Class: JayArray_int havoc_JayArray_int()>: [java.lang.Throwable, JayArray_int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <BellmanFord_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="19"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: boolean havoc_boolean()>: [java.lang.Throwable, boolean]<br>Return types of <Havoc_Class: JayArray_int havoc_JayArray_int()>: [java.lang.Throwable, JayArray_int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <BellmanFord_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#21" class="accordion-toggle active">
+ <tr data-toggle="collapse" data-target="#20" class="accordion-toggle active">
       <td>algorithms/MergeSortJDK15/MergeSortJDK15.java</td>
 <td>UNKNOWN</td>
  <td>UNKNOWN</td>
@@ -397,42 +382,42 @@
 
 
 <tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="21"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="20"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#22" class="accordion-toggle active">
+ <tr data-toggle="collapse" data-target="#21" class="accordion-toggle active">
       <td>algorithms/rabinkarp/RabinKarp.java</td>
 <td>UNSAFE</td>
  <td>UNKNOWN</td>
-    <td>317.3μs</td>
-<td>6.283s</td>
-<td>1.362s</td>
+    <td>321.6μs</td>
+<td>6.648s</td>
+<td>1.445s</td>
     </tr>
 
 
 <tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="22"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.lang.String: char charAt(int)>: [java.lang.Throwable, int]<br>Return types of <java.math.BigInteger: java.math.BigInteger probablePrime(int,java.util.Random)>: [java.lang.Throwable, java.math.BigInteger]<br>Return types of <java.math.BigInteger: long longValue()>: [java.lang.Throwable, int]<br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>: [java.lang.Throwable, java.lang.StringBuilder]<br>Return types of <java.lang.StringBuilder: java.lang.String toString()>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.io.PrintStream: void println(java.lang.String)>: [java.lang.Throwable]<br>Return types of <java.io.PrintStream: void print(java.lang.String)>: [java.lang.Throwable]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <RabinKarp: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="21"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.lang.String: char charAt(int)>: [java.lang.Throwable, int]<br>Return types of <java.math.BigInteger: java.math.BigInteger probablePrime(int,java.util.Random)>: [java.lang.Throwable, java.math.BigInteger]<br>Return types of <java.math.BigInteger: long longValue()>: [java.lang.Throwable, int]<br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>: [java.lang.Throwable, java.lang.StringBuilder]<br>Return types of <java.lang.StringBuilder: java.lang.String toString()>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.io.PrintStream: void println(java.lang.String)>: [java.lang.Throwable]<br>Return types of <java.io.PrintStream: void print(java.lang.String)>: [java.lang.Throwable]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <RabinKarp: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#23" class="accordion-toggle danger">
+ <tr data-toggle="collapse" data-target="#22" class="accordion-toggle danger">
       <td>algorithms/InsertionSort/InsertionSort_false.java</td>
 <td>UNSAFE</td>
  <td>SAFE</td>
-    <td>479.3μs</td>
-<td>9.467s</td>
-<td>1.207s</td>
+    <td>464.8μs</td>
+<td>9.839s</td>
+<td>1.343s</td>
     </tr>
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="23"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <InsertionSort_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="22"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <InsertionSort_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#24" class="accordion-toggle danger">
-      <td>algorithms/mccarthy/Mccarthy91_true.java</td>
+ <tr data-toggle="collapse" data-target="#23" class="accordion-toggle danger">
+      <td>algorithms/MergeSortIterative/MergeSortIterative1_false.java</td>
 <td>UNKNOWN</td>
  <td>SAFE</td>
     <td></td>
@@ -442,11 +427,11 @@
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="24"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="23"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#25" class="accordion-toggle active">
+ <tr data-toggle="collapse" data-target="#24" class="accordion-toggle active">
       <td>algorithms/SimpleObject/SimpleObject.java</td>
 <td>UNKNOWN</td>
  <td>UNKNOWN</td>
@@ -457,12 +442,27 @@
 
 
 <tr class = active>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="24"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
+</tr>
+
+
+ <tr data-toggle="collapse" data-target="#25" class="accordion-toggle danger">
+      <td>algorithms/mccarthy/Mccarthy91_false.java</td>
+<td>UNKNOWN</td>
+ <td>SAFE</td>
+    <td></td>
+<td></td>
+<td></td>
+    </tr>
+
+
+<tr class = danger>
     <td  class="hiddenRow"><div class="accordian-body collapse" id="25"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
 </tr>
 
 
  <tr data-toggle="collapse" data-target="#26" class="accordion-toggle danger">
-      <td>algorithms/mccarthy/Mccarthy91_false.java</td>
+      <td>algorithms/MergeSortIterative/MergeSortIterative2_false.java</td>
 <td>UNKNOWN</td>
  <td>SAFE</td>
     <td></td>
@@ -477,8 +477,8 @@
 
 
  <tr data-toggle="collapse" data-target="#27" class="accordion-toggle danger">
-      <td>algorithms/MergeSortIterative/MergeSortIterative2_false.java</td>
-<td>UNKNOWN</td>
+      <td>algorithms/maxsum/MaxSum_true.java</td>
+<td>TIMEOUT</td>
  <td>SAFE</td>
     <td></td>
 <td></td>
@@ -487,7 +487,7 @@
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="27"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="27"> Timeout </div> </td>
 </tr>
 
 
@@ -570,9 +570,9 @@
       <td>recursive/loops/InfiniteLoop.java</td>
 <td>UNSAFE</td>
  <td>UNKNOWN</td>
-    <td>309.4μs</td>
-<td>3.211s</td>
-<td>520.0ms</td>
+    <td>498.3μs</td>
+<td>3.410s</td>
+<td>621.1ms</td>
     </tr>
 
 
@@ -600,9 +600,9 @@
       <td>recursive/loops/Addition_true.java</td>
 <td>UNSAFE</td>
  <td>SAFE</td>
-    <td>579.3μs</td>
-<td>3.133s</td>
-<td>510.7ms</td>
+    <td>385.8μs</td>
+<td>3.504s</td>
+<td>580.1ms</td>
     </tr>
 
 
@@ -840,9 +840,9 @@
       <td>recursive/loops/Ackermann01_false.java</td>
 <td>UNSAFE</td>
  <td>SAFE</td>
-    <td>298.5μs</td>
-<td>3.332s</td>
-<td>504.5ms</td>
+    <td>383.3μs</td>
+<td>3.377s</td>
+<td>591.1ms</td>
     </tr>
 
 
@@ -855,9 +855,9 @@
       <td>recursive/loops/Ackermann01_true.java</td>
 <td>UNSAFE</td>
  <td>SAFE</td>
-    <td>342.4μs</td>
-<td>3.344s</td>
-<td>525.1ms</td>
+    <td>322.0μs</td>
+<td>3.389s</td>
+<td>572.7ms</td>
     </tr>
 
 
