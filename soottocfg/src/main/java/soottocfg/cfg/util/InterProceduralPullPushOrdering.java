@@ -106,7 +106,7 @@ public class InterProceduralPullPushOrdering {
 		Set<ClassVariable> usedSubtypes = new HashSet<ClassVariable>();
 		usedSubtypes.add(pull.getClassSignature());
 		if (!pullMap.containsKey(pull)) {
-			System.err.println("Pull not reachable from program entry: " + pull);
+//			System.err.println("Pull not reachable from program entry: " + pull);
 			return usedSubtypes;
 		}
 		FixedPointObject fpo = pullMap.get(pull);
@@ -147,7 +147,7 @@ public class InterProceduralPullPushOrdering {
 		Set<FixedPointObject> ret = new HashSet<FixedPointObject>();
 
 		if (!pullMap.containsKey(pull)) {
-			System.err.println("Pull not reachable from program entry: " + pull);
+//			System.err.println("Pull not reachable from program entry: " + pull);
 			return ret;
 		}
 

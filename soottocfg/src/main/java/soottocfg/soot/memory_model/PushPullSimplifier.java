@@ -359,9 +359,9 @@ public class PushPullSimplifier {
 		int moves = 0;
 		for (CfgBlock b : blocks) {
 			List<Statement> stmts = b.getStatements();
-			int s = 0;
+			int s = stmts.size()-1;
 			Set<Statement> toRemove = new HashSet<Statement>();
-			while (s < stmts.size() && stmts.get(s) instanceof PushStatement) {
+			while (s > 0 && stmts.get(s) instanceof PushStatement) {
 				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
 				for (CfgEdge out : outgoing) {
 					CfgBlock next = b.getMethod().getEdgeTarget(out);
@@ -374,14 +374,14 @@ public class PushPullSimplifier {
 							stmt = stmt.deepCopy();
 						else
 							toRemove.add(stmt);
-						next.addStatement(0,stmts.get(s));
+						next.addStatement(0, stmt);
 						moves++;
 
 						if (debug)
 							System.out.println("Moved " + stmts.get(s) + " down in CFG.");
 					}
 				}
-				s++;
+				s--;
 			}
 			b.removeStatements(toRemove);
 		}

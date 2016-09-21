@@ -45,6 +45,8 @@ public class PushIdentifierAdder {
 		for (ClassVariable cv : cvs) {
 			Variable lastpush = new Variable(LP, IntType.instance());
 			cv.addGhostField(lastpush);
+			if (debug) 
+				System.out.println("Added 'lastpush' field to " + cv.getName());
 		}
 	}
 

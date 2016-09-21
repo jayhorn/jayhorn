@@ -321,7 +321,7 @@ public class StatementEncoder {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 		final ClassVariable sig = ps.getClassSignature();
 		Verify.verify(sig.getAssociatedFields().length == ps.getRight().size(),
-				"Unequal lengths: " + sig + " and " + ps.getRight());
+				"Unequal lengths: " + sig + " and " + ps.getRight() + " in " + ps);
 		// get the invariant for the ClassVariable
 		final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig);
 		final List<Expression> invariantArgs = new LinkedList<Expression>();

@@ -108,6 +108,7 @@ public class ExpressionEncoder {
 				return p.mkImplies(left, right);
 			case Shl:
 			case Shr:
+			case Ushr:
 			case BAnd:
 			case BOr:
 			case Xor:
