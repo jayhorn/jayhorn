@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +82,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		location = loc;
 		methodName = uniqueName;
 		returnTypes = outTypes;
-		locals = new HashSet<Variable>();
+		locals = new LinkedHashSet<Variable>();
 		this.parameterList = Collections.unmodifiableList(params);
 	}
 
@@ -133,7 +134,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 
 		this.thisVariable = thisVariable;
 		this.returnVariable = returnVariables;
-		this.locals = new HashSet<Variable>(locals);
+		this.locals = new LinkedHashSet<Variable>(locals);
 		this.source = source;
 		this.isProgramEntry = isEntryPoint;
 
