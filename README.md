@@ -33,4 +33,4 @@ JayHorn is partially funded by:
    
 Any opinions, findings and conclusions or recommendations expressed in
 this material are those of the author(s) do not necessarily
-reflect the views of AFRL, NSF or the Swedish Research Council.
+reflect the views of AFRL, DARPA, NSF or the Swedish Research Council.
