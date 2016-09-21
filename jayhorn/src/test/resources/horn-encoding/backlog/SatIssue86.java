@@ -4,6 +4,7 @@ public class SatIssue86 {
         try {
                 N = Integer.parseInt(args[0]);
         } catch (Exception e) { }
+	if (N<0 || N>5) return;
 
         int a[] = new int[N];
         for (int i = 0; i < N; i++) { 
