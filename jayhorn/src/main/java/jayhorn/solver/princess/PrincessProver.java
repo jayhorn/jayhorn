@@ -323,6 +323,14 @@ public class PrincessProver implements Prover {
 			api.addAssertion(((PrincessProverExpr) assertion).toFormula());
 	}
 
+	public void addRule(ProverExpr assertion) {
+		if (assertion instanceof HornExpr)
+			assertedClauses.add((HornExpr) assertion);
+		else
+			api.addAssertion(((PrincessProverExpr) assertion).toFormula());
+	}
+
+	public void printRules(){}
 	// ////////////////////////////////////////////////////////////////////////////
 
 	private ExecutorService executor = null;

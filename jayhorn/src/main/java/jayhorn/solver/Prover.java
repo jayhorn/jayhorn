@@ -219,6 +219,11 @@ public interface Prover {
      */
     ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body,
                                   ProverExpr constraint);
+    
+    
+    void addRule(ProverExpr hornRule);
+    
+    void printRules();
 
     ////////////////////////////////////////////////////////////////////////////
     // Some functions for outputing SMT-LIB

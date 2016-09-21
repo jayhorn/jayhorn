@@ -54,7 +54,6 @@ public class SpacerProver implements Prover {
 
 	private Context ctx;
 	private Solver solver;
-	private boolean useHornLogic = false;
 	
 	
 	private HashMap<String, String> cfg = new HashMap<String, String>();
@@ -981,7 +980,6 @@ public class SpacerProver implements Prover {
 
 	@Override
 	public void setHornLogic(boolean b) {
-		useHornLogic = b;
 		createSolver();		
 	}
 	
@@ -1025,13 +1023,13 @@ public class SpacerProver implements Prover {
 					asrt =  ctx.mkImplies(body, head);
 				}
 				//TODO Fix me the null should be a name
+	
 				this.fx.addRule(asrt,null);
 			} else if (relation instanceof SpacerBoolExpr) {
 				BoolExpr asrt = (BoolExpr) unpack(relation);
 				//TODO Fix me the null should be a name
 				this.fx.addRule(asrt, null);
 			}
-			System.out.println(this.fx);
 		} catch (Exception e) {
 			throw new RuntimeException(e.getMessage());
 		}
@@ -1215,6 +1213,18 @@ public class SpacerProver implements Prover {
 
     public void parseSMTLIBFormula(final String formula) {
     	throw new UnsupportedOperationException();
+    }
+    
+    public void printRules() {
+    	System.out.println("Printing Rules");
+    	try{
+    	BoolExpr[] rules = this.fx.getRules();
+    	
+    	System.out.println("Number of rules:" + rules.length);
+    	System.out.println(this.fx);
+    	}catch (Exception e){
+    		throw new RuntimeException(e.getMessage());
+    	}
     }
 }
 

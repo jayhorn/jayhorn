@@ -71,7 +71,8 @@ public class Checker {
         Hornify.hornToFile(allClauses, verifCount);
 
         for (ProverHornClause clause : allClauses)
-          prover.addAssertion(clause);
+          prover.addRule(clause);
+          
 
         if (jayhorn.Options.v().getTimeout() > 0) {
           int timeoutInMsec = (int) TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());
@@ -80,13 +81,13 @@ public class Checker {
         } else {
           result = prover.checkSat(true);
         }
-
+        
         System.out.println("RESULT: " + result);
         allClauses.remove(allClauses.size() - 1);
         prover.pop();
         ++verifCount;
       }
-
+      prover.printRules();
     } catch (Throwable t) {
       t.printStackTrace();
       throw new RuntimeException(t);
