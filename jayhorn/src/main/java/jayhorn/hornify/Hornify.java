@@ -9,8 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.base.Verify;
-
 import jayhorn.Log;
 import jayhorn.hornify.encoder.MethodEncoder;
 import jayhorn.solver.Prover;
@@ -47,9 +45,6 @@ public class Hornify {
 		prover = factory.spawn();
 		prover.setHornLogic(true);
 
-		Log.info("Check if program has one entry ... ");
-		onlyOneEntry(program);
-
 		Log.info("Interprocedural Push/Pull Ordering");
 		Log.info("Building type hierarchy ... ");
 		Log.info("Generating Method Contract ... ");
@@ -63,21 +58,6 @@ public class Hornify {
 		}
 		return hornContext;
 	}
-
-
-	private void onlyOneEntry(Program program){	
-		/*
-		 * We have to build that up elsewhere. The problem is that we currently
-		 * modify the cfg while generating the
-		 * Horn clauses. For this to work to correctly, we need to create a
-		 * final version of the cfg first; then
-		 * build up this ordering; and finally create the Horn clauses.
-		 */
-		Verify.verify(program.getEntryPoints().length == 1,
-				"Currently, we only support programs with one entry point. Found "+program.getEntryPoints().length);
-	}
-
-
 
 	/**
 	 * Return the current prover object

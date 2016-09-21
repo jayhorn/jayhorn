@@ -83,8 +83,7 @@ public class MutliFileTest {
 		File classDir = null;
 		try {
 			classDir = Util.compileJavaFile(this.sourceFile);
-			SootToCfg soot2cfg = new SootToCfg();
-			soottocfg.Options.v().setPrintCFG(true);
+			SootToCfg soot2cfg = new SootToCfg();			
 			soottocfg.Options.v().setMemPrecision(3);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			

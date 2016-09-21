@@ -24,12 +24,10 @@ import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
 import soot.ValueBox;
-import soot.VoidType;
 import soot.jimple.IdentityStmt;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
-import soot.jimple.StaticFieldRef;
 import soot.jimple.toolkits.scalar.UnreachableCodeEliminator;
 import soottocfg.Options;
 import soottocfg.cfg.Program;
@@ -46,6 +44,7 @@ import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.SpecClassTransformer;
+import soottocfg.soot.transformers.StaticInitializerTransformer;
 import soottocfg.soot.transformers.SwitchStatementRemover;
 import soottocfg.soot.transformers.VirtualCallResolver;
 import soottocfg.soot.util.DuplicatedCatchDetection;
@@ -75,7 +74,7 @@ public class SootToCfg {
 
 	// Create a new program
 	private final Program program = new Program();
-	
+
 	private static FlowBasedPointsToAnalysis pta;
 
 	public SootToCfg() {
@@ -103,54 +102,53 @@ public class SootToCfg {
 		// run soot to load all classes.
 		SootRunner runner = new SootRunner();
 		runner.run(input, classPath);
-		
+
 		/*
 		 * Get a reference for the main method. We have to get the
 		 * reference before applying the array transformation because
 		 * this changes this signature of main.
 		 */
 		final SootMethod mainMethod = Scene.v().getMainMethod();
-		
-		performBehaviorPreservingTransformations();				
-		performAbstractionTransformations();			
+
+		performBehaviorPreservingTransformations();
+		performAbstractionTransformations();
 		Variable exceptionGlobal = this.program
 				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
 						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
 		program.setExceptionGlobal(exceptionGlobal);
-		
+
 		// add havoc method for ints for lastpull
-//		SootMethod havocSoot =
-//				SootTranslationHelpers.v().getHavocMethod(soot.IntType.v());
-//		SootTranslationHelpers.v().setCurrentMethod(havocSoot);
-//		Method havoc =
-//				SootTranslationHelpers.v().lookupOrCreateMethod(havocSoot);
-		
+		// SootMethod havocSoot =
+		// SootTranslationHelpers.v().getHavocMethod(soot.IntType.v());
+		// SootTranslationHelpers.v().setCurrentMethod(havocSoot);
+		// Method havoc =
+		// SootTranslationHelpers.v().lookupOrCreateMethod(havocSoot);
+
 		constructCfg();
-		
+
 		// now set the entry points.
 		Method m = program.lookupMethod(mainMethod.getSignature());
-		program.addEntryPoint(m);
+		program.setEntryPoint(m);
 
-		
 		if (Options.v().outDir() != null) {
 			writeFile(".cfg", program.toString());
 		}
-		
+
 		CfgStubber stubber = new CfgStubber();
 		stubber.stubUnboundFieldsAndMethods(program);
-		
-		if (program.getEntryPoints()==null || program.getEntryPoints().length==0) {
+
+		if (program.getEntryPoint() == null) {
 			System.err.println("WARNING: No entry point found in program!");
 			SootTranslationHelpers.v().reset();
 			return;
 		}
-		
+
 		// alias analysis
 		if (Options.v().memPrecision() >= 3) {
 			setPointsToAnalysis(new FlowBasedPointsToAnalysis());
 			getPointsToAnalysis().run(program);
 		}
-		
+
 		// add missing pushes
 		MissingPushAdder.addMissingPushes(program);
 
@@ -169,7 +167,7 @@ public class SootToCfg {
 			if (Options.v().outDir() != null)
 				writeFile("precise.cfg", program.toString());
 		}
-		
+
 		// print CFG
 		if (Options.v().printCFG()) {
 			System.out.println(program);
@@ -222,14 +220,13 @@ public class SootToCfg {
 			Body body = null;
 			try {
 				body = sm.retrieveActiveBody();
-//				soot.jimple.toolkits.scalar.CopyPropagator.v().transform(body);
-//				soot.jimple.toolkits.annotation.nullcheck.NullPointerChecker.v().transform(body);
+				// soot.jimple.toolkits.scalar.CopyPropagator.v().transform(body);
+				// soot.jimple.toolkits.annotation.nullcheck.NullPointerChecker.v().transform(body);
 			} catch (RuntimeException e) {
 				// TODO: print warning that body couldn't be retrieved.
 				return;
 			}
-			MethodInfo mi = new MethodInfo(body.getMethod(),
-					SootTranslationHelpers.v().getCurrentSourceFileName());
+			MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
 
 			// pre-calculate when to pull/push
 			MemoryModel mm = SootTranslationHelpers.v().getMemoryModel();
@@ -249,20 +246,22 @@ public class SootToCfg {
 			throw e;
 		}
 	}
-	
-	
+
 	private void constructCfg() {
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
 				if ((!sc.isJavaLibraryClass() && !sc.isLibraryClass())) {
-					constructCfg(sc);						
+					constructCfg(sc);
 				}
 			}
 		}
 	}
 
-	private void performAbstractionTransformations() {
+	private void performAbstractionTransformations() {		
+		StaticInitializerTransformer sit = new StaticInitializerTransformer();
+		sit.applyTransformation();
+
 		ArrayTransformer atrans = new ArrayTransformer();
 		atrans.applyTransformation();
 		if (Options.v().useBuiltInSpecs()) {
@@ -270,8 +269,6 @@ public class SootToCfg {
 			spctrans.applyTransformation();
 		}
 	}
-	
-	private Set<SootMethod> staticInitializers = new LinkedHashSet<SootMethod>();
 
 	/**
 	 * Perform a sequence of behavior preserving transformations to the body
@@ -291,13 +288,10 @@ public class SootToCfg {
 
 		for (SootClass sc : classes) {
 			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
-				initializeStaticFields(sc);
 				continue; // no need to process this guy.
 			}
 
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
-
-				initializeStaticFields(sc);
 				SootTranslationHelpers.v().setCurrentClass(sc);
 				for (SootMethod sm : sc.getMethods()) {
 					if (sm.isConcrete()) {
@@ -312,7 +306,7 @@ public class SootToCfg {
 							System.out.println("Unable to validate method body. Possible NullPointerException?");
 							e.printStackTrace();
 						}
-						
+
 						try {
 							// System.out.println(body);
 							UnreachableCodeEliminator.v().transform(body);
@@ -325,7 +319,7 @@ public class SootToCfg {
 								for (Unit u : entry.getValue()) {
 									locations.add(SootTranslationHelpers.v().getSourceLocation(u));
 								}
-							}							
+							}
 						} catch (RuntimeException e) {
 							e.printStackTrace();
 							throw new RuntimeException("Behavior preserving transformation failed " + sm.getSignature()
@@ -344,66 +338,9 @@ public class SootToCfg {
 		if (Options.v().resolveVirtualCalls()) {
 			VirtualCallResolver vc = new VirtualCallResolver();
 			vc.applyTransformation();
-		}
-		addStaticInitializerCallsToMain();
+		}		
 	}
 
-	private void addStaticInitializerCallsToMain() {
-		SootMethod entry = Scene.v().getMainMethod();
-		if (entry != null) {
-			// System.out.println("Adding " + staticInitializers.size() + "
-			// static init calls to " + entry.getSignature());
-			for (SootMethod initializer : staticInitializers) {
-				Unit initCall = Jimple.v().newInvokeStmt(Jimple.v().newStaticInvokeExpr(initializer.makeRef()));
-				JimpleBody jb = (JimpleBody) entry.getActiveBody();
-				jb.getUnits().insertBefore(initCall, jb.getFirstNonIdentityStmt());
-			}
-		}
-	}
-
-	private void initializeStaticFields(SootClass containingClass) {
-		// find all static fields of the class.
-		Set<SootField> staticFields = new LinkedHashSet<SootField>();
-		for (SootField f : containingClass.getFields()) {
-			if (f.isStatic()) {
-				staticFields.add(f);
-			}
-		}
-		if (staticFields.isEmpty()) {
-			return; // nothing to do.
-		}
-
-		SootMethod staticInit = null;
-		for (SootMethod m : containingClass.getMethods()) {
-			if (m.isStaticInitializer()) {
-				staticInit = m;
-				break;
-			}
-		}
-
-		if (staticInit == null) {
-			// TODO: super hacky!
-			staticInit = new SootMethod(SootMethod.staticInitializerName, new LinkedList<soot.Type>(), VoidType.v(),
-					Modifier.STATIC | Modifier.PUBLIC);
-			JimpleBody body = Jimple.v().newBody(staticInit);
-			body.getUnits().add(Jimple.v().newReturnVoidStmt());
-			staticInit.setActiveBody(body);
-			containingClass.addMethod(staticInit);
-		}
-		staticInitializers.add(staticInit);
-		for (ValueBox vb : staticInit.retrieveActiveBody().getDefBoxes()) {
-			if (vb.getValue() instanceof StaticFieldRef) {
-				staticFields.remove(((StaticFieldRef) vb.getValue()).getField());
-			}
-		}
-
-		for (SootField f : staticFields) {
-			Unit init = Jimple.v().newAssignStmt(Jimple.v().newStaticFieldRef(f.makeRef()),
-					SootTranslationHelpers.v().getDefaultValue(f.getType()));
-			staticInit.getActiveBody().getUnits().addFirst(init);
-		}
-
-	}
 
 	private void addDefaultInitializers(SootMethod constructor, SootClass containingClass) {
 		if (constructor.isConstructor()) {
@@ -454,7 +391,7 @@ public class SootToCfg {
 	private void writeFile(String extension, String text) {
 		if (Options.v().outDir() == null)
 			return;
-		
+
 		Path file = Paths.get(Options.v().outDir().toString() + Options.v().outBaseName() + extension);
 		LinkedList<String> it = new LinkedList<String>();
 		it.add(text);
@@ -469,7 +406,7 @@ public class SootToCfg {
 	public static FlowBasedPointsToAnalysis getPointsToAnalysis() {
 		return pta;
 	}
-	
+
 	private static void setPointsToAnalysis(FlowBasedPointsToAnalysis pointsto) {
 		pta = pointsto;
 	}

@@ -48,7 +48,7 @@ public class HornEncoderContext {
 	
 	public HornEncoderContext(Prover p, Program prog) {
 		this.program = prog;
-		ppOrdering = new InterProceduralPullPushOrdering(program.getEntryPoints()[0]);
+		ppOrdering = new InterProceduralPullPushOrdering(program.getEntryPoint());
 		this.p = p;		
 		for (ClassVariable var : program.getTypeGraph().vertexSet()) {
 			//add +1 to make sure that no type is the

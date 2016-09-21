@@ -28,7 +28,7 @@ public class MissingPushAdder {
 	private static boolean debug = false;
 
 	public static void addMissingPushes(Program p) {
-		InterProceduralPullPushOrdering ordering = new InterProceduralPullPushOrdering(p.getEntryPoints()[0]);
+		InterProceduralPullPushOrdering ordering = new InterProceduralPullPushOrdering(p.getEntryPoint());
 		Method[] ms = p.getMethods();
 		for (Method m : ms) {
 
