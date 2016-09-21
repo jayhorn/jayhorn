@@ -1,10 +1,6 @@
 class Node {
 	int key;
 
-	public Node(int key) {
-		this.key = key;
-	}
-
 	public int key() {
 		return key;
 	}
@@ -12,7 +8,7 @@ class Node {
 
 class RedBlackTreeNode extends Node {
 	public RedBlackTreeNode(int key) {
-		super(key);
+		this.key = key;
 	}
 
 	// remove this override and it works
@@ -24,6 +20,7 @@ class RedBlackTreeNode extends Node {
 public class UnsatIssue87 {
 	public static void main(String args[]) { 
 		RedBlackTreeNode node = new RedBlackTreeNode(42);
-		assert(node.key()==0);
+		node.key();
+		assert false;
 	}
 }

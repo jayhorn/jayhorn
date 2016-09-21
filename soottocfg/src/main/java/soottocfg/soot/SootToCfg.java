@@ -116,7 +116,7 @@ public class SootToCfg {
 				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
 						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
 		program.setExceptionGlobal(exceptionGlobal);
-
+		
 		// add havoc method for ints for lastpull
 		// SootMethod havocSoot =
 		// SootTranslationHelpers.v().getHavocMethod(soot.IntType.v());

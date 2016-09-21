@@ -68,12 +68,14 @@ public class VirtualCallResolver extends AbstractSceneTransformer {
 
 		Map<Unit, Pair<InstanceInvokeExpr, List<SootMethod>>> callsToResolve = new HashMap<Unit, Pair<InstanceInvokeExpr, List<SootMethod>>>();
 
+		System.out.println(body);
 		for (Unit u : body.getUnits()) {
 			Stmt s = (Stmt) u;
 			if (s.containsInvokeExpr()) {
 				InvokeExpr ie = s.getInvokeExpr();
 				if (ie instanceof InstanceInvokeExpr) {
 					List<SootMethod> callees = getPossibleCallees(body, s, (InstanceInvokeExpr) ie);
+					System.out.println("Possible callees: " + callees);
 					if (callees.isEmpty()) {
 						throw new RuntimeException("Failed to resolve virutal call " + ie);
 					} else if (callees.size() == 1 && callees.get(0).equals(ie.getMethod())) {
@@ -183,14 +185,15 @@ public class VirtualCallResolver extends AbstractSceneTransformer {
 		// in jimple, the base must be a local.
 		assert (call.getBase() instanceof Local);
 		Collection<SootClass> possibleClasses = new HashSet<SootClass>();
-		for (Type t : ltf.getLocalTypesBefore(u, (Local) call.getBase())) {
-			if (t instanceof RefType) {
-				SootClass subClass = ((RefType) t).getSootClass();
-				if (!subClass.isAbstract() && !subClass.isInterface()) {
-					possibleClasses.add(subClass);
-				}
-			}
-		}
+		possibleClasses.add(call.getMethod().getDeclaringClass());
+//		for (Type t : ltf.getLocalTypesBefore(u, (Local) call.getBase())) {
+//			if (t instanceof RefType) {
+//				SootClass subClass = ((RefType) t).getSootClass();
+//				if (!subClass.isAbstract() && !subClass.isInterface()) {
+//					possibleClasses.add(subClass);
+//				}
+//			}
+//		}
 
 		for (SootClass sub : possibleClasses) {
 			if (sub.resolvingLevel() < SootClass.SIGNATURES) {
