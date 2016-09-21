@@ -71,93 +71,93 @@
 <td><b>Hornify (Time)</b></td>
     </tr>
 
- <tr data-toggle="collapse" data-target="#0" class="accordion-toggle active">
-      <td>loops/loop1/TestLoop1.java</td>
+ <tr data-toggle="collapse" data-target="#0" class="accordion-toggle success">
+      <td>loops/loop1/TestLoop1_true.java</td>
 <td>SAFE</td>
- <td>UNKNOWN</td>
-    <td>365.7μs</td>
-<td>2.899s</td>
-<td>430.6ms</td>
+ <td>SAFE</td>
+    <td>452.0μs</td>
+<td>2.760s</td>
+<td>361.1ms</td>
     </tr>
 
 
-<tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="0"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <TestLoop1: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
+<tr class = success>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="0"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <TestLoop1_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <TestLoop1_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#1" class="accordion-toggle active">
-      <td>loops/loop2/TestLoop2.java</td>
-<td>SAFE</td>
- <td>UNKNOWN</td>
-    <td>338.2μs</td>
-<td>1.152s</td>
-<td>405.2ms</td>
-    </tr>
-
-
-<tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="1"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <TestLoop2: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
-</tr>
-
-
- <tr data-toggle="collapse" data-target="#2" class="accordion-toggle active">
-      <td>loops/loop3/TestLoop3.java</td>
+ <tr data-toggle="collapse" data-target="#1" class="accordion-toggle danger">
+      <td>loops/loop3/TestLoop3_true.java</td>
 <td>UNKNOWN</td>
- <td>UNKNOWN</td>
+ <td>SAFE</td>
     <td></td>
 <td></td>
 <td></td>
     </tr>
 
 
-<tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="2"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
+<tr class = danger>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="1"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#3" class="accordion-toggle active">
-      <td>termination/Easy2/Test.java</td>
+ <tr data-toggle="collapse" data-target="#2" class="accordion-toggle success">
+      <td>loops/loop2/TestLoop2_true.java</td>
 <td>SAFE</td>
- <td>UNKNOWN</td>
-    <td>322.6μs</td>
-<td>2.012s</td>
-<td>440.2ms</td>
+ <td>SAFE</td>
+    <td>467.2μs</td>
+<td>1.042s</td>
+<td>380.5ms</td>
     </tr>
 
 
-<tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="3"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Test: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
+<tr class = success>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="2"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <TestLoop2_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <TestLoop2_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
+</tr>
+
+
+ <tr data-toggle="collapse" data-target="#3" class="accordion-toggle danger">
+      <td>termination/MenloPark/MenloPark_true.java</td>
+<td>UNKNOWN</td>
+ <td>SAFE</td>
+    <td></td>
+<td></td>
+<td></td>
+    </tr>
+
+
+<tr class = danger>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="3"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
 </tr>
 
 
  <tr data-toggle="collapse" data-target="#4" class="accordion-toggle active">
-      <td>termination/MenloPark/MenloPark.java</td>
-<td>UNSAFE</td>
- <td>UNKNOWN</td>
-    <td>294.2μs</td>
-<td>3.008s</td>
-<td>510.4ms</td>
-    </tr>
-
-
-<tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="4"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <MenloPark: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
-</tr>
-
-
- <tr data-toggle="collapse" data-target="#5" class="accordion-toggle active">
       <td>termination/Mysore/Mysore.java</td>
 <td>UNSAFE</td>
  <td>UNKNOWN</td>
-    <td>434.4μs</td>
-<td>2.901s</td>
-<td>477.6ms</td>
+    <td>483.0μs</td>
+<td>2.029s</td>
+<td>397.7ms</td>
     </tr>
 
 
 <tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="5"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Mysore: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="4"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <Mysore: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Mysore: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+</tr>
+
+
+ <tr data-toggle="collapse" data-target="#5" class="accordion-toggle success">
+      <td>termination/Easy2/Easy2_true.java</td>
+<td>SAFE</td>
+ <td>SAFE</td>
+    <td>437.7μs</td>
+<td>1.628s</td>
+<td>405.5ms</td>
+    </tr>
+
+
+<tr class = success>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="5"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <Easy2_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Easy2_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
 </tr>
 
 
@@ -165,29 +165,29 @@
       <td>termination/Pure2Phase/Test.java</td>
 <td>UNSAFE</td>
  <td>UNKNOWN</td>
-    <td>426.2μs</td>
-<td>3.136s</td>
-<td>507.0ms</td>
+    <td>446.4μs</td>
+<td>2.180s</td>
+<td>423.8ms</td>
     </tr>
 
 
 <tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="6"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Test: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="6"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <Test: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Test: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#7" class="accordion-toggle active">
-      <td>termination/Easy/Easy.java</td>
+ <tr data-toggle="collapse" data-target="#7" class="accordion-toggle success">
+      <td>termination/Easy/Easy_true.java</td>
 <td>SAFE</td>
- <td>UNKNOWN</td>
-    <td>372.3μs</td>
-<td>17.43s</td>
-<td>484.0ms</td>
+ <td>SAFE</td>
+    <td>455.0μs</td>
+<td>17.20s</td>
+<td>447.8ms</td>
     </tr>
 
 
-<tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="7"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Easy: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
+<tr class = success>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="7"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <Easy_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Easy_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
 </tr>
 
 
@@ -195,14 +195,14 @@
       <td>termination/Aaron2/Test.java</td>
 <td>SAFE</td>
  <td>UNKNOWN</td>
-    <td>283.9μs</td>
-<td>2.729s</td>
-<td>476.5ms</td>
+    <td>453.9μs</td>
+<td>2.584s</td>
+<td>439.7ms</td>
     </tr>
 
 
 <tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="8"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: boolean nextBoolean()>: [java.lang.Throwable, boolean]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Test: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="8"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: boolean nextBoolean()>: [java.lang.Throwable, boolean]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <Test: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Test: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
 </tr>
 
 
@@ -210,14 +210,14 @@
       <td>algorithms/BellmanFord/BellmanFord_false.java</td>
 <td>UNSAFE</td>
  <td>UNSAFE</td>
-    <td>419.1μs</td>
-<td>11.02s</td>
-<td>1.745s</td>
+    <td>441.1μs</td>
+<td>11.65s</td>
+<td>1.629s</td>
     </tr>
 
 
 <tr class = success>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="9"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: boolean havoc_boolean()>: [java.lang.Throwable, boolean]<br>Return types of <Havoc_Class: JayArray_int havoc_JayArray_int()>: [java.lang.Throwable, JayArray_int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <BellmanFord_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="9"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: boolean havoc_boolean()>: [java.lang.Throwable, boolean]<br>Return types of <Havoc_Class: JayArray_int havoc_JayArray_int()>: [java.lang.Throwable, JayArray_int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <BellmanFord_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - 	Removing unreachable method: <JayArray_JayArray_int: void set(JayArray_int,int)><br>[root] - 	Removing unreachable method: <JayArray_JayArray_int: void <init>(int)><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <BellmanFord_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -240,14 +240,14 @@
       <td>algorithms/rabinkarp/RabinKarp_false.java</td>
 <td>UNSAFE</td>
  <td>UNSAFE</td>
-    <td>499.9μs</td>
-<td>7.728s</td>
-<td>1.438s</td>
+    <td>484.2μs</td>
+<td>7.953s</td>
+<td>1.350s</td>
     </tr>
 
 
 <tr class = success>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="11"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.lang.String: char charAt(int)>: [java.lang.Throwable, int]<br>Return types of <java.math.BigInteger: java.math.BigInteger probablePrime(int,java.util.Random)>: [java.lang.Throwable, java.math.BigInteger]<br>Return types of <java.math.BigInteger: long longValue()>: [java.lang.Throwable, int]<br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <RabinKarp_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="11"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.lang.String: char charAt(int)>: [java.lang.Throwable, int]<br>Return types of <java.math.BigInteger: java.math.BigInteger probablePrime(int,java.util.Random)>: [java.lang.Throwable, java.math.BigInteger]<br>Return types of <java.math.BigInteger: long longValue()>: [java.lang.Throwable, int]<br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <RabinKarp_true: void <init>(JayArray_char,int)><br>[root] - 	Removing unreachable method: <java.lang.UnsupportedOperationException: void <init>(java.lang.String)><br>[root] - 	Removing unreachable method: <RabinKarp_true: boolean check(int)><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <RabinKarp_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -270,14 +270,14 @@
       <td>algorithms/QuickSortJDK15/QuickSortJDK15_false.java</td>
 <td>UNSAFE</td>
  <td>UNSAFE</td>
-    <td>417.5μs</td>
-<td>9.152s</td>
-<td>2.174s</td>
+    <td>444.0μs</td>
+<td>8.755s</td>
+<td>1.620s</td>
     </tr>
 
 
 <tr class = success>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="13"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Object: java.lang.Object clone()>: [java.lang.Throwable, java.lang.Object]<br>Return types of <JayArray_java_lang_Object: java.lang.Object get(int)>: [java.lang.Throwable, java.lang.Object]<br>Return types of <java.lang.Byte: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>: [java.lang.Throwable]<br>Return types of <JayArray_java_lang_Object: void set(java.lang.Object,int)>: [java.lang.Throwable]<br>Return types of <java.io.File: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.io.ObjectStreamField: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Double: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Long: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Short: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.String: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Integer: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Character: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Float: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Boolean: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <QuickSortJDK15_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="13"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Object: java.lang.Object clone()>: [java.lang.Throwable, java.lang.Object]<br>Return types of <JayArray_java_lang_Object: java.lang.Object get(int)>: [java.lang.Throwable, java.lang.Object]<br>Return types of <java.lang.Comparable: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>: [java.lang.Throwable]<br>Return types of <JayArray_java_lang_Object: void set(java.lang.Object,int)>: [java.lang.Throwable]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <QuickSortJDK15_false: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - 	Removing unreachable method: <java15.Arrays: void <init>()><br>[root] - 	Removing unreachable method: <java15.Arrays: void sort(JayArray_java_lang_Object)><br>[root] - 	Removing unreachable method: <java.lang.Object: java.lang.Object clone()><br>[root] - 	Removing unreachable method: <java15.Arrays: void mergeSort(JayArray_java_lang_Object,JayArray_java_lang_Object,int,int,int)><br>[root] - 	Removing unreachable method: <java.lang.ClassCastException: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.NullPointerException: void <init>()><br>[root] - 	Removing unreachable method: <JayArray_java_lang_Object: java.lang.Object get(int)><br>[root] - 	Removing unreachable method: <java.lang.Comparable: int compareTo(java.lang.Object)><br>[root] - 	Removing unreachable method: <java15.Arrays: void swap(JayArray_java_lang_Object,int,int)><br>[root] - 	Removing unreachable method: <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)><br>[root] - 	Removing unreachable method: <JayArray_java_lang_Object: void set(java.lang.Object,int)><br>[root] - 	Removing unreachable method: <java15.Math: void <init>()><br>[root] - 	Removing unreachable method: <java15.Math: int max(int,int)><br>[root] - 	Removing unreachable method: <java15.Math: long min(long,long)><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <QuickSortJDK15_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -300,14 +300,14 @@
       <td>algorithms/mccarthy/Mccarthy91_false.java</td>
 <td>SAFE</td>
  <td>UNSAFE</td>
-    <td>416.6μs</td>
-<td>3.400s</td>
-<td>508.9ms</td>
+    <td>486.7μs</td>
+<td>3.267s</td>
+<td>427.6ms</td>
     </tr>
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="15"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Mccarthy91_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="15"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <Mccarthy91_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Mccarthy91_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
 </tr>
 
 
@@ -315,14 +315,14 @@
       <td>algorithms/InsertionSort/InsertionSort_true.java</td>
 <td>UNSAFE</td>
  <td>SAFE</td>
-    <td>506.6μs</td>
-<td>9.149s</td>
-<td>1.252s</td>
+    <td>874.3μs</td>
+<td>8.447s</td>
+<td>1.197s</td>
     </tr>
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="16"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <InsertionSort_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="16"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <InsertionSort_false: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <InsertionSort_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -330,108 +330,78 @@
       <td>algorithms/BellmanFord/BellmanFord_true.java</td>
 <td>UNSAFE</td>
  <td>SAFE</td>
-    <td>446.7μs</td>
-<td>11.36s</td>
-<td>1.812s</td>
+    <td>450.9μs</td>
+<td>12.03s</td>
+<td>1.754s</td>
     </tr>
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="17"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: boolean havoc_boolean()>: [java.lang.Throwable, boolean]<br>Return types of <Havoc_Class: JayArray_int havoc_JayArray_int()>: [java.lang.Throwable, JayArray_int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <BellmanFord_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="17"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: boolean havoc_boolean()>: [java.lang.Throwable, boolean]<br>Return types of <Havoc_Class: JayArray_int havoc_JayArray_int()>: [java.lang.Throwable, JayArray_int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <BellmanFord_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - 	Removing unreachable method: <JayArray_JayArray_int: void set(JayArray_int,int)><br>[root] - 	Removing unreachable method: <JayArray_JayArray_int: void <init>(int)><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <BellmanFord_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#18" class="accordion-toggle danger">
+ <tr data-toggle="collapse" data-target="#18" class="accordion-toggle success">
       <td>algorithms/MergeSortIterative/MergeSortIterative1_false.java</td>
-<td>UNKNOWN</td>
- <td>UNSAFE</td>
-    <td></td>
-<td></td>
-<td></td>
-    </tr>
-
-
-<tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="18"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
-</tr>
-
-
- <tr data-toggle="collapse" data-target="#19" class="accordion-toggle success">
-      <td>algorithms/BinaryTreeSearch/BinaryTreeSearch1_false.java</td>
 <td>UNSAFE</td>
  <td>UNSAFE</td>
-    <td>494.5μs</td>
-<td>13.14s</td>
-<td>1.043s</td>
+    <td>422.3μs</td>
+<td>8.410s</td>
+<td>1.969s</td>
     </tr>
 
 
 <tr class = success>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="19"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <BinaryTreeSearch_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="18"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>: [java.lang.Throwable]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void iterativeMergesortWithoutCopy(JayArray_int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void mergeWithoutCopy(JayArray_int,JayArray_int,int,int,int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void recursiveMergesort(JayArray_int,JayArray_int,int,int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void recursiveMergesort(JayArray_int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: JayArray_int copyArray(JayArray_int)><br>[root] - 	Removing unreachable method: <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: JayArray_int makeRandomArray(int)><br>[root] - 	Removing unreachable method: <java.util.Random: int nextInt(int)><br>[root] - 	Removing unreachable method: <java.util.Random: int nextInt()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <MergeSortIterative1_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#20" class="accordion-toggle danger">
-      <td>algorithms/BinaryTreeSearch/BinaryTreeSearch_true.java</td>
+ <tr data-toggle="collapse" data-target="#19" class="accordion-toggle success">
+      <td>algorithms/MergeSortIterative/MergeSortIterative3_false.java</td>
 <td>UNSAFE</td>
- <td>SAFE</td>
-    <td>469.9μs</td>
-<td>12.61s</td>
-<td>998.2ms</td>
+ <td>UNSAFE</td>
+    <td>436.9μs</td>
+<td>8.440s</td>
+<td>1.836s</td>
     </tr>
 
 
-<tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="20"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <BinaryTreeSearch_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+<tr class = success>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="19"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>: [java.lang.Throwable]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void iterativeMergesortWithoutCopy(JayArray_int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void mergeWithoutCopy(JayArray_int,JayArray_int,int,int,int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void recursiveMergesort(JayArray_int,JayArray_int,int,int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void recursiveMergesort(JayArray_int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: JayArray_int copyArray(JayArray_int)><br>[root] - 	Removing unreachable method: <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: JayArray_int makeRandomArray(int)><br>[root] - 	Removing unreachable method: <java.util.Random: int nextInt(int)><br>[root] - 	Removing unreachable method: <java.util.Random: int nextInt()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <MergeSortIterative1_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+</tr>
+
+
+ <tr data-toggle="collapse" data-target="#20" class="accordion-toggle success">
+      <td>algorithms/BinaryTreeSearch/BinaryTreeSearch1_false.java</td>
+<td>UNSAFE</td>
+ <td>UNSAFE</td>
+    <td>473.3μs</td>
+<td>12.63s</td>
+<td>954.3ms</td>
+    </tr>
+
+
+<tr class = success>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="20"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <BinaryTreeSearch_true: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <BinaryTreeSearch_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
  <tr data-toggle="collapse" data-target="#21" class="accordion-toggle danger">
-      <td>algorithms/MergeSortIterative/MergeSortIterative_false.java</td>
-<td>UNKNOWN</td>
- <td>UNSAFE</td>
-    <td></td>
-<td></td>
-<td></td>
+      <td>algorithms/BinaryTreeSearch/BinaryTreeSearch_true.java</td>
+<td>UNSAFE</td>
+ <td>SAFE</td>
+    <td>454.1μs</td>
+<td>13.34s</td>
+<td>990.6ms</td>
     </tr>
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="21"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="21"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <BinaryTreeSearch_true: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <BinaryTreeSearch_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
  <tr data-toggle="collapse" data-target="#22" class="accordion-toggle danger">
-      <td>algorithms/trie/Trie_false.java</td>
-<td>TIMEOUT</td>
- <td>UNSAFE</td>
-    <td></td>
-<td></td>
-<td></td>
-    </tr>
-
-
-<tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="22"> Timeout </div> </td>
-</tr>
-
-
- <tr data-toggle="collapse" data-target="#23" class="accordion-toggle danger">
-      <td>algorithms/Tsp/Tsp_true.java</td>
-<td>UNSAFE</td>
- <td>SAFE</td>
-    <td>453.7μs</td>
-<td>11.56s</td>
-<td>1.832s</td>
-    </tr>
-
-
-<tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="23"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <JayArray_int: void set(int,int)>: [java.lang.Throwable]<br>Return types of <JayArray_int: int get(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: boolean havoc_boolean()>: [java.lang.Throwable, boolean]<br>Return types of <Havoc_Class: JayArray_int havoc_JayArray_int()>: [java.lang.Throwable, JayArray_int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Tsp_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
-</tr>
-
-
- <tr data-toggle="collapse" data-target="#24" class="accordion-toggle danger">
       <td>algorithms/MergeSortJDK15/MergeSortJDK15_false.java</td>
 <td>UNKNOWN</td>
  <td>UNSAFE</td>
@@ -442,29 +412,14 @@
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="24"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="22"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#25" class="accordion-toggle success">
-      <td>algorithms/SortedListInsert/SortedListInsert_false.java</td>
-<td>UNSAFE</td>
+ <tr data-toggle="collapse" data-target="#23" class="accordion-toggle danger">
+      <td>algorithms/trie/Trie_false.java</td>
+<td>TIMEOUT</td>
  <td>UNSAFE</td>
-    <td>299.9μs</td>
-<td>7.904s</td>
-<td>678.5ms</td>
-    </tr>
-
-
-<tr class = success>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="25"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <SortedListInsert_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
-</tr>
-
-
- <tr data-toggle="collapse" data-target="#26" class="accordion-toggle danger">
-      <td>algorithms/MergeSortIterative/MergeSortIterative_true.java</td>
-<td>UNKNOWN</td>
- <td>SAFE</td>
     <td></td>
 <td></td>
 <td></td>
@@ -472,7 +427,52 @@
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="26"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="23"> Timeout </div> </td>
+</tr>
+
+
+ <tr data-toggle="collapse" data-target="#24" class="accordion-toggle danger">
+      <td>algorithms/Tsp/Tsp_true.java</td>
+<td>UNSAFE</td>
+ <td>SAFE</td>
+    <td>435.3μs</td>
+<td>12.32s</td>
+<td>1.625s</td>
+    </tr>
+
+
+<tr class = danger>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="24"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <JayArray_int: void set(int,int)>: [java.lang.Throwable]<br>Return types of <JayArray_int: int get(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: boolean havoc_boolean()>: [java.lang.Throwable, boolean]<br>Return types of <Havoc_Class: JayArray_int havoc_JayArray_int()>: [java.lang.Throwable, JayArray_int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <Tsp_false: void <init>()><br>[root] - 	Removing unreachable method: <JayArray_JayArray_int: void set(JayArray_int,int)><br>[root] - 	Removing unreachable method: <JayArray_JayArray_int: void <init>(int)><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Tsp_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+</tr>
+
+
+ <tr data-toggle="collapse" data-target="#25" class="accordion-toggle success">
+      <td>algorithms/SortedListInsert/SortedListInsert_false.java</td>
+<td>UNSAFE</td>
+ <td>UNSAFE</td>
+    <td>312.6μs</td>
+<td>8.245s</td>
+<td>684.2ms</td>
+    </tr>
+
+
+<tr class = success>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="25"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <SortedListInsert_true: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <SortedListInsert_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+</tr>
+
+
+ <tr data-toggle="collapse" data-target="#26" class="accordion-toggle danger">
+      <td>algorithms/MergeSortIterative/MergeSortIterative_true.java</td>
+<td>UNSAFE</td>
+ <td>SAFE</td>
+    <td>466.7μs</td>
+<td>8.491s</td>
+<td>2.000s</td>
+    </tr>
+
+
+<tr class = danger>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="26"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>: [java.lang.Throwable]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void iterativeMergesortWithoutCopy(JayArray_int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void mergeWithoutCopy(JayArray_int,JayArray_int,int,int,int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void recursiveMergesort(JayArray_int,JayArray_int,int,int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void recursiveMergesort(JayArray_int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: JayArray_int copyArray(JayArray_int)><br>[root] - 	Removing unreachable method: <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: JayArray_int makeRandomArray(int)><br>[root] - 	Removing unreachable method: <java.util.Random: int nextInt(int)><br>[root] - 	Removing unreachable method: <java.util.Random: int nextInt()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <MergeSortIterative1_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -495,14 +495,14 @@
       <td>algorithms/Tsp/Tsp_false.java</td>
 <td>UNSAFE</td>
  <td>UNSAFE</td>
-    <td>448.3μs</td>
-<td>11.70s</td>
-<td>1.866s</td>
+    <td>455.3μs</td>
+<td>12.87s</td>
+<td>1.831s</td>
     </tr>
 
 
 <tr class = success>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="28"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <JayArray_int: void set(int,int)>: [java.lang.Throwable]<br>Return types of <JayArray_int: int get(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: boolean havoc_boolean()>: [java.lang.Throwable, boolean]<br>Return types of <Havoc_Class: JayArray_int havoc_JayArray_int()>: [java.lang.Throwable, JayArray_int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Tsp_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="28"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <JayArray_int: void set(int,int)>: [java.lang.Throwable]<br>Return types of <JayArray_int: int get(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: boolean havoc_boolean()>: [java.lang.Throwable, boolean]<br>Return types of <Havoc_Class: JayArray_int havoc_JayArray_int()>: [java.lang.Throwable, JayArray_int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <Tsp_false: void <init>()><br>[root] - 	Removing unreachable method: <JayArray_JayArray_int: void set(JayArray_int,int)><br>[root] - 	Removing unreachable method: <JayArray_JayArray_int: void <init>(int)><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Tsp_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -510,14 +510,14 @@
       <td>algorithms/InsertionSort/InsertionSort_false.java</td>
 <td>UNSAFE</td>
  <td>UNSAFE</td>
-    <td>436.7μs</td>
-<td>9.317s</td>
-<td>1.313s</td>
+    <td>450.1μs</td>
+<td>9.477s</td>
+<td>1.212s</td>
     </tr>
 
 
 <tr class = success>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="29"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <InsertionSort_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="29"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <InsertionSort_false: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <InsertionSort_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -525,14 +525,14 @@
       <td>algorithms/mccarthy/Mccarthy91_true.java</td>
 <td>SAFE</td>
  <td>SAFE</td>
-    <td>352.1μs</td>
-<td>3.387s</td>
-<td>500.5ms</td>
+    <td>453.3μs</td>
+<td>3.255s</td>
+<td>427.0ms</td>
     </tr>
 
 
 <tr class = success>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="30"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Mccarthy91_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="30"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <Mccarthy91_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Mccarthy91_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
 </tr>
 
 
@@ -540,14 +540,14 @@
       <td>algorithms/SortedListInsert/SortedListInsert_true.java</td>
 <td>UNSAFE</td>
  <td>SAFE</td>
-    <td>414.6μs</td>
-<td>7.544s</td>
-<td>748.9ms</td>
+    <td>328.7μs</td>
+<td>8.537s</td>
+<td>686.9ms</td>
     </tr>
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="31"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <SortedListInsert_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="31"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <SortedListInsert_true: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <SortedListInsert_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -570,29 +570,29 @@
       <td>algorithms/rabinkarp/RabinKarp_true.java</td>
 <td>UNSAFE</td>
  <td>SAFE</td>
-    <td>442.2μs</td>
-<td>8.376s</td>
-<td>1.387s</td>
+    <td>379.9μs</td>
+<td>8.037s</td>
+<td>1.315s</td>
     </tr>
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="33"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.lang.String: char charAt(int)>: [java.lang.Throwable, int]<br>Return types of <java.math.BigInteger: java.math.BigInteger probablePrime(int,java.util.Random)>: [java.lang.Throwable, java.math.BigInteger]<br>Return types of <java.math.BigInteger: long longValue()>: [java.lang.Throwable, int]<br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <RabinKarp_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="33"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.lang.String: char charAt(int)>: [java.lang.Throwable, int]<br>Return types of <java.math.BigInteger: java.math.BigInteger probablePrime(int,java.util.Random)>: [java.lang.Throwable, java.math.BigInteger]<br>Return types of <java.math.BigInteger: long longValue()>: [java.lang.Throwable, int]<br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <RabinKarp_true: void <init>(JayArray_char,int)><br>[root] - 	Removing unreachable method: <java.lang.UnsupportedOperationException: void <init>(java.lang.String)><br>[root] - 	Removing unreachable method: <RabinKarp_true: boolean check(int)><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <RabinKarp_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#34" class="accordion-toggle danger">
+ <tr data-toggle="collapse" data-target="#34" class="accordion-toggle success">
       <td>algorithms/MergeSortIterative/MergeSortIterative2_false.java</td>
-<td>UNKNOWN</td>
+<td>UNSAFE</td>
  <td>UNSAFE</td>
-    <td></td>
-<td></td>
-<td></td>
+    <td>433.3μs</td>
+<td>8.682s</td>
+<td>1.950s</td>
     </tr>
 
 
-<tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="34"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
+<tr class = success>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="34"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>: [java.lang.Throwable]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void iterativeMergesortWithoutCopy(JayArray_int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void mergeWithoutCopy(JayArray_int,JayArray_int,int,int,int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void recursiveMergesort(JayArray_int,JayArray_int,int,int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: void recursiveMergesort(JayArray_int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: JayArray_int copyArray(JayArray_int)><br>[root] - 	Removing unreachable method: <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)><br>[root] - 	Removing unreachable method: <MergeSortIterative1_false: JayArray_int makeRandomArray(int)><br>[root] - 	Removing unreachable method: <java.util.Random: int nextInt(int)><br>[root] - 	Removing unreachable method: <java.util.Random: int nextInt()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <MergeSortIterative1_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -615,14 +615,14 @@
       <td>algorithms/BinaryTreeSearch/BinaryTreeSearch2_false.java</td>
 <td>UNSAFE</td>
  <td>UNSAFE</td>
-    <td>425.3μs</td>
-<td>13.16s</td>
-<td>1.039s</td>
+    <td>444.7μs</td>
+<td>13.66s</td>
+<td>1.375s</td>
     </tr>
 
 
 <tr class = success>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="36"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <BinaryTreeSearch_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="36"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <BinaryTreeSearch_true: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <BinaryTreeSearch_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -630,14 +630,14 @@
       <td>algorithms/QuickSortJDK15/QuickSortJDK15_true.java</td>
 <td>UNSAFE</td>
  <td>SAFE</td>
-    <td>423.9μs</td>
-<td>9.067s</td>
-<td>2.250s</td>
+    <td>455.8μs</td>
+<td>9.559s</td>
+<td>1.643s</td>
     </tr>
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="37"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Object: java.lang.Object clone()>: [java.lang.Throwable, java.lang.Object]<br>Return types of <JayArray_java_lang_Object: java.lang.Object get(int)>: [java.lang.Throwable, java.lang.Object]<br>Return types of <java.lang.Byte: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>: [java.lang.Throwable]<br>Return types of <JayArray_java_lang_Object: void set(java.lang.Object,int)>: [java.lang.Throwable]<br>Return types of <java.io.File: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Double: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.io.ObjectStreamField: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Long: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Short: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Character: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.String: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Integer: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Float: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Boolean: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <QuickSortJDK15_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="37"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <java.lang.Object: java.lang.Object clone()>: [java.lang.Throwable, java.lang.Object]<br>Return types of <JayArray_java_lang_Object: java.lang.Object get(int)>: [java.lang.Throwable, java.lang.Object]<br>Return types of <java.lang.Comparable: int compareTo(java.lang.Object)>: [java.lang.Throwable, int]<br>Return types of <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)>: [java.lang.Throwable]<br>Return types of <JayArray_java_lang_Object: void set(java.lang.Object,int)>: [java.lang.Throwable]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <QuickSortJDK15_false: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - 	Removing unreachable method: <java15.Arrays: void <init>()><br>[root] - 	Removing unreachable method: <java15.Arrays: void sort(JayArray_java_lang_Object)><br>[root] - 	Removing unreachable method: <java.lang.Object: java.lang.Object clone()><br>[root] - 	Removing unreachable method: <java15.Arrays: void mergeSort(JayArray_java_lang_Object,JayArray_java_lang_Object,int,int,int)><br>[root] - 	Removing unreachable method: <java.lang.ClassCastException: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.NullPointerException: void <init>()><br>[root] - 	Removing unreachable method: <JayArray_java_lang_Object: java.lang.Object get(int)><br>[root] - 	Removing unreachable method: <java.lang.Comparable: int compareTo(java.lang.Object)><br>[root] - 	Removing unreachable method: <java15.Arrays: void swap(JayArray_java_lang_Object,int,int)><br>[root] - 	Removing unreachable method: <java.lang.System: void arraycopy(java.lang.Object,int,java.lang.Object,int,int)><br>[root] - 	Removing unreachable method: <JayArray_java_lang_Object: void set(java.lang.Object,int)><br>[root] - 	Removing unreachable method: <java15.Math: void <init>()><br>[root] - 	Removing unreachable method: <java15.Math: int max(int,int)><br>[root] - 	Removing unreachable method: <java15.Math: long min(long,long)><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <QuickSortJDK15_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -675,14 +675,14 @@
       <td>recursive/loops/InfiniteLoop.java</td>
 <td>UNSAFE</td>
  <td>UNKNOWN</td>
-    <td>416.0μs</td>
-<td>3.242s</td>
-<td>544.2ms</td>
+    <td>435.8μs</td>
+<td>2.515s</td>
+<td>489.7ms</td>
     </tr>
 
 
 <tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="40"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Ackermann01_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="40"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <Ackermann01_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Ackermann01_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -705,14 +705,14 @@
       <td>recursive/loops/Addition_true.java</td>
 <td>UNSAFE</td>
  <td>SAFE</td>
-    <td>288.9μs</td>
-<td>3.301s</td>
-<td>510.0ms</td>
+    <td>367.2μs</td>
+<td>2.512s</td>
+<td>488.4ms</td>
     </tr>
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="42"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Ackermann01_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="42"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <Ackermann01_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Ackermann01_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -720,44 +720,44 @@
       <td>recursive/fibonacci/UnsatFibonacci02_false.java</td>
 <td>UNSAFE</td>
  <td>UNSAFE</td>
-    <td>285.3μs</td>
-<td>12.15s</td>
-<td>471.2ms</td>
+    <td>434.8μs</td>
+<td>9.825s</td>
+<td>446.6ms</td>
     </tr>
 
 
 <tr class = success>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="43"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <UnsatFibonacci02_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="43"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <UnsatFibonacci02_false: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <UnsatFibonacci02_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
  <tr data-toggle="collapse" data-target="#44" class="accordion-toggle danger">
       <td>recursive/ackermann/UnsatAckermann01_false.java</td>
-<td>UNKNOWN</td>
+<td>SAFE</td>
  <td>UNSAFE</td>
-    <td></td>
-<td></td>
-<td></td>
+    <td>434.0μs</td>
+<td>10.42s</td>
+<td>482.1ms</td>
     </tr>
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="44"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="44"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <SatAckermann03_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <SatAckermann03_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#45" class="accordion-toggle danger">
+ <tr data-toggle="collapse" data-target="#45" class="accordion-toggle success">
       <td>recursive/ackermann/SatAckermann02_true.java</td>
-<td>UNKNOWN</td>
+<td>SAFE</td>
  <td>SAFE</td>
-    <td></td>
-<td></td>
-<td></td>
+    <td>439.7μs</td>
+<td>10.48s</td>
+<td>478.6ms</td>
     </tr>
 
 
-<tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="45"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
+<tr class = success>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="45"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <SatAckermann03_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <SatAckermann03_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
 </tr>
 
 
@@ -840,29 +840,29 @@
       <td>recursive/hanoi/SatHanoi01_true.java</td>
 <td>UNSAFE</td>
  <td>SAFE</td>
-    <td>450.9μs</td>
-<td>10.81s</td>
-<td>781.8ms</td>
+    <td>450.7μs</td>
+<td>9.932s</td>
+<td>689.2ms</td>
     </tr>
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="51"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <SatHanoi01_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="51"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <SatHanoi01_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <SatHanoi01_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#52" class="accordion-toggle danger">
+ <tr data-toggle="collapse" data-target="#52" class="accordion-toggle success">
       <td>recursive/ackermann/SatAckermann03_true.java</td>
-<td>UNKNOWN</td>
+<td>SAFE</td>
  <td>SAFE</td>
-    <td></td>
-<td></td>
-<td></td>
+    <td>432.7μs</td>
+<td>10.83s</td>
+<td>474.7ms</td>
     </tr>
 
 
-<tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="52"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
+<tr class = success>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="52"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <SatAckermann03_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <SatAckermann03_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
 </tr>
 
 
@@ -870,14 +870,14 @@
       <td>recursive/fibonacci/SatFibonacci02_true.java</td>
 <td>UNSAFE</td>
  <td>SAFE</td>
-    <td>289.9μs</td>
-<td>11.79s</td>
-<td>504.4ms</td>
+    <td>448.3μs</td>
+<td>10.59s</td>
+<td>442.3ms</td>
     </tr>
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="53"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <UnsatFibonacci02_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="53"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <UnsatFibonacci02_false: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <UnsatFibonacci02_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -885,14 +885,14 @@
       <td>recursive/fibonacci/SatFibonacci01_true.java</td>
 <td>UNSAFE</td>
  <td>SAFE</td>
-    <td>301.0μs</td>
-<td>11.48s</td>
-<td>510.2ms</td>
+    <td>446.9μs</td>
+<td>10.06s</td>
+<td>441.7ms</td>
     </tr>
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="54"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <UnsatFibonacci02_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="54"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <UnsatFibonacci02_false: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <UnsatFibonacci02_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -900,14 +900,14 @@
       <td>recursive/fibonacci/SatFibonacci03.java</td>
 <td>UNSAFE</td>
  <td>UNKNOWN</td>
-    <td>312.4μs</td>
-<td>11.65s</td>
-<td>473.7ms</td>
+    <td>431.2μs</td>
+<td>10.13s</td>
+<td>431.7ms</td>
     </tr>
 
 
 <tr class = active>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="55"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <UnsatFibonacci02_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="55"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <UnsatFibonacci02_false: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <UnsatFibonacci02_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -915,29 +915,29 @@
       <td>recursive/fibonacci/UnsatFibonacci01_false.java</td>
 <td>UNSAFE</td>
  <td>UNSAFE</td>
-    <td>298.6μs</td>
-<td>11.53s</td>
-<td>475.6ms</td>
+    <td>447.5μs</td>
+<td>10.34s</td>
+<td>448.7ms</td>
     </tr>
 
 
 <tr class = success>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="56"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <UnsatFibonacci02_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="56"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <UnsatFibonacci02_false: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <UnsatFibonacci02_false: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
- <tr data-toggle="collapse" data-target="#57" class="accordion-toggle danger">
+ <tr data-toggle="collapse" data-target="#57" class="accordion-toggle success">
       <td>recursive/ackermann/SatAckermann01_true.java</td>
-<td>UNKNOWN</td>
+<td>SAFE</td>
  <td>SAFE</td>
-    <td></td>
-<td></td>
-<td></td>
+    <td>309.4μs</td>
+<td>10.12s</td>
+<td>473.8ms</td>
     </tr>
 
 
-<tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="57"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br> </div> </td>
+<tr class = success>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="57"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <SatAckermann03_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <SatAckermann03_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... SAFE<br> </div> </td>
 </tr>
 
 
@@ -945,14 +945,14 @@
       <td>recursive/loops/Ackermann01_false.java</td>
 <td>UNSAFE</td>
  <td>UNSAFE</td>
-    <td>300.6μs</td>
-<td>3.211s</td>
-<td>550.6ms</td>
+    <td>457.3μs</td>
+<td>2.508s</td>
+<td>480.1ms</td>
     </tr>
 
 
 <tr class = success>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="58"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Ackermann01_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="58"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <Ackermann01_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Ackermann01_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
 
@@ -960,14 +960,14 @@
       <td>recursive/loops/Ackermann01_true.java</td>
 <td>UNSAFE</td>
  <td>SAFE</td>
-    <td>519.8μs</td>
-<td>3.320s</td>
-<td>578.4ms</td>
+    <td>447.4μs</td>
+<td>2.514s</td>
+<td>479.8ms</td>
     </tr>
 
 
 <tr class = danger>
-    <td  class="hiddenRow"><div class="accordian-body collapse" id="59"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Ackermann01_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="59"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Remove unreachable methods<br>[root] - 	Removing unreachable method: <Ackermann01_true: void <init>()><br>[root] - 	Removing unreachable method: <java.lang.Object: void <init>()><br>[root] - Hornify  ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <Ackermann01_true: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
 </tr>
 
  </table>
