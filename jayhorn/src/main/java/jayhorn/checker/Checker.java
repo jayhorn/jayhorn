@@ -128,7 +128,7 @@ public class Checker {
 			} 
 		}
 		program.removeMethods(toRemove);
-		System.err.println(program);
+//		System.err.println(program);
 	}
 	
 	private Set<Method> reachableMethod(Method main) {

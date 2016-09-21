@@ -68,14 +68,12 @@ public class VirtualCallResolver extends AbstractSceneTransformer {
 
 		Map<Unit, Pair<InstanceInvokeExpr, List<SootMethod>>> callsToResolve = new HashMap<Unit, Pair<InstanceInvokeExpr, List<SootMethod>>>();
 
-		System.out.println(body);
 		for (Unit u : body.getUnits()) {
 			Stmt s = (Stmt) u;
 			if (s.containsInvokeExpr()) {
 				InvokeExpr ie = s.getInvokeExpr();
 				if (ie instanceof InstanceInvokeExpr) {
 					List<SootMethod> callees = getPossibleCallees(body, s, (InstanceInvokeExpr) ie);
-					System.out.println("Possible callees: " + callees);
 					if (callees.isEmpty()) {
 						throw new RuntimeException("Failed to resolve virutal call " + ie);
 					} else if (callees.size() == 1 && callees.get(0).equals(ie.getMethod())) {
