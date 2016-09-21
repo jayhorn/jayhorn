@@ -1,5 +1,6 @@
 public class SatIssue86 {
   public static void main(String[] args) {
+	if (args.length<1) return;
         int N = 5;
         try {
                 N = Integer.parseInt(args[0]);
