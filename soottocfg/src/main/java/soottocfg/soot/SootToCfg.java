@@ -27,7 +27,6 @@ import soot.ValueBox;
 import soot.jimple.IdentityStmt;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.Jimple;
-import soot.jimple.JimpleBody;
 import soot.jimple.toolkits.scalar.UnreachableCodeEliminator;
 import soottocfg.Options;
 import soottocfg.cfg.Program;
@@ -129,7 +128,7 @@ public class SootToCfg {
 		// now set the entry points.
 		Method m = program.lookupMethod(mainMethod.getSignature());
 		program.setEntryPoint(m);
-
+		
 		if (Options.v().outDir() != null) {
 			writeFile(".cfg", program.toString());
 		}

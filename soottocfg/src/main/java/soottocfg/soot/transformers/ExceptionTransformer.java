@@ -616,11 +616,19 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 
 	protected List<Unit> updateExceptionVariableAndReturn(Body b, Value v, Host createdFrom) {
 		List<Unit> result = new LinkedList<Unit>();
-		if (!SootTranslationHelpers.v().getExceptionGlobalRef().equals(v)) {
-			result.add(assignStmtFor(SootTranslationHelpers.v().getExceptionGlobalRef(), v, createdFrom));
+		if (b.getMethod().isMain()) {
+			//if it's a main we add an assert false.
+			Local assertionLocal = Jimple.v().newLocal("$assert_" + (body.getLocals().size()), BooleanType.v());
+			body.getLocals().add(assertionLocal);
+			result.add(assignStmtFor(assertionLocal, IntConstant.v(0), createdFrom));
+			result.add(SootTranslationHelpers.v().makeAssertion(assertionLocal, createdFrom));			
+		} else {
+			//otherwise we update the exception variable and return a default value.
+			if (!SootTranslationHelpers.v().getExceptionGlobalRef().equals(v)) {
+				result.add(assignStmtFor(SootTranslationHelpers.v().getExceptionGlobalRef(), v, createdFrom));
+			}			
 		}
 		result.add(SootTranslationHelpers.v().getDefaultReturnStatement(b.getMethod().getReturnType(), createdFrom));
-		// result.add(throwStmtFor(l, createdFrom));
 		return result;
 	}
 
