@@ -137,9 +137,10 @@ public class SootToCfg {
 		stubber.stubUnboundFieldsAndMethods(program);
 
 		if (program.getEntryPoint() == null) {
-			System.err.println("WARNING: No entry point found in program!");
-			SootTranslationHelpers.v().reset();
-			return;
+//			System.err.println("WARNING: No entry point found in program!");
+//			SootTranslationHelpers.v().reset();
+//			return;
+			throw new RuntimeException("FAILURE: No entry point found in program!");
 		}
 
 		// alias analysis

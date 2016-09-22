@@ -52,10 +52,14 @@ public class MutliFileTest {
 			for (File child : directoryListing) {
 				//iterate over all projects.
 				if (child.isDirectory()) {
-					for (File grandChild : child.listFiles()) {
-						if (grandChild.isFile() && grandChild.getName().endsWith("Main.java")) {
-							filenames.add(new Object[] { grandChild, grandChild.getName() });
-						}						
+					File[] childListing = child.listFiles();
+					if (childListing!=null) {
+						Arrays.sort(childListing);
+						for (File grandChild : childListing) {
+							if (grandChild.isFile() && grandChild.getName().endsWith("Main.java")) {
+								filenames.add(new Object[] { grandChild, grandChild.getName() });
+							}						
+						}
 					}
 				}
 			}
