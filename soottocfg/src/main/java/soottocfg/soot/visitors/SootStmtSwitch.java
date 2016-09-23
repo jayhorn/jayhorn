@@ -37,7 +37,6 @@ import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
 import soot.jimple.AnyNewExpr;
-import soot.jimple.ArrayRef;
 import soot.jimple.AssignStmt;
 import soot.jimple.BreakpointStmt;
 import soot.jimple.DefinitionStmt;
@@ -54,7 +53,6 @@ import soot.jimple.InvokeStmt;
 import soot.jimple.Jimple;
 import soot.jimple.LengthExpr;
 import soot.jimple.LookupSwitchStmt;
-import soot.jimple.NewArrayExpr;
 import soot.jimple.NopStmt;
 import soot.jimple.RetStmt;
 import soot.jimple.ReturnStmt;
@@ -76,6 +74,7 @@ import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
+import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.soot.util.MethodInfo;
@@ -597,33 +596,36 @@ public class SootStmtSwitch implements StmtSwitch {
 		if (def.containsFieldRef()) {
 			Verify.verify(lhs instanceof FieldRef || rhs instanceof FieldRef);
 			if (def.getFieldRef().getField().equals(SootTranslationHelpers.v().getExceptionGlobal())) {
-				//Special treatment of the exception global.
+				// Special treatment of the exception global.
 				if (lhs instanceof FieldRef) {
 					Expression left = methodInfo.getExceptionVariable();
 					rhs.apply(valueSwitch);
 					Expression right = valueSwitch.popExpression();
-					currentBlock
-							.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(def), left, right));
-				} else /*if (rhs instanceof FieldRef)*/ {
+					currentBlock.addStatement(
+							new AssignStatement(SootTranslationHelpers.v().getSourceLocation(def), left, right));
+				} else /* if (rhs instanceof FieldRef) */ {
 					lhs.apply(valueSwitch);
 					Expression left = valueSwitch.popExpression();
 					Expression right = methodInfo.getExceptionVariable();
-					currentBlock
-							.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(def), left, right));					
-				} 
+					currentBlock.addStatement(
+							new AssignStatement(SootTranslationHelpers.v().getSourceLocation(def), left, right));
+				}
 			} else {
 				if (lhs instanceof FieldRef) {
 					SootTranslationHelpers.v().getMemoryModel().mkHeapWriteStatement(def, def.getFieldRef(), rhs);
-				} else /*if (rhs instanceof FieldRef)*/ {
+				} else /* if (rhs instanceof FieldRef) */ {
 					SootTranslationHelpers.v().getMemoryModel().mkHeapReadStatement(def, def.getFieldRef(), lhs);
-				} 
+				}
 			}
 		} else if (def.containsArrayRef()) {
-			if (lhs instanceof ArrayRef) {
-				SootTranslationHelpers.v().getMemoryModel().mkArrayWriteStatement(def, (ArrayRef) lhs, rhs);
-			} else {
-				SootTranslationHelpers.v().getMemoryModel().mkArrayReadStatement(def, (ArrayRef) rhs, lhs);
-			}
+			throw new RuntimeException("Remove Arrays first.");
+			// if (lhs instanceof ArrayRef) {
+			// SootTranslationHelpers.v().getMemoryModel().mkArrayWriteStatement(def,
+			// (ArrayRef) lhs, rhs);
+			// } else {
+			// SootTranslationHelpers.v().getMemoryModel().mkArrayReadStatement(def,
+			// (ArrayRef) rhs, lhs);
+			// }
 		} else if (rhs instanceof LengthExpr) {
 			throw new RuntimeException("Remove Arrays first.");
 		} else {
@@ -640,32 +642,14 @@ public class SootStmtSwitch implements StmtSwitch {
 
 			currentBlock
 					.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(def), left, right));
+		}
 
-			if (rhs instanceof AnyNewExpr) { // TODO: this should be implemented
-												// in the memory model.
-				// AnyNewExpr anyNew = (AnyNewExpr) rhs;
-				// soot.Type t = anyNew.getType();
-				// SootField dynTypeField = null;
-				// if (t instanceof RefType) {
-				// // first make a heap-read of the type filed.
-				// dynTypeField = ((RefType)
-				// t).getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
-				// } else if (t instanceof ArrayType) {
-				// throw new RuntimeException("Remove Arrays first");
-				// } else {
-				// throw new RuntimeException("Not implemented. " + t + ", " +
-				// t.getClass());
-				// }
-				// FieldRef fieldRef = Jimple.v().newInstanceFieldRef(lhs,
-				// dynTypeField.makeRef());
-				// SootTranslationHelpers.v().getMemoryModel().mkHeapWriteStatement(getCurrentStmt(),
-				// fieldRef,
-				// SootTranslationHelpers.v().getClassConstant(t));
-
-				if (rhs instanceof NewArrayExpr) {
-					throw new RuntimeException("Remove Arrays first.");
-				}
-			}
+		if (rhs instanceof AnyNewExpr) {
+			// add an assume that lhs is not null.
+			lhs.apply(valueSwitch);
+			Expression left = valueSwitch.popExpression();
+			currentBlock.addStatement(new AssumeStatement(getCurrentLoc(), new BinaryExpression(getCurrentLoc(),
+					BinaryOperator.Ne, left, SootTranslationHelpers.v().getMemoryModel().mkNullConstant())));
 		}
 	}
 

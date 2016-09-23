@@ -6,6 +6,7 @@ import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.IteExpression;
+import soottocfg.cfg.expression.NewExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
@@ -130,6 +131,11 @@ public class CfgScanner extends CfgVisitor {
 		return e;
 	}
 
+	@Override
+	protected Expression processExpression(NewExpression e) {
+		return e;
+	}
+	
 	@Override
 	protected Expression processExpression(IteExpression ite) {
 		processExpression(ite.getCondition());
