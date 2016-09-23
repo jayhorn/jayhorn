@@ -2,13 +2,9 @@ package MinePumpSystem;
 
 public  class  Environment {
 	
-
-	public enum  WaterLevelEnum {
-		low ,  normal ,  high}
-
 	
 
-	private WaterLevelEnum waterLevel = WaterLevelEnum.normal;
+	private int waterLevel = 1;
 
 	
 
@@ -18,11 +14,11 @@ public  class  Environment {
 
 	void lowerWaterLevel() {
 		switch (waterLevel) {
-		case high:
-			waterLevel = WaterLevelEnum.normal;
+		case 2:
+			waterLevel = 1;
 			break;
-		case normal:
-			waterLevel = WaterLevelEnum.low;
+		case 1:
+			waterLevel = 0;
 			break;
 		}
 	}
@@ -31,11 +27,11 @@ public  class  Environment {
 
 	public void waterRise() {
 		switch (waterLevel) {
-		case low:
-			waterLevel = WaterLevelEnum.normal;
+		case 0:
+			waterLevel = 1;
 			break;
-		case normal:
-			waterLevel = WaterLevelEnum.high;
+		case 1:
+			waterLevel = 2;
 			break;
 		}
 	}
@@ -61,7 +57,7 @@ public  class  Environment {
 
 	
 	
-	public WaterLevelEnum getWaterLevel() {
+	public int getWaterLevel() {
 		return waterLevel;
 	}
 

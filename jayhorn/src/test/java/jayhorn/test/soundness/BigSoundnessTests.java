@@ -76,7 +76,7 @@ public class BigSoundnessTests {
 	}
 
 	@Test
-	public void testWithPrincess() {
+	public void testWithPrincess() throws IOException {
 		verifyAssertions(new PrincessProverFactory());
 	}
 
@@ -85,7 +85,7 @@ public class BigSoundnessTests {
 	// verifyAssertions(new Z3ProverFactory());
 	// }
 
-	protected void verifyAssertions(ProverFactory factory) {
+	protected void verifyAssertions(ProverFactory factory) throws IOException {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with " + factory.getClass() + "\n");
 		File classDir = null;
 		try {
@@ -147,7 +147,7 @@ public class BigSoundnessTests {
 
 		} catch (IOException e) {
 			e.printStackTrace();
-			Assert.fail();
+			throw e;
 		} finally {
 			if (classDir != null) {
 				classDir.deleteOnExit();

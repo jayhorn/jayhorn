@@ -74,7 +74,7 @@ public class MutliFileTest {
 	}
 
 	@Test
-	public void testWithPrincess() {
+	public void testWithPrincess() throws IOException {
 		verifyAssertions(new PrincessProverFactory());
 	}
 
@@ -84,7 +84,7 @@ public class MutliFileTest {
 //	}
 
 	
-	protected void verifyAssertions(ProverFactory factory) {
+	protected void verifyAssertions(ProverFactory factory) throws IOException {
 		jayhorn.Options.v().setTimeout(600);
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
@@ -94,7 +94,7 @@ public class MutliFileTest {
 //			jayhorn.Options.v().setInlineCount(3);
 //			jayhorn.Options.v().setInlineMaxSize(250);
 			soottocfg.Options.v().setMemPrecision(3);
-			soottocfg.Options.v().setPrintCFG(true);
+			soottocfg.Options.v().setPrintCFG(false);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			
 			Program program = soot2cfg.getProgram();
@@ -106,7 +106,7 @@ public class MutliFileTest {
 
 		} catch (IOException e) {
 			e.printStackTrace();
-			Assert.fail();
+			throw e;
 		} finally {
 			if (classDir!=null) {
 				classDir.deleteOnExit();
