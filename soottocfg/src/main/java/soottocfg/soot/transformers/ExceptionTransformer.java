@@ -54,6 +54,7 @@ import soot.jimple.NullConstant;
 import soot.jimple.Ref;
 import soot.jimple.ReturnStmt;
 import soot.jimple.StaticFieldRef;
+import soot.jimple.Stmt;
 import soot.jimple.SwitchStmt;
 import soot.jimple.ThrowStmt;
 import soot.jimple.UnopExpr;
@@ -351,14 +352,57 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 	 * @return
 	 */
 	private boolean mayThrowRuntimeException(InvokeExpr ivk) {
-		//TODO: this is only a stub.
-		if (ivk.getMethod().isStaticInitializer()) {
-			return false;
-		} else if (ivk.getMethod().isJavaLibraryMethod()) {
-			return false;
-		}
-		return true;
+		return mayThrowRuntimeException(ivk, new HashSet<InvokeExpr>());
 	}
+	
+	private boolean mayThrowRuntimeException(InvokeExpr ivk, Set<InvokeExpr> visited) { 
+		final SootMethod m = ivk.getMethod();
+		if (visited.contains(ivk)) {
+			//for recursive calls, worst case assume that they may throw.
+			mayThrowRuntimeException.put(m, true);
+			return true;
+		}
+		visited.add(ivk);
+		//TODO: this is only a stub.		
+		if (m.isStaticInitializer()) {
+			return false;
+		} else if (m.isJavaLibraryMethod()) {
+			return false;
+		} 
+		if (!mayThrowRuntimeException.containsKey(m)) {
+			boolean mayThrow = true;
+			if (m.hasActiveBody()) {
+				NullnessAnalysis nna = new NullnessAnalysis(new CompleteUnitGraph(m.getActiveBody()));
+				mayThrow = false;
+				for (Unit u : m.getActiveBody().getUnits()) {
+					Stmt st = (Stmt)u;
+					if (st.containsArrayRef()) {
+						mayThrow = true; break;
+					} else if (st.containsFieldRef() && st.getFieldRef() instanceof InstanceFieldRef) {
+						InstanceFieldRef fr = (InstanceFieldRef)st.getFieldRef();						
+						if (!nna.isAlwaysNonNullBefore(u, (Immediate)fr.getBase())) {
+							mayThrow = true; break;
+						}
+					} else if (st.containsInvokeExpr() ) {
+						if (st.getInvokeExpr() instanceof InstanceInvokeExpr) {
+							if (!nna.isAlwaysNonNullBefore(u, (Immediate)((InstanceInvokeExpr)st.getInvokeExpr()).getBase())) {
+								mayThrow = true; break;
+							}							
+						}
+						if (mayThrowRuntimeException(st.getInvokeExpr())) {
+							mayThrow = true; break;	
+						}						
+					} else if (st instanceof ThrowStmt) {
+						mayThrow = true; break;
+					}
+				}
+			}
+			mayThrowRuntimeException.put(m, mayThrow);
+		} 
+		return mayThrowRuntimeException.get(ivk.getMethod());		
+	}
+	
+	Map<SootMethod, Boolean> mayThrowRuntimeException = new HashMap<SootMethod, Boolean>();
 	
 	/**
 	 * Takes a list of SootClasses and adds the RuntimeException class
@@ -939,4 +983,5 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 		return a.getBeginUnit() == b.getBeginUnit() && a.getEndUnit() == b.getEndUnit()
 				&& a.getException() == b.getException();
 	}
+	
 }
