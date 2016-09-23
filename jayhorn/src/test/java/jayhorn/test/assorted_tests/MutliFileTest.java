@@ -85,14 +85,14 @@ public class MutliFileTest {
 
 	
 	protected void verifyAssertions(ProverFactory factory) {
-		jayhorn.Options.v().setTimeout(60);
+		jayhorn.Options.v().setTimeout(600);
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
-			jayhorn.Options.v().setInlineCount(3);
-			jayhorn.Options.v().setInlineMaxSize(250);
+//			jayhorn.Options.v().setInlineCount(3);
+//			jayhorn.Options.v().setInlineMaxSize(250);
 			soottocfg.Options.v().setMemPrecision(3);
 			soottocfg.Options.v().setPrintCFG(true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);

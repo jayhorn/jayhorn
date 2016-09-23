@@ -389,7 +389,7 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 								mayThrow = true; break;
 							}							
 						}
-						if (mayThrowRuntimeException(st.getInvokeExpr())) {
+						if (mayThrowRuntimeException(st.getInvokeExpr(), visited)) {
 							mayThrow = true; break;	
 						}						
 					} else if (st instanceof ThrowStmt) {
