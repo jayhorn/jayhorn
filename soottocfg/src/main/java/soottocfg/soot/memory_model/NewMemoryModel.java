@@ -43,6 +43,7 @@ import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
  * @author schaef
+ * @author rodykers
  *
  */
 public class NewMemoryModel extends BasicMemoryModel {
@@ -117,16 +118,19 @@ public class NewMemoryModel extends BasicMemoryModel {
 						FieldRef fr2 = s.getFieldRef();
 						if (fr2 instanceof InstanceFieldRef) {
 							InstanceFieldRef ifr2 = (InstanceFieldRef) fr2;
-							if (ifr2.getBase().equals(m.getActiveBody().getThisLocal()) && !ifr2.equals(ifr)) {
+							if (ifr2.getBase().equals(m.getActiveBody().getThisLocal()) && !u.equals(unit)) {
 								continue;
 							}
 						}
 					}
 					
-					if (tails.contains(unit))
-						foundPathWithoutAccess = true; // at the end of this path
-					else
+					if (tails.contains(unit)) {
+						if (!s.containsInvokeExpr()) {
+							foundPathWithoutAccess = true; // at the end of this path
+						}
+					} else { 
 						todo.addAll(graph.getSuccsOf(unit));
+					}
 				}
 				return foundPathWithoutAccess;
 			}
@@ -146,7 +150,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 					Stmt s = (Stmt) unit;
 					if (s.containsFieldRef()) {
 						FieldRef fr2 = s.getFieldRef();
-						if (fr2 instanceof StaticFieldRef && !fr2.equals(fr))
+						if (fr2 instanceof StaticFieldRef && !u.equals(unit))
 								continue;
 					}
 					
@@ -160,7 +164,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 		}	
 		return true;
 	}
-
+	
 	@Override
 	public void mkHeapWriteStatement(Unit u, FieldRef fieldRef, Value rhs) {
 		SourceLocation loc = SootTranslationHelpers.v().getSourceLocation(u);

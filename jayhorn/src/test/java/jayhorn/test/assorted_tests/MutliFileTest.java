@@ -94,6 +94,7 @@ public class MutliFileTest {
 			jayhorn.Options.v().setInlineCount(3);
 			jayhorn.Options.v().setInlineMaxSize(250);
 			soottocfg.Options.v().setMemPrecision(3);
+			soottocfg.Options.v().setPrintCFG(true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			
 			Program program = soot2cfg.getProgram();

@@ -73,6 +73,9 @@ public class PushPullSimplifier {
 			simplifications += movePullUp(b);
 			simplifications += movePushDown(b);
 			simplifications += swapPushPull(b);
+			// I think running these is only sound when 'distinct()' is
+//			simplifications += orderPulls(b);
+//			simplifications += orderPushes(b);
 			simplifications += assumeFalseEatPreceeding(b);
 		} while (simplifications > 0);
 	}
@@ -250,7 +253,59 @@ public class PushPullSimplifier {
 		return swapped;
 	}
 	
-	/* Rule VIII (new) */
+	/* Rule VIII */
+	private int orderPulls(CfgBlock b) {
+		// order pushes alphabetically w.r.t. the object name
+		// allows to remove doubles
+		int swapped = 0;
+		List<Statement> stmts = b.getStatements();
+		for (int i = 0; i+1 < stmts.size(); i++) {
+			if (stmts.get(i) instanceof PullStatement && stmts.get(i+1) instanceof PullStatement) {
+				PullStatement pull1 = (PullStatement) stmts.get(i);
+				PullStatement pull2 = (PullStatement) stmts.get(i+1);
+				if (pull1.getObject().toString().compareTo(pull2.getObject().toString()) < 0) {
+					//only swap if none of the vars in the pull and push point to the same location
+					Set<IdentifierExpression> pull1vars = pull1.getIdentifierExpressions();
+					Set<IdentifierExpression> pull2vars = pull2.getIdentifierExpressions();
+					if (distinct(pull1vars,pull2vars)) {
+						b.swapStatements(i, i+1);
+						if (debug)
+							System.out.println("Applied rule (VIII); swapped " + pull1 + " and " + pull2);
+						swapped++;
+					}
+				}
+			}
+		}
+		return swapped;
+	}
+	
+	/* Rule IX */
+	private int orderPushes(CfgBlock b) {
+		// order pushes alphabetically w.r.t. the object name
+		// allows to remove doubles
+		int swapped = 0;
+		List<Statement> stmts = b.getStatements();
+		for (int i = 0; i+1 < stmts.size(); i++) {
+			if (stmts.get(i) instanceof PushStatement && stmts.get(i+1) instanceof PushStatement) {
+				PushStatement push1 = (PushStatement) stmts.get(i);
+				PushStatement push2 = (PushStatement) stmts.get(i+1);
+				if (push1.getObject().toString().compareTo(push2.getObject().toString()) < 0) {
+					//only swap if none of the vars in the pull and push point to the same location
+					Set<IdentifierExpression> push1vars = push1.getIdentifierExpressions();
+					Set<IdentifierExpression> push2vars = push2.getIdentifierExpressions();
+					if (distinct(push1vars,push2vars)) {
+						b.swapStatements(i, i+1);
+						if (debug)
+							System.out.println("Applied rule (IX); swapped " + push1 + " and " + push2);
+						swapped++;
+					}
+				}
+			}
+		}
+		return swapped;
+	}
+	
+	/* Rule X (new) */
 	private int assumeFalseEatPreceeding(CfgBlock b) {
 		int eaten = 0;
 		List<Statement> stmts = b.getStatements();
