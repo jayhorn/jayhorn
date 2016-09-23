@@ -54,7 +54,7 @@ public class Checker {
 		CfgCallInliner inliner = new CfgCallInliner(program);
 		inliner.inlineFromMain(Options.v().getInlineMaxSize(), Options.v().getInlineCount());
 		Log.info("Remove unreachable methods");
-		removeUnreachableMethods(program);
+		removeUnreachableMethods(program);		
 		Log.info("Hornify  ... ");
 		Hornify hf = new Hornify(factory);
 		Stopwatch toHornTimer = Stopwatch.createStarted();

@@ -220,6 +220,8 @@ public class SootToCfg {
 			Body body = null;
 			try {
 				body = sm.retrieveActiveBody();
+//				System.err.println(sm.getSignature());
+//				System.err.println(body);
 				// soot.jimple.toolkits.scalar.CopyPropagator.v().transform(body);
 				// soot.jimple.toolkits.annotation.nullcheck.NullPointerChecker.v().transform(body);
 			} catch (RuntimeException e) {

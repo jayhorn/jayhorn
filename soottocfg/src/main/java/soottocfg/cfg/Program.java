@@ -4,7 +4,11 @@
 package soottocfg.cfg;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -169,8 +173,16 @@ public class Program {
 		}
 		prog.append("\n");
 		
+		List<Method> sortedMethods = new LinkedList<Method>(methods.values());
+		Collections.sort(sortedMethods, new Comparator<Method>() {
+		    @Override
+		    public int compare(Method o1, Method o2) {		    	
+		        return o1.getMethodName().compareTo(o2.getMethodName());		    	
+		    }		    
+		});
+		
 		// methods
-		for (Method m : methods.values()) {
+		for (Method m : sortedMethods) {
 			prog.append(m+"\n");
 		}
 		

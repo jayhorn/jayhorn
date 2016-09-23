@@ -125,6 +125,17 @@ public class StaticInitializerTransformer extends AbstractSceneTransformer {
 		    	SootClass c1 = o1.getDeclaringClass();
 		    	SootClass c2 = o2.getDeclaringClass();
 		    	
+		    	for (SootField sf : c1.getFields()) {
+		    		if (hasBaseType(sf.getType(), c2)) {
+		    			return -1;
+		    		}
+		    	}
+		    	for (SootField sf : c2.getFields()) {
+		    		if (hasBaseType(sf.getType(), c1)) {
+		    			return 1;
+		    		}
+		    	}		    	
+		    	
 		    	if (o1.hasActiveBody()) {
 		    		for (Local l : o1.getActiveBody().getLocals()) {
 		    			if (hasBaseType(l.getType(), c2)) {
@@ -139,13 +150,14 @@ public class StaticInitializerTransformer extends AbstractSceneTransformer {
 		    			}
 		    		}
 		    	}
-		    	if (c1.hasOuterClass() && c1.getOuterClass().equals(c2)) {
-		    		return -1;
-		    	} else if (c2.hasOuterClass() && c2.getOuterClass().equals(c1)) {
-		    		return 1;
-		    	}
+//		    	if (c1.hasOuterClass() && c1.getOuterClass().equals(c2)) {
+//		    		return -1;
+//		    	} else if (c2.hasOuterClass() && c2.getOuterClass().equals(c1)) {
+//		    		return 1;
+//		    	}
 		    	
-		        return 0;		    	
+		    	//otherwise we can do it last.
+		        return -1;		    	
 		    }
 		    
 		    private boolean hasBaseType(Type t, SootClass c) {
