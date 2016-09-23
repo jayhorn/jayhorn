@@ -90,7 +90,9 @@ public class MutliFileTest {
 		File classDir = null;
 		try {
 			classDir = Util.compileJavaFile(this.sourceFile);
-			SootToCfg soot2cfg = new SootToCfg();			
+			SootToCfg soot2cfg = new SootToCfg();
+			jayhorn.Options.v().setInlineCount(3);
+			jayhorn.Options.v().setInlineMaxSize(250);
 			soottocfg.Options.v().setMemPrecision(3);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			
@@ -98,7 +100,7 @@ public class MutliFileTest {
 	  		Checker hornChecker = new Checker(factory);
 	  		boolean result = hornChecker.checkProgram(program);
 
-			boolean expected = benchmarkName.startsWith("Sat");
+			boolean expected = benchmarkName.startsWith("Sat") || benchmarkName.endsWith("_true");
 			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
 
 		} catch (IOException e) {

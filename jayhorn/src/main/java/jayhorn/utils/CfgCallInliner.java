@@ -343,11 +343,11 @@ public class CfgCallInliner {
 			Expression receiver;
 			if (i < call.getReceiver().size()) {
 				receiver = call.getReceiver().get(i);
+				postBlock.addStatement(0,
+						new AssignStatement(loc, receiver, varSubstitionMap.get(callee.getOutParams().get(i)).mkExp(loc)));
 			} else {
-				throw new RuntimeException();
+				System.err.println("More outparams than receivers "+call);
 			}
-			postBlock.addStatement(0,
-					new AssignStatement(loc, receiver, varSubstitionMap.get(callee.getOutParams().get(i)).mkExp(loc)));
 		}
 
 	}
