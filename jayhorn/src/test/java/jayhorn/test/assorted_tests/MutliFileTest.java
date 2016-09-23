@@ -34,7 +34,7 @@ public class MutliFileTest {
 
 	private File sourceFile;
 
-	@Parameterized.Parameters(name = "{index}: check ({1})")
+	@Parameterized.Parameters(name = "{index}: {2}")
 	public static Collection<Object[]> data() {
 		List<Object[]> filenames = new LinkedList<Object[]>();
 		final File source_dir = new File(testRoot + "multi-test");
@@ -57,7 +57,7 @@ public class MutliFileTest {
 						Arrays.sort(childListing);
 						for (File grandChild : childListing) {
 							if (grandChild.isFile() && grandChild.getName().endsWith("Main.java")) {
-								filenames.add(new Object[] { grandChild, grandChild.getName() });
+								filenames.add(new Object[] { grandChild, grandChild.getName(), child.getName() });
 							}						
 						}
 					}
@@ -66,8 +66,11 @@ public class MutliFileTest {
 		}
 	}
 
-	public MutliFileTest(File source, String name) {
+	private final String benchmarkName;
+	
+	public MutliFileTest(File source, String name, String benchmarkName) {
 		this.sourceFile = source;
+		this.benchmarkName = benchmarkName;
 	}
 
 	@Test
@@ -95,7 +98,7 @@ public class MutliFileTest {
 	  		Checker hornChecker = new Checker(factory);
 	  		boolean result = hornChecker.checkProgram(program);
 
-			boolean expected = this.sourceFile.getParent().startsWith("Sat");
+			boolean expected = benchmarkName.startsWith("Sat");
 			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
 
 		} catch (IOException e) {
