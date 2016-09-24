@@ -384,7 +384,11 @@ public class SootToCfg {
 							Jimple.v().newInstanceFieldRef(constructor.getActiveBody().getThisLocal(), f.makeRef()),
 							SootTranslationHelpers.v().getDefaultValue(f.getType()));
 				}
-				constructor.getActiveBody().getUnits().insertAfter(init, insertPos);
+				if (insertPos==null) {
+					constructor.getActiveBody().getUnits().addFirst(init);	
+				} else {
+					constructor.getActiveBody().getUnits().insertAfter(init, insertPos);
+				}
 			}
 
 		}

@@ -244,6 +244,7 @@ public class ConstantProp extends CfgUpdater {
 					changed = true;
 					return right;
 				}
+				break;
 			}
 			case Mul: {
 				if (leftVal == 0) {
@@ -254,6 +255,7 @@ public class ConstantProp extends CfgUpdater {
 					changed = true;
 					return right;
 				}
+				break;
 			}
 			default: {
 				/* do nothing */}
@@ -269,6 +271,7 @@ public class ConstantProp extends CfgUpdater {
 					changed = true;
 					return left;
 				}
+				break;
 			}
 			case Mul: {
 				if (rightVal == 0) {
@@ -279,6 +282,7 @@ public class ConstantProp extends CfgUpdater {
 					changed = true;
 					return left;
 				}
+				break;
 			}
 			default: {
 				/* do nothing */}
