@@ -32,15 +32,16 @@ import soot.tagkit.AbstractHost;
 import soot.tagkit.Host;
 import soot.tagkit.SourceFileTag;
 import soot.tagkit.Tag;
+import soottocfg.Options;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.SootRunner;
 import soottocfg.soot.SootToCfg.MemModel;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.memory_model.NewMemoryModel;
-import soottocfg.soot.memory_model.SimpleBurstallBornatModel;
 
 /**
  * @author schaef
@@ -55,6 +56,7 @@ public enum SootTranslationHelpers {
 
 	
 	public static final String HavocClassName = "Havoc_Class";
+	public static final String HavocMethodName = "havoc_";
 	/**
 	 * Get a method that returns an unknown value of type t.
 	 * @param t
@@ -68,7 +70,7 @@ public enum SootTranslationHelpers {
 			Scene.v().addClass(sClass);			
 		}
 		SootClass cls = Scene.v().getSootClass(HavocClassName);
-		final String havocMethodName = "havoc_" + t.toString();
+		final String havocMethodName = HavocMethodName + t.toString();
 		if (!cls.declaresMethodByName(havocMethodName)) {
 			cls.addMethod(new SootMethod(havocMethodName, Arrays.asList(new Type[] {}), t,
 					Modifier.PUBLIC | Modifier.STATIC));
@@ -76,9 +78,9 @@ public enum SootTranslationHelpers {
 		return cls.getMethodByName("havoc_" + t.toString());
 	}
 	
-	public static SootTranslationHelpers v(Program program, MemModel kind){
+	public static SootTranslationHelpers v(Program program){
 		final SootTranslationHelpers instance = INSTANCE;
-		instance.setMemoryModelKind(kind);
+		instance.setMemoryModelKind(Options.v().memModel());
 		instance.setProgram(program);
 		return instance;
 	}
@@ -153,8 +155,8 @@ public enum SootTranslationHelpers {
 	}
 
 	public Method lookupOrCreateMethod(SootMethod m) {
-		if (this.program.loopupMethod(m.getSignature()) != null) {
-			return this.program.loopupMethod(m.getSignature());
+		if (this.program.lookupMethod(m.getSignature()) != null) {
+			return this.program.lookupMethod(m.getSignature());
 		}
 		int parameterCount = 0;
 		final List<Variable> parameterList = new LinkedList<Variable>();
@@ -162,6 +164,11 @@ public enum SootTranslationHelpers {
 			parameterList.add(new Variable(parameterPrefix + (parameterCount++),
 					getMemoryModel().lookupType(m.getDeclaringClass().getType())));
 		}
+		
+//		if (Options.v().passCallerIdIntoMethods()) {
+//			parameterList.add(new Variable(parameterPrefix + (parameterCount++), IntType.instance()));
+//		}
+		
 		for (int i = 0; i < m.getParameterCount(); i++) {
 			parameterList.add(new Variable(parameterPrefix + (parameterCount++),
 					getMemoryModel().lookupType(m.getParameterType(i))));
@@ -170,24 +177,24 @@ public enum SootTranslationHelpers {
 		List<soottocfg.cfg.type.Type> outVarTypes = new LinkedList<soottocfg.cfg.type.Type>();
 		if (!m.getReturnType().equals(VoidType.v())) {
 			outVarTypes.add(memoryModel.lookupType(m.getReturnType()));
-		} else if (m.isConstructor()) {
-			/* For constructors, we assume that they return all final fields
-			 * that are assigned in this constructor and the parent constructors.
-			 */
-			SootClass cl = m.getDeclaringClass();
-//			while (cl != null) {
-			//TODO: what do we do about fields from supertypes?
-				for (SootField sf : cl.getFields()) {
-					if (sf.isFinal()) {
-						outVarTypes.add(memoryModel.lookupType(sf.getType()));
-					}
-				}
-//				if (cl.hasSuperclass()) {
-//					cl = cl.getSuperclass();
-//				} else {
-//					cl = null;
+//		} else if (m.isConstructor()) {
+//			/* For constructors, we assume that they return all final fields
+//			 * that are assigned in this constructor and the parent constructors.
+//			 */
+//			SootClass cl = m.getDeclaringClass();
+////			while (cl != null) {
+//			//TODO: what do we do about fields from supertypes?
+//				for (SootField sf : cl.getFields()) {
+//					if (sf.isFinal()) {
+//						outVarTypes.add(memoryModel.lookupType(sf.getType()));
+//					}
 //				}
-//			}			
+////				if (cl.hasSuperclass()) {
+////					cl = cl.getSuperclass();
+////				} else {
+////					cl = null;
+////				}
+////			}			
 		}
 		return Method.createMethodInProgram(program, m.getSignature(), parameterList, outVarTypes, SootTranslationHelpers.v().getSourceLocation(m));
 	}
@@ -265,8 +272,6 @@ public enum SootTranslationHelpers {
 			// TODO:
 			if (memoryModelKind == MemModel.PullPush) {
 				this.memoryModel = new NewMemoryModel();
-			} else if (memoryModelKind == MemModel.BurstallBornat) {
-				this.memoryModel = new SimpleBurstallBornatModel();
 			} else {
 				throw new RuntimeException("Unknown memory model");
 			}
@@ -322,4 +327,13 @@ public enum SootTranslationHelpers {
 	public int getJavaSourceLine(AbstractHost ah) {
 		return ah.getJavaSourceStartLineNumber();
 	}
+	
+	public int getUniqueNumberForUnit(Unit u) {
+		return u.hashCode();
+	}
+
+	public int getUniqueNumberForUnit(Statement s) {
+		return s.hashCode();
+	}
+
 }

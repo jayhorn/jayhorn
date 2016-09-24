@@ -18,9 +18,9 @@ import soot.jimple.NewArrayExpr;
 import soot.jimple.NewExpr;
 import soot.jimple.NewMultiArrayExpr;
 import soot.jimple.StringConstant;
-import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.soot.visitors.SootStmtSwitch;
 import soottocfg.soot.visitors.SootValueSwitch;
 

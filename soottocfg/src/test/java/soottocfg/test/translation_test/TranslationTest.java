@@ -14,7 +14,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
 import soottocfg.test.Util;
 
@@ -73,9 +72,7 @@ public class TranslationTest {
 		if (classDir == null) {
 			Assert.fail();
 		}
-		soot2cfg.run(classDir.getAbsolutePath(), null);
-		Program p = soot2cfg.getProgram();
-		System.err.println(p.getEntryPoints().length);
+		soot2cfg.run(classDir.getAbsolutePath(), null);		
 	}
 
 }

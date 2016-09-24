@@ -21,7 +21,10 @@ package soottocfg.soot;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -34,9 +37,17 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+import com.google.common.base.Verify;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
+import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.ClassPath.ClassInfo;
+
+import soot.ArrayType;
 import soot.BooleanType;
 import soot.Modifier;
 import soot.PackManager;
+import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
@@ -45,6 +56,7 @@ import soot.Type;
 import soot.VoidType;
 import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
+import soottocfg.Options;
 
 /**
  * The Soot Runner
@@ -55,14 +67,13 @@ import soot.jimple.JimpleBody;
 public class SootRunner {
 
 	private final soot.options.Options sootOpt;
-//	private final List<String> resolvedClassNames;
+	// private final List<String> resolvedClassNames;
 
 	public SootRunner() {
 		this(new ArrayList<String>());
 	}
 
 	public SootRunner(List<String> resolvedClassNames) {
-//		this.resolvedClassNames = resolvedClassNames;
 		this.sootOpt = soot.options.Options.v();
 	}
 
@@ -73,8 +84,10 @@ public class SootRunner {
 		if (input.endsWith(".jar")) {
 			// run with JAR file
 			runWithJar(input, classPath);
+			throw new RuntimeException("currently not tested");
 		} else if (input.endsWith(".apk")) {
 			runWithApk(input, classPath);
+			throw new RuntimeException("currently not tested");
 		} else {
 			File file = new File(input);
 			if (file.isDirectory()) {
@@ -160,17 +173,84 @@ public class SootRunner {
 
 			// set soot-class-path
 			sootOpt.set_soot_classpath(cp);
-			sootOpt.set_src_prec(soot.options.Options.src_prec_class);
+			sootOpt.set_src_prec(soot.options.Options.src_prec_only_class);
 
 			List<String> processDirs = new LinkedList<String>();
 			processDirs.add(path);
+
+			if (Options.v().useBuiltInSpecs()) {
+				File specDir = new File("spec_stuff/");
+				writeSpecPackageToDisc(specDir);
+				processDirs.add(specDir.getAbsolutePath());
+			}
+			if (Options.v().checkMixedJavaClassFiles()) {
+				enforceNoSrcPolicy(processDirs);
+			}
 			sootOpt.set_process_dir(processDirs);
 
 			// finally, run soot
 			loadClassesIntoScene(new LinkedList<String>());
 
+			// now set the main class
+			inferMainMethod();
+
 		} catch (Exception e) {
 			throw e;
+		}
+	}
+
+	private void inferMainMethod() {
+		SootMethod mainMethod = null;
+		SootClass mainClass = null;
+		boolean toManyMains = false;
+		StringBuilder sb = new StringBuilder();
+		for (SootClass c : Scene.v().getApplicationClasses()) {
+			if (c.declaresMethod("main", Arrays.asList((Type)ArrayType.v(RefType.v("java.lang.String"), 1)), VoidType.v())) {
+				if (mainMethod != null) {
+					toManyMains = true;
+				}
+				mainMethod = c.getMethod("main", Arrays.asList((Type)ArrayType.v(RefType.v("java.lang.String"), 1)),
+						VoidType.v());
+				
+				mainClass = c;
+				System.err.println(mainMethod.getSignature());
+				sb.append(mainMethod.getSignature());
+				sb.append("\n");
+			}
+		}
+		Verify.verify(mainClass!=null && mainMethod!=null, "No main method found. Terminating.");
+		Scene.v().setMainClass(mainClass);
+		if (toManyMains) {
+			System.err.println("More than one main found:");
+			System.err.println(sb.toString());
+			System.err.println("Picking the last one.");
+		}
+	}
+
+	/**
+	 * Soot only runs properly if there are only class files in the processed
+	 * directory.
+	 * If there are source files mixed with class files, stange errors happen
+	 * because
+	 * soot mixes them in the scene.
+	 * To avoid these random error, we fail early.
+	 * 
+	 * @param dirs
+	 */
+	private void enforceNoSrcPolicy(List<String> dirs) {
+		for (String dir : dirs) {
+			for (File f : Files.fileTreeTraverser().preOrderTraversal(new File(dir))) {
+				if (f != null && f.isFile() && f.getName().endsWith(".java")) {
+					StringBuilder sb = new StringBuilder();
+					sb.append("Found mix of source and class files in folder ");
+					sb.append(f.getParent());
+					sb.append("\nSoot expects a directory tree that only contains class files.\n");
+					sb.append("Please create a directory, compile your code with javac -d [dir]\n");
+					sb.append("and pass us this dir. Sorry for the inconvenience.");
+					System.err.println(sb.toString());
+					throw new UnsupportedOperationException("Bad value for -j argument.");
+				}
+			}
 		}
 	}
 
@@ -199,7 +279,7 @@ public class SootRunner {
 
 		Scene.v().addBasicClass("java.lang.System", SootClass.SIGNATURES);
 		Scene.v().addBasicClass("java.lang.Thread", SootClass.SIGNATURES);
-		Scene.v().addBasicClass("java.lang.ThreadGroup", SootClass.SIGNATURES);		
+		Scene.v().addBasicClass("java.lang.ThreadGroup", SootClass.SIGNATURES);
 
 		Scene.v().addBasicClass("java.lang.ClassLoader", SootClass.SIGNATURES);
 		Scene.v().addBasicClass("java.security.PrivilegedActionException", SootClass.SIGNATURES);
@@ -220,7 +300,7 @@ public class SootRunner {
 			// }
 			PackManager.v().runPacks();
 			createAssertionClass();
-			
+
 			/*
 			 * TODO: apply some preprocessing stuff like:
 			 * soot.jimple.toolkits.base or maybe the optimize option from soot.
@@ -231,9 +311,9 @@ public class SootRunner {
 					sc.setResolvingLevel(SootClass.SIGNATURES);
 				}
 
-//				if (classes.contains(sc.getName())) {
-//					sc.setApplicationClass();
-//				}
+				// if (classes.contains(sc.getName())) {
+				// sc.setApplicationClass();
+				// }
 			}
 
 		} catch (UnsupportedEncodingException e) {
@@ -243,12 +323,12 @@ public class SootRunner {
 		}
 	}
 
-//	private void loadNecessaryClasses() {
-//		for (String eachClassname : resolvedClassNames) {
-//			final SootClass theClass = Scene.v().loadClassAndSupport(eachClassname);
-//			theClass.setApplicationClass();
-//		}
-//	}
+	// private void loadNecessaryClasses() {
+	// for (String eachClassname : resolvedClassNames) {
+	// final SootClass theClass = Scene.v().loadClassAndSupport(eachClassname);
+	// theClass.setApplicationClass();
+	// }
+	// }
 
 	public static final String assertionClassName = "JayHornAssertions";
 	public static final String assertionProcedureName = "super_crazy_assertion";
@@ -393,4 +473,50 @@ public class SootRunner {
 		return classes;
 	}
 
+	/*
+	 * ======= below deals with writing out the spec classes
+	 */
+
+	/**
+	 * Writes all classes from the soottocfg.spec to targetDir
+	 * so that we can use them later when re-writing the bytecode.
+	 * 
+	 * @param targetDir
+	 */
+	protected void writeSpecPackageToDisc(File targetDir) {
+		if (!targetDir.isDirectory()) {
+			if (!targetDir.mkdirs()) {
+				throw new RuntimeException("Can't write to disk");
+			}
+		}
+		try {
+			ClassLoader cl = this.getClass().getClassLoader();
+			ClassPath cp = ClassPath.from(cl);
+			for (ClassInfo ci : cp.getTopLevelClassesRecursive("soottocfg.spec")) {
+
+				StringBuilder sb = new StringBuilder();
+				sb.append(targetDir.getAbsolutePath());
+				sb.append(File.separator);
+				sb.append(ci.getPackageName().replace(".", File.separator));
+				File outFileDir = new File(sb.toString());
+				if (!outFileDir.exists() && !outFileDir.mkdirs()) {
+					throw new RuntimeException("Couldn't generate dirs for " + sb.toString());
+				}
+				sb.append(File.separator);
+				sb.append(ci.getSimpleName());
+				sb.append(".class");
+				File outFile = new File(sb.toString());
+
+				try (InputStream inputStream = cl.getResourceAsStream(ci.getResourceName());
+						OutputStream outputStream = new FileOutputStream(outFile);) {
+					ByteStreams.copy(inputStream, outputStream);
+				} catch (Throwable e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }

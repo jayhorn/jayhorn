@@ -773,4 +773,8 @@ public class Z3Prover implements Prover {
     public String toSMTLIBFormula(ProverHornClause clause) {
         throw new UnsupportedOperationException();
     }
+    
+    public void parseSMTLIBFormula(final String formula) {
+    	throw new UnsupportedOperationException();
+    }
 }

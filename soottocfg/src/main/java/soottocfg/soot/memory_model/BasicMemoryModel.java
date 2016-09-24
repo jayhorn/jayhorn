@@ -12,6 +12,8 @@ import java.util.Map;
 
 import javax.lang.model.type.NullType;
 
+import com.google.common.base.Verify;
+
 import soot.ArrayType;
 import soot.RefLikeType;
 import soot.RefType;
@@ -30,13 +32,12 @@ import soot.jimple.NewArrayExpr;
 import soot.jimple.NewExpr;
 import soot.jimple.NewMultiArrayExpr;
 import soot.jimple.StringConstant;
-import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.Program;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
@@ -45,6 +46,8 @@ import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceLikeType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 
@@ -54,25 +57,21 @@ import soottocfg.soot.util.SootTranslationHelpers;
  */
 public abstract class BasicMemoryModel extends MemoryModel {
 
-	protected final Variable nullConstant;
 	protected Program program;
 	protected final Map<soot.Type, soottocfg.cfg.type.Type> types = new HashMap<soot.Type, soottocfg.cfg.type.Type>();
 	protected final Map<SootField, Variable> fieldGlobals = new HashMap<SootField, Variable>();
 
 	protected final Map<Constant, Variable> constantDictionary = new HashMap<Constant, Variable>();
 
-	protected final Type nullType;
+	// protected final Type nullType;
 
 	public BasicMemoryModel() {
 		this.program = SootTranslationHelpers.v().getProgram();
-
-		nullType = new ReferenceType(null);
-		this.nullConstant = this.program.lookupGlobalVariable("$null", nullType);
 	}
 
 	@Override
 	public boolean isNullReference(Expression e) {
-		return (e instanceof IdentifierExpression && ((IdentifierExpression) e).getVariable() == nullConstant);
+		return e instanceof NullLiteral;
 	}
 
 	@Override
@@ -93,27 +92,17 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkNewExpr(NewExpr arg0) {
 		Type newType = this.lookupType(arg0.getBaseType());
-
 		// make this an application class to make sure that we analyze the
 		// constructor
 		arg0.getBaseType().getSootClass().setApplicationClass();
-
 		MethodInfo mi = this.statementSwitch.getMethodInfo();
+
 		Variable newLocal = mi.createFreshLocal("$new", newType, true, true);
 		// add: assume newLocal!=null
-		this.statementSwitch.push(new AssumeStatement(statementSwitch.getCurrentLoc(),
-				new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
-						new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
-						this.mkNullConstant())));
-		// TODO add: assume newLocal instanceof newType
-		// Expression instof = foo(new
-		// IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
-		// newType);
-		// this.statementSwitch.push(
-		// new AssumeStatement(statementSwitch.getCurrentLoc(),
-		// new BinaryExpression(this.statementSwitch.getCurrentLoc(),
-		// BinaryOperator.Ne, instof,
-		// IntegerLiteral.zero())));
+//		this.statementSwitch.push(new AssumeStatement(statementSwitch.getCurrentLoc(),
+//				new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
+//						new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
+//						this.mkNullConstant())));
 
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
 	}
@@ -191,7 +180,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkNullConstant() {
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), nullConstant);
+		return new NullLiteral(null);
 	}
 
 	/*
@@ -296,24 +285,11 @@ public abstract class BasicMemoryModel extends MemoryModel {
 
 	protected ReferenceLikeType lookupRefLikeType(RefLikeType t) {
 		if (t instanceof ArrayType) {
-			// ArrayType at = (ArrayType) t;
-			// Type baseType = lookupType(at.baseType);
-			// List<Type> ids = new LinkedList<Type>();
-			// for (int i = 0; i < at.numDimensions; i++) {
-			// ids.add(IntType.instance());
-			// }
-			// return new MapType(ids, baseType);
-			// TODO test!
-			//
-			// SootClass fakeArrayClass =
-			// SootTranslationHelpers.v().getFakeArrayClass(at);
-			// return lookupRefLikeType(RefType.v(fakeArrayClass));	
-			
 			throw new RuntimeException("Remove Arrays first. " + t);
 		} else if (t instanceof RefType) {
 			return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)));
 		} else if (t instanceof NullType) {
-			return (ReferenceType) this.nullConstant.getType();
+			return (ReferenceType) (new NullLiteral(null)).getType();
 		}
 		throw new UnsupportedOperationException("Unsupported type " + t.getClass());
 	}
@@ -373,15 +349,16 @@ public abstract class BasicMemoryModel extends MemoryModel {
 				// sc.addField(new
 				// SootField(SootTranslationHelpers.typeFieldName,
 				// RefType.v(Scene.v().getSootClass("java.lang.Class"))));
-
 			}
-			this.program.addClassVariable((ClassVariable) this.constantDictionary.get(cc));
+			Variable v = this.constantDictionary.get(cc);
+			Verify.verifyNotNull(v);
+			this.program.addClassVariable((ClassVariable) v);
 		}
 		return (ClassVariable) this.constantDictionary.get(cc);
 	}
 
 	protected Variable lookupField(SootField field) {
-		if (!this.fieldGlobals.containsKey(field)) {			
+		if (!this.fieldGlobals.containsKey(field)) {
 			final String fieldName = field.getDeclaringClass().getName() + "." + field.getName();
 			Variable fieldVar = this.program.lookupGlobalVariable(fieldName, this.lookupType(field.getType()),
 					field.isFinal(), field.isStatic());

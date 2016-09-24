@@ -19,6 +19,9 @@
 
 package jayhorn;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.kohsuke.args4j.Option;
 
 /**
@@ -28,89 +31,162 @@ import org.kohsuke.args4j.Option;
  */
 public class Options {
 
-	
-//	@Option(name = "-android-jars", usage = "Path to the jars that stub the android platform.")
-//	private String androidStubPath=null;
-//	
-//	public String getAndroidStubPath() {
-//		return androidStubPath;
-//	}
-//
-//	public void setAndroidStubPath(String path) {
-//		this.androidStubPath = path;
-//	}
-//	
-//	/**
-//	 * JAR file
-//	 */
+	// @Option(name = "-android-jars", usage = "Path to the jars that stub the
+	// android platform.")
+	// private String androidStubPath=null;
+	//
+	// public String getAndroidStubPath() {
+	// return androidStubPath;
+	// }
+	//
+	// public void setAndroidStubPath(String path) {
+	// this.androidStubPath = path;
+	// }
+	//
+	// /**
+	// * JAR file
+	// */
 	@Option(name = "-checker", usage = "Select a checker [inconsistency, or safety]", required = false)
-//	//@Option(name = "-checker", usage = "Select a checker [safety]", required = false)
+	// //@Option(name = "-checker", usage = "Select a checker [safety]",
+	// required = false)
 	private String checker = "safety";
+
 	public String getChecker() {
 		return checker;
 	}
-	
+
 	@Option(name = "-solver", usage = "Select a solver [eldarica or z3]", required = false)
 	private String solver = "eldarica";
+
 	public String getSolver() {
 		return solver;
 	}
-	
-	
+
+	@Option(name = "-solverOptions", usage = "Options for the solver [eldarica: abstract, debug]", required = false)
+	private String solverOptions = "";
+
+	public List<String> getSolverOptions() {
+		return Arrays.asList(solverOptions.split(","));
+	}
+
 	/**
 	 * JAR file
 	 */
 	@Option(name = "-j", usage = "JAR file, class folder, or apk", required = true)
 	private String javaInput;
-	
-	public String getJavaInput() {		
+
+	public String getJavaInput() {
 		return this.javaInput;
 	}
-	
-	
-//	/**
-//	 * Print Horn clauses
-//	 */
+
+	// /**
+	// * Print Horn clauses
+	// */
 	@Option(name = "-h", usage = "Print horn clauses", required = false)
 	private boolean printHorn = false;
-	
-	public boolean getPrintHorn() {		
+
+	public boolean getPrintHorn() {
 		return this.printHorn;
 	}
-	
-	public void setPrintHorn(boolean b) {		
-		this.printHorn = b;
-	}	
 
-//	/**
-//	 * Output intermediate representations
-//	 */
+	public void setPrintHorn(boolean b) {
+		this.printHorn = b;
+	}
+	
+	// /**
+	// * Print CFG
+	// */
+	@Option(name = "-cfg", usage = "Print CFG", required = false)
+	private boolean printCFG = false;
+
+	
+	@Option(name = "-specs", usage = "Use built-in specs", required = false)
+	public boolean useSpecs = false;
+	
+	
+	@Option(name = "-stats", usage = "Generate Stats", required = false)
+	public boolean stats = false;
+	
+	@Option(name = "-solution", usage = "Output full solution or counter-example", required = false)
+	public boolean solution = false;
+
+	/*
+	 * Memory precision
+	 */
+	@Option(name = "-mem-prec", usage = "Precision of memory model", required = false)
+	private int memPrecision = 3;
+	
+	
+	// /**
+	// * Output intermediate representations
+	// */
 	@Option(name = "-out", usage = "Output directory for intermediate represenations", required = false)
 	private String out = null;
-	
-	public String getOut() {		
+
+	public String getOut() {
 		return this.out;
 	}
-	
+
 	public String getOutDir() {
 		if (this.out != null && !this.out.endsWith("/"))
-			return this.out+"/";
+			return this.out + "/";
 		return this.out;
 	}
-	
-	public String getOutBasename() { 
+
+	public String getOutBasename() {
+		String outName = "";
 		String in = getJavaInput();
-		if (in.endsWith("/"))
-			in = in.substring(0, in.length()-1);
-		String outName = in.substring(in.lastIndexOf('/') + 1, in.length()).replace(".java", "").replace(".class", "");
+		if (in != null) {
+			if (in.endsWith("/"))
+				in = in.substring(0, in.length() - 1);
+			outName = in.substring(in.lastIndexOf('/') + 1, in.length()).replace(".java", "").replace(".class", "");
+		}
 		if (outName.equals(""))
 			outName = "noname";
 		return outName;
 	}
-	
-	public void setOut(String s) {		
+
+	public void setOut(String s) {
 		this.out = s;
-	}	
+	}
+
+	/*
+	 * Memory precision
+	 */
+	@Option(name = "-inline_size", usage = "Inline everything with less than N stmts", required = false)
+	private int inlineMaxSize = -1;
+
+	/**
+	 * @return the inlineMinSize
+	 */
+	public int getInlineMaxSize() {
+		return inlineMaxSize;
+	}
+
+	/**
+	 * @param inlineMinSize the inlineMinSize to set
+	 */
+	public void setInlineMaxSize(int inlineMaxSize) {
+		this.inlineMaxSize = inlineMaxSize;
+	}
+
+	/**
+	 * @return the inlineCount
+	 */
+	public int getInlineCount() {
+		return inlineCount;
+	}
+
+	/**
+	 * @param inlineCount the inlineCount to set
+	 */
+	public void setInlineCount(int inlineCount) {
+		this.inlineCount = inlineCount;
+	}
+
+	@Option(name = "-inline_count", usage = "Inline everything that's called less than N times", required = false)
+	private int inlineCount = -1;
+
 	
 	/**
 	 * Classpath
@@ -119,17 +195,24 @@ public class Options {
 	private String classpath;
 
 	@Option(name = "-t", usage = "Timeout per procedure in seconds. Use 0 for no timeout. (Default is 0)")
-	private int timeout=0;
-	
+	private int timeout = 0;
+
 	public int getTimeout() {
 		return this.timeout;
 	}
-	
+
 	public void setTimeout(int seconds) {
 		this.timeout = seconds;
 	}
 
+	
+	@Option(name = "-rta", usage = "Automatically inserts runtime assertions for Null deref, array bounds, and illegal casts.")
+	private boolean insertRuntimeAssertions = false;
 
+//	@Option(name = "-callid", usage = "Pass id of caller statement as argument to method")
+//	private boolean passCallerID = soottocfg.Options.v().passCallerIdIntoMethods();
+	
+	
 	/**
 	 * Determines, whether Joogie has an additional classpath
 	 * 
@@ -148,6 +231,13 @@ public class Options {
 		return classpath;
 	}
 
+	public void updateSootToCfgOptions() {
+//		soottocfg.Options.v().passCallerIdIntoMethods(passCallerID);
+		soottocfg.Options.v().setExcAsAssert(insertRuntimeAssertions);
+		soottocfg.Options.v().setMemPrecision(memPrecision);
+		soottocfg.Options.v().setPrintCFG(printCFG);
+	}
+	
 	/**
 	 * Assigns the additional classpath
 	 * 
@@ -157,15 +247,13 @@ public class Options {
 	public void setClasspath(String classpath) {
 		this.classpath = classpath;
 	}
-	
 
-	
 	private static Options options;
 
 	public static void resetInstance() {
-		options = null;	
+		options = null;
 	}
-		
+
 	public static Options v() {
 		if (null == options) {
 			options = new Options();

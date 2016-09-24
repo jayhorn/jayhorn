@@ -1,12 +1,12 @@
 package soottocfg.cfg.optimization;
 
 import soottocfg.cfg.expression.BinaryExpression;
-import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
 
 public class ConstantProp extends CfgUpdater {
 	// Records if anything changed in this run of the visitor.
@@ -244,6 +244,7 @@ public class ConstantProp extends CfgUpdater {
 					changed = true;
 					return right;
 				}
+				break;
 			}
 			case Mul: {
 				if (leftVal == 0) {
@@ -254,6 +255,7 @@ public class ConstantProp extends CfgUpdater {
 					changed = true;
 					return right;
 				}
+				break;
 			}
 			default: {
 				/* do nothing */}
@@ -269,6 +271,7 @@ public class ConstantProp extends CfgUpdater {
 					changed = true;
 					return left;
 				}
+				break;
 			}
 			case Mul: {
 				if (rightVal == 0) {
@@ -279,6 +282,7 @@ public class ConstantProp extends CfgUpdater {
 					changed = true;
 					return left;
 				}
+				break;
 			}
 			default: {
 				/* do nothing */}

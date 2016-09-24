@@ -9,14 +9,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.base.Verify;
-
 import jayhorn.Log;
+import jayhorn.hornify.encoder.MethodEncoder;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
-import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.method.Method;
 
@@ -43,50 +41,23 @@ public class Hornify {
 	 * Main method to encode into Horn
 	 * @param program
 	 */
-	public void toHorn(Program program){
+	public HornEncoderContext toHorn(Program program){
 		prover = factory.spawn();
 		prover.setHornLogic(true);
 
-		Log.info("Check if program has one entry ... ");
-		onlyOneEntry(program);
-
 		Log.info("Interprocedural Push/Pull Ordering");
-		HornHelper.hh().mkPPOrdering(program);
-
 		Log.info("Building type hierarchy ... ");
-		ClassType cType = new ClassType();
-		for (ClassVariable var : program.getTypeGraph().vertexSet()){
-			cType.addClassVar(var);
-		}
-
 		Log.info("Generating Method Contract ... ");
-		HornHelper.hh().mkMethodContract(program, prover);
+		HornEncoderContext hornContext = new HornEncoderContext(prover, program);
 
 		Log.info("Transform Program Methods into Horn Clauses ... ");
 
 		for (Method method : program.getMethods()) {
-			final MethodEncoder encoder = new MethodEncoder(prover, program, method, cType);
-			encoder.encode();
-			clauses.addAll(encoder.clauses);		
+			final MethodEncoder encoder = new MethodEncoder(prover, method, hornContext);
+			clauses.addAll(encoder.encode());		
 		}
-		hornToSMTLIBFile(clauses, 0, prover);
-		hornToFile(clauses, 0);  
+		return hornContext;
 	}
-
-
-	private void onlyOneEntry(Program program){	
-		/*
-		 * We have to build that up elsewhere. The problem is that we currently
-		 * modify the cfg while generating the
-		 * Horn clauses. For this to work to correctly, we need to create a
-		 * final version of the cfg first; then
-		 * build up this ordering; and finally create the Horn clauses.
-		 */
-		Verify.verify(program.getEntryPoints().length == 1,
-				"Currently, we only support programs with one entry point. Found "+program.getEntryPoints().length);
-	}
-
-
 
 	/**
 	 * Return the current prover object

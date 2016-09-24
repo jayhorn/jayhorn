@@ -5,15 +5,18 @@ package soottocfg.cfg.expression;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import soottocfg.cfg.Node;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.variable.Variable;
 
 /**
  * @author schaef
@@ -66,4 +69,12 @@ public abstract class Expression implements Node, Serializable {
 	}
 
 	public abstract Expression deepCopy();
+	
+	/**
+	 * Substitute variables in subs and return
+	 * a clone of the original expression
+	 * @param subs
+	 * @return
+	 */
+	public abstract Expression substitute(Map<Variable, Variable> subs);
 }

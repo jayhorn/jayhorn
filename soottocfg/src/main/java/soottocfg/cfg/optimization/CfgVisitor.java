@@ -3,20 +3,22 @@ package soottocfg.cfg.optimization;
 import java.util.List;
 
 import soottocfg.cfg.expression.BinaryExpression;
-import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
+import soottocfg.cfg.expression.NewExpression;
 import soottocfg.cfg.expression.UnaryExpression;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
+import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.statement.ArrayReadStatement;
-import soottocfg.cfg.statement.ArrayStoreStatement;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.PullStatement;
+import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
 
 public abstract class CfgVisitor {
@@ -64,10 +66,10 @@ public abstract class CfgVisitor {
 			return processStatement((AssumeStatement) s);
 		} else if (s instanceof CallStatement) {
 			return processStatement((CallStatement) s);
-		} else if (s instanceof ArrayReadStatement) {
-			return processStatement((ArrayReadStatement) s);
-		} else if (s instanceof ArrayStoreStatement) {
-			return processStatement((ArrayStoreStatement) s);
+		} else if (s instanceof PullStatement) {
+			return processStatement((PullStatement) s);
+		} else if (s instanceof PushStatement) {
+			return processStatement((PushStatement) s);
 		} else {
 			throw new RuntimeException("unexpected statement type: " + s);
 		}
@@ -83,10 +85,10 @@ public abstract class CfgVisitor {
 
 	protected abstract Statement processStatement(CallStatement s);
 
-	protected abstract Statement processStatement(ArrayReadStatement s);
+	protected abstract Statement processStatement(PullStatement s);
 
-	protected abstract Statement processStatement(ArrayStoreStatement s);
-
+	protected abstract Statement processStatement(PushStatement s);
+	
 	protected Expression processExpression(Expression e) {
 		if (e instanceof BinaryExpression) {
 			return processExpression((BinaryExpression) e);
@@ -100,6 +102,10 @@ public abstract class CfgVisitor {
 			return processExpression((IteExpression) e);
 		} else if (e instanceof UnaryExpression) {
 			return processExpression((UnaryExpression) e);
+		} else if (e instanceof NullLiteral) {
+			return processExpression((NullLiteral) e);
+		} else if (e instanceof NewExpression) {
+			return processExpression((NewExpression) e);
 		} else {
 			throw new RuntimeException("unexpected expression type: " + e);
 		}
@@ -118,4 +124,9 @@ public abstract class CfgVisitor {
 	protected abstract Expression processExpression(IteExpression ite);
 
 	protected abstract Expression processExpression(UnaryExpression e);
+	
+	protected abstract Expression processExpression(NullLiteral e);
+	
+	protected abstract Expression processExpression(NewExpression e);
 }
+

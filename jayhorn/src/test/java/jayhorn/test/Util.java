@@ -96,7 +96,7 @@ public final class Util {
    */
   public static File compileJavaFile(File sourceFile) throws IOException {
 		final File tempDir = getTempDir();
-		final String javac_command = String.format("javac -cp /Users/schaef/git/heros/junit.jar -g %s -d %s", sourceFile.getAbsolutePath(),
+		final String javac_command = String.format("javac -cp %s -g %s -d %s", sourceFile.getParent(), sourceFile.getAbsolutePath(),
 			tempDir.getAbsolutePath());
 
 		ProcessBuilder pb = new ProcessBuilder(javac_command.split(" "));

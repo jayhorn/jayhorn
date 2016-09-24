@@ -4,14 +4,17 @@
 package soottocfg.cfg.expression;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
 
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
@@ -46,7 +49,7 @@ public class BinaryExpression extends Expression {
 		}
 	}
 
-	private final Expression left, right;
+	private Expression left, right;
 	private final BinaryOperator op;
 
 	public BinaryExpression(SourceLocation loc, BinaryOperator op, Expression left, Expression right) {
@@ -160,8 +163,11 @@ public class BinaryExpression extends Expression {
 	}
 
 	@Override
-	public Expression deepCopy() {		
+	public BinaryExpression deepCopy() {		
 		return new BinaryExpression(getSourceLocation(), op, left.deepCopy(), right.deepCopy());
 	}
 
+	public BinaryExpression substitute(Map<Variable, Variable> subs) {
+		return new BinaryExpression(getSourceLocation(), op, left.substitute(subs), right.substitute(subs));
+	}
 }

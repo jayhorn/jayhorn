@@ -4,12 +4,13 @@
 package soottocfg.cfg.expression;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.variable.Variable;
 
 /**
  * @author schaef
@@ -18,6 +19,8 @@ import soottocfg.cfg.type.Type;
 public class UnaryExpression extends Expression {
 
 	private static final long serialVersionUID = -3534248180235954114L;
+	private Expression expression;
+	private final UnaryOperator op;
 
 	public enum UnaryOperator {
 		Neg("-"), LNot("!");
@@ -36,9 +39,6 @@ public class UnaryExpression extends Expression {
 			return this.name;
 		}
 	}
-
-	private final Expression expression;
-	private final UnaryOperator op;
 
 	public UnaryExpression(SourceLocation loc, UnaryOperator op, Expression inner) {
 		super(loc);
@@ -90,8 +90,13 @@ public class UnaryExpression extends Expression {
 	}
 
 	@Override
-	public Expression deepCopy() {		
+	public UnaryExpression deepCopy() {		
 		return new UnaryExpression(getSourceLocation(), op, expression.deepCopy());
+	}
+
+	@Override
+	public UnaryExpression substitute(Map<Variable, Variable> subs) {
+		return new UnaryExpression(getSourceLocation(), op, expression.substitute(subs));
 	}
 
 }

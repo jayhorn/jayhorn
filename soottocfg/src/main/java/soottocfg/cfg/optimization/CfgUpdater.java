@@ -4,21 +4,23 @@ import java.util.LinkedList;
 import java.util.List;
 
 import soottocfg.cfg.expression.BinaryExpression;
-import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
+import soottocfg.cfg.expression.NewExpression;
 import soottocfg.cfg.expression.UnaryExpression;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
+import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.statement.ArrayReadStatement;
-import soottocfg.cfg.statement.ArrayStoreStatement;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.PullStatement;
+import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
 
 //DSN should this be an abstract class
@@ -75,36 +77,30 @@ public class CfgUpdater extends CfgVisitor {
 	}
 
 	@Override
+	protected Statement processStatement(PullStatement s) {
+		List<IdentifierExpression> lhs = new LinkedList<IdentifierExpression>(); 
+		for (IdentifierExpression l : s.getLeft()) {
+			lhs.add((IdentifierExpression)processExpression(l));
+		}
+		IdentifierExpression obj = (IdentifierExpression) processExpression(s.getObject());
+		return new PullStatement(s.getSourceLocation(), s.getClassSignature(), obj, lhs);
+	}
+
+	@Override
+	protected Statement processStatement(PushStatement s) {
+		List<Expression> rhs = new LinkedList<Expression>(); 
+		for (Expression r : s.getRight()) {
+			rhs.add(processExpression(r));
+		}		
+		IdentifierExpression obj = (IdentifierExpression) processExpression(s.getObject());
+		return new PushStatement(s.getSourceLocation(), s.getClassSignature(), obj, rhs);
+	}
+	
+	@Override
 	protected Statement processStatement(AssignStatement s) {
 		Expression lhs = processExpression(s.getLeft());
 		Expression rhs = processExpression(s.getRight());
 		return new AssignStatement(s.getSourceLocation(), lhs, rhs);
-	}
-
-	@Override
-	protected Statement processStatement(ArrayReadStatement s) {
-		IdentifierExpression base = (IdentifierExpression)processExpression(s.getBase());
-		Expression[] ids = s.getIndices();
-		List<Expression> indices = new LinkedList<Expression>();
-		for (int i = 0; i < ids.length; i++) {
-			indices.add(processExpression(ids[i]));
-		}
-		IdentifierExpression lhs = (IdentifierExpression) processExpression(s.getLeftValue());
-		return new ArrayReadStatement(s.getSourceLocation(), base, indices.toArray(new Expression[indices.size()]),
-				lhs);
-	}
-
-	@Override
-	protected Statement processStatement(ArrayStoreStatement s) {
-		IdentifierExpression base = (IdentifierExpression)processExpression(s.getBase());
-		Expression[] ids = s.getIndices();
-		List<Expression> indices = new LinkedList<Expression>();
-		for (int i = 0; i < ids.length; i++) {
-			indices.add(processExpression(ids[i]));
-		}
-		Expression value = processExpression(s.getValue());
-		return new ArrayStoreStatement(s.getSourceLocation(), base, indices.toArray(new Expression[indices.size()]),
-				value);
 	}
 
 	@Override
@@ -145,12 +141,23 @@ public class CfgUpdater extends CfgVisitor {
 	}
 
 	@Override
+	protected Expression processExpression(NullLiteral e) {
+		return e;
+	}
+
+	
+	@Override
 	protected Expression processExpression(IdentifierExpression e) {
 		return e;
 	}
 
 	@Override
 	protected Expression processExpression(IntegerLiteral e) {
+		return e;
+	}
+
+	@Override
+	protected Expression processExpression(NewExpression e) {
 		return e;
 	}
 

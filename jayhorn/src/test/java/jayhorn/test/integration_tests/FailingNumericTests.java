@@ -77,7 +77,7 @@ public class FailingNumericTests {
 		File classDir = null;
 		try {
 			classDir = Util.compileJavaFile(this.sourceFile);
-			SootToCfg soot2cfg = new SootToCfg(false, true);
+			SootToCfg soot2cfg = new SootToCfg();
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			jayhorn.Options.v().setTimeout(5);
 			jayhorn.Options.v().setPrintHorn(true);

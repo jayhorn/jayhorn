@@ -39,7 +39,7 @@ public abstract class AbstractTransformerTest {
 			Assert.fail();
 		}
 		
-		soot.G.reset();			
+		soot.G.reset();
 		SootRunner runner = new SootRunner();
 		runner.run(classDir.getAbsolutePath(), System.getProperty("java.class.path"));			
 	}
