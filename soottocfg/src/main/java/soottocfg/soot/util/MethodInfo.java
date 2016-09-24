@@ -3,11 +3,11 @@
  */
 package soottocfg.soot.util;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,6 +15,7 @@ import java.util.Set;
 import com.google.common.base.Verify;
 
 import soot.Local;
+import soot.RefType;
 import soot.SootMethod;
 import soot.Unit;
 import soot.VoidType;
@@ -36,7 +37,8 @@ public class MethodInfo {
 
 	private final String sourceFileName;
 
-	private static final String returnVariableName = "$ret_";
+	public static final String returnVariableName = "$ret_";
+	public static final String exceptionVariableName = "$ex_";
 	private static final String thisVariableName = "$this_";
 
 	private final SootMethod sootMethod;
@@ -47,6 +49,7 @@ public class MethodInfo {
 	private Map<Local, Variable> localsMap = new HashMap<Local, Variable>();
 
 	private Variable thisVariable;
+	private Variable exceptionVariable;
 	private List<Variable> returnVariables;
 
 	private final Set<Variable> freshLocals = new LinkedHashSet<Variable>();
@@ -60,46 +63,18 @@ public class MethodInfo {
 		sink = new CfgBlock(getMethod());
 		this.sourceFileName = sourceFileName;
 
-		// create a return variable if the method does not
-		// return void.
+		this.returnVariables = new LinkedList<Variable>();
+		
+		this.exceptionVariable = new Variable(exceptionVariableName, SootTranslationHelpers.v().getMemoryModel()
+				.lookupType(RefType.v("java.lang.Throwable")));
+		this.returnVariables.add(this.exceptionVariable); 
+		
 		if (!(sm.getReturnType() instanceof VoidType)) {
-			this.returnVariables = Arrays.asList(new Variable(returnVariableName,
+			// create a return variable if the method does not
+			// return void.		
+			this.returnVariables.add(new Variable(returnVariableName,
 					SootTranslationHelpers.v().getMemoryModel().lookupType(sm.getReturnType())));
-		} else if (sm.isConstructor()) {
-			/*
-			 * We translate constructors into methods that return the list of
-			 * all final fields
-			 * of this class and of all super classes.
-			 */
-			// Rody: findBugs was complaining about this code, it seems obsolete?
-//			Set<SootField> finalFields = new HashSet<SootField>();
-//			SootClass cl = sm.getDeclaringClass();
-//			while (cl != null) {
-//				for (SootField sf : cl.getFields()) {
-//					if (sf.isFinal()) {
-//						finalFields.add(sf);
-//					}
-//				}
-//				if (cl.hasSuperclass()) {
-//					cl = cl.getSuperclass();
-//				} else {
-//					cl = null;
-//				}
-//			}
-			//TODO
-		} else {
-			this.returnVariables = null;
-		}
-
-		// create a return variable for exceptional returns.
-		// for (Local l : sm.getActiveBody().getLocals()) {
-		// if (l.getName().equals(ExceptionTransformer.getExceptionLocalName()))
-		// {
-		// this.exceptionalReturnVariable = lookupLocalVariable(l);
-		// break;
-		// }
-		// }
-		// assert (exceptionalReturnVariable!=null);
+		} 
 
 		// If the method is not static, create a this-variable which is
 		// passed as the first parameter to the method.
@@ -124,12 +99,13 @@ public class MethodInfo {
 		locals.addAll(this.localsMap.values());
 		locals.addAll(this.freshLocals);
 		m.initialize(this.thisVariable, this.returnVariables, locals, source, sootMethod.isEntryMethod());
+		// System.out.println("Initialized method " + m);
 		CfgBlock uniqueSink = m.findOrCreateUniqueSink();
 		if (sink != uniqueSink) {
 			System.err.println("Something strange with the CFG. More than one sink found for " + m.getMethodName());
 		}
 		if (m.inDegreeOf(sink) == 0) {
-			System.err.println("Mehtod " + sootMethod.getSignature() + " has no sink! Ignoring.");
+			System.err.println("Method " + sootMethod.getSignature() + " has no sink! Ignoring.");
 			for (CfgEdge e : new HashSet<CfgEdge>(m.edgeSet())) {
 				m.removeEdge(e);
 			}
@@ -148,12 +124,20 @@ public class MethodInfo {
 	}
 
 	public Expression getReturnVariable() {
-		//TODO this is a hack that assumes that we only use that if there
-		//is a single return variable.
-		Verify.verify(this.returnVariables.size()==1);
+		// TODO this is a hack that assumes that we only use that if there
+		// is a single return variable.
+		Verify.verify(this.returnVariables.size() >= 2);
+		return new IdentifierExpression(methodLoc, this.returnVariables.get(1));
+	}
+
+	public Expression getExceptionVariable() {
+		// TODO this is a hack that assumes that we only use that if there
+		// is a single return variable.
+		Verify.verify(this.returnVariables.size() >= 1);
 		return new IdentifierExpression(methodLoc, this.returnVariables.get(0));
 	}
 
+	
 	// public Expression getExceptionVariable() {
 	// return new IdentifierExpression(this.exceptionalReturnVariable);
 	// }
@@ -164,6 +148,7 @@ public class MethodInfo {
 
 	public Expression lookupParameterRef(ParameterRef arg0) {
 		int offset = thisVariable == null ? 0 : 1;
+		// offset += Options.v().passCallerIdIntoMethods() ? 1 : 0;
 		return new IdentifierExpression(methodLoc, cfgMethod.getInParam(arg0.getIndex() + offset));
 	}
 
@@ -185,12 +170,12 @@ public class MethodInfo {
 
 	public Variable createFreshLocal(String prefix, Type t, boolean constant, boolean unique) {
 
-		
-//		List<Type> elementTypes = new LinkedList<Type>();
-//		elementTypes.add(newType);
-//		TupleType ttype = new TupleType(elementTypes);
-//		TupleVariable tupleVar = new TupleVariable("$new", ttype, true, true);
-//		
+		// List<Type> elementTypes = new LinkedList<Type>();
+		// elementTypes.add(newType);
+		// TupleType ttype = new TupleType(elementTypes);
+		// TupleVariable tupleVar = new TupleVariable("$new", ttype, true,
+		// true);
+		//
 
 		Variable v = new Variable(prefix + this.freshLocals.size(), t, constant, unique);
 		this.freshLocals.add(v);

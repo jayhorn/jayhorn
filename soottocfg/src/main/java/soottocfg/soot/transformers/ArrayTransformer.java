@@ -386,9 +386,17 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 			Value cond = Jimple.v().newEqExpr(body.getParameterLocal(1), IntConstant.v(i));
 			body.getUnits().add(Jimple.v().newIfStmt(cond, asn));
 		}
+		/*
+		 * add one more return to if updates is not empty
+		 * to prevent the else case from falling through
+		 * and updating the first field of the array.
+		 */
+		if (!updates.isEmpty()) {
+			body.getUnits().add(Jimple.v().newReturnVoidStmt());
+		}		
 		body.getUnits().addAll(updates);
 
-		body.getUnits().add(Jimple.v().newReturnVoidStmt());
+//		body.getUnits().add(Jimple.v().newReturnVoidStmt());
 		setElement.setActiveBody(body);
 
 		// add a constructor

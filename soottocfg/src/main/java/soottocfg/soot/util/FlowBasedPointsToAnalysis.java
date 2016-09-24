@@ -1,26 +1,23 @@
 package soottocfg.soot.util;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.Queue;
-
-import org.jgrapht.Graphs;
 
 import com.google.common.base.Verify;
 
 import soottocfg.cfg.Program;
 import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
-import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.ReferenceType;
-import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.transformers.ArrayTransformer;
@@ -30,11 +27,27 @@ import soottocfg.soot.transformers.ArrayTransformer;
  */
 public class FlowBasedPointsToAnalysis {
 	
+	private int nextAliasClass = 0;
+	private Map<Variable,Set<Integer>> pointsTo = new HashMap<Variable,Set<Integer>>();
+	
 	public void run(Program program) {
 		// first add allocation site / alias class to all constructor calls
 		for (Method m : program.getMethods()) {
-			if (m.isConstructor()) {
-				this.addToConstructor(m);
+			for (CfgBlock b : m.vertexSet()) {
+				for (Statement s : b.getStatements()) {
+					if (s instanceof CallStatement) {
+						CallStatement cs = (CallStatement) s;
+						Method target = cs.getCallTarget();
+						if (target.isConstructor()) {
+							List<Expression> args = cs.getArguments();
+							Verify.verify(args.size()>=1 && args.get(0) instanceof IdentifierExpression,
+									"Constructor should have 'this' as first argument");
+							Set<Integer> pt = getPointsToSet(variableFromExpression(args.get(0)));
+							pt.add(nextAliasClass++);
+//							System.out.println("Added alias class for " + args.get(0) + " -> " + pt);
+						}
+					}
+				}
 			}
 		}
 		
@@ -49,9 +62,11 @@ public class FlowBasedPointsToAnalysis {
 					for (Statement s : b.getStatements()) {
 						if (s instanceof AssignStatement) {
 							AssignStatement as = (AssignStatement) s;
-							Type left = as.getLeft().getType();
-							Type right = as.getRight().getType();
-							changes += rightIntoLeft(right, left);
+							if (refType(as.getLeft()) && refType(as.getRight())) {
+								Variable left = variableFromExpression(as.getLeft());
+								Variable right = variableFromExpression(as.getRight());
+								changes += rightIntoLeft(right, left);
+							}
 						} else if (s instanceof CallStatement) {
 							CallStatement cs = (CallStatement) s;
 							Method target = cs.getCallTarget();
@@ -59,17 +74,23 @@ public class FlowBasedPointsToAnalysis {
 							List<Expression> args = cs.getArguments();
 							Verify.verify(params.size()==args.size());
 							for (int i = 0; i < params.size(); i++) {
-								Type left = params.get(i).getType();
-								Type right = args.get(i).getType();
-								changes += rightIntoLeft(right, left);
+								Variable left = params.get(i);
+								if (refType(left) && refType(args.get(i))) {
+									Variable right = variableFromExpression(args.get(i));
+									changes += rightIntoLeft(right, left);
+								}
 							}
-							List<Type> rets = target.getReturnType();
+							List<Variable> rets = target.getOutParams();
 							List<Expression> rec = cs.getReceiver();
-							Verify.verify(rec.size()==0 || rets.size()==rec.size());
-							for (int i = 0; i < rec.size(); i++) {
-								Type left = rec.get(i).getType();
-								Type right = rets.get(i);
-								changes += rightIntoLeft(right, left);
+//							System.out.println("Rec: " + rec + "; rets: " + rets);
+							Verify.verify(rec.size()==1 || rets.size()==rec.size(),
+									"In "+m.getMethodName()+ " for "+ cs+": "+rets.size()+"!="+rec.size());
+							for (int i = 1; i < rec.size(); i++) {
+								if (refType(rec.get(i)) && refType(rets.get(i-1))) {
+									Variable left = variableFromExpression(rec.get(i));
+									Variable right = rets.get(i-1);
+									changes += rightIntoLeft(right, left);
+								}
 							}
 						} 
 					}
@@ -79,86 +100,87 @@ public class FlowBasedPointsToAnalysis {
 		} while (changes > 0);
 	}
 	
-	private void addToConstructor(Method m) {
-		Queue<CfgBlock> todo = new LinkedList<CfgBlock>();
-		todo.add(m.getSink());
-		Set<CfgBlock> done = new HashSet<CfgBlock>();
-		while (!todo.isEmpty()) {
-			CfgBlock cur = todo.remove();
-			done.add(cur);
-			List<Statement> stats = cur.getStatements();
-			for (int i = stats.size()-1; i >= 0; i--) {
-				if (stats.get(i) instanceof PushStatement) {
-					PushStatement push = (PushStatement) stats.get(i);
-					int allocSite = push.getID();
-					ReferenceType rt = (ReferenceType) push.getObject().getType();
-					Set<Integer> pt = rt.getPointsToSet();
-					pt.add(allocSite);
-					return;
-				}
-			}
-			for (CfgBlock b : Graphs.predecessorListOf(m, cur)) {
-				if (!done.contains(b))
-					todo.add(b);
-			}
-		}
-		Verify.verify(false, "Constructor does not have a push: " + m.getMethodName());
-	}
-
-	private int rightIntoLeft(Type right, Type left) {
+	private int rightIntoLeft(Variable right, Variable left) {
 		int changes = 0;
-		if (left instanceof ReferenceType && right instanceof ReferenceType) {
-			ReferenceType lhs = (ReferenceType) left;
-			ReferenceType rhs = (ReferenceType) right;
-			Set<Integer> ptleft = lhs.getPointsToSet();
-			Set<Integer> ptright = rhs.getPointsToSet();
+		if (refType(left) && refType(right)) {
+			ReferenceType rtleft = (ReferenceType) left.getType();
+			ReferenceType rtright = (ReferenceType) right.getType();
+			Set<Integer> ptleft = getPointsToSet(left);
+			Set<Integer> ptright = getPointsToSet(right);
 			if (!ptleft.containsAll(ptright)){
 				for (Integer allocSite : ptright) {
 					// only consider well typed assignments
 					if (!ptleft.contains(allocSite) 
-							&& lhs.getClassVariable().superclassOf(rhs.getClassVariable())) {
+							&& rtleft.getClassVariable().superclassOf(rtright.getClassVariable())) {
 						ptleft.add(allocSite);
 						changes++;
 					}
 				}
-//				ptleft.addAll(ptright);
 			}
 		}
 		return changes;
 	}
 	
-	public static boolean mustAlias(Expression ref1, Expression ref2) {
-		Set<Integer> pt1 = getPointsToSet(ref1);
-		Set<Integer> pt2 = getPointsToSet(ref2);
+	public boolean mustAlias(Expression ref1, Expression ref2) {
+		ReferenceType rt1 = getReferenceType(ref1);
+		ReferenceType rt2 = getReferenceType(ref2);
+		if (!rt1.getClassVariable().subclassOf(rt2.getClassVariable()) 
+				&& !rt1.getClassVariable().superclassOf(rt2.getClassVariable()))
+			return false;
+		
+		Set<Integer> pt1 = getPointsToSet(variableFromExpression(ref1));
+		Set<Integer> pt2 = getPointsToSet(variableFromExpression(ref2));
 		return pt1.size()==1 && pt2.size()==1 && pt1.containsAll(pt2);
 	}
 	
-	public static boolean mayAlias(Expression ref1, Expression ref2) {
-		Set<Integer> pt1 = getPointsToSet(ref1);
-		Set<Integer> pt2 = getPointsToSet(ref2);
+	public boolean mayAlias(Expression ref1, Expression ref2) {
+		ReferenceType rt1 = getReferenceType(ref1);
+		ReferenceType rt2 = getReferenceType(ref2);
+		if (!rt1.getClassVariable().subclassOf(rt2.getClassVariable()) 
+				&& !rt1.getClassVariable().superclassOf(rt2.getClassVariable()))
+			return false;
+		
+		Set<Integer> pt1 = getPointsToSet(variableFromExpression(ref1));
+		Set<Integer> pt2 = getPointsToSet(variableFromExpression(ref2));
+		
+		// If we did not collect points to info, err on the safe side
+		if (pt1.isEmpty() || pt2.isEmpty()) return true;
+		
 		return !(Collections.disjoint(pt1,pt2));
 	}
 	
-	static private Set<Integer> getPointsToSet(Expression e) {
-		Type t = e.getType();
-		if (! (t instanceof ReferenceType)) {
-			Verify.verify(false, "Called mustAlias on non-reference type");
-		}
+	private Set<Integer> getPointsToSet(Variable v) {
+		if (!this.pointsTo.containsKey(v))
+			this.pointsTo.put(v, new HashSet<Integer>());
 		
 		// bit of a hack to get this to work with the Jayhorn classes
-		if (e.toString().equals(NewMemoryModel.globalsClassName)
-				|| t.toString().startsWith(ArrayTransformer.arrayTypeName)) {
+		if (v.getType().toString().startsWith(NewMemoryModel.globalsClassName)
+				|| v.getType().toString().startsWith(ArrayTransformer.arrayTypeName)) {
 			Set<Integer> pointsto = new HashSet<Integer>();
-			pointsto.add(-1);
+			int ptid = -v.getType().hashCode();
+			pointsto.add(ptid);
 			return pointsto;
 		}
 		
-		ReferenceType rt = (ReferenceType) t;
-		Set<Integer> pt = rt.getPointsToSet();
-		
-//		System.out.println("Ref: " + e + " of type " + rt + " points to " + pt);
-		Verify.verify(!pt.isEmpty(), 
-				"Points to information missing, did you run the points-to analysis?");
-		return pt;
+		return this.pointsTo.get(v);
+	}
+	
+	private Variable variableFromExpression(Expression e) {
+		Verify.verify(e.getUseVariables().size()==1,
+				"Called variableFromExpression on expression that does not contain exactly 1 variable: " + e);
+		return e.getUseVariables().iterator().next();
+	}
+	
+	private boolean refType(Expression e1){
+		return (e1.getType() instanceof ReferenceType);
+	}
+	
+	private boolean refType(Variable e1){
+		return (e1.getType() instanceof ReferenceType);
+	}
+	
+	private ReferenceType getReferenceType(Expression e) {
+		Verify.verify(refType(e), "Called aliasing method on non-reference type");
+		return (ReferenceType) e.getType();
 	}
 }

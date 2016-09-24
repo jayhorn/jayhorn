@@ -6,17 +6,19 @@ package jayhorn.hornify.encoder;
 import java.math.BigInteger;
 import java.util.Map;
 
-import jayhorn.hornify.ClassTypeEnumerator;
+import jayhorn.hornify.HornEncoderContext;
 import jayhorn.hornify.HornHelper;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import soottocfg.cfg.expression.BinaryExpression;
-import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.IntegerLiteral;
 import soottocfg.cfg.expression.IteExpression;
+import soottocfg.cfg.expression.NewExpression;
 import soottocfg.cfg.expression.UnaryExpression;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
+import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 
@@ -26,29 +28,38 @@ import soottocfg.cfg.variable.Variable;
  */
 public class ExpressionEncoder {
 
-	private final Prover p;	
-	private final ClassTypeEnumerator classEnumerator;
+	private final Prover p;
+	private final HornEncoderContext hornContext;
+
 	/**
 	 * 
 	 */
-	public ExpressionEncoder(Prover p, ClassTypeEnumerator classEnumerator) {
+	public ExpressionEncoder(Prover p, HornEncoderContext hornContext) {
 		this.p = p;
-		this.classEnumerator = classEnumerator;
+		this.hornContext = hornContext;
 	}
+
+	public HornEncoderContext getContext() {
+		return this.hornContext;
+	}
+
+	private int newExpressionCounter = 0;
 
 	public ProverExpr exprToProverExpr(Expression e, Map<Variable, ProverExpr> varMap) {
 		if (e instanceof IdentifierExpression) {
 			Variable var = ((IdentifierExpression) e).getVariable();
 			if (var instanceof ClassVariable) {
-				return p.mkLiteral(classEnumerator.getTypeID((ClassVariable)var));
+				return p.mkLiteral(hornContext.getTypeID((ClassVariable) var));
 			} else {
-				ProverExpr res = varMap.get(var);
-				if (res == null)
-					throw new RuntimeException("Could not resolve variable " + e);
-				return res;
+				return HornHelper.hh().findOrCreateProverVar(p, var, varMap);
 			}
+		} else if (e instanceof NewExpression) {
+			Variable var = new Variable("$new" + (newExpressionCounter++), ((NewExpression) e).getType());
+			return HornHelper.hh().findOrCreateProverVar(p, var, varMap);
 		} else if (e instanceof IntegerLiteral) {
 			return p.mkLiteral(BigInteger.valueOf(((IntegerLiteral) e).getValue()));
+		} else if (e instanceof NullLiteral) {
+			return p.mkLiteral(BigInteger.valueOf(1234));
 		} else if (e instanceof BinaryExpression) {
 			final BinaryExpression be = (BinaryExpression) e;
 			final ProverExpr left = exprToProverExpr(be.getLeft(), varMap);
@@ -88,7 +99,7 @@ public class ExpressionEncoder {
 					final ClassVariable var = (ClassVariable) ((IdentifierExpression) be.getRight()).getVariable();
 
 					ProverExpr disj = p.mkLiteral(false);
-					for (Integer i : this.classEnumerator.getSubtypeIDs(var)) {
+					for (Integer i : this.hornContext.getSubtypeIDs(var)) {
 						disj = p.mkOr(disj, p.mkEq(left, p.mkLiteral(i)));
 					}
 
@@ -104,10 +115,11 @@ public class ExpressionEncoder {
 				return p.mkImplies(left, right);
 			case Shl:
 			case Shr:
+			case Ushr:
 			case BAnd:
 			case BOr:
 			case Xor:
-				return p.mkVariable("HACK_FreeVar" + HornHelper.hh().getHackCounter(), p.getIntType());
+				return p.mkVariable("HACK_FreeVar" + HornHelper.hh().newVarNum(), p.getIntType());
 			// Verify.verify(left.getType()==p.getIntType() &&
 			// right.getType()==p.getIntType());
 			// return binopFun.mkExpr(new ProverExpr[]{left, right});
@@ -139,6 +151,6 @@ public class ExpressionEncoder {
 			return p.mkLiteral(((BooleanLiteral) e).getValue());
 		}
 		throw new RuntimeException("Expression type " + e + " not implemented!");
-	}	
-	
+	}
+
 }

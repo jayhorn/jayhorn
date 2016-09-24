@@ -54,6 +54,7 @@ import soot.jimple.NullConstant;
 import soot.jimple.Ref;
 import soot.jimple.ReturnStmt;
 import soot.jimple.StaticFieldRef;
+import soot.jimple.Stmt;
 import soot.jimple.SwitchStmt;
 import soot.jimple.ThrowStmt;
 import soot.jimple.UnopExpr;
@@ -65,18 +66,17 @@ import soottocfg.util.Pair;
 
 /**
  * @author schaef
- * TODO: we should do a fixed point iteration over all methods
- * and add throws clauses to all those that can throw user created
- * RuntimeExceptions.
+ *         TODO: we should do a fixed point iteration over all methods
+ *         and add throws clauses to all those that can throw user created
+ *         RuntimeExceptions.
  */
 public class ExceptionTransformer extends AbstractSceneTransformer {
 
-	
 	protected final SootClass exceptionClass, runtimeExceptionClass, nullPointerExceptionClass,
 			arrayIndexOutOfBoundsExceptionClass, classCastExceptionClass, errorExceptionClass, throwableClass;
 	private final Hierarchy hierarchy;
-	
-	private final boolean treatUncaughtExceptionsAsAssertions;
+
+	private boolean treatUncaughtExceptionsAsAssertions;
 
 	private Body body;
 	private NullnessAnalysis nullnessAnalysis;
@@ -106,18 +106,25 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 	}
 
 	public void applyTransformation() {
+		boolean tmp = treatUncaughtExceptionsAsAssertions;
 		for (JimpleBody body : this.getSceneBodies()) {
+
+			if (body.getMethod().isMain()) {
+				treatUncaughtExceptionsAsAssertions = true;
+			} else {
+				treatUncaughtExceptionsAsAssertions = tmp;
+			}
 			transform(body);
 		}
 	}
-	
+
 	private void transform(Body b) {
 		runtimeExceptions = new HashMap<Unit, List<Pair<Value, SootClass>>>();
 		methodInvokes = new HashSet<Pair<Unit, InvokeExpr>>();
 		throwStatements = new HashSet<Pair<Unit, Value>>();
 		caughtExceptionLocal = new HashMap<Unit, Local>();
 		generatedThrowStatements = new HashMap<SootClass, Unit>();
-		
+
 		body = b;
 		this.nullnessAnalysis = new NullnessAnalysis(new CompleteUnitGraph(body));
 		// first remove all the monitor related exceptions
@@ -263,6 +270,11 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 					}
 				}
 			}
+			
+			if (mayThrowRuntimeException(ivk)) {
+				//every method could throw a runtime exception.			
+				addRuntimExceptionIfNecessary(possibleExceptions);
+			}
 			// now sort the classes.
 			sortExceptionsTightestFirst(possibleExceptions);
 			
@@ -308,10 +320,21 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 			}
 			
 			if (throwsUncaughtException) {
-				//check if the exception global is non-null and return.				
-				Unit defaultReturn = SootTranslationHelpers.v().getDefaultReturnStatement(body.getMethod().getReturnType(), u);
-				body.getUnits().add(defaultReturn);				
-				toInsert.add(ifStmtFor(Jimple.v().newNeExpr(exceptionVarLocal, NullConstant.v()), defaultReturn, u));
+				//check if the exception global is non-null and return.								
+				if (this.body.getMethod().isMain()) {
+					//if this is main, we can't re-throw, so we
+					//have to assert that the assertion is not null.
+					Local assertionLocal = Jimple.v().newLocal("$assert_" + (body.getLocals().size()), BooleanType.v());
+					body.getLocals().add(assertionLocal);
+					toInsert.add(assignStmtFor(assertionLocal, Jimple.v().newEqExpr(exceptionVarLocal, NullConstant.v()), u));
+					toInsert.add(SootTranslationHelpers.v().makeAssertion(assertionLocal, u));
+				} else {
+					//normal case: if the exception isn't null, re-throw by
+					//returning a default value.
+					Unit defaultReturn = SootTranslationHelpers.v().getDefaultReturnStatement(body.getMethod().getReturnType(), u);
+					body.getUnits().add(defaultReturn);				
+					toInsert.add(ifStmtFor(Jimple.v().newNeExpr(exceptionVarLocal, NullConstant.v()), defaultReturn, u));
+				}				
 			}
 			
 			// now insert everything after the call
@@ -320,6 +343,85 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 			}
 		}
 		return usedTraps;
+	}
+
+	/**
+	 * Returns true if we assume that the invoked method may throw an
+	 * exception and false otherwise.
+	 * @param ivk
+	 * @return
+	 */
+	private boolean mayThrowRuntimeException(InvokeExpr ivk) {
+		return mayThrowRuntimeException(ivk, new HashSet<InvokeExpr>());
+	}
+	
+	private boolean mayThrowRuntimeException(InvokeExpr ivk, Set<InvokeExpr> visited) { 
+		final SootMethod m = ivk.getMethod();
+		if (visited.contains(ivk)) {
+			//for recursive calls, worst case assume that they may throw.
+			mayThrowRuntimeException.put(m, true);
+			return true;
+		}
+		visited.add(ivk);
+		//TODO: this is only a stub.		
+		if (m.isStaticInitializer()) {
+			return false;
+		} else if (m.isJavaLibraryMethod()) {
+			return false;
+		} 
+		if (!mayThrowRuntimeException.containsKey(m)) {
+			boolean mayThrow = true;
+			if (m.hasActiveBody()) {
+				NullnessAnalysis nna = new NullnessAnalysis(new CompleteUnitGraph(m.getActiveBody()));
+				mayThrow = false;
+				for (Unit u : m.getActiveBody().getUnits()) {
+					Stmt st = (Stmt)u;
+					if (st.containsArrayRef()) {
+						mayThrow = true; break;
+					} else if (st.containsFieldRef() && st.getFieldRef() instanceof InstanceFieldRef) {
+						InstanceFieldRef fr = (InstanceFieldRef)st.getFieldRef();						
+						if (!nna.isAlwaysNonNullBefore(u, (Immediate)fr.getBase())) {
+							mayThrow = true; break;
+						}
+					} else if (st.containsInvokeExpr() ) {
+						if (st.getInvokeExpr() instanceof InstanceInvokeExpr) {
+							if (!nna.isAlwaysNonNullBefore(u, (Immediate)((InstanceInvokeExpr)st.getInvokeExpr()).getBase())) {
+								mayThrow = true; break;
+							}							
+						}
+						if (mayThrowRuntimeException(st.getInvokeExpr(), visited)) {
+							mayThrow = true; break;	
+						}						
+					} else if (st instanceof ThrowStmt) {
+						mayThrow = true; break;
+					}
+				}
+			}
+			mayThrowRuntimeException.put(m, mayThrow);
+		} 
+		return mayThrowRuntimeException.get(ivk.getMethod());		
+	}
+	
+	Map<SootMethod, Boolean> mayThrowRuntimeException = new HashMap<SootMethod, Boolean>();
+	
+	/**
+	 * Takes a list of SootClasses and adds the RuntimeException class
+	 * if the list does not contain RuntimeException or any or its
+	 * supertypes.
+	 * 
+	 * @param classes
+	 */
+	private void addRuntimExceptionIfNecessary(List<SootClass> classes) {
+		boolean containRteOrAbove = false;
+		for (SootClass c : classes) {
+			if (hierarchy.isClassSubclassOfIncluding(c, runtimeExceptionClass)) {
+				containRteOrAbove = true;
+				break;
+			}
+		}
+		if (!containRteOrAbove) {
+			classes.add(runtimeExceptionClass);
+		}
 	}
 
 	private void sortExceptionsTightestFirst(List<SootClass> exceptions) {
@@ -336,7 +438,7 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 			}
 		});
 	}
-	
+
 	private Set<Trap> handleThrowStatements() {
 		Set<Trap> usedTraps = new HashSet<Trap>();
 		// last but not least eliminate all throw statements that are caught.
@@ -349,7 +451,7 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 			List<Trap> surroundingTraps = getTrapsGuardingUnit(u, body);
 
 			List<SootClass> possibleExceptions = new LinkedList<SootClass>();
-			
+
 			// TODO: maybe we should treat the case where thrownException
 			// is Throwable as a special case because then we have a
 			// finally block.
@@ -366,14 +468,14 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 					}
 				}
 			}
-			
+
 			if (!catchesThrownException) {
-				possibleExceptions.add(thrownException);	
+				possibleExceptions.add(thrownException);
 			}
-			
+
 			// now sort the classes.
 			sortExceptionsTightestFirst(possibleExceptions);
-			
+
 			// insert a jump for each possible exception.
 			List<Unit> toInsert = new LinkedList<Unit>();
 			boolean caughtThrowable = false;
@@ -558,11 +660,19 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 
 	protected List<Unit> updateExceptionVariableAndReturn(Body b, Value v, Host createdFrom) {
 		List<Unit> result = new LinkedList<Unit>();
-		if (!SootTranslationHelpers.v().getExceptionGlobalRef().equals(v)) {
-			result.add(assignStmtFor(SootTranslationHelpers.v().getExceptionGlobalRef(), v, createdFrom));
+		if (b.getMethod().isMain()) {
+			//if it's a main we add an assert false.
+			Local assertionLocal = Jimple.v().newLocal("$assert_" + (body.getLocals().size()), BooleanType.v());
+			body.getLocals().add(assertionLocal);
+			result.add(assignStmtFor(assertionLocal, IntConstant.v(0), createdFrom));
+			result.add(SootTranslationHelpers.v().makeAssertion(assertionLocal, createdFrom));			
+		} else {
+			//otherwise we update the exception variable and return a default value.
+			if (!SootTranslationHelpers.v().getExceptionGlobalRef().equals(v)) {
+				result.add(assignStmtFor(SootTranslationHelpers.v().getExceptionGlobalRef(), v, createdFrom));
+			}			
 		}
 		result.add(SootTranslationHelpers.v().getDefaultReturnStatement(b.getMethod().getReturnType(), createdFrom));
-		// result.add(throwStmtFor(l, createdFrom));
 		return result;
 	}
 
@@ -873,4 +983,5 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 		return a.getBeginUnit() == b.getBeginUnit() && a.getEndUnit() == b.getEndUnit()
 				&& a.getException() == b.getException();
 	}
+	
 }

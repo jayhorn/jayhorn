@@ -67,19 +67,21 @@ public class Options {
 		this.resolveVirtualCalls = r;
 	}
 	
-	/**
-	 * Encode references as tuples containing 
-	 * dynamic type, etc.
+	
+	/*
+	 * Pass the id of the call site as
+	 * method parameter to allow disjunctive
+	 * invariants
 	 */
-	private boolean tupleEncoding = false;
-	
-	public boolean useTupleEncoding() {
-		return this.tupleEncoding;
-	}
-	
-	public void setTupleEncoding(boolean val) {
-		this.tupleEncoding = val;
-	}
+//	private boolean passCallerIdIntoMethods = false;
+//	
+//	public boolean passCallerIdIntoMethods() {
+//		return passCallerIdIntoMethods;
+//	}
+//	
+//	public void passCallerIdIntoMethods(boolean val) {
+//		this.passCallerIdIntoMethods = val;
+//	}
 	
 	/* 
 	 * Create Assertions For Uncaught Exceptions
@@ -128,6 +130,17 @@ public class Options {
 	
 	public void setOutBaseName(String s) {
 		this.outBaseName = s;
+	}
+	
+	private boolean checkMixedJavaClassFiles = true;
+	
+	
+	public boolean checkMixedJavaClassFiles() {
+		return checkMixedJavaClassFiles;
+	}
+	
+	public void checkMixedJavaClassFiles(boolean val) {
+		checkMixedJavaClassFiles = val;
 	}
 	
 	/*

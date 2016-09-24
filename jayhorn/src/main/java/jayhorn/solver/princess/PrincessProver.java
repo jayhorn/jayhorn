@@ -30,7 +30,6 @@ import ap.parser.IExpression$;
 import ap.parser.IFormula;
 import ap.parser.IFormulaITE;
 import ap.parser.IFunApp;
-import ap.parser.IFunction;
 import ap.parser.IIntLit;
 import ap.parser.INot;
 import ap.parser.IPlus;
@@ -38,8 +37,6 @@ import ap.parser.ITerm;
 import ap.parser.ITermITE;
 import ap.parser.IVariable;
 import ap.parser.PredicateSubstVisitor$;
-import ap.parser.SMTParser2InputAbsy.SMTFunctionType;
-import ap.parser.SMTParser2InputAbsy.SMTType;
 import ap.parser.SymbolCollector$;
 import ap.terfor.ConstantTerm;
 import ap.terfor.preds.Predicate;
@@ -60,7 +57,6 @@ import lazabs.horn.bottomup.HornClauses.Clause;
 import lazabs.horn.bottomup.SimpleWrapper;
 import lazabs.horn.bottomup.Util.Dag;
 import scala.Tuple2;
-import scala.Tuple3;
 import scala.collection.Iterator;
 import scala.collection.Seq;
 import scala.collection.immutable.List;
@@ -346,33 +342,37 @@ public class PrincessProver implements Prover {
 						Options.v().getSolverOptions().contains("debug"));
 
 				if (result.isLeft()) {
-					StringBuffer sol = new StringBuffer();
-					sol.append("Solution:\n");
-					List<Tuple2<Predicate, IFormula>> ar = result.left().get().toList();
+					if (Options.v().solution) {
+						StringBuffer sol = new StringBuffer();
+						sol.append("Solution:\n");
+						List<Tuple2<Predicate, IFormula>> ar = result.left().get().toList();
 
-					while (!ar.isEmpty()) {
-						Tuple2<Predicate, IFormula> p = ar.head();
-						ar = (List<Tuple2<Predicate, IFormula>>) ar.tail();
-						sol.append("" + p._1() + ": " + api.pp(p._2()) + "\n");
+						while (!ar.isEmpty()) {
+							Tuple2<Predicate, IFormula> p = ar.head();
+							ar = (List<Tuple2<Predicate, IFormula>>) ar.tail();
+							sol.append("" + p._1() + ": " + api.pp(p._2()) + "\n");
+						}
+
+						Log.info(sol.toString());
 					}
-
-					Log.info(sol.toString());
 					return ProverResult.Sat;
 
 				} else {
-					Log.info("Counterexample:\n"
-							+ DialogUtil$.MODULE$.asString(new scala.runtime.AbstractFunction0<Integer>() {
-								public Integer apply() {
-									Dag<IAtom> simpDag = result.right().get()
-											.map(new scala.runtime.AbstractFunction1<Tuple2<IAtom, Clause>, IAtom>() {
-												public IAtom apply(Tuple2<IAtom, Clause> p) {
-													return p._1();
-												}
-											});
-									simpDag.prettyPrint();
-									return 0;
-								}
-							}));
+					if (Options.v().solution) {
+						Log.info("Counterexample:\n"
+								+ DialogUtil$.MODULE$.asString(new scala.runtime.AbstractFunction0<Integer>() {
+									public Integer apply() {
+										Dag<IAtom> simpDag = result.right().get()
+												.map(new scala.runtime.AbstractFunction1<Tuple2<IAtom, Clause>, IAtom>() {
+													public IAtom apply(Tuple2<IAtom, Clause> p) {
+														return p._1();
+													}
+												});
+										simpDag.prettyPrint();
+										return 0;
+									}
+								}));
+					}
 					return ProverResult.Unsat;
 				}
 			} else {

@@ -21,3 +21,16 @@ Waffel.io [![Stories in Ready](https://badge.waffle.io/jayhorn/jayhorn.svg?label
 
 
 [![Throughput Graph](https://graphs.waffle.io/jayhorn/jayhorn/throughput.svg)](https://waffle.io/jayhorn/jayhorn/metrics/throughput)
+
+## Acknowledgments and Disclaimers
+
+JayHorn is partially funded by:
+
+   * AFRL contract No. FA8750- 15-C-0010.
+   * DARPA under agreement FA8750-15-2-0087
+   * NSF award No. 1422705
+   * The Swedish Research Council
+   
+Any opinions, findings and conclusions or recommendations expressed in
+this material are those of the author(s) do not necessarily
+reflect the views of AFRL, DARPA, NSF or the Swedish Research Council.

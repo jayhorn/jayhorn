@@ -19,10 +19,10 @@
 
 package jayhorn;
 
-import org.kohsuke.args4j.Option;
-
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
+
+import org.kohsuke.args4j.Option;
 
 /**
  * Options
@@ -99,34 +99,22 @@ public class Options {
 	@Option(name = "-cfg", usage = "Print CFG", required = false)
 	private boolean printCFG = false;
 
-	public boolean getPrintCFG() {
-		return this.printCFG;
-	}
-
-	public void setPrintCFG(boolean b) {
-		this.printCFG = b;
-	}
-
+	
 	@Option(name = "-specs", usage = "Use built-in specs", required = false)
 	public boolean useSpecs = false;
 	
 	
 	@Option(name = "-stats", usage = "Generate Stats", required = false)
 	public boolean stats = false;
+	
+	@Option(name = "-solution", usage = "Output full solution or counter-example", required = false)
+	public boolean solution = false;
 
 	/*
 	 * Memory precision
 	 */
 	@Option(name = "-mem-prec", usage = "Precision of memory model", required = false)
-	private int memPrecision = 2;
-	
-	public int memPrecision() { 
-		return memPrecision;
-	}
-	
-	public void setMemPrecision(int prec) {
-		this.memPrecision = prec;
-	}
+	private int memPrecision = 3;
 	
 	
 	// /**
@@ -162,6 +150,44 @@ public class Options {
 		this.out = s;
 	}
 
+	/*
+	 * Memory precision
+	 */
+	@Option(name = "-inline_size", usage = "Inline everything with less than N stmts", required = false)
+	private int inlineMaxSize = -1;
+
+	/**
+	 * @return the inlineMinSize
+	 */
+	public int getInlineMaxSize() {
+		return inlineMaxSize;
+	}
+
+	/**
+	 * @param inlineMinSize the inlineMinSize to set
+	 */
+	public void setInlineMaxSize(int inlineMaxSize) {
+		this.inlineMaxSize = inlineMaxSize;
+	}
+
+	/**
+	 * @return the inlineCount
+	 */
+	public int getInlineCount() {
+		return inlineCount;
+	}
+
+	/**
+	 * @param inlineCount the inlineCount to set
+	 */
+	public void setInlineCount(int inlineCount) {
+		this.inlineCount = inlineCount;
+	}
+
+	@Option(name = "-inline_count", usage = "Inline everything that's called less than N times", required = false)
+	private int inlineCount = -1;
+
+	
 	/**
 	 * Classpath
 	 */
@@ -179,6 +205,14 @@ public class Options {
 		this.timeout = seconds;
 	}
 
+	
+	@Option(name = "-rta", usage = "Automatically inserts runtime assertions for Null deref, array bounds, and illegal casts.")
+	private boolean insertRuntimeAssertions = false;
+
+//	@Option(name = "-callid", usage = "Pass id of caller statement as argument to method")
+//	private boolean passCallerID = soottocfg.Options.v().passCallerIdIntoMethods();
+	
+	
 	/**
 	 * Determines, whether Joogie has an additional classpath
 	 * 
@@ -197,6 +231,13 @@ public class Options {
 		return classpath;
 	}
 
+	public void updateSootToCfgOptions() {
+//		soottocfg.Options.v().passCallerIdIntoMethods(passCallerID);
+		soottocfg.Options.v().setExcAsAssert(insertRuntimeAssertions);
+		soottocfg.Options.v().setMemPrecision(memPrecision);
+		soottocfg.Options.v().setPrintCFG(printCFG);
+	}
+	
 	/**
 	 * Assigns the additional classpath
 	 * 

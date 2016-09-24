@@ -81,10 +81,14 @@ public class HornRegressionTest {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
+			jayhorn.Options.v().setInlineCount(15);
+			jayhorn.Options.v().setInlineMaxSize(50);			
+
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
+//			soottocfg.Options.v().setPrintCFG(true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
-
+//			jayhorn.Options.v().setPrintHorn(true);
 			Program program = soot2cfg.getProgram();
 	  		Checker hornChecker = new Checker(factory);
 	  		boolean result = hornChecker.checkProgram(program);

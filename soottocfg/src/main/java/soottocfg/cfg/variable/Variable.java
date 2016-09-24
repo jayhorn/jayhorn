@@ -7,6 +7,8 @@ import java.io.Serializable;
 
 import com.google.common.base.Preconditions;
 
+import soottocfg.cfg.SourceLocation;
+import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.type.Type;
 
 /**
@@ -36,6 +38,10 @@ public class Variable implements Serializable {
 		this.unique = unique;
 	}
 
+	public IdentifierExpression mkExp(SourceLocation loc) {
+		return new IdentifierExpression(loc, this);
+	}
+	
 	public String getName() {
 		return this.variableName;
 	}
