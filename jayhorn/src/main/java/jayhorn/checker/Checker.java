@@ -87,7 +87,7 @@ public class Checker {
         prover.pop();
         ++verifCount;
       }
-      prover.printRules();
+      //prover.printRules();
     } catch (Throwable t) {
       t.printStackTrace();
       throw new RuntimeException(t);
