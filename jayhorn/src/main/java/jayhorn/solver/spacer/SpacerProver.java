@@ -989,7 +989,6 @@ public class SpacerProver implements Prover {
 	 * @param relation
 	 */
 	public void addRule(ProverExpr relation){
-		System.out.println(relation);
 		try {
 			if (relation instanceof SpacerHornExpr) {
 				SpacerHornExpr hc = (SpacerHornExpr) relation;

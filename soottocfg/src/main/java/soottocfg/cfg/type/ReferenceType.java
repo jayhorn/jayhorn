@@ -1,22 +1,17 @@
-/**
- * 
- */
 package soottocfg.cfg.type;
 
-import soottocfg.cfg.ClassVariable;
+import soottocfg.cfg.variable.ClassVariable;
 
 /**
  * @author schaef
+ * @author rodykers
  *
  */
 public class ReferenceType extends ReferenceLikeType {
 
 	private static final long serialVersionUID = 4056715121602313972L;
 	private final ClassVariable classVariable;
-
-	/**
-	 * 
-	 */
+	
 	public ReferenceType(ClassVariable var) {
 		classVariable = var;
 	}
@@ -24,12 +19,11 @@ public class ReferenceType extends ReferenceLikeType {
 	public ClassVariable getClassVariable() {
 		return classVariable;
 	}
-	
+
 	public String toString() {
 		if (classVariable == null) {
 			return "Null";
 		} else {
-//			return "ref(" + classVariable.getName() + ")";
 			return classVariable.getName().replace('/','.');
 		}
 	}

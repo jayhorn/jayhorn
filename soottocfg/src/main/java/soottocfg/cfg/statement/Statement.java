@@ -5,12 +5,13 @@ package soottocfg.cfg.statement;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import soottocfg.cfg.Node;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.variable.Variable;
 
 /**
  * @author schaef
@@ -77,4 +78,11 @@ public abstract class Statement implements Node, Serializable {
 	}
 	
 	public abstract Statement deepCopy();
+	
+	/**
+	 * Returns a deep copy of the statement where all
+	 * variables in the map have been substituted.
+	 * @param subs
+	 */
+	public abstract Statement substitute(Map<Variable, Variable> subs);
 }

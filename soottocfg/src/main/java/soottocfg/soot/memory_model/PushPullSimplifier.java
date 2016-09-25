@@ -11,10 +11,9 @@ import soot.Scene;
 import soot.SootField;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
-import soottocfg.cfg.expression.BooleanLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
@@ -24,6 +23,7 @@ import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.SootTranslationHelpers;
 
 public class PushPullSimplifier {
@@ -73,6 +73,9 @@ public class PushPullSimplifier {
 			simplifications += movePullUp(b);
 			simplifications += movePushDown(b);
 			simplifications += swapPushPull(b);
+			// I think running these is only sound when 'distinct()' is
+//			simplifications += orderPulls(b);
+//			simplifications += orderPushes(b);
 			simplifications += assumeFalseEatPreceeding(b);
 		} while (simplifications > 0);
 	}
@@ -250,7 +253,59 @@ public class PushPullSimplifier {
 		return swapped;
 	}
 	
-	/* Rule VIII (new) */
+	/* Rule VIII */
+	private int orderPulls(CfgBlock b) {
+		// order pushes alphabetically w.r.t. the object name
+		// allows to remove doubles
+		int swapped = 0;
+		List<Statement> stmts = b.getStatements();
+		for (int i = 0; i+1 < stmts.size(); i++) {
+			if (stmts.get(i) instanceof PullStatement && stmts.get(i+1) instanceof PullStatement) {
+				PullStatement pull1 = (PullStatement) stmts.get(i);
+				PullStatement pull2 = (PullStatement) stmts.get(i+1);
+				if (pull1.getObject().toString().compareTo(pull2.getObject().toString()) < 0) {
+					//only swap if none of the vars in the pull and push point to the same location
+					Set<IdentifierExpression> pull1vars = pull1.getIdentifierExpressions();
+					Set<IdentifierExpression> pull2vars = pull2.getIdentifierExpressions();
+					if (distinct(pull1vars,pull2vars)) {
+						b.swapStatements(i, i+1);
+						if (debug)
+							System.out.println("Applied rule (VIII); swapped " + pull1 + " and " + pull2);
+						swapped++;
+					}
+				}
+			}
+		}
+		return swapped;
+	}
+	
+	/* Rule IX */
+	private int orderPushes(CfgBlock b) {
+		// order pushes alphabetically w.r.t. the object name
+		// allows to remove doubles
+		int swapped = 0;
+		List<Statement> stmts = b.getStatements();
+		for (int i = 0; i+1 < stmts.size(); i++) {
+			if (stmts.get(i) instanceof PushStatement && stmts.get(i+1) instanceof PushStatement) {
+				PushStatement push1 = (PushStatement) stmts.get(i);
+				PushStatement push2 = (PushStatement) stmts.get(i+1);
+				if (push1.getObject().toString().compareTo(push2.getObject().toString()) < 0) {
+					//only swap if none of the vars in the pull and push point to the same location
+					Set<IdentifierExpression> push1vars = push1.getIdentifierExpressions();
+					Set<IdentifierExpression> push2vars = push2.getIdentifierExpressions();
+					if (distinct(push1vars,push2vars)) {
+						b.swapStatements(i, i+1);
+						if (debug)
+							System.out.println("Applied rule (IX); swapped " + push1 + " and " + push2);
+						swapped++;
+					}
+				}
+			}
+		}
+		return swapped;
+	}
+	
+	/* Rule X (new) */
 	private int assumeFalseEatPreceeding(CfgBlock b) {
 		int eaten = 0;
 		List<Statement> stmts = b.getStatements();
@@ -276,6 +331,22 @@ public class PushPullSimplifier {
 
 	/* Temporary: only compare the actual identifiers. TODO: points-to analysis */
 	private boolean distinct(Set<IdentifierExpression> vars1, Set<IdentifierExpression> vars2) {
+		// Code based on alias analysis, does not work yet
+//		if (soottocfg.Options.v().memPrecision() >= 3) {
+//			for (IdentifierExpression exp1 : vars1) {
+//				for (IdentifierExpression exp2 : vars2) {
+//					if (debug)
+//						System.out.println("Checking distinctness of " + exp1 + exp1.getType() + " and " + exp2 + exp2.getType());
+//					if (exp1.getType() instanceof ReferenceType 
+//							&& exp2.getType() instanceof ReferenceType 
+//							&& FlowBasedPointsToAnalysis.mayAlias(exp1, exp2))
+//						return false;
+//				}
+//			}
+//			return true;	
+//		}
+//		return false;
+		
 		NewMemoryModel mem = (NewMemoryModel) SootTranslationHelpers.v().getMemoryModel();
 		PointsToAnalysis pta = Scene.v().getPointsToAnalysis();
 		for (IdentifierExpression exp1 : vars1) {
@@ -319,8 +390,13 @@ public class PushPullSimplifier {
 					CfgBlock prev = b.getMethod().getEdgeSource(in);
 					// only move up in CFG
 					if (isUp(prev,b)) {
-						prev.addStatement(stmts.get(s));
-						toRemove.add(stmts.get(s));
+						Statement stmt = stmts.get(s);
+						//don't create references to the same statement in multiple blocks
+						if (toRemove.contains(stmt))
+							stmt = stmt.deepCopy();
+						else
+							toRemove.add(stmt);
+						prev.addStatement(stmt);
 						moves++;
 
 						if (debug)
@@ -338,63 +414,69 @@ public class PushPullSimplifier {
 		int moves = 0;
 		for (CfgBlock b : blocks) {
 			List<Statement> stmts = b.getStatements();
-			int s = 0;
+			int s = stmts.size()-1;
 			Set<Statement> toRemove = new HashSet<Statement>();
-			while (s < stmts.size() && stmts.get(s) instanceof PushStatement) {
+			while (s > 0 && stmts.get(s) instanceof PushStatement) {
 				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
 				for (CfgEdge out : outgoing) {
 					CfgBlock next = b.getMethod().getEdgeTarget(out);
 					// only move down in source
 					if (isDown(next,b)) {
- 						next.addStatement(0,stmts.get(s));
-						toRemove.add(stmts.get(s));
+						
+						Statement stmt = stmts.get(s);
+						//don't create references to the same statement in multiple blocks
+						if (toRemove.contains(stmt))
+							stmt = stmt.deepCopy();
+						else
+							toRemove.add(stmt);
+						next.addStatement(0, stmt);
 						moves++;
 
 						if (debug)
 							System.out.println("Moved " + stmts.get(s) + " down in CFG.");
 					}
 				}
-				s++;
+				s--;
 			}
 			b.removeStatements(toRemove);
 		}
 		return moves;
 	}
 	
-	private int moveAssumeFalseUpInCFG(Set<CfgBlock> blocks) {
-		int moves = 0;
-		for (CfgBlock b : blocks) {
-			if (!b.getStatements().isEmpty()) {
-				Statement stmt = b.getStatements().get(0);
-				if (stmt instanceof AssumeStatement) {
-					AssumeStatement as = (AssumeStatement) stmt;
-					if (as.getExpression() instanceof BooleanLiteral && 
-							((BooleanLiteral) as.getExpression()).equals(BooleanLiteral.falseLiteral())) {
-						System.out.println("Found assume(false)");
-						// Found one! Now only move it up if all predecessors are actually up.
-						boolean allUp = true;
-						Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
-						for (CfgEdge in : incoming) {
-							CfgBlock prev = b.getMethod().getEdgeSource(in);
-							if (!isUp(prev,b))
-								allUp = false;
-						}
-						if (allUp && !incoming.isEmpty()) {
-							for (CfgEdge in : incoming) {
-								CfgBlock prev = b.getMethod().getEdgeSource(in);
-								prev.addStatement(as);							
-							}
-							b.removeStatement(as);
-							moves++;
-							if (debug)
-								System.out.println("Moved assume(false) up in CFG.");
-						}
-					}
-				}
-			}
-		}
-		return moves;
-	}
+//	private int moveAssumeFalseUpInCFG(Set<CfgBlock> blocks) {
+//		int moves = 0;
+//		for (CfgBlock b : blocks) {
+//			if (!b.getStatements().isEmpty()) {
+//				Statement stmt = b.getStatements().get(0);
+//				if (stmt instanceof AssumeStatement) {
+//					AssumeStatement as = (AssumeStatement) stmt;
+//					if (as.getExpression() instanceof BooleanLiteral && 
+//							((BooleanLiteral) as.getExpression()).equals(BooleanLiteral.falseLiteral())) {
+//						System.out.println("Found assume(false)");
+//						// Found one! Now only move it up if all predecessors are actually up.
+//						boolean allUp = true;
+//						Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
+//						for (CfgEdge in : incoming) {
+//							CfgBlock prev = b.getMethod().getEdgeSource(in);
+//							if (!isUp(prev,b))
+//								allUp = false;
+//						}
+//						if (allUp && !incoming.isEmpty()) {
+//							for (CfgEdge in : incoming) {
+//								CfgBlock prev = b.getMethod().getEdgeSource(in);
+//								prev.addStatement(as);							
+//							}
+//							b.removeStatement(as);
+//							moves++;
+//							if (debug)
+//								System.out.println("Moved assume(false) up in CFG.");
+//						}
+//					}
+//				}
+//			}
+//		}
+//		return moves;
+//	}
 	
 //	private int removeEmptyBlocks(Method m) {
 //		int removed = 0;

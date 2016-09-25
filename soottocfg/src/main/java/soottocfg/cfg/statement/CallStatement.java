@@ -6,6 +6,7 @@ package soottocfg.cfg.statement;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
@@ -14,6 +15,7 @@ import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.variable.Variable;
 
 /**
  * @author schaef
@@ -94,7 +96,7 @@ public class CallStatement extends Statement {
 	}
 
 	@Override
-	public Statement deepCopy() {
+	public CallStatement deepCopy() {
 		List<Expression> argCopy = new LinkedList<Expression>();
 		for (Expression e : arguments) {
 			argCopy.add(e.deepCopy());
@@ -105,4 +107,18 @@ public class CallStatement extends Statement {
 		}
 		return new CallStatement(getSourceLocation(), method, argCopy, rec);
 	}
+	
+	@Override
+	public CallStatement substitute(Map<Variable, Variable> subs) {
+		List<Expression> argCopy = new LinkedList<Expression>();
+		for (Expression e : arguments) {
+			argCopy.add(e.substitute(subs));
+		}
+		List<Expression> rec = new LinkedList<Expression>();
+		for (Expression e : returnReceiver) {
+			rec.add(e.substitute(subs));
+		}
+		return new CallStatement(getSourceLocation(), method, argCopy, rec);
+	}
+
 }

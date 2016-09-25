@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -26,15 +27,18 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 
+import soot.RefType;
+import soot.SootMethod;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.Node;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.variable.Variable;
+import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.util.SetOperations;
 
 /**
@@ -46,8 +50,9 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	 * 
 	 */
 	private static final long serialVersionUID = 3367382274895641548L;
-	
-	private final transient SourceLocation location; //TODO remove the transient
+
+	private final transient SourceLocation location; // TODO remove the
+														// transient
 	private final String methodName;
 	private final List<Type> returnTypes;
 	private Variable thisVariable;
@@ -56,29 +61,36 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	private Set<Variable> locals;
 	private CfgBlock source, sink;
 	private boolean isProgramEntry = false;
-	
 
-	
-	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, List<Type> outTypes, SourceLocation sourceLocation) {
-		Preconditions.checkArgument(p.loopupMethod(uniqueName)==null, "Method with name "+uniqueName + " already exists");		
-		Method m = new Method(sourceLocation, uniqueName, params, outTypes);
+	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, List<Type> outTypes,
+			SourceLocation sourceLocation) {
+		Preconditions.checkArgument(p.lookupMethod(uniqueName) == null,
+				"Method with name " + uniqueName + " already exists");
+		// add the exceptional return type to all methods that are generated.
+		List<Type> returnTypes = new LinkedList<Type>();
+		RefType reftype = RefType.v("java.lang.Throwable");
+		Verify.verifyNotNull(reftype);
+		returnTypes.add(SootTranslationHelpers.v().getMemoryModel().lookupType(reftype));
+		returnTypes.addAll(outTypes);
+		Method m = new Method(sourceLocation, uniqueName, params, returnTypes);
 		p.addMethod(m);
 		return m;
 	}
-	
+
 	private Method(SourceLocation loc, String uniqueName, List<Variable> params, List<Type> outTypes) {
 		super(new ClassBasedEdgeFactory<CfgBlock, CfgEdge>(CfgEdge.class), true, true);
 		location = loc;
 		methodName = uniqueName;
 		returnTypes = outTypes;
-		locals = new HashSet<Variable>();
+		locals = new LinkedHashSet<Variable>();
 		this.parameterList = Collections.unmodifiableList(params);
 	}
 
 	public Method createMethodFromSubgraph(DirectedGraph<CfgBlock, CfgEdge> subgraph, String newMethodName) {
-		Preconditions.checkArgument(vertexSet().containsAll(subgraph.vertexSet()), "Method does not contain all nodes from subgraph.");
+		Preconditions.checkArgument(vertexSet().containsAll(subgraph.vertexSet()),
+				"Method does not contain all nodes from subgraph.");
 		Method subgraphMethod = new Method(location, newMethodName, this.parameterList, this.returnTypes);
-		
+
 		for (CfgBlock v : subgraph.vertexSet()) {
 			subgraphMethod.addVertex(v);
 		}
@@ -88,38 +100,61 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		subgraphMethod.initialize(thisVariable, returnVariable, locals, source, isProgramEntry);
 		return subgraphMethod;
 	}
-	
+
 	public String getMethodName() {
 		return this.methodName;
 	}
-	
+
 	public SourceLocation getLocation() {
 		return location;
 	}
 
-	public void initialize(Variable thisVariable, List<Variable> returnVariables,
-			Collection<Variable> locals, CfgBlock source, boolean isEntryPoint) {
+	public boolean isConstructor() {
+		return this.methodName.contains(SootMethod.constructorName);
+	}
+
+	public boolean isStaticInitializer() {
+		return this.methodName.contains(SootMethod.staticInitializerName);
+	}
+
+	@Override
+	public boolean removeVertex(CfgBlock v) {
+		if (this.source == v) {
+			this.source = null;
+		} else if (this.sink == v) {
+			this.sink = null;
+		}
+		return super.removeVertex(v);
+	}
+
+	public void initialize(Variable thisVariable, List<Variable> returnVariables, Collection<Variable> locals,
+			CfgBlock source, boolean isEntryPoint) {
 		Preconditions.checkNotNull(parameterList, "Parameter list must not be null");
 		Preconditions.checkNotNull(source);
-		
+
 		this.thisVariable = thisVariable;
 		this.returnVariable = returnVariables;
-		this.locals = new HashSet<Variable>(locals);
+		this.locals = new LinkedHashSet<Variable>(locals);
 		this.source = source;
 		this.isProgramEntry = isEntryPoint;
-			
-		if (this.thisVariable!=null) {
-			//then the first parameter must be the reference to the current instance
-			//and we have to add an assignment to the source block.
+
+		SourceLocation loc = null; // TODO
+		// return var 0 is the exceptional return variable.
+		// first statement has to assign the exception local to null
+		this.source.addStatement(0, new AssignStatement(loc, new IdentifierExpression(loc, this.returnVariable.get(0)),
+				SootTranslationHelpers.v().getMemoryModel().mkNullConstant()));
+
+		if (this.thisVariable != null) {
+			// then the first parameter must be the reference to the current
+			// instance
+			// and we have to add an assignment to the source block.
 			Verify.verify(!this.parameterList.isEmpty());
 			Verify.verifyNotNull(this.source);
-			SourceLocation loc = null; //TODO
-			AssignStatement thisAssign = new AssignStatement(loc, new IdentifierExpression(loc, this.thisVariable), new IdentifierExpression(loc, this.parameterList.get(0)));
+			AssignStatement thisAssign = new AssignStatement(loc, new IdentifierExpression(loc, this.thisVariable),
+					new IdentifierExpression(loc, this.parameterList.get(0)));
 			this.source.addStatement(0, thisAssign);
-		}		
+		}
 	}
-	
-
 
 	/**
 	 * Adds a guard expression as label to an edge. The label must not be null
@@ -136,16 +171,29 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	public boolean isProgramEntryPoint() {
 		return this.isProgramEntry;
 	}
-	
+
 	public void isProgramEntryPoint(boolean b) {
 		this.isProgramEntry = b;
 	}
 
+	public void setSource(CfgBlock b) {
+		Preconditions.checkArgument(this.vertexSet().contains(b));
+		Preconditions.checkArgument(this.inDegreeOf(b)==0);
+		this.source=b;
+	}
+
+	public void setSink(CfgBlock b) {
+		Preconditions.checkArgument(this.vertexSet().contains(b));
+		Preconditions.checkArgument(this.outDegreeOf(b)==0);
+		this.sink=b;
+	}
+	
+	
 	public CfgBlock getSource() {
-		if (source==null) {
-			for (CfgBlock b : vertexSet()) {				
-				if (inDegreeOf(b)==0) {
-					Verify.verify(source==null, "More than one source in graph!");
+		if (source == null) {
+			for (CfgBlock b : vertexSet()) {
+				if (inDegreeOf(b) == 0) {
+					Verify.verify(source == null, "More than one source in graph!");
 					source = b;
 				}
 			}
@@ -154,14 +202,14 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	}
 
 	public CfgBlock getSink() {
-		if (sink==null) {
-			for (CfgBlock b : vertexSet()) {				
-				if (outDegreeOf(b)==0) {
-					Verify.verify(sink==null, "More than one source in graph!");
+		if (sink == null) {
+			for (CfgBlock b : vertexSet()) {
+				if (outDegreeOf(b) == 0) {
+					Verify.verify(sink == null, "More than one source in graph!");
 					sink = b;
 				}
 			}
-		}		
+		}
 		return sink;
 	}
 
@@ -181,7 +229,6 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 				}
 			}
 			if (currentSinks.isEmpty()) {
-				//System.err.println("No exit for " + this.methodName);
 				sink = null;
 			} else if (currentSinks.size() == 1) {
 				sink = currentSinks.iterator().next();
@@ -209,16 +256,18 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	/**
 	 * Returns the in parameter at position {@literal pos}. Throws
 	 * an exception it {@literal pos} is not a legal index.
-	 * @param pos 
+	 * 
+	 * @param pos
 	 * @return The parameter at position pos.
 	 * @throws IndexOutOfBoundsException
 	 */
 	public Variable getInParam(int pos) {
 		return this.parameterList.get(pos);
 	}
-	
+
 	/**
-	 * Returns immutable view of the list of parameters.  
+	 * Returns immutable view of the list of parameters.
+	 * 
 	 * @return immutable view of the list of parameters.
 	 */
 	public List<Variable> getInParams() {
@@ -227,38 +276,46 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 
 	/**
 	 * Returns an {@link Optional} Variable of the return variable of the
-	 * current Method. 
+	 * current Method.
+	 * 
 	 * @return Optional return variable.
 	 */
-	public List<Variable> getOutParam() {		
-		if (this.returnVariable==null) {
+	public List<Variable> getOutParams() {
+		if (this.returnVariable == null) {
 			return new LinkedList<Variable>();
 		}
 		return new LinkedList<Variable>(this.returnVariable);
 	}
 
+	public void setOutParam(List<Variable> returnVariables) {
+		this.returnVariable = returnVariables;
+	}
+
 	/**
 	 * Returns an {@link Optional} return type of the method.
 	 * I.e., either a type or None if the method returns void
+	 * 
 	 * @return Optional return type.
 	 */
 	public List<Type> getReturnType() {
 		return this.returnTypes;
 	}
 
-	
-	/** TODO:
+	/**
+	 * TODO:
 	 * Add a local variable. This method should not be used. Its only
 	 * use is in the SSA computation to create a non-deterministic assignment.
 	 * Hopefully we find a better way todo this.
+	 * 
 	 * @param local
 	 */
 	public void addLocalVariable(Variable local) {
 		locals.add(local);
 	}
-	
+
 	/**
 	 * Returns an immutable view of the set of local variables.
+	 * 
 	 * @return immutable view of the set of local variables.
 	 */
 	public Collection<Variable> getLocals() {
@@ -294,7 +351,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -309,7 +366,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 			comma = ", ";
 		}
 		sb.append(")\n");
-		if (this.returnTypes.size()>0) {
+		if (this.returnTypes.size() > 0) {
 			sb.append("  Return types: ");
 			comma = "";
 			for (Type t : this.returnTypes) {
@@ -330,7 +387,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 			sb.append("\n");
 			sb.append("\n");
 		}
-		comma = "";		
+		comma = "";
 		if (this.locals != null && !this.locals.isEmpty()) {
 			sb.append("  locals:\n");
 			for (Variable v : this.locals) {
@@ -369,7 +426,6 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		}
 		return rval;
 	}
-
 
 	/**
 	 * Return the set of live variable at the entry of each block. A variable is
@@ -416,5 +472,4 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 
 		return new LiveVars<CfgBlock>(in, out);
 	}
-
 }

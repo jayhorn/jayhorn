@@ -8,10 +8,11 @@ import java.util.Set;
 import com.google.common.base.Preconditions;
 
 import soottocfg.cfg.LiveVars;
-import soottocfg.cfg.expression.BooleanLiteral;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.util.UnreachableNodeRemover;
 import soottocfg.util.SetOperations;
@@ -31,15 +32,18 @@ public class DeadCodeElimination extends CfgUpdater {
 		for (CfgBlock block : currentMethod.vertexSet()) {
 			processCfgBlock(block);
 		}
-		UnreachableNodeRemover<CfgBlock, CfgEdge> remover = new UnreachableNodeRemover<CfgBlock, CfgEdge>(currentMethod,
-				currentMethod.getSource(), null);
-		remover.pruneUnreachableNodes();
+		UnreachableNodeRemover<CfgBlock, CfgEdge> remover = new UnreachableNodeRemover<CfgBlock, CfgEdge>(
+				currentMethod);
+		remover.pruneUnreachableNodes(currentMethod.getSource());
 		blockLiveVars = null;
 		return changed;
 	}
 
-
 	protected boolean isDead(Statement stmt, LiveVars<Statement> liveVars) {
+		if (!(stmt instanceof AssignStatement)) {
+			// only assignments can be dead.
+			return false;
+		}
 		// If a statement writes to only variables that are not live, we can
 		// remove it!
 		// I.e. if intersection s.lvals, s.live is empty
@@ -73,7 +77,7 @@ public class DeadCodeElimination extends CfgUpdater {
 				if (edge.getLabel().get().equals(BooleanLiteral.falseLiteral())) {
 					toRemove.add(edge);
 				} else {
-					System.err.println(edge.getLabel().get());
+					// TODO?
 				}
 			}
 		}

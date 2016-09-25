@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Verify;
-
 import soot.Local;
 import soot.RefType;
 import soot.Scene;
@@ -49,7 +47,6 @@ public class SpecClassTransformer extends AbstractSceneTransformer {
 		SootClass listSpec = Scene.v().loadClass(ListSimpleSpec.class.getName(), SootClass.SIGNATURES);
 		replacementMap.put(Scene.v().getSootClass(java.util.LinkedList.class.getName()), listSpec);
 		replacementMap.put(Scene.v().getSootClass(java.util.List.class.getName()), listSpec);
-		
 	}
 
 	/*
@@ -63,7 +60,7 @@ public class SpecClassTransformer extends AbstractSceneTransformer {
 	public void applyTransformation() {
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		List<JimpleBody> bodies = new LinkedList<JimpleBody>();
-		List<SootMethod> entryPoints = new LinkedList<SootMethod>(Scene.v().getEntryPoints());
+//		List<SootMethod> entryPoints = new LinkedList<SootMethod>(Scene.v().getEntryPoints());
 		// Don't transform the classes that we replace anyway.
 		classes.removeAll(replacementMap.keySet());
 
@@ -92,10 +89,10 @@ public class SpecClassTransformer extends AbstractSceneTransformer {
 				for (SootMethod sm : sc.getMethods()) {
 					final String oldSignature = sm.getSignature();
 					// we also have to update the refs in the EntryPoint list.
-					boolean wasMain = sm.isEntryMethod();
-					if (wasMain) {
-						entryPoints.remove(sm);
-					}
+//					boolean wasMain = sm.isEntryMethod();
+//					if (wasMain) {
+//						entryPoints.remove(sm);
+//					}
 
 					if (sc.resolvingLevel() >= SootClass.BODIES && sm.isConcrete() && !sc.isLibraryClass()
 							&& !sc.isJavaLibraryClass()) {
@@ -111,9 +108,9 @@ public class SpecClassTransformer extends AbstractSceneTransformer {
 					}
 					sm.setParameterTypes(newParamTypes);
 
-					if (wasMain) {
-						entryPoints.add(sm);
-					}
+//					if (wasMain) {
+//						entryPoints.add(sm);
+//					}
 
 					methodSubstitutionMap.put(oldSignature, sm);
 				}

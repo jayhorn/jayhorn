@@ -1,12 +1,7 @@
 package jayhorn.solver;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.google.common.io.Files;
 
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.solver.spacer.SpacerProver;

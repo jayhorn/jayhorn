@@ -6,15 +6,16 @@ package soottocfg.cfg.statement;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Verify;
 
-import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.Variable;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.cfg.variable.Variable;
 
 /**
  * @author schaef
@@ -24,7 +25,7 @@ public class PushStatement extends Statement {
 
 	private static final long serialVersionUID = 5776310555422969945L;
 	private final ClassVariable classConstant;
-	private final IdentifierExpression object;
+	private IdentifierExpression object;
 	private final List<Expression> right;
 	
 	private final int id;	
@@ -91,7 +92,7 @@ public class PushStatement extends Statement {
 		for (Expression e : right) {
 			used.addAll(e.getUseIdentifierExpressions());	
 		}
-                used.add(object);
+        used.add(object);
 		return used;
 	}
 
@@ -131,4 +132,26 @@ public class PushStatement extends Statement {
 		return new PushStatement(getSourceLocation(), classConstant, object.deepCopy(), rightCopy, this.id);
 	}
 
+	@Override
+	public PushStatement substitute(Map<Variable, Variable> subs) {
+		List<Expression> rightCopy = new LinkedList<Expression>();
+		for (Expression e : right) {
+			rightCopy.add(e.substitute(subs));
+		}
+		return new PushStatement(getSourceLocation(), classConstant, object.substitute(subs), rightCopy, this.id);
+
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof PushStatement))
+			return false;
+		PushStatement other = (PushStatement) o;
+		return this.id == other.id;
+	}
+	
+	@Override
+	public int hashCode() {
+		return id;
+	}
 }

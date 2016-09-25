@@ -11,6 +11,7 @@ class Sat04
 	  {
 		Random rand = new Random(42);
 		int N = rand.nextInt();
+		if (N<0) return;
 
 	    A a=new A();
 	    a.i = 0;

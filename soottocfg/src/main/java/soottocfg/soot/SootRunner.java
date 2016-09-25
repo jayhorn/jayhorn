@@ -37,13 +37,17 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+import com.google.common.base.Verify;
 import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ClassInfo;
 
+import soot.ArrayType;
 import soot.BooleanType;
 import soot.Modifier;
 import soot.PackManager;
+import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
@@ -52,6 +56,7 @@ import soot.Type;
 import soot.VoidType;
 import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
+import soottocfg.Options;
 
 /**
  * The Soot Runner
@@ -64,14 +69,11 @@ public class SootRunner {
 	private final soot.options.Options sootOpt;
 	// private final List<String> resolvedClassNames;
 
-	private final boolean useSpecs;
-
-	public SootRunner(boolean useSpecs) {
-		this(useSpecs, new ArrayList<String>());
+	public SootRunner() {
+		this(new ArrayList<String>());
 	}
 
-	public SootRunner(boolean useSpecs, List<String> resolvedClassNames) {
-		this.useSpecs = useSpecs;
+	public SootRunner(List<String> resolvedClassNames) {
 		this.sootOpt = soot.options.Options.v();
 	}
 
@@ -171,24 +173,84 @@ public class SootRunner {
 
 			// set soot-class-path
 			sootOpt.set_soot_classpath(cp);
-			sootOpt.set_src_prec(soot.options.Options.src_prec_class);
+			sootOpt.set_src_prec(soot.options.Options.src_prec_only_class);
 
 			List<String> processDirs = new LinkedList<String>();
 			processDirs.add(path);
 
-			if (useSpecs) {
+			if (Options.v().useBuiltInSpecs()) {
 				File specDir = new File("spec_stuff/");
 				writeSpecPackageToDisc(specDir);
 				processDirs.add(specDir.getAbsolutePath());
 			}
-			
+			if (Options.v().checkMixedJavaClassFiles()) {
+				enforceNoSrcPolicy(processDirs);
+			}
 			sootOpt.set_process_dir(processDirs);
 
 			// finally, run soot
 			loadClassesIntoScene(new LinkedList<String>());
 
+			// now set the main class
+			inferMainMethod();
+
 		} catch (Exception e) {
 			throw e;
+		}
+	}
+
+	private void inferMainMethod() {
+		SootMethod mainMethod = null;
+		SootClass mainClass = null;
+		boolean toManyMains = false;
+		StringBuilder sb = new StringBuilder();
+		for (SootClass c : Scene.v().getApplicationClasses()) {
+			if (c.declaresMethod("main", Arrays.asList((Type)ArrayType.v(RefType.v("java.lang.String"), 1)), VoidType.v())) {
+				if (mainMethod != null) {
+					toManyMains = true;
+				}
+				mainMethod = c.getMethod("main", Arrays.asList((Type)ArrayType.v(RefType.v("java.lang.String"), 1)),
+						VoidType.v());
+				
+				mainClass = c;
+				System.err.println(mainMethod.getSignature());
+				sb.append(mainMethod.getSignature());
+				sb.append("\n");
+			}
+		}
+		Verify.verify(mainClass!=null && mainMethod!=null, "No main method found. Terminating.");
+		Scene.v().setMainClass(mainClass);
+		if (toManyMains) {
+			System.err.println("More than one main found:");
+			System.err.println(sb.toString());
+			System.err.println("Picking the last one.");
+		}
+	}
+
+	/**
+	 * Soot only runs properly if there are only class files in the processed
+	 * directory.
+	 * If there are source files mixed with class files, stange errors happen
+	 * because
+	 * soot mixes them in the scene.
+	 * To avoid these random error, we fail early.
+	 * 
+	 * @param dirs
+	 */
+	private void enforceNoSrcPolicy(List<String> dirs) {
+		for (String dir : dirs) {
+			for (File f : Files.fileTreeTraverser().preOrderTraversal(new File(dir))) {
+				if (f != null && f.isFile() && f.getName().endsWith(".java")) {
+					StringBuilder sb = new StringBuilder();
+					sb.append("Found mix of source and class files in folder ");
+					sb.append(f.getParent());
+					sb.append("\nSoot expects a directory tree that only contains class files.\n");
+					sb.append("Please create a directory, compile your code with javac -d [dir]\n");
+					sb.append("and pass us this dir. Sorry for the inconvenience.");
+					System.err.println(sb.toString());
+					throw new UnsupportedOperationException("Bad value for -j argument.");
+				}
+			}
 		}
 	}
 

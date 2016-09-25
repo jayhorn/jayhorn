@@ -76,16 +76,17 @@ public class FailingTests {
 	protected void verifyAssertions(ProverFactory factory) {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
-		try {
+		try {			
 			classDir = Util.compileJavaFile(this.sourceFile);
-			SootToCfg soot2cfg = new SootToCfg(false, true);
+			SootToCfg soot2cfg = new SootToCfg();
+			soottocfg.Options.v().setMemPrecision(2);
+			soottocfg.Options.v().setExcAsAssert(false);
+			soottocfg.Options.v().setPrintCFG(true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
-			jayhorn.Options.v().setTimeout(5);
-			jayhorn.Options.v().setPrintHorn(true);
-//			Checker checker = new Checker(factory);
-//			boolean result = checker.checkProgram(soot2cfg.getProgram());
-			
 			Program program = soot2cfg.getProgram();
+			
+			jayhorn.Options.v().setTimeout(5);
+			jayhorn.Options.v().setPrintHorn(false);	
 	  		Checker hornChecker = new Checker(factory);
 	  		boolean result = hornChecker.checkProgram(program);
 	  		

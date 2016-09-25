@@ -18,7 +18,6 @@ import org.jgrapht.graph.DefaultEdge;
 import com.google.common.base.Optional;
 import com.google.common.base.Verify;
 
-import soottocfg.cfg.ClassVariable;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
@@ -26,6 +25,9 @@ import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.soot.SootToCfg;
+import soottocfg.soot.util.FlowBasedPointsToAnalysis;
 import soottocfg.util.Pair;
 
 /**
@@ -36,14 +38,20 @@ public class InterProceduralPullPushOrdering {
 	private Map<Method, Pair<FixedPointObject, FixedPointObject>> methodEntryExit;
 
 	static class FixedPointObject {
-		// public final Set<PushStatement> relevantBefore = new
-		// HashSet<PushStatement>();
-		// public final Set<PushStatement> relevantAfter = new
-		// HashSet<PushStatement>();
 		public Optional<Statement> stmt = Optional.absent();
 		public Method containingMethod = null;
 		// public CfgBlock containingCfgBlock = null;
-		public final Set<PushStatement> pushes = new HashSet<PushStatement>();
+//		public final Set<PushStatement> pushes = new HashSet<PushStatement>();
+		
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append("FPNode: ");
+			sb.append(stmt);
+			sb.append(" in ");
+			sb.append(this.containingMethod);
+			return sb.toString();
+		}
 	}
 
 	private Map<PullStatement, FixedPointObject> pullMap = new HashMap<PullStatement, FixedPointObject>();
@@ -98,7 +106,7 @@ public class InterProceduralPullPushOrdering {
 		Set<ClassVariable> usedSubtypes = new HashSet<ClassVariable>();
 		usedSubtypes.add(pull.getClassSignature());
 		if (!pullMap.containsKey(pull)) {
-			System.err.println("Pull not reachable from program entry: " + pull);
+//			System.err.println("Pull not reachable from program entry: " + pull);
 			return usedSubtypes;
 		}
 		FixedPointObject fpo = pullMap.get(pull);
@@ -126,7 +134,10 @@ public class InterProceduralPullPushOrdering {
 		Set<PushStatement> ret = new HashSet<PushStatement>();
 		Set<FixedPointObject> fpos = getFPOsInfluencing(pull);
 		for (FixedPointObject fpo : fpos) {
-			ret.addAll(fpo.pushes);
+			if (fpo.stmt.isPresent() && fpo.stmt.get() instanceof PushStatement) {
+				//TODO: I guess we can assert that this is reachable.
+				ret.add((PushStatement)fpo.stmt.get());
+			}
 		}
 		return ret;
 	}
@@ -136,7 +147,7 @@ public class InterProceduralPullPushOrdering {
 		Set<FixedPointObject> ret = new HashSet<FixedPointObject>();
 
 		if (!pullMap.containsKey(pull)) {
-			System.err.println("Pull not reachable from program entry: " + pull);
+//			System.err.println("Pull not reachable from program entry: " + pull);
 			return ret;
 		}
 
@@ -147,18 +158,18 @@ public class InterProceduralPullPushOrdering {
 		while (!todo.isEmpty()) {
 			FixedPointObject cur = todo.remove();
 			done.add(cur);
-			boolean stopTravese = false;
+			boolean stopTraverse = false;
 			if (cur.stmt.isPresent() && cur.stmt.get() instanceof PushStatement) {
 				PushStatement push = (PushStatement) cur.stmt.get();
-				if (mayAlias(push, pull)) {					
+				if (mayAlias(push, pull)) {
 					ret.add(cur);
 					if (mustShadow(push, pull)) {
-						stopTravese = true;
+						stopTraverse = true;
 					}
 				}
 			}
 			
-			if (!stopTravese) {
+			if (!stopTraverse) {
 				for (FixedPointObject pre : Graphs.predecessorListOf(ipgraph, cur)) {
 					if (!todo.contains(pre) && !done.contains(pre)) {
 						todo.add(pre);
@@ -166,8 +177,8 @@ public class InterProceduralPullPushOrdering {
 				}
 			}
 		}
-		Verify.verify(!ret.isEmpty(),
-				"Cannot find a push that affects this pull. This would introduce an assume(false): " + pull);
+//		Verify.verify(!ret.isEmpty(),
+//				"Cannot find a push that affects this pull. This would introduce an assume(false): " + pull);		
 		return ret;
 	}
 
@@ -181,12 +192,9 @@ public class InterProceduralPullPushOrdering {
 	 * @return true if the objects in pull and push may alias.
 	 */
 	protected boolean mayAlias(PushStatement push, PullStatement pull) {
-		// TODO implement using points-to information
-		// true is a sound approximation
-		
-		// Intermediate solution:
-		// we approximate by saying that two objects may only alias if their types
-		// are compatible (i.e., either sub or supertype relation).
+		FlowBasedPointsToAnalysis pta = SootToCfg.getPointsToAnalysis();
+		if (pta != null)
+			return pta.mayAlias(pull.getObject(), push.getObject());
 		return canAffectPull(push, pull);
 	}
 
@@ -211,8 +219,9 @@ public class InterProceduralPullPushOrdering {
 	 * @return true if push shadows all preceding pushs that may affect pull. False otherwise.
 	 */
 	protected boolean mustShadow(PushStatement push, PullStatement pull) {
-		// TODO implement using points-to information
-		// false is a sound approximation
+		FlowBasedPointsToAnalysis pta = SootToCfg.getPointsToAnalysis();
+		if (pta != null)
+			return pta.mustAlias(pull.getObject(), push.getObject());
 		return false;
 	}
 
@@ -251,8 +260,6 @@ public class InterProceduralPullPushOrdering {
 				ipgraph.addVertex(fpo);
 			}
 
-			fpo.pushes.addAll(getPushes(cur));
-
 			// create the subgraph from the current cfg block
 			entryFpo.put(cur, fpo);
 			for (Statement st : cur.getStatements()) {
@@ -290,15 +297,6 @@ public class InterProceduralPullPushOrdering {
 		if (method.edgeSet().isEmpty()) {
 			// in case the method has no body.
 			ipgraph.addEdge(fpEntry, fpExit);
-		}
-		return ret;
-	}
-
-	private Set<PushStatement> getPushes(CfgBlock b) {
-		Set<PushStatement> ret = new HashSet<PushStatement>();
-		for (Statement s : b.getStatements()) {
-			if (s instanceof PushStatement)
-				ret.add((PushStatement) s);
 		}
 		return ret;
 	}

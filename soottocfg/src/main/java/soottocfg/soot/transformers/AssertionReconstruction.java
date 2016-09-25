@@ -169,11 +169,10 @@ public class AssertionReconstruction extends AbstractSceneTransformer {
 	 * 
 	 * @param body
 	 */
-	public void reconstructJavaAssertions(Body body) {
+	public void reconstructJavaAssertions(Body body) {		
 		Set<Unit> unitsToRemove = new HashSet<Unit>();
 		Map<Unit, Value> assertionsToInsert = new HashMap<Unit, Value>();
 		Map<Unit, Unit> postAssertionGotos = new HashMap<Unit, Unit>();
-		
 		//This is a hack to ensure that the generated assertions
 		//have a nice line number. The actual assertion in the byte code
 		//is always off by one.
@@ -238,6 +237,14 @@ public class AssertionReconstruction extends AbstractSceneTransformer {
 				// <init>()>(); 
 				//but there might be some initialization code in between that
 				//we have to skip.
+				if (!iterator.hasNext()) {
+					/* Only observed that for cases of trivial asserts.
+					 * See issue #84:
+					 * assert(cond || true);
+					 */
+					break;
+				}
+				
 				u = iterator.next();
 				while (!(u instanceof InvokeStmt) || 
 						!((InvokeStmt)u).getInvokeExpr().getMethod().getSignature().contains("java.lang.AssertionError: void <init>")) {
@@ -279,7 +286,7 @@ public class AssertionReconstruction extends AbstractSceneTransformer {
 			unitsToRemove.add(entry.getKey());
 		}
 
-		body.getUnits().removeAll(unitsToRemove);		
+		body.getUnits().removeAll(unitsToRemove);
 		body.validate();
 	}
 
