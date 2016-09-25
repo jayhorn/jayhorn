@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html ng-app='report'>
+<head>
+<meta charset="UTF-8">
+<meta name='generator' content='CPAchecker 1.6.1-svn 23198M'>
+<title>CPAchecker Report for
+Main</title>
+
+<style type="text/css">
+<!--
+html{
+    position: relative;
+    height: 100%;
+}
+body {
+    padding-top: 50px;
+    height: 100%;
+    min-height: 300px;
+    min-width: 750px;
+    background-color: white;
+}
+.header {
+    position: absolute;
+    top:0;
+    width: 100%;
+    min-width: 750px;
+    height: 50px;
+    background-color: whitesmoke;
+    border-bottom: solid 2px;
+    border-bottom-color: lightgrey;
+    padding: 7px;
+}
+
+.sections{
+    height: 100%;
+    padding: 0;
+}
+
+.btn{
+    cursor: pointer;
+}
+#err_table td{
+    cursor: pointer;
+}
+#err_table td:hover{
+    font-weight: bold;
+}
+.edge{
+    cursor: pointer;
+}
+.edge:hover{
+    font-weight: bold;
+    stroke-width: 2;
+}
+.argContent .node{
+    cursor: pointer;
+}
+.argContent .node:hover{
+    font-weight: bold;
+}
+.functionNode{
+    cursor: pointer;
+}
+.functionNode:hover{
+    font-weight: bold;
+    stroke-width: 2;
+}
+.functionNode polygon{
+    fill: transparent;
+}
+
+.header img.logo {
+    float: left;
+    height: 30px;
+    margin-right: 5px;
+}
+.header h1 {
+    display: inline;
+    font-size: 20px;
+}
+.header .generated {
+    float: right;
+    margin-left: 2em;
+    font-size: 80%;
+}
+
+
+#errorpath_section{
+    position:relative;
+    float: left;
+    width: 25%;
+    min-width: 70px;
+    height: inherit;
+    background-color: white;
+    border: solid 4px;
+    border-color: lightgrey;
+    padding: 5px;
+}
+
+#errorpath_section header .input-group{
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+#middleLine{
+    cursor: col-resize;
+    position: absolute;
+    top:0;
+    right: -8px;
+    height:inherit;
+    width: 8px;
+    z-index: 100;
+    background-color: darkgrey;
+}
+#middleLine:hover{
+    background-color: grey;
+}
+#externalFiles_section{
+    float: right;
+    width: 75%;
+    height: 100%;
+    background-color: white;
+    padding: 5px;
+    border: solid 4px;
+    border-color: lightgrey;
+    overflow: hidden;
+    position:  relative;
+}
+
+.popover{
+    min-width: 500px;
+    max-height: 500px;
+    white-space: pre-line !important;
+    overflow: auto;
+    background-color: #f5fff8;
+    border: solid 2px;
+    border-color: #00d415;
+    font-family: monospace
+}
+#toaster{
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 300px;
+    zIndex : 50000
+}
+.dropdown-menu a:hover{
+    background-color: #71afff !important;
+}
+.dropdown-menu a{
+    cursor: pointer;
+}
+#externalFiles_section .popover{
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+#errorpath_section .fileContent {
+    height: calc(100% - 110px);
+    margin: 5px;
+    overflow: auto;
+}
+#externalFiles_section .fileContent {
+    height: calc(100% - 50px);
+    width: 100%;
+    margin: 5px;
+    position:  relative;
+}
+
+#externalFiles_section div.content {
+    overflow: auto;
+    position:  absolute;
+    top:  50px;
+    bottom: 5px;
+    left: 5px;
+    right:  5px;
+}
+table {
+    border-collapse: separate;
+    border-spacing: 2px;
+}
+td:first-child {
+    background-color: #ccc;
+}
+#err_table td:first-child{
+    border-radius: 6px;
+}
+#err_table td pre {
+    padding: 0px;
+    margin: 0px;
+    border: none;
+}
+#err_table tr:nth-child(odd) td pre.prettyprint {
+    background-color: #f3f3f3;
+}
+.sourceContent td pre {
+    padding: 0px;
+    margin: 0px;
+    border: none;
+}
+.sourceContent tr:nth-child(odd) td pre.prettyprint {
+    background-color: #f3f3f3;
+}
+.markedSourceLine{
+    background-color: #df80ff;
+}
+.markedCFAEdge path{
+    stroke: #df80ff;
+}
+.markedCFAEdge polygon{
+    fill: #df80ff;
+    stroke: #df80ff;
+}
+.markedCFAEdge text{
+    fill: #df80ff;
+}
+
+.markedCFANode text{
+    fill: #df80ff;
+}
+.markedCFANode ellipse{
+    stroke: #df80ff;
+}
+.markedCFANode polygon{
+    stroke: #df80ff;
+}
+
+.markedARGNode polygon{
+    fill: #df80ff;
+}
+.markedTableElement{
+    border: solid 2px;
+    border-color: #00d415;
+}
+.markedValueElement pre{
+    background-color: #83d480 !important;
+}
+.markedDescElement pre{
+    background-color: #71afff !important;
+}
+.markedValueDescElement pre{
+    background: linear-gradient(#83d480, #71afff) !important;
+}
+#searchOptions label{
+    font-weight: normal;
+}
+#matches{
+    display: none;
+}
+.markedValues{
+    background-color: #83d480;
+    border-radius: 25px;
+    margin-bottom: 2px;
+    padding: 2px;
+    padding-left: 8px;
+    max-width: 270px;
+}
+.markedDescriptions{
+    background-color: #71afff;
+    border-radius: 20px;
+    padding: 2px;
+    padding-left: 8px;
+    margin-bottom: 2px;
+    max-width: 270px;
+}
+.cfaContent{
+    /* This is very important - otherwise right margin is not shown (and nodes cannot be centered) */
+    display: inline-block;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -ms-user-select: none;
+}
+.argContent{
+    /* This is very important - otherwise right margin is not shown (and nodes cannot be centered) */
+    display: inline-block;
+}
+.sourceContent{
+ /* Nothing special right now */
+}
+.edit-line{
+    width: 100%;
+    background-color: white;
+    padding: 5px;
+}
+.edit-line div{
+    display: inline-block;
+}
+.edit-line label{
+    margin-right: 100px;
+    display: inline-block;
+}
+.edit-line p{
+    display: inline-block;
+}
+input#cfa-scalingField{
+    margin-left: 5px;
+    width: 3.5em;
+    display: inline-block;
+}
+#arg-scalingField{
+    margin-left: 5px;
+    width: 50px;
+    display: inline-block;
+}
+
+div pre{
+    background-color: transparent;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+}
+.help_button{
+    padding: 0px;
+    border: 0px;
+    margin:0px;
+    display: inline-block;
+    float: right;
+}
+#externalFiles_section .help_button{
+    margin-left: 10px;
+    float: left;
+}
+	    -->
+</style>
+
+<link rel="stylesheet" type="text/css"
+      href="https://www.sosy-lab.org/lib/bootstrap/3.3.6/css/bootstrap.min.css"
+      integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7"
+      crossorigin="anonymous">
+<link rel="stylesheet" type="text/css"
+      href="https://www.sosy-lab.org/lib/google-code-prettify/2015-12-08-c67d802/prettify.css"
+      integrity="sha384-Idd9oLcdDqxPfUuMARR/TPo7z2VE5qgbFk6j2RHdfzB88HFW5Ecm8qSe0KjhtZ2S"
+      crossorigin="anonymous">
+
+<!--the jquery-script is necessary for bootstrap, it has to be added BEFORE the bootstrap-script-->
+<!--[if lt IE 9]>
+<script type="text/javascript"
+        src="https://www.sosy-lab.org/lib/jquery/1.12.0/jquery.min.js"></script>
+<![endif]-->
+<!--[if gte IE 9]><!-->
+<script type="text/javascript" src="https://www.sosy-lab.org/lib/jquery/2.2.0/jquery.min.js"
+        integrity="sha384-K+ctZQ+LL8q6tP7I94W+qzQsfRV2a+AfHIi9k8z8l9ggpc8X+Ytst4yBo/hH+8Fk"
+        crossorigin="anonymous"></script>
+<!--<![endif]-->
+
+<script type="text/javascript"
+        src="https://www.sosy-lab.org/lib/bootstrap/3.3.6/js/bootstrap.min.js"
+        integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
+        crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://www.sosy-lab.org/lib/angularjs/1.5.5/angular.min.js"
+        integrity="sha384-JhiEhwQjPEF1WJVY0yQaYOdN73Ml70AQwr+sq+zhSomAf4Fh0ImVDR8G9Ry0QokZ"
+        crossorigin="anonymous"></script>
+<script type="text/javascript"
+        src="https://www.sosy-lab.org/lib/google-code-prettify/2015-12-08-c67d802/prettify.js"
+        integrity="sha384-uvP0LdNXVGNnAFf48ha9Ze5oJX136a8YERZm6nDnr/jAocGDVsfIj/N6I3h1wSj8"
+        crossorigin="anonymous"></script>
+
+<!-- Code for using toasts, taken and adjusted from https://github.com/scottoffen/jquery.toaster -->
+<script type="text/javascript">
+        (function ($,undefined)
+        {
+            var toasting =
+            {
+                'noAutoDismisses' : ['warning', 'danger'],
+                'toastsActive' : 0,
+
+                'toast' :
+                {
+                    'template' :
+                    '<div class="alert alert-%priority% alert-dismissible" role="alert">' +
+                    '<button type="button" class="close" data-dismiss="alert">' +
+                    '<span aria-hidden="true">&times;</span>' +
+                    '<span class="sr-only">Close</span>' +
+                    '</button>' +
+                    '<span class="message"></span>' +
+                    '</div>',
+
+                    'defaults' :
+                    {
+                        'priority'  : 'success'
+                    },
+
+                    'fade' : 'slow',
+
+                    'display' : function ($toast)
+                    {
+                        toasting.toastsActive += 1;
+                        return $toast.fadeIn(toasting.toast.fade);
+                    },
+
+                    'remove' : function ($toast, callback)
+                    {
+                        toasting.toastsActive -= 1;
+                        return $toast.animate(
+                                {
+                                    opacity : '0'
+                                },
+                                {
+                                    duration : toasting.toast.fade,
+                                    complete : callback
+                                }
+                        );
+                    },
+
+                    'timeout'      : 3500
+                },
+
+                gettoaster : function ()
+                {
+                    return $('#toaster');
+                },
+
+                notify : function (message, priority)
+                {
+                    var $toaster = this.gettoaster();
+                    var $toast = $(toasting.toast.template.replace('%priority%', priority)).hide();
+
+                    $('.message', $toast).html(message);
+
+                    $toaster.append(toasting.toast.display($toast));
+
+                    if (toasting.noAutoDismisses.indexOf(priority) === -1)
+                    {
+                        setTimeout(function()
+                                   {
+                                       toasting.toast.remove($toast, function()
+                                       {
+                                           $toast.remove();
+                                       });
+                                   }, toasting.toast.timeout);
+                    }
+                }
+            };
+
+            $.toaster = function (options) {
+                if (typeof options !== 'object') {
+                    var values = Array.prototype.slice.call(arguments, 0);
+                    var labels = ['message', 'priority'];
+                    options = {};
+
+                    for (var i = 0, l = values.length; i < l; i += 1) {
+                        options[labels[i]] = values[i];
+                    }
+                }
+
+                var message  = ('message' in options) ? options.message : null;
+                var priority = (('priority' in options) && (typeof options.priority === 'string')) ? options.priority : toasting.toast.defaults.priority;
+
+                if (message !== null && toasting.toastsActive <= 0)
+                {
+                    toasting.notify(message, priority);
+                }
+            };
+        })(jQuery);
+
+</script>
+
+<script type="text/javascript">
+//(function(){})() --> this notation makes a function in JS "self-invoking"
+(function() {
+    var app = angular.module('report', []);
+
+    app.controller('ReportController', ['$rootScope', '$scope', function($rootScope, $scope){
+        $scope.logo = "https://cpachecker.sosy-lab.org/logo.svg";
+        $scope.help_externalFiles = "<p><b>CFA</b> (control flow automaton) shows the control flow of the program (one CFA for one function in the source-code)</p>" +
+            "<p>- the errorpath is highlighted in red</p>" +
+            "<p>- click on the function-nodes to jump to CFA of this function</p>" +
+            "<p>- click on edges to jump to the relating line in the source-code</p>" +
+            "<p> ○ normal element   ▢ more normal elements</p>" +
+            "<p> ◇ condition</p>" +
+            "<p> ▭ function</p>" +
+            "<p> ◎ loop head (graph-based)  ⬡ loop head (syntactic)</p> " +
+            "<p><b>ARG</b> shows the errorpath as a graph</p>" +
+            "<p>- the errorpath is highlighted in red</p>" +
+            "<p>- click on nodes to jump to the relating node in the CFA</p>" +
+            "<p>- click on edges to jump to the relating line in the source-code</p>" +
+            "<p><font color=\"green\">■</font> covered state</p>" +
+            "<p><font color=\"orange\">■</font> not yet processed state</p>" +
+            "<p><font color=\"cornflowerblue\">■</font> important state (depending on used analysis)</p>" +
+            "<p><font color=\"red\">■</font> target state</p>";
+        $scope.help_errorpath = "<p>The errorpath leads to the error 'line by line' (Source) or 'edge by edge' (CFA)</p>\n" +
+            "<p><b>-V-</b> Click to show all initialized variables and their values at that point</p>\n" +
+            "<p><b>Edge-Description (Source-Code-View)</b> Click to jump to the relating edge in the CFA / node in the ARG / line in Source (depending on active tab)</p>\n" +
+            "<p><b>Buttons (Prev, Start, Next)</b> Click to navigate through the errorpath and jump to the relating position in the active tab</p>\n" +
+            "<p><b>Search</b>\n - You can search for words or numbers in the edge-descriptions (matches appear blue)\n" +
+            "- You can search for value-assignments (variable names or their value) - it will highlight only where a variable has been initialized or where it has changed its value (matches appear green)</p>";
+        //the tab that is shown
+        $scope.tab = 1;
+
+        $scope.$on("FirstTimeErrorpathElementIsSelected", function(event){
+            $scope.setMarginForGraphs();
+        });
+        $scope.$on("ChangeTab", function(event, tab){
+            $scope.setTab(tab);
+        });
+
+        $scope.setTab = function(tab){
+            $scope.tab = tab;
+        };
+        $scope.tabIsSet = function(tab){
+            return $scope.tab === tab;
+        };
+
+        $scope.setWidth = function(event) {
+            if (mouseDown) {
+                var wholeWidth = document.getElementById("externalFiles_section").offsetWidth + document.getElementById("errorpath_section").offsetWidth;
+                document.getElementById("errorpath_section").style.width = (Math.round(event.clientX/wholeWidth*100) + "%");
+                document.getElementById("externalFiles_section").style.width = (Math.round((wholeWidth - event.clientX)/wholeWidth*100) + "%");
+            }
+        };
+
+        $scope.setMouseUp = function(){
+            mouseDown = false;
+            document.onselectstart = null;
+            document.onmousedown = null;
+            if($rootScope.selected_ErrLine != null) {
+                $scope.setMarginForGraphs();
+            }
+        };
+
+        $scope.setMouseDown = function(){
+            mouseDown = true;
+            //we need this so that no text gets marked when moving middleline
+            document.onselectstart = function(){return false;};
+            document.onmousedown = function(){return false;};
+        };
+
+        $scope.setMarginForGraphs = function(){
+            var width = (Math.round((document.getElementById("externalFiles_section").offsetWidth/ 2)-10) + "px");
+            var height = (Math.round(document.getElementById("externalFiles_section").offsetHeight/ 2) + "px");
+            var cfaContent = document.getElementsByClassName("cfaContent")[0];
+            var argContent = document.getElementsByClassName("argContent")[0];
+            cfaContent.style.marginLeft = (width);
+            cfaContent.style.marginRight = (width);
+            cfaContent.style.marginTop = (height);
+            cfaContent.style.marginBottom = (height);
+            argContent.style.marginLeft = (width);
+            argContent.style.marginRight = (width);
+            argContent.style.marginTop = (height);
+            argContent.style.marginBottom = (height);
+        };
+
+    }]);
+
+
+    app.controller("SearchController", ['$rootScope', '$scope', function($rootScope, $scope){
+        $scope.numOfValueMatches = 0;
+        $scope.numOfDescriptionMatches = 0;
+
+        $scope.checkIfEnter = function($event){
+            if($event.keyCode == 13){
+                $scope.searchFor();
+            }
+        };
+
+        $scope.searchFor = function(){
+            //you have to get the matches-element this way, because display:none does not allow direct search
+            var matchesDiv = document.getElementsByClassName("markedValues")[0].parentNode;
+            if(matchesDiv.style.display != "inline"){
+                matchesDiv.style.display = "inline";
+                document.getElementById("err_table").parentNode.style.height = "calc(100% - 160px)";
+            }
+            $scope.numOfValueMatches = 0;
+            $scope.numOfDescriptionMatches = 0;
+            var allMarkedValueElements = document.getElementsByClassName("markedValueElement");
+            while(allMarkedValueElements.length != 0){
+                allMarkedValueElements[0].classList.remove("markedValueElement");
+            }
+            var allMarkedDescElements = document.getElementsByClassName("markedDescElement");
+            while(allMarkedDescElements.length != 0){
+                allMarkedDescElements[0].classList.remove("markedDescElement");
+            }
+            var allMarkedValueDescElements = document.getElementsByClassName("markedValueDescElement");
+            while(allMarkedValueDescElements.length != 0){
+                allMarkedValueDescElements[0].classList.remove("markedValueDescElement");
+            }
+            var searchedString = document.getElementsByClassName("search-input")[0].value;
+
+            if (searchedString.trim() != "" && !document.getElementById("optionExactMatch").checked) {
+                for (var l = 0; l < $rootScope.errorPathData.length; l++) {
+                    var errorPathElem = $rootScope.errorPathData[l];
+                    if (errorPathElem.val.contains(searchedString) && errorPathElem.desc.contains(searchedString)) {
+                        $scope.numOfValueMatches = $scope.numOfValueMatches + 1;
+                        $scope.numOfDescriptionMatches = $scope.numOfDescriptionMatches + 1;
+                        document.getElementById("errpath-" + l).getElementsByTagName("td")[1].classList.add("markedValueDescElement");
+                    } else if (errorPathElem.val.contains(searchedString)) {
+                        $scope.numOfValueMatches = $scope.numOfValueMatches + 1;
+                        document.getElementById("errpath-" + l).getElementsByTagName("td")[1].classList.add("markedValueElement");
+                    } else if (errorPathElem.desc.contains(searchedString)) {
+                        $scope.numOfDescriptionMatches = $scope.numOfDescriptionMatches + 1;
+                        document.getElementById("errpath-" + l).getElementsByTagName("td")[1].classList.add("markedDescElement");
+                    }
+                }
+            } else if (searchedString.trim() != "" && document.getElementById("optionExactMatch").checked) {
+                for (var l = 0; l < $rootScope.errorPathData.length; l++) {
+                    var errorPathElem = $rootScope.errorPathData[l];
+                    if (searchedString in errorPathElem.newValDict && errorPathElem.desc == searchedString) {
+                        $scope.numOfValueMatches = $scope.numOfValueMatches + 1;
+                        $scope.numOfDescriptionMatches = $scope.numOfDescriptionMatches + 1;
+                        document.getElementById("errpath-" + l).getElementsByTagName("td")[1].classList.add("markedValueDescElement");
+                    } else if (searchedString in errorPathElem.newValDict) {
+                        $scope.numOfValueMatches = $scope.numOfValueMatches + 1;
+                        document.getElementById("errpath-" + l).getElementsByTagName("td")[1].classList.add("markedValueElement");
+                    } else if (errorPathElem.desc == searchedString) {
+                        $scope.numOfDescriptionMatches = $scope.numOfDescriptionMatches + 1;
+                        document.getElementById("errpath-" + l).getElementsByTagName("td")[1].classList.add("markedDescElement");
+                    }
+                }
+            }
+        };
+    }]);
+
+
+    app.controller("ValueAssignmentsController", ['$rootScope', '$scope', function($rootScope, $scope){
+        //gets called when '-V-'button in errorpath is clicked
+        $scope.showValues = function($event){
+            var element = $event.currentTarget;
+            if (element.classList.contains("markedTableElement")) {
+                element.classList.remove("markedTableElement");
+            } else {
+                element.classList.add("markedTableElement");
+            }
+        };
+    }]);
+
+
+    app.controller("ErrorpathController", ['$rootScope', '$scope', function($rootScope, $scope){
+        $rootScope.errorPathData = [];
+        //the line (errorpath) that is selected
+        $rootScope.selected_ErrLine = null;
+
+        $scope.getValues = function(val){
+            var values = {};
+            if(val != "") {
+                var singleStatements = val.split("\n");
+                for (var i = 0; i < singleStatements.length-1; i++) {
+                    values[singleStatements[i].split("==")[0].trim()] = singleStatements[i].split("==")[1].trim().slice(0,-1);
+                }
+            }
+            return values;
+        };
+
+        var indentationlevel = 0;
+        for(var a = 0; a<errorPathData.length; a++) {
+            var errPathElem = errorPathData[a];
+            //do not show start, return and blank edges
+            if (errPathElem.desc.substring(0, "Return edge from".length) != "Return edge from" && errPathElem.desc != "Function start dummy edge" && errPathElem.desc != "") {
+                if (errPathElem.source in fCallEdges) {
+                    errPathElem.target = fCallEdges[errPathElem.source][0];
+                }
+                var newValues = $scope.getValues(errPathElem.val);
+                errPathElem["newValDict"] = newValues;
+                errPathElem["valDict"] = {};
+                errPathElem["valString"] = "";
+                if (a > 0) {
+                    for (key in $rootScope.errorPathData[$rootScope.errorPathData.length - 1].valDict) {
+                        errPathElem.valDict[key] = $rootScope.errorPathData[$rootScope.errorPathData.length - 1].valDict[key];
+                    }
+                }
+                if (newValues != {}) {
+                    for (key in newValues) {
+                        errPathElem.valDict[key] = newValues[key];
+                    }
+                }
+                // if I do it in one of the for-loops before, I get the new values doubled
+                for (key in errPathElem.valDict){
+                    errPathElem.valString = errPathElem.valString + key + ":  " + errPathElem.valDict[key] + "\n";
+                }
+                //add indentation
+                for(var b = 1; b <= indentationlevel; b++) {
+                    errPathElem.desc = "   " + errPathElem.desc;
+                }
+                $rootScope.errorPathData.push(errPathElem);
+            } else if(errPathElem.desc.substring(0, "Return edge from".length) == "Return edge from"){
+                indentationlevel -= 1;
+            } else if(errPathElem.desc == "Function start dummy edge"){
+                indentationlevel += 1;
+            }
+        }
+
+        $scope.clickedErrpathElement = function($event){
+            var lineNumber = $event.currentTarget.parentElement.id;
+            $scope.setLine(lineNumber);
+            $rootScope.$broadcast('clickedErrorpathElement', lineNumber.substring("errpath-".length));
+        };
+
+        $scope.clickedErrpathButton = function($event){
+            var button = $event.currentTarget.innerHTML;
+            var line;
+            if (button == "Prev" && ($rootScope.selected_ErrLine.substring("errpath-".length) == 0 || $rootScope.selected_ErrLine == null)) {
+            } else if (button == "Prev") {
+                line = parseInt($rootScope.selected_ErrLine.substring("errpath-".length)) - 1;
+                $scope.setLine("errpath-" + line);
+                $rootScope.$broadcast("clickedErrorpathButton", line);
+            } else if (button == "Start" || button == "Next" && $rootScope.selected_ErrLine == null) {
+                document.getElementById("err_table").parentNode.scrollTop = 0;
+                $scope.setLine("errpath-" + 0);
+                $rootScope.$broadcast("clickedErrorpathButton", 0);
+            } else if (button == "Next" && ($rootScope.selected_ErrLine.substring("errpath-".length) == $rootScope.errorPathData.length -1)) {
+            } else if (button == "Next") {
+                line = parseInt($rootScope.selected_ErrLine.substring("errpath-".length)) + 1;
+                $scope.setLine("errpath-" + line);
+                $rootScope.$broadcast("clickedErrorpathButton", line);
+            }
+        };
+
+        $scope.setLine = function(id){
+            if ($rootScope.selected_ErrLine != null) {
+                document.getElementById($rootScope.selected_ErrLine).style.outline = "none";
+            } else {
+                //The first time a line is selected
+                $rootScope.$broadcast("FirstTimeErrorpathElementIsSelected");
+            }
+            document.getElementById(id).style.outline = "#df80ff solid 1px";
+            $rootScope.selected_ErrLine = id;
+        };
+    }]);
+
+
+    app.controller('ARGController', ['$rootScope', '$scope', function($rootScope, $scope){
+        $scope.argNodeMarked = false;
+
+        $scope.$on('clickedErrorpathElement', function(event, index){
+            $scope.markARGNode(index);
+        });
+        $scope.$on("clickedErrorpathButton", function(event, index){
+            $scope.markARGNode(index);
+        });
+
+        $scope.clickedARGElement = function($event){
+            var y = $event.currentTarget.id;
+            if (document.getElementById(y).classList.contains("edge")){
+                $rootScope.$broadcast("ChangeTab", 3);
+                var line = document.getElementById(y).getElementsByTagName("text")[0].innerHTML.split(":")[0].substring("Line ".length);
+                $rootScope.$broadcast("clickedARGEdge", line);
+            } else if (document.getElementById(y).classList.contains("node")){
+                var cfaNodeNumber = document.getElementById(y).getElementsByTagName("text")[0].innerHTML.split("N")[1];
+                $rootScope.$broadcast("ChangeTab", 1);
+                $rootScope.$broadcast("clickedARGNode", cfaNodeNumber);
+            }
+        };
+
+        $scope.markARGNode = function(index){
+            var argElement = $rootScope.errorPathData[index].argelem;
+            if($scope.argNodeMarked){
+                document.getElementsByClassName("markedARGNode")[0].classList.remove("markedARGNode");
+            }
+            document.getElementById("arg-" + argElement).classList.add("markedARGNode");
+            $scope.argNodeMarked = true;
+            $scope.scrollToARGElement("arg-" + argElement);
+        };
+
+        $scope.scrollToARGElement = function(id){
+            var element = document.getElementById(id);
+            var argContent = document.getElementsByClassName("argContent")[0];
+            var box = argContent.parentNode.getBoundingClientRect();
+            var xScroll = argContent.parentNode.scrollLeft;
+            var yScroll = argContent.parentNode.scrollTop;
+            var bcr = element.getBoundingClientRect();
+            var xMargin = (argContent.style.marginLeft).split("px")[0];
+            var yMargin = (argContent.style.marginTop).split("px")[0];
+            argContent.parentNode.scrollLeft = bcr.left + xScroll - box.left - xMargin + 20;
+            argContent.parentNode.scrollTop =  bcr.top + yScroll - box.top - yMargin + 20;
+        };
+    }]);
+
+
+    app.controller('CFAController', ["$rootScope", "$scope", function($rootScope, $scope){
+        //available functions (cfa-graphs)
+        $rootScope.functions = functions;
+        //selected cfa-graph (index = -1 means the function does not exist)
+        if (functions.indexOf("main" != -1)) {
+            $rootScope.selectedCFAFunction = functions.indexOf("main");
+        } else {
+            $rootScope.selectedCFAFunction = 0;
+        }
+        $scope.cfaEdgeMarked = false;
+        $scope.cfaNodeMarked = false;
+
+        $scope.$on('clickedErrorpathElement', function(event, nodeNumber){
+            $scope.markCFAedge(nodeNumber);
+        });
+        $scope.$on("clickedErrorpathButton", function(event, nodeNumber){
+            $scope.markCFAedge(nodeNumber);
+        });
+        $scope.$on("clickedARGNode", function(event, nodeNumber){
+            $scope.markCFANode(nodeNumber);
+        });
+
+        $scope.setCFAFunction = function(value){
+            document.getElementsByClassName("cfaContent")[0].parentNode.scrollTop = 0;
+            document.getElementsByClassName("cfaContent")[0].parentNode.scrollLeft = 0;
+            $rootScope.$broadcast("clearCFAZoom");
+            $rootScope.selectedCFAFunction = value;
+        };
+        $scope.cfaFunctionIsSet = function(value){
+            return value === $rootScope.selectedCFAFunction;
+        };
+
+        //Behaviour for Click-Elements in CFA
+        $scope.clickedCFAElement = function($event){
+            var element = $event.currentTarget.id;
+            if (document.getElementById(element).classList.contains("edge")){
+                var line;
+                var source;
+                if (element.split("->")[1] > 100000 || element.split("->")[0].substring("cfa-".length) > 100000){
+                    source = element.split("->")[0].substring("cfa-".length);
+                    line = cfaInfo["edges"][source + "->" + fCallEdges[source][1]]["line"];
+                } else if (element.split("->")[0].substring("cfa-".length) in combinedNodes){
+                    var textfields = document.getElementById("cfa-" + element.split("->")[0].substring("cfa-".length)).getElementsByTagName("text");
+                    source = textfields[textfields.length - 2].innerHTML;
+                    line = cfaInfo["edges"][source + "->" + element.split("->")[1]]["line"];
+                } else {
+                    line = cfaInfo["edges"][element.substring("cfa-".length)]["line"];
+                }
+                $rootScope.$broadcast("clickedCFAEdge", line);
+            } else if (document.getElementById(element).classList.contains("node") && (element.substring("cfa-".length) > 100000)) {
+                var func = document.getElementById(element).getElementsByTagName("text")[0].innerHTML;
+                $scope.setCFAFunction(functions.indexOf(func));
+            }
+        };
+
+        $scope.singleClickedCFAElement = function($event){
+            $.toaster({
+                          message: 'Double-click CFA component to jump to position in source code.',
+                          priority: 'info'
+                      });
+        };
+
+        $scope.markCFAedge = function(index){
+            var source = $rootScope.errorPathData[index].source;
+            var target = $rootScope.errorPathData[index].target;
+            var funcIndex = $rootScope.functions.indexOf(cfaInfo["nodes"][source]["func"]);
+            if(funcIndex != $rootScope.selectedCFAFunction) {
+                $scope.setCFAFunction(funcIndex);
+            }
+            if(!(source in combinedNodes && target in combinedNodes)) {
+                if(source in combinedNodes){
+                    source = combinedNodes[source];
+                }
+                if ($scope.cfaEdgeMarked) {
+                    document.getElementsByClassName("markedCFAEdge")[0].classList.remove("markedCFAEdge");
+                }
+                if ($scope.cfaNodeMarked) {
+                    document.getElementsByClassName("markedCFANode")[0].classList.remove("markedCFANode");
+                    $scope.cfaNodeMarked = false;
+                }
+                document.getElementById("cfa-" + source + "->" + target).classList.add("markedCFAEdge");
+                $scope.scrollToCFAElement("cfa-" + source + "->" + target);
+                $scope.cfaEdgeMarked = true;
+            } else {
+                $scope.markCFANode(combinedNodes[source]);
+            }
+        };
+
+        $scope.markCFANode = function(nodenumber){
+            if($scope.cfaNodeMarked){
+                document.getElementsByClassName("markedCFANode")[0].classList.remove("markedCFANode");
+            }
+            if($scope.cfaEdgeMarked){
+                document.getElementsByClassName("markedCFAEdge")[0].classList.remove("markedCFAEdge");
+                $scope.cfaEdgeMarked = false;
+            }
+            $scope.setCFAFunction($rootScope.functions.indexOf(cfaInfo["nodes"][nodenumber]["func"]));
+            if(!(nodenumber in combinedNodes)) {
+                document.getElementById("cfa-" + nodenumber).classList.add("markedCFANode");
+                $scope.scrollToCFAElement("cfa-" + nodenumber);
+            } else {
+                document.getElementById("cfa-" + combinedNodes[nodenumber]).classList.add("markedCFANode");
+                $scope.scrollToCFAElement("cfa-" + combinedNodes[nodenumber]);
+            }
+            $scope.cfaNodeMarked = true;
+        };
+
+        $scope.scrollToCFAElement = function(id){
+            var element = document.getElementById(id);
+            var box = document.getElementsByClassName("cfaContent")[0].parentNode.getBoundingClientRect();
+            var bcr = element.getBoundingClientRect();
+            var cfaContent = document.getElementsByClassName("cfaContent")[0];
+            var xScroll = cfaContent.parentNode.scrollLeft;
+            var yScroll =  cfaContent.parentNode.scrollTop;
+            var xMargin = (cfaContent.style.marginLeft).split("px")[0];
+            var yMargin = (cfaContent.style.marginTop).split("px")[0];
+            cfaContent.parentNode.scrollLeft = bcr.left + xScroll - box.left - xMargin + 20;
+            cfaContent.parentNode.scrollTop = bcr.top + yScroll - box.top - yMargin + 20;
+        };
+
+    }]);
+
+
+    app.controller('SourceController', ['$rootScope', '$scope', '$location', '$anchorScroll',
+                                        function($rootScope, $scope, $location, $anchorScroll){
+        //available sourcefiles
+        $scope.sourceFiles = sourceFiles;
+        $scope.selectedSourceFile = 0;
+        $scope.lineMarked = false;
+
+        $scope.$on('clickedErrorpathElement', function(event, lineNumber){
+            var line = $rootScope.errorPathData[lineNumber].line;
+            $scope.markSource(line);
+            $scope.jumpToSource(line);
+        });
+        $scope.$on('clickedErrorpathButton', function(event, lineNumber){
+            var line = $rootScope.errorPathData[lineNumber].line;
+            $scope.markSource(line);
+            $scope.jumpToSource(line);
+        });
+        $scope.$on('clickedCFAEdge', function(event, line){
+            $scope.markSource(line);
+            $scope.jumpToSource(line);
+        });
+        $scope.$on('clickedARGEdge', function(event, line){
+            $scope.markSource(line);
+            $scope.jumpToSource(line);
+        });
+
+        $scope.jumpToSource = function(line){
+            $scope.setTab(3);
+            $location.hash('source-' + line);
+            $anchorScroll();
+        };
+
+        $scope.setSourceFile = function(value){
+            $scope.selectedSourceFile = value;
+        };
+        $scope.sourceFileIsSet = function(value){
+            return value === $scope.selectedSourceFile;
+        };
+
+        $scope.markSource = function(line){
+            if ($scope.lineMarked) {
+                document.getElementsByClassName("markedSourceLine")[0].className = "prettyprint";
+            }
+            document.getElementById("source-" + line).getElementsByTagName("pre")[1].className = "markedSourceLine";
+            var element = document.getElementById("source-" + line);
+            var box = document.getElementsByClassName("sourceContent")[0].parentNode.getBoundingClientRect();
+            var bcr = element.getBoundingClientRect();
+            var sourceContent = document.getElementsByClassName("sourceContent")[0];
+            var yScroll =  sourceContent.parentNode.scrollTop;
+            var yMargin = Math.round((document.getElementById("externalFiles_section").offsetHeight/ 2)-50);
+            sourceContent.parentNode.scrollTop = bcr.top + yScroll - box.top - yMargin;
+            $scope.lineMarked = true;
+            $scope.markedLine = line;
+        };
+    }]);
+
+
+    app.controller('ZoomController', ['$rootScope', '$scope', function($rootScope, $scope){
+        $scope.zoomFactorCFA = 100;
+        $scope.zoomFactorARG = 100;
+
+        $scope.$on("clearCFAZoom", function(){$scope.clearZoomCFA();});
+
+        $scope.setZoom = function(id){
+            if (id.contains("cfa")) {
+                document.getElementById("cfaGraph-" + $rootScope.selectedCFAFunction).transform.baseVal.getItem(0).setScale($scope.zoomFactorCFA / 100, $scope.zoomFactorCFA / 100);
+            } else if (id.contains("arg")){
+                // TODO: There should be a way to find the graph in one step
+                var graph = document.getElementById("graph0");
+                for (var i = ($rootScope.functions.length + 1); graph == null && i >= 0; --i) {
+                  graph = document.getElementById("argGraph-" + i);
+                }
+                if (graph != null) {
+                  graph.transform.baseVal.getItem(0).setScale($scope.zoomFactorARG / 100, $scope.zoomFactorARG / 100);
+                }
+            }
+        };
+
+        $scope.clearZoomCFA = function(){
+            $scope.zoomFactorCFA = 100;
+            document.getElementById("cfaGraph-" + $rootScope.selectedCFAFunction).transform.baseVal.getItem(0).setScale($scope.zoomFactorCFA/100, $scope.zoomFactorCFA/100);
+        };
+    }]);
+})();
+
+
+var mouseDown = false;
+var functions = ["Actions_Actions","Actions_Specification1","Actions_getSystemState","Actions_methaneChange","Actions_startSystem","Actions_stopSystem","Actions_timeShift","Actions_waterRise","Main_Main","Main_getBoolean","Main_main_String[]","Main_randomSequenceOfActions_int","MinePumpSystem.Environment_Environment","MinePumpSystem.Environment_changeMethaneLevel","MinePumpSystem.Environment_getWaterLevel","MinePumpSystem.Environment_isHighWaterSensorDry","MinePumpSystem.Environment_isLowWaterSensorDry","MinePumpSystem.Environment_isMethaneLevelCritical","MinePumpSystem.Environment_lowerWaterLevel","MinePumpSystem.Environment_toString","MinePumpSystem.Environment_waterRise","MinePumpSystem.MinePump_MinePump_MinePumpSystem.Environment","MinePumpSystem.MinePump_activatePump","MinePumpSystem.MinePump_activatePump__wrappee__lowWaterSensor","MinePumpSystem.MinePump_deactivatePump","MinePumpSystem.MinePump_getEnv","MinePumpSystem.MinePump_isLowWaterLevel","MinePumpSystem.MinePump_isMethaneAlarm","MinePumpSystem.MinePump_isPumpRunning","MinePumpSystem.MinePump_isSystemActive","MinePumpSystem.MinePump_processEnvironment","MinePumpSystem.MinePump_processEnvironment__wrappee__base","MinePumpSystem.MinePump_processEnvironment__wrappee__methaneQuery","MinePumpSystem.MinePump_startSystem","MinePumpSystem.MinePump_stopSystem","MinePumpSystem.MinePump_timeShift","MinePumpSystem.MinePump_toString"];
+var fCallEdges = {"64":[100013,65],"129":[100040,130],"2":[100030,3],"69":[100014,72],"261":[100032,266],"262":[100033,267],"135":[100036,136],"264":[100031,265],"139":[100037,140],"18":[100004,19],"146":[100038,147],"276":[100029,280],"278":[100028,279],"88":[100016,89],"89":[100017,90],"28":[100005,29],"94":[100023,95],"98":[100039,99],"35":[100006,36],"293":[100022,294],"104":[100027,107],"105":[100026,106],"42":[100007,43],"301":[100015,302],"238":[100024,239],"112":[100035,115],"241":[100025,242],"113":[100034,114],"51":[100008,52],"118":[100001,119],"54":[100009,55],"311":[100018,312],"121":[100003,124],"57":[100010,58],"122":[100002,123],"250":[100020,255],"59":[100012,66],"251":[100021,256],"60":[100011,62],"253":[100019,254]};
+var cfaInfo = {"nodes":{"0":{"no":0,"func":"Main_main_String[]"},"1":{"no":1,"func":"Main_main_String[]"},"2":{"no":2,"func":"Main_main_String[]"},"3":{"no":3,"func":"Main_main_String[]"},"4":{"no":4,"func":"Main_getBoolean"},"5":{"no":5,"func":"Main_getBoolean"},"6":{"no":6,"func":"Main_getBoolean"},"8":{"no":8,"func":"Main_getBoolean"},"9":{"no":9,"func":"Main_getBoolean"},"10":{"no":10,"func":"Main_getBoolean"},"12":{"no":12,"func":"Main_getBoolean"},"13":{"no":13,"func":"Main_getBoolean"},"14":{"no":14,"func":"Main_randomSequenceOfActions_int"},"15":{"no":15,"func":"Main_randomSequenceOfActions_int"},"16":{"no":16,"func":"Main_randomSequenceOfActions_int"},"18":{"no":18,"func":"Main_randomSequenceOfActions_int"},"19":{"no":19,"func":"Main_randomSequenceOfActions_int"},"20":{"no":20,"func":"Main_randomSequenceOfActions_int"},"22":{"no":22,"func":"Main_randomSequenceOfActions_int"},"23":{"no":23,"func":"Main_randomSequenceOfActions_int"},"24":{"no":24,"func":"Main_randomSequenceOfActions_int"},"25":{"no":25,"func":"Main_randomSequenceOfActions_int"},"26":{"no":26,"func":"Main_randomSequenceOfActions_int"},"28":{"no":28,"func":"Main_randomSequenceOfActions_int"},"29":{"no":29,"func":"Main_randomSequenceOfActions_int"},"30":{"no":30,"func":"Main_randomSequenceOfActions_int"},"31":{"no":31,"func":"Main_randomSequenceOfActions_int"},"32":{"no":32,"func":"Main_randomSequenceOfActions_int"},"33":{"no":33,"func":"Main_randomSequenceOfActions_int"},"35":{"no":35,"func":"Main_randomSequenceOfActions_int"},"36":{"no":36,"func":"Main_randomSequenceOfActions_int"},"37":{"no":37,"func":"Main_randomSequenceOfActions_int"},"38":{"no":38,"func":"Main_randomSequenceOfActions_int"},"39":{"no":39,"func":"Main_randomSequenceOfActions_int"},"40":{"no":40,"func":"Main_randomSequenceOfActions_int"},"42":{"no":42,"func":"Main_randomSequenceOfActions_int"},"43":{"no":43,"func":"Main_randomSequenceOfActions_int"},"44":{"no":44,"func":"Main_randomSequenceOfActions_int"},"45":{"no":45,"func":"Main_randomSequenceOfActions_int"},"46":{"no":46,"func":"Main_randomSequenceOfActions_int"},"47":{"no":47,"func":"Main_randomSequenceOfActions_int"},"49":{"no":49,"func":"Main_randomSequenceOfActions_int"},"50":{"no":50,"func":"Main_randomSequenceOfActions_int"},"51":{"no":51,"func":"Main_randomSequenceOfActions_int"},"52":{"no":52,"func":"Main_randomSequenceOfActions_int"},"53":{"no":53,"func":"Main_randomSequenceOfActions_int"},"54":{"no":54,"func":"Main_randomSequenceOfActions_int"},"55":{"no":55,"func":"Main_randomSequenceOfActions_int"},"56":{"no":56,"func":"Main_randomSequenceOfActions_int"},"57":{"no":57,"func":"Main_randomSequenceOfActions_int"},"58":{"no":58,"func":"Main_randomSequenceOfActions_int"},"59":{"no":59,"func":"Main_randomSequenceOfActions_int"},"60":{"no":60,"func":"Main_randomSequenceOfActions_int"},"61":{"no":61,"func":"Main_randomSequenceOfActions_int"},"62":{"no":62,"func":"Main_randomSequenceOfActions_int"},"63":{"no":63,"func":"Main_randomSequenceOfActions_int"},"64":{"no":64,"func":"Main_randomSequenceOfActions_int"},"65":{"no":65,"func":"Main_randomSequenceOfActions_int"},"66":{"no":66,"func":"Main_randomSequenceOfActions_int"},"67":{"no":67,"func":"Main_randomSequenceOfActions_int"},"68":{"no":68,"func":"Main_randomSequenceOfActions_int"},"69":{"no":69,"func":"Main_randomSequenceOfActions_int"},"70":{"no":70,"func":"Main_randomSequenceOfActions_int"},"71":{"no":71,"func":"Main_randomSequenceOfActions_int"},"72":{"no":72,"func":"Main_randomSequenceOfActions_int"},"73":{"no":73,"func":"Main_randomSequenceOfActions_int"},"74":{"no":74,"func":"Main_Main"},"75":{"no":75,"func":"Main_Main"},"76":{"no":76,"func":"Main_Main"},"78":{"no":78,"func":"Actions_Actions"},"79":{"no":79,"func":"Actions_Actions"},"80":{"no":80,"func":"Actions_Actions"},"82":{"no":82,"func":"Actions_Actions"},"84":{"no":84,"func":"Actions_Actions"},"86":{"no":86,"func":"Actions_Actions"},"88":{"no":88,"func":"Actions_Actions"},"89":{"no":89,"func":"Actions_Actions"},"90":{"no":90,"func":"Actions_Actions"},"92":{"no":92,"func":"Actions_waterRise"},"93":{"no":93,"func":"Actions_waterRise"},"94":{"no":94,"func":"Actions_waterRise"},"95":{"no":95,"func":"Actions_waterRise"},"96":{"no":96,"func":"Actions_methaneChange"},"97":{"no":97,"func":"Actions_methaneChange"},"98":{"no":98,"func":"Actions_methaneChange"},"99":{"no":99,"func":"Actions_methaneChange"},"100":{"no":100,"func":"Actions_stopSystem"},"101":{"no":101,"func":"Actions_stopSystem"},"102":{"no":102,"func":"Actions_stopSystem"},"103":{"no":103,"func":"Actions_stopSystem"},"104":{"no":104,"func":"Actions_stopSystem"},"105":{"no":105,"func":"Actions_stopSystem"},"106":{"no":106,"func":"Actions_stopSystem"},"107":{"no":107,"func":"Actions_stopSystem"},"108":{"no":108,"func":"Actions_startSystem"},"109":{"no":109,"func":"Actions_startSystem"},"110":{"no":110,"func":"Actions_startSystem"},"111":{"no":111,"func":"Actions_startSystem"},"112":{"no":112,"func":"Actions_startSystem"},"113":{"no":113,"func":"Actions_startSystem"},"114":{"no":114,"func":"Actions_startSystem"},"115":{"no":115,"func":"Actions_startSystem"},"116":{"no":116,"func":"Actions_timeShift"},"117":{"no":117,"func":"Actions_timeShift"},"118":{"no":118,"func":"Actions_timeShift"},"119":{"no":119,"func":"Actions_timeShift"},"120":{"no":120,"func":"Actions_timeShift"},"121":{"no":121,"func":"Actions_timeShift"},"122":{"no":122,"func":"Actions_timeShift"},"123":{"no":123,"func":"Actions_timeShift"},"124":{"no":124,"func":"Actions_timeShift"},"125":{"no":125,"func":"Actions_getSystemState"},"126":{"no":126,"func":"Actions_getSystemState"},"127":{"no":127,"func":"Actions_getSystemState"},"129":{"no":129,"func":"Actions_getSystemState"},"130":{"no":130,"func":"Actions_getSystemState"},"131":{"no":131,"func":"Actions_Specification1"},"132":{"no":132,"func":"Actions_Specification1"},"133":{"no":133,"func":"Actions_Specification1"},"135":{"no":135,"func":"Actions_Specification1"},"136":{"no":136,"func":"Actions_Specification1"},"137":{"no":137,"func":"Actions_Specification1"},"139":{"no":139,"func":"Actions_Specification1"},"140":{"no":140,"func":"Actions_Specification1"},"141":{"no":141,"func":"Actions_Specification1"},"142":{"no":142,"func":"Actions_Specification1"},"143":{"no":143,"func":"Actions_Specification1"},"144":{"no":144,"func":"Actions_Specification1"},"146":{"no":146,"func":"Actions_Specification1"},"147":{"no":147,"func":"Actions_Specification1"},"148":{"no":148,"func":"Actions_Specification1"},"149":{"no":149,"func":"Actions_Specification1"},"150":{"no":150,"func":"Actions_Specification1"},"151":{"no":151,"func":"Actions_Specification1"},"152":{"no":152,"func":"Actions_Specification1"},"153":{"no":153,"func":"Actions_Specification1"},"154":{"no":154,"func":"Actions_Specification1"},"157":{"no":157,"func":"Actions_Specification1"},"158":{"no":158,"func":"Actions_Specification1"},"159":{"no":159,"func":"MinePumpSystem.Environment_lowerWaterLevel"},"160":{"no":160,"func":"MinePumpSystem.Environment_lowerWaterLevel"},"161":{"no":161,"func":"MinePumpSystem.Environment_lowerWaterLevel"},"162":{"no":162,"func":"MinePumpSystem.Environment_lowerWaterLevel"},"163":{"no":163,"func":"MinePumpSystem.Environment_lowerWaterLevel"},"165":{"no":165,"func":"MinePumpSystem.Environment_lowerWaterLevel"},"166":{"no":166,"func":"MinePumpSystem.Environment_lowerWaterLevel"},"167":{"no":167,"func":"MinePumpSystem.Environment_lowerWaterLevel"},"169":{"no":169,"func":"MinePumpSystem.Environment_lowerWaterLevel"},"170":{"no":170,"func":"MinePumpSystem.Environment_lowerWaterLevel"},"171":{"no":171,"func":"MinePumpSystem.Environment_lowerWaterLevel"},"173":{"no":173,"func":"MinePumpSystem.Environment_waterRise"},"174":{"no":174,"func":"MinePumpSystem.Environment_waterRise"},"175":{"no":175,"func":"MinePumpSystem.Environment_waterRise"},"176":{"no":176,"func":"MinePumpSystem.Environment_waterRise"},"177":{"no":177,"func":"MinePumpSystem.Environment_waterRise"},"179":{"no":179,"func":"MinePumpSystem.Environment_waterRise"},"180":{"no":180,"func":"MinePumpSystem.Environment_waterRise"},"181":{"no":181,"func":"MinePumpSystem.Environment_waterRise"},"183":{"no":183,"func":"MinePumpSystem.Environment_waterRise"},"184":{"no":184,"func":"MinePumpSystem.Environment_waterRise"},"185":{"no":185,"func":"MinePumpSystem.Environment_waterRise"},"187":{"no":187,"func":"MinePumpSystem.Environment_changeMethaneLevel"},"188":{"no":188,"func":"MinePumpSystem.Environment_changeMethaneLevel"},"189":{"no":189,"func":"MinePumpSystem.Environment_changeMethaneLevel"},"190":{"no":190,"func":"MinePumpSystem.Environment_changeMethaneLevel"},"191":{"no":191,"func":"MinePumpSystem.Environment_changeMethaneLevel"},"192":{"no":192,"func":"MinePumpSystem.Environment_changeMethaneLevel"},"193":{"no":193,"func":"MinePumpSystem.Environment_isMethaneLevelCritical"},"194":{"no":194,"func":"MinePumpSystem.Environment_isMethaneLevelCritical"},"195":{"no":195,"func":"MinePumpSystem.Environment_isMethaneLevelCritical"},"197":{"no":197,"func":"MinePumpSystem.Environment_toString"},"198":{"no":198,"func":"MinePumpSystem.Environment_toString"},"199":{"no":199,"func":"MinePumpSystem.Environment_toString"},"201":{"no":201,"func":"MinePumpSystem.Environment_toString"},"202":{"no":202,"func":"MinePumpSystem.Environment_getWaterLevel"},"203":{"no":203,"func":"MinePumpSystem.Environment_getWaterLevel"},"204":{"no":204,"func":"MinePumpSystem.Environment_getWaterLevel"},"206":{"no":206,"func":"MinePumpSystem.Environment_isLowWaterSensorDry"},"207":{"no":207,"func":"MinePumpSystem.Environment_isLowWaterSensorDry"},"208":{"no":208,"func":"MinePumpSystem.Environment_isLowWaterSensorDry"},"210":{"no":210,"func":"MinePumpSystem.Environment_isHighWaterSensorDry"},"211":{"no":211,"func":"MinePumpSystem.Environment_isHighWaterSensorDry"},"212":{"no":212,"func":"MinePumpSystem.Environment_isHighWaterSensorDry"},"214":{"no":214,"func":"MinePumpSystem.Environment_Environment"},"215":{"no":215,"func":"MinePumpSystem.Environment_Environment"},"216":{"no":216,"func":"MinePumpSystem.Environment_Environment"},"218":{"no":218,"func":"MinePumpSystem.Environment_Environment"},"220":{"no":220,"func":"MinePumpSystem.Environment_Environment"},"222":{"no":222,"func":"MinePumpSystem.MinePump_MinePump_MinePumpSystem.Environment"},"223":{"no":223,"func":"MinePumpSystem.MinePump_MinePump_MinePumpSystem.Environment"},"224":{"no":224,"func":"MinePumpSystem.MinePump_MinePump_MinePumpSystem.Environment"},"226":{"no":226,"func":"MinePumpSystem.MinePump_MinePump_MinePumpSystem.Environment"},"228":{"no":228,"func":"MinePumpSystem.MinePump_MinePump_MinePumpSystem.Environment"},"230":{"no":230,"func":"MinePumpSystem.MinePump_MinePump_MinePumpSystem.Environment"},"231":{"no":231,"func":"MinePumpSystem.MinePump_MinePump_MinePumpSystem.Environment"},"232":{"no":232,"func":"MinePumpSystem.MinePump_MinePump_MinePumpSystem.Environment"},"234":{"no":234,"func":"MinePumpSystem.MinePump_timeShift"},"235":{"no":235,"func":"MinePumpSystem.MinePump_timeShift"},"236":{"no":236,"func":"MinePumpSystem.MinePump_timeShift"},"237":{"no":237,"func":"MinePumpSystem.MinePump_timeShift"},"238":{"no":238,"func":"MinePumpSystem.MinePump_timeShift"},"239":{"no":239,"func":"MinePumpSystem.MinePump_timeShift"},"240":{"no":240,"func":"MinePumpSystem.MinePump_timeShift"},"241":{"no":241,"func":"MinePumpSystem.MinePump_timeShift"},"242":{"no":242,"func":"MinePumpSystem.MinePump_timeShift"},"243":{"no":243,"func":"MinePumpSystem.MinePump_processEnvironment__wrappee__base"},"244":{"no":244,"func":"MinePumpSystem.MinePump_processEnvironment__wrappee__base"},"245":{"no":245,"func":"MinePumpSystem.MinePump_processEnvironment__wrappee__base"},"246":{"no":246,"func":"MinePumpSystem.MinePump_processEnvironment__wrappee__methaneQuery"},"247":{"no":247,"func":"MinePumpSystem.MinePump_processEnvironment__wrappee__methaneQuery"},"248":{"no":248,"func":"MinePumpSystem.MinePump_processEnvironment__wrappee__methaneQuery"},"249":{"no":249,"func":"MinePumpSystem.MinePump_processEnvironment__wrappee__methaneQuery"},"250":{"no":250,"func":"MinePumpSystem.MinePump_processEnvironment__wrappee__methaneQuery"},"251":{"no":251,"func":"MinePumpSystem.MinePump_processEnvironment__wrappee__methaneQuery"},"252":{"no":252,"func":"MinePumpSystem.MinePump_processEnvironment__wrappee__methaneQuery"},"253":{"no":253,"func":"MinePumpSystem.MinePump_processEnvironment__wrappee__methaneQuery"},"254":{"no":254,"func":"MinePumpSystem.MinePump_processEnvironment__wrappee__methaneQuery"},"255":{"no":255,"func":"MinePumpSystem.MinePump_processEnvironment__wrappee__methaneQuery"},"256":{"no":256,"func":"MinePumpSystem.MinePump_processEnvironment__wrappee__methaneQuery"},"257":{"no":257,"func":"MinePumpSystem.MinePump_processEnvironment"},"258":{"no":258,"func":"MinePumpSystem.MinePump_processEnvironment"},"259":{"no":259,"func":"MinePumpSystem.MinePump_processEnvironment"},"260":{"no":260,"func":"MinePumpSystem.MinePump_processEnvironment"},"261":{"no":261,"func":"MinePumpSystem.MinePump_processEnvironment"},"262":{"no":262,"func":"MinePumpSystem.MinePump_processEnvironment"},"263":{"no":263,"func":"MinePumpSystem.MinePump_processEnvironment"},"264":{"no":264,"func":"MinePumpSystem.MinePump_processEnvironment"},"265":{"no":265,"func":"MinePumpSystem.MinePump_processEnvironment"},"266":{"no":266,"func":"MinePumpSystem.MinePump_processEnvironment"},"267":{"no":267,"func":"MinePumpSystem.MinePump_processEnvironment"},"268":{"no":268,"func":"MinePumpSystem.MinePump_activatePump__wrappee__lowWaterSensor"},"269":{"no":269,"func":"MinePumpSystem.MinePump_activatePump__wrappee__lowWaterSensor"},"270":{"no":270,"func":"MinePumpSystem.MinePump_activatePump__wrappee__lowWaterSensor"},"271":{"no":271,"func":"MinePumpSystem.MinePump_activatePump__wrappee__lowWaterSensor"},"272":{"no":272,"func":"MinePumpSystem.MinePump_activatePump"},"273":{"no":273,"func":"MinePumpSystem.MinePump_activatePump"},"274":{"no":274,"func":"MinePumpSystem.MinePump_activatePump"},"275":{"no":275,"func":"MinePumpSystem.MinePump_activatePump"},"276":{"no":276,"func":"MinePumpSystem.MinePump_activatePump"},"277":{"no":277,"func":"MinePumpSystem.MinePump_activatePump"},"278":{"no":278,"func":"MinePumpSystem.MinePump_activatePump"},"279":{"no":279,"func":"MinePumpSystem.MinePump_activatePump"},"280":{"no":280,"func":"MinePumpSystem.MinePump_activatePump"},"281":{"no":281,"func":"MinePumpSystem.MinePump_isPumpRunning"},"282":{"no":282,"func":"MinePumpSystem.MinePump_isPumpRunning"},"283":{"no":283,"func":"MinePumpSystem.MinePump_isPumpRunning"},"285":{"no":285,"func":"MinePumpSystem.MinePump_deactivatePump"},"286":{"no":286,"func":"MinePumpSystem.MinePump_deactivatePump"},"287":{"no":287,"func":"MinePumpSystem.MinePump_deactivatePump"},"288":{"no":288,"func":"MinePumpSystem.MinePump_deactivatePump"},"289":{"no":289,"func":"MinePumpSystem.MinePump_isMethaneAlarm"},"290":{"no":290,"func":"MinePumpSystem.MinePump_isMethaneAlarm"},"291":{"no":291,"func":"MinePumpSystem.MinePump_isMethaneAlarm"},"293":{"no":293,"func":"MinePumpSystem.MinePump_isMethaneAlarm"},"294":{"no":294,"func":"MinePumpSystem.MinePump_isMethaneAlarm"},"295":{"no":295,"func":"MinePumpSystem.MinePump_toString"},"296":{"no":296,"func":"MinePumpSystem.MinePump_toString"},"297":{"no":297,"func":"MinePumpSystem.MinePump_toString"},"299":{"no":299,"func":"MinePumpSystem.MinePump_toString"},"300":{"no":300,"func":"MinePumpSystem.MinePump_toString"},"301":{"no":301,"func":"MinePumpSystem.MinePump_toString"},"302":{"no":302,"func":"MinePumpSystem.MinePump_toString"},"303":{"no":303,"func":"MinePumpSystem.MinePump_getEnv"},"304":{"no":304,"func":"MinePumpSystem.MinePump_getEnv"},"305":{"no":305,"func":"MinePumpSystem.MinePump_getEnv"},"307":{"no":307,"func":"MinePumpSystem.MinePump_isLowWaterLevel"},"308":{"no":308,"func":"MinePumpSystem.MinePump_isLowWaterLevel"},"309":{"no":309,"func":"MinePumpSystem.MinePump_isLowWaterLevel"},"311":{"no":311,"func":"MinePumpSystem.MinePump_isLowWaterLevel"},"312":{"no":312,"func":"MinePumpSystem.MinePump_isLowWaterLevel"},"313":{"no":313,"func":"MinePumpSystem.MinePump_stopSystem"},"314":{"no":314,"func":"MinePumpSystem.MinePump_stopSystem"},"315":{"no":315,"func":"MinePumpSystem.MinePump_stopSystem"},"316":{"no":316,"func":"MinePumpSystem.MinePump_startSystem"},"317":{"no":317,"func":"MinePumpSystem.MinePump_startSystem"},"318":{"no":318,"func":"MinePumpSystem.MinePump_startSystem"},"319":{"no":319,"func":"MinePumpSystem.MinePump_isSystemActive"},"320":{"no":320,"func":"MinePumpSystem.MinePump_isSystemActive"},"321":{"no":321,"func":"MinePumpSystem.MinePump_isSystemActive"},"323":{"no":323,"func":"Main_main_String[]"},"324":{"no":324,"func":"Main_main_String[]"}},"edges":{"50->53":{"file":"Main.java","line":33,"source":50,"type":"AssumeEdge","stmt":"[!(action1)]","target":53},"223->224":{"file":"MinePump.java","line":20,"source":223,"type":"BlankEdge","stmt":"Function start dummy edge","target":224},"50->54":{"file":"Main.java","line":33,"source":50,"type":"AssumeEdge","stmt":"[action1]","target":54},"82->84":{"file":"Actions.java","line":10,"source":82,"type":"DeclarationEdge","stmt":" boolean Actions_methAndRunningLastTime = false;","target":84},"280->275":{"file":"<none>","line":0,"source":280,"type":"BlankEdge","stmt":"","target":275},"320->321":{"file":"MinePump.java","line":120,"source":320,"type":"BlankEdge","stmt":"Function start dummy edge","target":321},"242->240":{"file":"<none>","line":0,"source":242,"type":"BlankEdge","stmt":"","target":240},"301->302":{"file":"MinePump.java","line":94,"source":301,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_2 = MinePumpSystem.MinePump_env_MinePumpSystem.Environment_toString();","target":302},"166->170":{"file":"Environment.java","line":20,"source":166,"type":"AssumeEdge","stmt":"[!(MinePumpSystem.Environment_waterLevel == 1)]","target":170},"277->275":{"file":"<none>","line":0,"source":277,"type":"BlankEdge","stmt":"","target":275},"317->318":{"file":"MinePump.java","line":115,"source":317,"type":"BlankEdge","stmt":"Function start dummy edge","target":318},"256->249":{"file":"<none>","line":0,"source":256,"type":"BlankEdge","stmt":"","target":249},"204->202":{"file":"Environment.java","line":61,"source":204,"type":"ReturnStatementEdge","stmt":"return MinePumpSystem.Environment_waterLevel;","target":202},"90->78":{"file":"Actions.java","line":14,"source":90,"type":"ReturnStatementEdge","stmt":"return this;","target":78},"110->113":{"file":"Actions.java","line":37,"source":110,"type":"DeclarationEdge","stmt":"boolean __CPAchecker_TMP_0;","target":113},"37->39":{"file":"Main.java","line":28,"source":37,"type":"AssumeEdge","stmt":"[__CPAchecker_TMP_2]","target":39},"109->110":{"file":"Actions.java","line":36,"source":109,"type":"BlankEdge","stmt":"Function start dummy edge","target":110},"258->259":{"file":"MinePump.java","line":50,"source":258,"type":"BlankEdge","stmt":"Function start dummy edge","target":259},"126->127":{"file":"Actions.java","line":50,"source":126,"type":"BlankEdge","stmt":"Function start dummy edge","target":127},"107->103":{"file":"<none>","line":0,"source":107,"type":"BlankEdge","stmt":"","target":103},"94->95":{"file":"Actions.java","line":22,"source":94,"type":"CallToReturnEdge","stmt":"Actions_env_MinePumpSystem.Environment_waterRise();","target":95},"239->237":{"file":"<none>","line":0,"source":239,"type":"BlankEdge","stmt":"","target":237},"29->30":{"file":"Main.java","line":27,"source":29,"type":"DeclarationEdge","stmt":"boolean action1 = __CPAchecker_TMP_1;","target":30},"294->289":{"file":"MinePump.java","line":87,"source":294,"type":"ReturnStatementEdge","stmt":"return __CPAchecker_TMP_0;","target":289},"263->261":{"file":"MinePump.java","line":51,"source":263,"type":"AssumeEdge","stmt":"[__CPAchecker_TMP_0]","target":261},"183->185":{"file":"Environment.java","line":34,"source":183,"type":"StatementEdge","stmt":"MinePumpSystem.Environment_waterLevel = 2;","target":185},"263->262":{"file":"MinePump.java","line":51,"source":263,"type":"AssumeEdge","stmt":"[!(__CPAchecker_TMP_0)]","target":262},"62->59":{"file":"<none>","line":0,"source":62,"type":"BlankEdge","stmt":"","target":59},"185->177":{"file":"Environment.java","line":35,"source":185,"type":"BlankEdge","stmt":"break","target":177},"149->154":{"file":"Actions.java","line":62,"source":149,"type":"AssumeEdge","stmt":"[b1]","target":154},"166->169":{"file":"Environment.java","line":20,"source":166,"type":"AssumeEdge","stmt":"[MinePumpSystem.Environment_waterLevel == 1]","target":169},"57->58":{"file":"Main.java","line":38,"source":57,"type":"CallToReturnEdge","stmt":"a_Actions_methaneChange();","target":58},"105->106":{"file":"Actions.java","line":31,"source":105,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_0 = Actions_p_MinePumpSystem.MinePump_isSystemActive();","target":106},"149->152":{"file":"Actions.java","line":62,"source":149,"type":"AssumeEdge","stmt":"[!(b1)]","target":152},"162->166":{"file":"Environment.java","line":17,"source":162,"type":"AssumeEdge","stmt":"[!(MinePumpSystem.Environment_waterLevel == 2)]","target":166},"162->165":{"file":"Environment.java","line":17,"source":162,"type":"AssumeEdge","stmt":"[MinePumpSystem.Environment_waterLevel == 2]","target":165},"5->6":{"file":"Main.java","line":14,"source":5,"type":"BlankEdge","stmt":"Function start dummy edge","target":6},"230->231":{"file":"MinePump.java","line":21,"source":230,"type":"StatementEdge","stmt":"_unspecified_ super;","target":231},"45->49":{"file":"Main.java","line":30,"source":45,"type":"DeclarationEdge","stmt":"boolean action4 = false;","target":49},"190->187":{"file":"<none>","line":0,"source":190,"type":"BlankEdge","stmt":"default return","target":187},"114->112":{"file":"Actions.java","line":37,"source":114,"type":"AssumeEdge","stmt":"[!__CPAchecker_TMP_0]","target":112},"114->111":{"file":"Actions.java","line":37,"source":114,"type":"AssumeEdge","stmt":"[!(!__CPAchecker_TMP_0)]","target":111},"54->55":{"file":"Main.java","line":34,"source":54,"type":"CallToReturnEdge","stmt":"a_Actions_waterRise();","target":55},"218->220":{"file":"Environment.java","line":11,"source":218,"type":"DeclarationEdge","stmt":"private boolean MinePumpSystem.Environment_methaneLevelCritical = false;","target":220},"189->192":{"file":"Environment.java","line":42,"source":189,"type":"AssumeEdge","stmt":"[!(!MinePumpSystem.Environment_methaneLevelCritical)]","target":192},"189->191":{"file":"Environment.java","line":42,"source":189,"type":"AssumeEdge","stmt":"[!MinePumpSystem.Environment_methaneLevelCritical]","target":191},"150->149":{"file":"Actions.java","line":60,"source":150,"type":"StatementEdge","stmt":"b2 = true;","target":149},"98->99":{"file":"Actions.java","line":27,"source":98,"type":"CallToReturnEdge","stmt":"Actions_env_MinePumpSystem.Environment_changeMethaneLevel();","target":99},"141->144":{"file":"Actions.java","line":59,"source":141,"type":"AssumeEdge","stmt":"[!(__CPAchecker_TMP_1)]","target":144},"279->276":{"file":"MinePump.java","line":66,"source":279,"type":"AssumeEdge","stmt":"[!__CPAchecker_TMP_0]","target":276},"119->122":{"file":"Actions.java","line":45,"source":119,"type":"DeclarationEdge","stmt":"boolean __CPAchecker_TMP_0;","target":122},"279->277":{"file":"MinePump.java","line":66,"source":279,"type":"AssumeEdge","stmt":"[!(!__CPAchecker_TMP_0)]","target":277},"270->271":{"file":"MinePump.java","line":61,"source":270,"type":"StatementEdge","stmt":"MinePumpSystem.MinePump_pumpRunning = true;","target":271},"141->143":{"file":"Actions.java","line":59,"source":141,"type":"AssumeEdge","stmt":"[__CPAchecker_TMP_1]","target":143},"120->116":{"file":"<none>","line":0,"source":120,"type":"BlankEdge","stmt":"default return","target":116},"10->12":{"file":"Main.java","line":16,"source":10,"type":"DeclarationEdge","stmt":"__CPAchecker_TMP_1;","target":12},"240->234":{"file":"<none>","line":0,"source":240,"type":"BlankEdge","stmt":"default return","target":234},"261->266":{"file":"MinePump.java","line":52,"source":261,"type":"CallToReturnEdge","stmt":"MinePumpSystem.MinePump_deactivatePump();","target":266},"248->253":{"file":"MinePump.java","line":42,"source":248,"type":"DeclarationEdge","stmt":"boolean __CPAchecker_TMP_0;","target":253},"30->32":{"file":"Main.java","line":27,"source":30,"type":"AssumeEdge","stmt":"[__CPAchecker_TMP_1]","target":32},"30->33":{"file":"Main.java","line":27,"source":30,"type":"AssumeEdge","stmt":"[!(__CPAchecker_TMP_1)]","target":33},"135->136":{"file":"Actions.java","line":57,"source":135,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_0 = Actions_p_MinePumpSystem.MinePump_getEnv();","target":136},"9->10":{"file":"Main.java","line":15,"source":9,"type":"DeclarationEdge","stmt":"Random random = __CPAchecker_TMP_0;","target":10},"65->59":{"file":"<none>","line":0,"source":65,"type":"BlankEdge","stmt":"","target":59},"282->283":{"file":"MinePump.java","line":75,"source":282,"type":"BlankEdge","stmt":"Function start dummy edge","target":283},"37->40":{"file":"Main.java","line":28,"source":37,"type":"AssumeEdge","stmt":"[!(__CPAchecker_TMP_2)]","target":40},"267->260":{"file":"<none>","line":0,"source":267,"type":"BlankEdge","stmt":"","target":260},"181->177":{"file":"Environment.java","line":32,"source":181,"type":"BlankEdge","stmt":"break","target":177},"147->148":{"file":"Actions.java","line":60,"source":147,"type":"DeclarationEdge","stmt":"boolean b2 = __CPAchecker_TMP_2;","target":148},"273->274":{"file":"MinePump.java","line":65,"source":273,"type":"BlankEdge","stmt":"Function start dummy edge","target":274},"28->29":{"file":"Main.java","line":27,"source":28,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_1 = Main_getBoolean();","target":29},"71->73":{"file":"Main.java","line":50,"source":71,"type":"StatementEdge","stmt":"counter = counter + 1;","target":73},"176->180":{"file":"Environment.java","line":30,"source":176,"type":"AssumeEdge","stmt":"[!(MinePumpSystem.Environment_waterLevel == 0)]","target":180},"18->19":{"file":"Main.java","line":21,"source":18,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_0 = new Actions Actions_Actions;","target":19},"175->176":{"file":"Environment.java","line":29,"source":175,"type":"BlankEdge","stmt":"switch (MinePumpSystem.Environment_waterLevel)","target":176},"101->102":{"file":"Actions.java","line":30,"source":101,"type":"BlankEdge","stmt":"Function start dummy edge","target":102},"93->94":{"file":"Actions.java","line":21,"source":93,"type":"BlankEdge","stmt":"Function start dummy edge","target":94},"152->131":{"file":"<none>","line":0,"source":152,"type":"BlankEdge","stmt":"default return","target":131},"194->195":{"file":"Environment.java","line":47,"source":194,"type":"BlankEdge","stmt":"Function start dummy edge","target":195},"266->260":{"file":"<none>","line":0,"source":266,"type":"BlankEdge","stmt":"","target":260},"180->183":{"file":"Environment.java","line":33,"source":180,"type":"AssumeEdge","stmt":"[MinePumpSystem.Environment_waterLevel == 1]","target":183},"309->311":{"file":"MinePump.java","line":106,"source":309,"type":"DeclarationEdge","stmt":"boolean __CPAchecker_TMP_0;","target":311},"157->158":{"file":"Actions.java","line":63,"source":157,"type":"BlankEdge","stmt":"assert fail","target":158},"180->184":{"file":"Environment.java","line":33,"source":180,"type":"AssumeEdge","stmt":"[!(MinePumpSystem.Environment_waterLevel == 1)]","target":184},"68->69":{"file":"Main.java","line":50,"source":68,"type":"AssumeEdge","stmt":"[counter < Main_cleanupTimeShifts]","target":69},"25->67":{"file":"Main.java","line":50,"source":25,"type":"BlankEdge","stmt":"for","target":67},"6->8":{"file":"Main.java","line":15,"source":6,"type":"DeclarationEdge","stmt":"Random __CPAchecker_TMP_0;","target":8},"195->193":{"file":"Environment.java","line":48,"source":195,"type":"ReturnStatementEdge","stmt":"return MinePumpSystem.Environment_methaneLevelCritical;","target":193},"36->37":{"file":"Main.java","line":28,"source":36,"type":"DeclarationEdge","stmt":"boolean action2 = __CPAchecker_TMP_2;","target":37},"251->256":{"file":"MinePump.java","line":45,"source":251,"type":"CallToReturnEdge","stmt":"MinePumpSystem.MinePump_processEnvironment__wrappee__base();","target":256},"58->56":{"file":"<none>","line":0,"source":58,"type":"BlankEdge","stmt":"","target":56},"201->197":{"file":"Environment.java","line":55,"source":201,"type":"ReturnStatementEdge","stmt":"return (((Env(Water: + MinePumpSystem.Environment_waterLevel) + ,Meth:) + __CPAchecker_TMP_0) + );","target":197},"311->312":{"file":"MinePump.java","line":106,"source":311,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_0 = MinePumpSystem.MinePump_env_MinePumpSystem.Environment_isLowWaterSensorDry();","target":312},"24->26":{"file":"Main.java","line":25,"source":24,"type":"StatementEdge","stmt":"counter = counter + 1;","target":26},"171->163":{"file":"Environment.java","line":22,"source":171,"type":"BlankEdge","stmt":"break","target":163},"160->161":{"file":"Environment.java","line":15,"source":160,"type":"BlankEdge","stmt":"Function start dummy edge","target":161},"231->232":{"file":"MinePump.java","line":22,"source":231,"type":"StatementEdge","stmt":"MinePumpSystem.MinePump_env = env;","target":232},"308->309":{"file":"MinePump.java","line":105,"source":308,"type":"BlankEdge","stmt":"Function start dummy edge","target":309},"46->45":{"file":"Main.java","line":29,"source":46,"type":"StatementEdge","stmt":"action3 = true;","target":45},"237->241":{"file":"MinePump.java","line":30,"source":237,"type":"AssumeEdge","stmt":"[MinePumpSystem.MinePump_systemActive]","target":241},"312->307":{"file":"MinePump.java","line":106,"source":312,"type":"ReturnStatementEdge","stmt":"return !__CPAchecker_TMP_0;","target":307},"133->135":{"file":"Actions.java","line":57,"source":133,"type":"DeclarationEdge","stmt":"MinePumpSystem.Environment __CPAchecker_TMP_0;","target":135},"199->201":{"file":"Environment.java","line":55,"source":199,"type":"DeclarationEdge","stmt":"java.lang.String __CPAchecker_TMP_0;","target":201},"237->240":{"file":"MinePump.java","line":30,"source":237,"type":"AssumeEdge","stmt":"[!(MinePumpSystem.MinePump_systemActive)]","target":240},"97->98":{"file":"Actions.java","line":26,"source":97,"type":"BlankEdge","stmt":"Function start dummy edge","target":98},"321->319":{"file":"MinePump.java","line":121,"source":321,"type":"ReturnStatementEdge","stmt":"return MinePumpSystem.MinePump_systemActive;","target":319},"69->72":{"file":"Main.java","line":51,"source":69,"type":"CallToReturnEdge","stmt":"a_Actions_timeShift();","target":72},"143->142":{"file":"Actions.java","line":59,"source":143,"type":"StatementEdge","stmt":"b1 = true;","target":142},"142->146":{"file":"Actions.java","line":60,"source":142,"type":"DeclarationEdge","stmt":"boolean __CPAchecker_TMP_2;","target":146},"275->272":{"file":"<none>","line":0,"source":275,"type":"BlankEdge","stmt":"default return","target":272},"274->278":{"file":"MinePump.java","line":66,"source":274,"type":"DeclarationEdge","stmt":"boolean __CPAchecker_TMP_0;","target":278},"170->163":{"file":"<none>","line":0,"source":170,"type":"BlankEdge","stmt":"","target":163},"228->230":{"file":"MinePump.java","line":12,"source":228,"type":"DeclarationEdge","stmt":" boolean MinePumpSystem.MinePump_systemActive = true;","target":230},"265->263":{"file":"MinePump.java","line":51,"source":265,"type":"AssumeEdge","stmt":"[MinePumpSystem.MinePump_pumpRunning]","target":263},"265->262":{"file":"MinePump.java","line":51,"source":265,"type":"AssumeEdge","stmt":"[!(MinePumpSystem.MinePump_pumpRunning)]","target":262},"247->248":{"file":"MinePump.java","line":41,"source":247,"type":"BlankEdge","stmt":"Function start dummy edge","target":248},"148->150":{"file":"Actions.java","line":60,"source":148,"type":"AssumeEdge","stmt":"[__CPAchecker_TMP_2]","target":150},"148->151":{"file":"Actions.java","line":60,"source":148,"type":"AssumeEdge","stmt":"[!(__CPAchecker_TMP_2)]","target":151},"20->22":{"file":"Main.java","line":23,"source":20,"type":"DeclarationEdge","stmt":"int counter = 0;","target":22},"241->242":{"file":"MinePump.java","line":31,"source":241,"type":"CallToReturnEdge","stmt":"MinePumpSystem.MinePump_processEnvironment();","target":242},"53->56":{"file":"Main.java","line":37,"source":53,"type":"AssumeEdge","stmt":"[!(action2)]","target":56},"53->57":{"file":"Main.java","line":37,"source":53,"type":"AssumeEdge","stmt":"[action2]","target":57},"1->323":{"file":"<none>","line":0,"source":1,"type":"BlankEdge","stmt":"INIT GLOBAL VARS","target":323},"293->294":{"file":"MinePump.java","line":87,"source":293,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_0 = MinePumpSystem.MinePump_env_MinePumpSystem.Environment_isMethaneLevelCritical();","target":294},"161->162":{"file":"Environment.java","line":16,"source":161,"type":"BlankEdge","stmt":"switch (MinePumpSystem.Environment_waterLevel)","target":162},"124->120":{"file":"<none>","line":0,"source":124,"type":"BlankEdge","stmt":"","target":120},"238->239":{"file":"MinePump.java","line":29,"source":238,"type":"CallToReturnEdge","stmt":"MinePumpSystem.MinePump_env_MinePumpSystem.Environment_lowerWaterLevel();","target":239},"167->163":{"file":"Environment.java","line":19,"source":167,"type":"BlankEdge","stmt":"break","target":163},"250->255":{"file":"MinePump.java","line":43,"source":250,"type":"CallToReturnEdge","stmt":"MinePumpSystem.MinePump_deactivatePump();","target":255},"232->222":{"file":"MinePump.java","line":20,"source":232,"type":"ReturnStatementEdge","stmt":"return this;","target":222},"86->88":{"file":"Actions.java","line":8,"source":86,"type":"DeclarationEdge","stmt":" MinePumpSystem.MinePump Actions_p;","target":88},"75->76":{"file":"<none>","line":0,"source":75,"type":"BlankEdge","stmt":"Function start dummy edge","target":76},"139->140":{"file":"Actions.java","line":59,"source":139,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_1 = e_MinePumpSystem.Environment_isMethaneLevelCritical();","target":140},"115->111":{"file":"<none>","line":0,"source":115,"type":"BlankEdge","stmt":"","target":111},"64->65":{"file":"Main.java","line":44,"source":64,"type":"CallToReturnEdge","stmt":"a_Actions_stopSystem();","target":65},"31->35":{"file":"Main.java","line":28,"source":31,"type":"DeclarationEdge","stmt":"boolean __CPAchecker_TMP_2;","target":35},"318->316":{"file":"<none>","line":0,"source":318,"type":"BlankEdge","stmt":"default return","target":316},"42->43":{"file":"Main.java","line":29,"source":42,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_3 = Main_getBoolean();","target":43},"176->179":{"file":"Environment.java","line":30,"source":176,"type":"AssumeEdge","stmt":"[MinePumpSystem.Environment_waterLevel == 0]","target":179},"165->167":{"file":"Environment.java","line":18,"source":165,"type":"StatementEdge","stmt":"MinePumpSystem.Environment_waterLevel = 1;","target":167},"262->267":{"file":"MinePump.java","line":54,"source":262,"type":"CallToReturnEdge","stmt":"MinePumpSystem.MinePump_processEnvironment__wrappee__methaneQuery();","target":267},"19->20":{"file":"Main.java","line":21,"source":19,"type":"DeclarationEdge","stmt":"Actions a = __CPAchecker_TMP_0;","target":20},"39->38":{"file":"Main.java","line":28,"source":39,"type":"StatementEdge","stmt":"action2 = true;","target":38},"278->279":{"file":"MinePump.java","line":66,"source":278,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_0 = MinePumpSystem.MinePump_isMethaneAlarm();","target":279},"259->264":{"file":"MinePump.java","line":51,"source":259,"type":"DeclarationEdge","stmt":"boolean __CPAchecker_TMP_0;","target":264},"146->147":{"file":"Actions.java","line":60,"source":146,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_2 = Actions_p_MinePumpSystem.MinePump_isPumpRunning();","target":147},"106->104":{"file":"Actions.java","line":31,"source":106,"type":"AssumeEdge","stmt":"[__CPAchecker_TMP_0]","target":104},"106->103":{"file":"Actions.java","line":31,"source":106,"type":"AssumeEdge","stmt":"[!(__CPAchecker_TMP_0)]","target":103},"203->204":{"file":"Environment.java","line":60,"source":203,"type":"BlankEdge","stmt":"Function start dummy edge","target":204},"72->71":{"file":"Main.java","line":50,"source":72,"type":"BlankEdge","stmt":"","target":71},"300->301":{"file":"MinePump.java","line":94,"source":300,"type":"DeclarationEdge","stmt":"java.lang.String __CPAchecker_TMP_2;","target":301},"260->257":{"file":"<none>","line":0,"source":260,"type":"BlankEdge","stmt":"default return","target":257},"163->159":{"file":"<none>","line":0,"source":163,"type":"BlankEdge","stmt":"default return","target":159},"297->299":{"file":"MinePump.java","line":94,"source":297,"type":"DeclarationEdge","stmt":"java.lang.String __CPAchecker_TMP_0;","target":299},"130->125":{"file":"Actions.java","line":51,"source":130,"type":"ReturnStatementEdge","stmt":"return __CPAchecker_TMP_0;","target":125},"2->3":{"file":"Main.java","line":11,"source":2,"type":"CallToReturnEdge","stmt":"Main_randomSequenceOfActions_int(3);","target":3},"15->16":{"file":"Main.java","line":20,"source":15,"type":"BlankEdge","stmt":"Function start dummy edge","target":16},"40->38":{"file":"Main.java","line":28,"source":40,"type":"StatementEdge","stmt":"action2 = false;","target":38},"129->130":{"file":"Actions.java","line":51,"source":129,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_0 = Actions_p_MinePumpSystem.MinePump_toString();","target":130},"80->82":{"file":"Actions.java","line":7,"source":80,"type":"DeclarationEdge","stmt":" MinePumpSystem.Environment Actions_env;","target":82},"324->2":{"file":"Main.java","line":10,"source":324,"type":"BlankEdge","stmt":"Function start dummy edge","target":2},"47->45":{"file":"Main.java","line":29,"source":47,"type":"StatementEdge","stmt":"action3 = false;","target":45},"314->315":{"file":"MinePump.java","line":110,"source":314,"type":"BlankEdge","stmt":"Function start dummy edge","target":315},"35->36":{"file":"Main.java","line":28,"source":35,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_2 = Main_getBoolean();","target":36},"56->61":{"file":"Main.java","line":41,"source":56,"type":"AssumeEdge","stmt":"[!(action3)]","target":61},"56->60":{"file":"Main.java","line":41,"source":56,"type":"AssumeEdge","stmt":"[action3]","target":60},"198->199":{"file":"Environment.java","line":53,"source":198,"type":"BlankEdge","stmt":"Function start dummy edge","target":199},"67->68":{"file":"Main.java","line":50,"source":67,"type":"StatementEdge","stmt":"counter = 0;","target":68},"60->62":{"file":"Main.java","line":42,"source":60,"type":"CallToReturnEdge","stmt":"a_Actions_startSystem();","target":62},"283->281":{"file":"MinePump.java","line":76,"source":283,"type":"ReturnStatementEdge","stmt":"return MinePumpSystem.MinePump_pumpRunning;","target":281},"151->149":{"file":"Actions.java","line":60,"source":151,"type":"StatementEdge","stmt":"b2 = false;","target":149},"323->324":{"file":"Main.java","line":8,"source":323,"type":"DeclarationEdge","stmt":"private static int Main_cleanupTimeShifts = 2;","target":324},"123->121":{"file":"Actions.java","line":45,"source":123,"type":"AssumeEdge","stmt":"[__CPAchecker_TMP_0]","target":121},"23->24":{"file":"Main.java","line":24,"source":23,"type":"AssumeEdge","stmt":"[counter < maxLength]","target":24},"123->120":{"file":"Actions.java","line":45,"source":123,"type":"AssumeEdge","stmt":"[!(__CPAchecker_TMP_0)]","target":120},"23->25":{"file":"Main.java","line":24,"source":23,"type":"AssumeEdge","stmt":"[!(counter < maxLength)]","target":25},"236->238":{"file":"MinePump.java","line":28,"source":236,"type":"AssumeEdge","stmt":"[MinePumpSystem.MinePump_pumpRunning]","target":238},"104->107":{"file":"Actions.java","line":32,"source":104,"type":"CallToReturnEdge","stmt":"Actions_p_MinePumpSystem.MinePump_stopSystem();","target":107},"76->74":{"file":"<none>","line":0,"source":76,"type":"ReturnStatementEdge","stmt":"return this;","target":74},"236->237":{"file":"MinePump.java","line":28,"source":236,"type":"AssumeEdge","stmt":"[!(MinePumpSystem.MinePump_pumpRunning)]","target":237},"66->23":{"file":"<none>","line":0,"source":66,"type":"BlankEdge","stmt":"","target":23},"276->280":{"file":"MinePump.java","line":67,"source":276,"type":"CallToReturnEdge","stmt":"MinePumpSystem.MinePump_activatePump__wrappee__lowWaterSensor();","target":280},"12->13":{"file":"Main.java","line":16,"source":12,"type":"StatementEdge","stmt":"__CPAchecker_TMP_1 = nextBoolean();","target":13},"177->173":{"file":"<none>","line":0,"source":177,"type":"BlankEdge","stmt":"default return","target":173},"304->305":{"file":"MinePump.java","line":99,"source":304,"type":"BlankEdge","stmt":"Function start dummy edge","target":305},"245->243":{"file":"<none>","line":0,"source":245,"type":"BlankEdge","stmt":"default return","target":243},"132->133":{"file":"Actions.java","line":55,"source":132,"type":"BlankEdge","stmt":"Function start dummy edge","target":133},"43->44":{"file":"Main.java","line":29,"source":43,"type":"DeclarationEdge","stmt":"boolean action3 = __CPAchecker_TMP_3;","target":44},"79->80":{"file":"Actions.java","line":14,"source":79,"type":"BlankEdge","stmt":"Function start dummy edge","target":80},"113->114":{"file":"Actions.java","line":37,"source":113,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_0 = Actions_p_MinePumpSystem.MinePump_isSystemActive();","target":114},"63->59":{"file":"<none>","line":0,"source":63,"type":"BlankEdge","stmt":"","target":59},"68->70":{"file":"Main.java","line":50,"source":68,"type":"AssumeEdge","stmt":"[!(counter < Main_cleanupTimeShifts)]","target":70},"215->216":{"file":"<none>","line":0,"source":215,"type":"BlankEdge","stmt":"Function start dummy edge","target":216},"111->108":{"file":"<none>","line":0,"source":111,"type":"BlankEdge","stmt":"default return","target":108},"8->9":{"file":"Main.java","line":15,"source":8,"type":"StatementEdge","stmt":"__CPAchecker_TMP_0 = new _unspecified_ new Random();","target":9},"264->265":{"file":"MinePump.java","line":51,"source":264,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_0 = MinePumpSystem.MinePump_isMethaneAlarm();","target":265},"52->50":{"file":"<none>","line":0,"source":52,"type":"BlankEdge","stmt":"","target":50},"153->157":{"file":"Actions.java","line":63,"source":153,"type":"BlankEdge","stmt":"","target":157},"32->31":{"file":"Main.java","line":27,"source":32,"type":"StatementEdge","stmt":"action1 = true;","target":31},"224->226":{"file":"MinePump.java","line":8,"source":224,"type":"DeclarationEdge","stmt":" boolean MinePumpSystem.MinePump_pumpRunning = false;","target":226},"212->210":{"file":"Environment.java","line":70,"source":212,"type":"ReturnStatementEdge","stmt":"return MinePumpSystem.Environment_waterLevel != 2;","target":210},"255->249":{"file":"<none>","line":0,"source":255,"type":"BlankEdge","stmt":"","target":249},"70->14":{"file":"<none>","line":0,"source":70,"type":"BlankEdge","stmt":"default return","target":14},"184->177":{"file":"<none>","line":0,"source":184,"type":"BlankEdge","stmt":"","target":177},"59->66":{"file":"Main.java","line":47,"source":59,"type":"CallToReturnEdge","stmt":"a_Actions_timeShift();","target":66},"144->142":{"file":"Actions.java","line":59,"source":144,"type":"StatementEdge","stmt":"b1 = false;","target":142},"252->251":{"file":"MinePump.java","line":42,"source":252,"type":"AssumeEdge","stmt":"[!(__CPAchecker_TMP_0)]","target":251},"269->270":{"file":"MinePump.java","line":60,"source":269,"type":"BlankEdge","stmt":"Function start dummy edge","target":270},"291->293":{"file":"MinePump.java","line":87,"source":291,"type":"DeclarationEdge","stmt":"boolean __CPAchecker_TMP_0;","target":293},"252->250":{"file":"MinePump.java","line":42,"source":252,"type":"AssumeEdge","stmt":"[__CPAchecker_TMP_0]","target":250},"136->137":{"file":"Actions.java","line":57,"source":136,"type":"DeclarationEdge","stmt":"MinePumpSystem.Environment e = __CPAchecker_TMP_0;","target":137},"61->63":{"file":"Main.java","line":43,"source":61,"type":"AssumeEdge","stmt":"[!(action4)]","target":63},"61->64":{"file":"Main.java","line":43,"source":61,"type":"AssumeEdge","stmt":"[action4]","target":64},"299->300":{"file":"MinePump.java","line":94,"source":299,"type":"DeclarationEdge","stmt":"java.lang.String __CPAchecker_TMP_1;","target":300},"13->4":{"file":"Main.java","line":16,"source":13,"type":"ReturnStatementEdge","stmt":"return __CPAchecker_TMP_1;","target":4},"117->118":{"file":"Actions.java","line":41,"source":117,"type":"BlankEdge","stmt":"Function start dummy edge","target":118},"140->141":{"file":"Actions.java","line":59,"source":140,"type":"DeclarationEdge","stmt":"boolean b1 = __CPAchecker_TMP_1;","target":141},"51->52":{"file":"Main.java","line":31,"source":51,"type":"CallToReturnEdge","stmt":"action4 = Main_getBoolean();","target":52},"288->285":{"file":"<none>","line":0,"source":288,"type":"BlankEdge","stmt":"default return","target":285},"174->175":{"file":"Environment.java","line":28,"source":174,"type":"BlankEdge","stmt":"Function start dummy edge","target":175},"16->18":{"file":"Main.java","line":21,"source":16,"type":"DeclarationEdge","stmt":"Actions __CPAchecker_TMP_0;","target":18},"249->246":{"file":"<none>","line":0,"source":249,"type":"BlankEdge","stmt":"default return","target":246},"287->288":{"file":"MinePump.java","line":81,"source":287,"type":"StatementEdge","stmt":"MinePumpSystem.MinePump_pumpRunning = false;","target":288},"3->0":{"file":"<none>","line":0,"source":3,"type":"BlankEdge","stmt":"default return","target":0},"26->28":{"file":"Main.java","line":27,"source":26,"type":"DeclarationEdge","stmt":"boolean __CPAchecker_TMP_1;","target":28},"208->206":{"file":"Environment.java","line":66,"source":208,"type":"ReturnStatementEdge","stmt":"return MinePumpSystem.Environment_waterLevel == 0;","target":206},"305->303":{"file":"MinePump.java","line":100,"source":305,"type":"ReturnStatementEdge","stmt":"return MinePumpSystem.MinePump_env;","target":303},"286->287":{"file":"MinePump.java","line":80,"source":286,"type":"BlankEdge","stmt":"Function start dummy edge","target":287},"122->123":{"file":"Actions.java","line":45,"source":122,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_0 = Actions_p_MinePumpSystem.MinePump_isSystemActive();","target":123},"192->190":{"file":"Environment.java","line":42,"source":192,"type":"StatementEdge","stmt":"MinePumpSystem.Environment_methaneLevelCritical = false;","target":190},"211->212":{"file":"Environment.java","line":69,"source":211,"type":"BlankEdge","stmt":"Function start dummy edge","target":212},"73->68":{"file":"Main.java","line":50,"source":73,"type":"BlankEdge","stmt":"","target":68},"271->268":{"file":"<none>","line":0,"source":271,"type":"BlankEdge","stmt":"default return","target":268},"254->251":{"file":"MinePump.java","line":42,"source":254,"type":"AssumeEdge","stmt":"[!(MinePumpSystem.MinePump_pumpRunning)]","target":251},"254->252":{"file":"MinePump.java","line":42,"source":254,"type":"AssumeEdge","stmt":"[MinePumpSystem.MinePump_pumpRunning]","target":252},"154->153":{"file":"Actions.java","line":62,"source":154,"type":"AssumeEdge","stmt":"[b2]","target":153},"137->139":{"file":"Actions.java","line":59,"source":137,"type":"DeclarationEdge","stmt":"boolean __CPAchecker_TMP_1;","target":139},"154->152":{"file":"Actions.java","line":62,"source":154,"type":"AssumeEdge","stmt":"[!(b2)]","target":152},"102->105":{"file":"Actions.java","line":31,"source":102,"type":"DeclarationEdge","stmt":"boolean __CPAchecker_TMP_0;","target":105},"89->90":{"file":"Actions.java","line":16,"source":89,"type":"CallToReturnEdge","stmt":"Actions_p = new MinePumpSystem.MinePump MinePumpSystem.MinePump_MinePump_MinePumpSystem.Environment;","target":90},"169->171":{"file":"Environment.java","line":21,"source":169,"type":"StatementEdge","stmt":"MinePumpSystem.Environment_waterLevel = 0;","target":171},"33->31":{"file":"Main.java","line":27,"source":33,"type":"StatementEdge","stmt":"action1 = false;","target":31},"207->208":{"file":"Environment.java","line":65,"source":207,"type":"BlankEdge","stmt":"Function start dummy edge","target":208},"88->89":{"file":"Actions.java","line":15,"source":88,"type":"CallToReturnEdge","stmt":"Actions_env = new MinePumpSystem.Environment MinePumpSystem.Environment_Environment;","target":89},"188->189":{"file":"Environment.java","line":41,"source":188,"type":"BlankEdge","stmt":"Function start dummy edge","target":189},"179->181":{"file":"Environment.java","line":31,"source":179,"type":"StatementEdge","stmt":"MinePumpSystem.Environment_waterLevel = 1;","target":181},"103->100":{"file":"<none>","line":0,"source":103,"type":"BlankEdge","stmt":"default return","target":100},"235->236":{"file":"MinePump.java","line":27,"source":235,"type":"BlankEdge","stmt":"Function start dummy edge","target":236},"99->96":{"file":"<none>","line":0,"source":99,"type":"BlankEdge","stmt":"default return","target":96},"302->295":{"file":"MinePump.java","line":94,"source":302,"type":"ReturnStatementEdge","stmt":"return ((((Pump(System: + __CPAchecker_TMP_0) + ,Pump:) + __CPAchecker_TMP_1) + ) ) + __CPAchecker_TMP_2;","target":295},"216->218":{"file":"Environment.java","line":7,"source":216,"type":"DeclarationEdge","stmt":"private int MinePumpSystem.Environment_waterLevel = 1;","target":218},"22->23":{"file":"Main.java","line":24,"source":22,"type":"BlankEdge","stmt":"while","target":23},"44->47":{"file":"Main.java","line":29,"source":44,"type":"AssumeEdge","stmt":"[!(__CPAchecker_TMP_3)]","target":47},"44->46":{"file":"Main.java","line":29,"source":44,"type":"AssumeEdge","stmt":"[__CPAchecker_TMP_3]","target":46},"55->53":{"file":"<none>","line":0,"source":55,"type":"BlankEdge","stmt":"","target":53},"226->228":{"file":"MinePump.java","line":16,"source":226,"type":"DeclarationEdge","stmt":" MinePumpSystem.Environment MinePumpSystem.MinePump_env;","target":228},"191->190":{"file":"Environment.java","line":42,"source":191,"type":"StatementEdge","stmt":"MinePumpSystem.Environment_methaneLevelCritical = true;","target":190},"118->119":{"file":"Actions.java","line":43,"source":118,"type":"CallToReturnEdge","stmt":"Actions_p_MinePumpSystem.MinePump_timeShift();","target":119},"244->245":{"file":"MinePump.java","line":35,"source":244,"type":"BlankEdge","stmt":"Function start dummy edge","target":245},"95->92":{"file":"<none>","line":0,"source":95,"type":"BlankEdge","stmt":"default return","target":92},"38->42":{"file":"Main.java","line":29,"source":38,"type":"DeclarationEdge","stmt":"boolean __CPAchecker_TMP_3;","target":42},"49->50":{"file":"Main.java","line":31,"source":49,"type":"AssumeEdge","stmt":"[!(!action3)]","target":50},"112->115":{"file":"Actions.java","line":38,"source":112,"type":"CallToReturnEdge","stmt":"Actions_p_MinePumpSystem.MinePump_startSystem();","target":115},"49->51":{"file":"Main.java","line":31,"source":49,"type":"AssumeEdge","stmt":"[!action3]","target":51},"220->214":{"file":"<none>","line":0,"source":220,"type":"ReturnStatementEdge","stmt":"return this;","target":214},"84->86":{"file":"Actions.java","line":11,"source":84,"type":"DeclarationEdge","stmt":" boolean Actions_switchedOnBeforeTS = false;","target":86},"296->297":{"file":"MinePump.java","line":92,"source":296,"type":"BlankEdge","stmt":"Function start dummy edge","target":297},"290->291":{"file":"MinePump.java","line":86,"source":290,"type":"BlankEdge","stmt":"Function start dummy edge","target":291},"127->129":{"file":"Actions.java","line":51,"source":127,"type":"DeclarationEdge","stmt":"MinePumpSystem.String __CPAchecker_TMP_0;","target":129},"253->254":{"file":"MinePump.java","line":42,"source":253,"type":"CallToReturnEdge","stmt":"__CPAchecker_TMP_0 = MinePumpSystem.MinePump_isLowWaterLevel();","target":254},"121->124":{"file":"Actions.java","line":46,"source":121,"type":"CallToReturnEdge","stmt":"Actions_Specification1();","target":124},"315->313":{"file":"<none>","line":0,"source":315,"type":"BlankEdge","stmt":"default return","target":313}}};
+var errorPathData = {}; //ERRORPATH
+var combinedNodes = {"6":6,"136":136,"8":6,"137":136,"9":6,"10":6,"12":6,"13":6,"270":270,"271":270,"19":19,"20":19,"22":19,"24":24,"153":153,"26":24,"157":153,"287":287,"288":287,"165":165,"167":165,"296":296,"169":169,"297":296,"171":169,"299":296,"300":296,"179":179,"181":179,"183":183,"185":183,"323":323,"324":323,"198":198,"71":72,"199":198,"72":72,"73":72,"201":198,"79":79,"80":79,"82":79,"84":79,"86":79,"215":215,"216":215,"218":215,"220":215,"223":223,"224":223,"226":223,"228":223,"101":101,"102":101,"230":223,"231":223,"232":223};
+var sourceFiles = ["Main"];
+
+$(function () {
+  $('[data-toggle="popover"]').popover({ html : true })
+})
+
+function init(){
+  var svgElements = document.getElementsByTagName("svg");
+  //set IDs for all CFA-SVGs
+  for(var r = 0; r<svgElements.length-1; r++){
+    var graph = svgElements[r].getElementsByTagName("g")[0];
+    graph.id = "cfaGraph-" + r.toString();
+    var nodes = graph.getElementsByClassName("node");
+    for(var s = 0; s < nodes.length; s++){
+      nodes[s].id = "cfa-" + nodes[s].getElementsByTagName("title")[0].innerHTML;
+      if(nodes[s].getElementsByTagName("title")[0].innerHTML > 100000){
+        nodes[s].classList.add("functionNode");
+      }
+    }
+    var edges = graph.getElementsByClassName("edge");
+    for(var t=0; t<edges.length; t++){
+      var edge = edges[t];
+      var fromto = [];
+      if(edge.getElementsByTagName("title")[0].innerHTML.split("&#45;&gt;")[1] != null){
+        fromto = edge.getElementsByTagName("title")[0].innerHTML.split("&#45;&gt;");
+      } else if (edge.getElementsByTagName("title")[0].innerHTML.split("&#45;>")[1] != null) {
+        fromto = edge.getElementsByTagName("title")[0].innerHTML.split("&#45;>");
+      } else if (edge.getElementsByTagName("title")[0].innerHTML.split("-&gt;")[1] != null) {
+        fromto = edge.getElementsByTagName("title")[0].innerHTML.split("-&gt;");
+      } else {
+        fromto = edge.getElementsByTagName("title")[0].innerHTML.split("->");
+      }
+      edge.id = "cfa-" + fromto[0] + "->" + fromto[1];
+    }
+  }
+  //set IDs for the ARG-SVG
+  graph = svgElements[svgElements.length-1].getElementsByTagName("g")[0];
+  graph.id = "argGraph-" + (svgElements.length-1).toString();
+  nodes = graph.getElementsByClassName("node");
+  for(var u = 0; u < nodes.length; u++){
+    nodes[u].id = "arg-" + nodes[u].getElementsByTagName("title")[0].innerHTML;
+  }
+  edges = graph.getElementsByClassName("edge");
+  for(var v=0; v<edges.length; v++){
+    edge = edges[v];
+    fromto = [];
+    if(edge.getElementsByTagName("title")[0].innerHTML.split("&#45;&gt;")[1] != null){
+      fromto = edge.getElementsByTagName("title")[0].innerHTML.split("&#45;&gt;");
+    } else if (edge.getElementsByTagName("title")[0].innerHTML.split("&#45;>")[1] != null) {
+      fromto = edge.getElementsByTagName("title")[0].innerHTML.split("&#45;>");
+    } else if (edge.getElementsByTagName("title")[0].innerHTML.split("-&gt;")[1] != null) {
+      fromto = edge.getElementsByTagName("title")[0].innerHTML.split("-&gt;");
+    } else {
+      fromto = edge.getElementsByTagName("title")[0].innerHTML.split("->");
+    }
+    edge.id = "arg-" + fromto[0] + "->" + fromto[1];
+  }
+
+  //If we do not have an Errorpath
+  if(errorPathData.length == undefined){
+    document.getElementById("errorpath_section").style.display = "none";
+    document.getElementById("externalFiles_section").style.width = "100%";
+  }
+
+  //prepare Errorpath-Data for marking in the cfa
+  var returnedges = {};
+  for(key in fCallEdges){
+    var fcalledge = fCallEdges[key];
+    returnedges[fcalledge[1]] = fcalledge[0];
+  }
+  var errPathDataForCFA = [];
+  for(var w = 0; w < errorPathData.length; w++){
+    var source = errorPathData[w].source;
+    var target = errorPathData[w].target;
+    if(source in combinedNodes && target in combinedNodes){
+    } else if(source in combinedNodes){
+      errPathDataForCFA.push(combinedNodes[source] + "->" + target);
+    } else if (source in fCallEdges){
+      errPathDataForCFA.push(source + "->" + fCallEdges[source][0]);
+    } else if (target in returnedges){
+      errPathDataForCFA.push(returnedges[target] + "->" + target);
+    } else {
+      errPathDataForCFA.push(source + "->" + target);
+    }
+  }
+  for(var x = 0; x < errPathDataForCFA.length; x++){
+    var cfaEdge = document.getElementById("cfa-" + errPathDataForCFA[x]);
+    if (cfaEdge != null) {
+	  var path = cfaEdge.getElementsByTagName("path")[0];
+	  var poly = cfaEdge.getElementsByTagName("polygon")[0];
+	  var text = cfaEdge.getElementsByTagName("text")[0];
+	  path.setAttribute("stroke", "red");
+	  poly.setAttribute("stroke", "red");
+	  poly.setAttribute("fill", "red");
+	  if(text != undefined) {
+	    text.setAttribute("fill", "red");
+	  }
+    }
+  }
+};
+
+</script>
+
+</head>
+
+<body ng-controller="ReportController" onload="prettyPrint(); init()">
+<header class="header">
+
+  <a href="https://cpachecker.sosy-lab.org/"><img class="logo" ng-src="{{logo}}" /></a>
+  <h1>Report for
+Main  </h1>
+
+    <span class="generated">
+Generated on 2016-09-24 21:52:47 by CPAchecker 1.6.1-svn 23198M    </span>
+</header>
+
+<div class="sections" ng-mousemove="setWidth($event)" ng-mouseup="setMouseUp()">
+  <section id="errorpath_section" ng-controller="ErrorpathController">
+    <div id="middleLine" ng-mousedown="setMouseDown()"></div>
+    <header ng-controller="SearchController">
+      <div class="btn-group">
+        <button class="btn btn-success" ng-click="clickedErrpathButton($event)">Prev</button>
+        <button class="btn btn-warning" ng-click="clickedErrpathButton($event)">Start</button>
+        <button class="btn btn-success" ng-click="clickedErrpathButton($event)">Next</button>
+      </div>
+      <a tabindex="0" role="button" data-toggle="popover" data-placement="right"
+         data-trigger="focus" data-content="{{help_errorpath}}"
+         class="btn btn-default btn-lg help_button">
+        <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+      </a>
+      <div class="input-group input-group-sm">
+        <input type="text" ng-keydown="checkIfEnter($event)" class="form-control search-input"
+               placeholder="Search for...">
+          <span class="input-group-btn">
+              <button ng-click="searchFor()" class="btn btn-default" type="button">
+                <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+              </button>
+          </span>
+      </div>
+      <div id="searchOptions">
+        <label for="optionExactMatch">
+          <input id="optionExactMatch" type="checkbox" name="searchOption">
+          Find only exact matches
+        </label>
+      </div>
+      <div id="matches">
+        <p class="markedValues">Matches in value-assignements (V): {{numOfValueMatches}}</p>
+        <p class="markedDescriptions">Matches in edge-description: {{numOfDescriptionMatches}}</p>
+      </div>
+    </header>
+    <div class="fileContent" ng-controller="ValueAssignmentsController">
+      <table id="err_table">
+        <tr id="errpath-{{$index}}" ng-repeat="line in errorPathData">
+          <td ng-click="showValues($event)" data-toggle="popover" data-placement="right"
+              data-trigger="click" data-content="{{line.valString}}">
+            <pre>-V-</pre>
+          </td>
+          <td ng-click="clickedErrpathElement($event)">
+            <pre class="prettyprint">{{line.desc}}</pre>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </section>
+  <section id="externalFiles_section">
+    <nav>
+      <ul class="nav nav-pills">
+        <li ng-class="{active: tabIsSet(1)}">
+          <a href ng-click="setTab(1)">CFA</a>
+        </li>
+        <li ng-class="{active: tabIsSet(2)}">
+          <a href ng-click="setTab(2)">ARG</a>
+        </li>
+        <li ng-class="{active: tabIsSet(3)}">
+          <a href ng-click="setTab(3)">Source</a>
+        </li>
+        <li ng-class="{active: tabIsSet(4)}">
+          <a href ng-click="setTab(4)">Log</a>
+        </li>
+        <li ng-class="{active: tabIsSet(5)}">
+          <a href ng-click="setTab(5)">Statistics</a>
+        </li>
+        <li ng-class="{active: tabIsSet(6)}">
+          <a href ng-click="setTab(6)">Configurations</a>
+        </li>
+        <a tabindex="0" role="button" data-toggle="popover" data-placement="right"
+           data-trigger="focus" data-content="{{help_externalFiles}}"
+           class="btn btn-default btn-lg help_button">
+          <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+        </a>
+      </ul>
+    </nav>
+    <div class="fileContent" ng-show="tabIsSet(1)" ng-class="{active: tabIsSet(1)}"
+         ng-controller="CFAController">
+      <div class="edit-line">
+        <div class="dropdown" id="dropdownMenu1">
+          <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"
+                  aria-haspopup="true" aria-expanded="true">
+            Displayed CFA
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu pre-scrollable">
+            <li ng-repeat="func in functions"
+                ng-class="{'active, disabled': cfaFunctionIsSet($index)}"><a
+                ng-click="setCFAFunction($index)">{{func}}</a></li>
+          </ul>
+        </div>
+        <label>{{functions[selectedCFAFunction]}}</label>
+        <div ng-controller="ZoomController">
+          <p>Zoom Factor (%)</p>
+          <input id="cfa-scalingField" type="number" min="0" max="200" ng-model="zoomFactorCFA"
+                 ng-change="setZoom('cfa-scalingField')" />
+        </div>
+      </div>
+      <div class="cfaContent content">
+        <p>Run scripts/report-generator.py to display CFAs.</p><!--CFAFUNCTIONGRAPHS-->
+      </div>
+    </div>
+    <div class="fileContent" ng-if="tabIsSet(2)" ng-class="{active: tabIsSet(2)}"
+         ng-controller="ARGController">
+      <div class="edit-line">
+        <div ng-controller="ZoomController">
+          <p>Zoom Factor (%)</p>
+          <input id="arg-scalingField" type="number" min="0" max="200" ng-model="zoomFactorARG"
+                 ng-change="setZoom('arg-scalingField')" />
+        </div>
+      </div>
+      <div class="argContent content">
+        <p>Run scripts/report-generator.py to display ARG.</p><!--ARGGRAPHS-->
+      </div>
+    </div>
+    <!-- We have to use ng-show here instead of ng-if so that #jumpToSource(line)
+         can access the id of the correct source code line -->
+    <div class="fileContent" ng-show="tabIsSet(3)" ng-class="{active: tabIsSet(3)}"
+         ng-controller="SourceController">
+      <div class="edit-line">
+        <div class="dropdown" id="dropdownMenu2">
+          <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"
+                  aria-haspopup="true" aria-expanded="true">
+            Displayed Sourcefile
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu pre-scrollable">
+            <li ng-repeat="file in sourceFiles"><a ng-click="setSourceFile($index)">{{file}}</a>
+            </li>
+          </ul>
+        </div>
+        <label>{{sourceFiles[selectedSourceFile]}}</label>
+      </div>
+<p>No Source-File available</p>    </div>
+    <div class="fileContent content" ng-show="tabIsSet(4)" ng-class="{active: tabIsSet(4)}">
+<pre id="log-0">2016-09-24 21:52:39:324	INFO	ResourceLimitChecker.fromConfiguration	Using the following resource limits: CPU-time limit of 900s</pre>
+<pre id="log-1"></pre>
+<pre id="log-2">2016-09-24 21:52:39:408	INFO	CPAchecker.run	CPAchecker 1.6.1-svn 23198M (Java HotSpot(TM) 64-Bit Server VM 1.8.0_65) started</pre>
+<pre id="log-3"></pre>
+<pre id="log-4">2016-09-24 21:52:42:933	INFO	CPAchecker.runAlgorithm	Starting analysis ...</pre>
+<pre id="log-5"></pre>
+<pre id="log-6">2016-09-24 21:52:45:230	INFO	CPAchecker.runAlgorithm	Stopping analysis ...</pre>
+<pre id="log-7"></pre>
+    </div>
+    <div class="fileContent content" ng-show="tabIsSet(5)" ng-class="{active: tabIsSet(5)}">
+<pre id="statistics-0">RTTCPA statistics</pre>
+<pre id="statistics-1">-----------------</pre>
+<pre id="statistics-2">Max. number of variables: 8</pre>
+<pre id="statistics-3">Max. number of globals variables: 7</pre>
+<pre id="statistics-4">Avg. number of variables: 5.484782608695652</pre>
+<pre id="statistics-5">Avg. number of global variables: 5.484707646176911</pre>
+<pre id="statistics-6"></pre>
+<pre id="statistics-7">ValueAnalysisCPA statistics</pre>
+<pre id="statistics-8">---------------------------</pre>
+<pre id="statistics-9">Number of variables:                                 203889 (count: 13340, min: 0, max: 20, avg: 15.28)</pre>
+<pre id="statistics-10">Number of global variables:                           13338 (count: 13340, min: 0, max: 1, avg: 1.00)</pre>
+<pre id="statistics-11"></pre>
+<pre id="statistics-12">ValueAnalysisPrecisionAdjustment statistics</pre>
+<pre id="statistics-13">-------------------------------------------</pre>
+<pre id="statistics-14">Number of abstraction computations:                   13491</pre>
+<pre id="statistics-15">Total time for liveness abstraction:                   0.000s</pre>
+<pre id="statistics-16">Total time for abstraction computation:                0.153s</pre>
+<pre id="statistics-17">Total time for path thresholds:                        0.000s</pre>
+<pre id="statistics-18">Number of tracked memory locations:                33</pre>
+<pre id="statistics-19"></pre>
+<pre id="statistics-20">ValueAnalysisTransferRelation statistics</pre>
+<pre id="statistics-21">----------------------------------------</pre>
+<pre id="statistics-22">Number of Assumptions:                                 3160</pre>
+<pre id="statistics-23">Number of deterministic Assumptions:                   1818</pre>
+<pre id="statistics-24">Level of Determinism:                              58%</pre>
+<pre id="statistics-25"></pre>
+<pre id="statistics-26">ConstraintsStrengthenOperator statistics</pre>
+<pre id="statistics-27">----------------------------------------</pre>
+<pre id="statistics-28">Total time for strengthening by ConstraintsCPA:     0.000s</pre>
+<pre id="statistics-29">Replaced symbolic expressions: 0</pre>
+<pre id="statistics-30"></pre>
+<pre id="statistics-31">AutomatonAnalysis (AssertionAutomaton) statistics</pre>
+<pre id="statistics-32">-------------------------------------------------</pre>
+<pre id="statistics-33">Number of states:                                  1</pre>
+<pre id="statistics-34">Total time for successor computation:                  0.086s</pre>
+<pre id="statistics-35">Automaton transfers with branching:                0</pre>
+<pre id="statistics-36">Automaton transfer successors:                        14007 (count: 14007, min: 1, max: 1, avg: 1.00) [1 x 14007]</pre>
+<pre id="statistics-37"></pre>
+<pre id="statistics-38">CPA algorithm statistics</pre>
+<pre id="statistics-39">------------------------</pre>
+<pre id="statistics-40">Number of iterations:            13340</pre>
+<pre id="statistics-41">Max size of waitlist:            10</pre>
+<pre id="statistics-42">Average size of waitlist:        6</pre>
+<pre id="statistics-43">Number of computed successors:   13491</pre>
+<pre id="statistics-44">Max successors for one state:    2</pre>
+<pre id="statistics-45">Number of times merged:          0</pre>
+<pre id="statistics-46">Number of times stopped:         152</pre>
+<pre id="statistics-47">Number of times breaked:         0</pre>
+<pre id="statistics-48"></pre>
+<pre id="statistics-49">Total time for CPA algorithm:         2.295s (Max:     2.295s)</pre>
+<pre id="statistics-50">  Time for choose from waitlist:      0.028s</pre>
+<pre id="statistics-51">  Time for precision adjustment:      0.542s</pre>
+<pre id="statistics-52">  Time for transfer relation:         1.130s</pre>
+<pre id="statistics-53">  Time for stop operator:             0.311s</pre>
+<pre id="statistics-54">  Time for adding to reached set:     0.089s</pre>
+<pre id="statistics-55"></pre>
+<pre id="statistics-56">Code Coverage</pre>
+<pre id="statistics-57">-----------------------------</pre>
+<pre id="statistics-58">  Function coverage:      0.875</pre>
+<pre id="statistics-59">  Visited lines:          94</pre>
+<pre id="statistics-60">  Total lines:            29</pre>
+<pre id="statistics-61">  Line coverage:          3.241</pre>
+<pre id="statistics-62">  Visited conditions:     9</pre>
+<pre id="statistics-63">  Total conditions:       14</pre>
+<pre id="statistics-64">  Condition coverage:     0.643</pre>
+<pre id="statistics-65"></pre>
+<pre id="statistics-66">CPAchecker general statistics</pre>
+<pre id="statistics-67">-----------------------------</pre>
+<pre id="statistics-68">Number of program locations:     281</pre>
+<pre id="statistics-69">Number of CFA edges:             312</pre>
+<pre id="statistics-70">Number of functions:             37</pre>
+<pre id="statistics-71">Number of loops:                 2</pre>
+<pre id="statistics-72">Size of reached set:             13340</pre>
+<pre id="statistics-73">  Number of reached locations:   209 (74%)</pre>
+<pre id="statistics-74">    Avg states per location:     63</pre>
+<pre id="statistics-75">    Max states per location:     208 (at node N193)</pre>
+<pre id="statistics-76">  Number of reached functions:   26 (70%)</pre>
+<pre id="statistics-77">  Number of partitions:          11262</pre>
+<pre id="statistics-78">    Avg size of partitions:      1</pre>
+<pre id="statistics-79">    Max size of partitions:      136 (with key [N45 (before Main.java, line 30), Function Main_randomSequenceOfActions_int called from node N2, stack depth 2 [5f2f577], stack [Main_main_String[], Main_randomSequenceOfActions_int]])</pre>
+<pre id="statistics-80">  Number of target states:       0</pre>
+<pre id="statistics-81"></pre>
+<pre id="statistics-82">Time for analysis setup:          3.498s</pre>
+<pre id="statistics-83">  Time for loading CPAs:          0.786s</pre>
+<pre id="statistics-84">  Time for loading parser:        0.691s</pre>
+<pre id="statistics-85">  Time for CFA construction:      1.933s</pre>
+<pre id="statistics-86">    Time for parsing file(s):     1.531s</pre>
+<pre id="statistics-87">    Time for AST to CFA:          0.181s</pre>
+<pre id="statistics-88">    Time for CFA sanity check:    0.046s</pre>
+<pre id="statistics-89">    Time for post-processing:     0.080s</pre>
+<pre id="statistics-90">    Time for CFA export:          0.134s</pre>
+<pre id="statistics-91">Time for Analysis:                2.295s</pre>
+<pre id="statistics-92">CPU time for analysis:            5.400s</pre>
+<pre id="statistics-93">Time for analyzing result:        0.010s</pre>
+<pre id="statistics-94">Total time for CPAchecker:        5.802s</pre>
+<pre id="statistics-95">Total CPU time for CPAchecker:   11.250s</pre>
+<pre id="statistics-96">Time for statistics:              1.986s</pre>
+<pre id="statistics-97"></pre>
+<pre id="statistics-98">Time for Garbage Collector:       0.236s (in 10 runs)</pre>
+<pre id="statistics-99">Garbage Collector(s) used:    PS MarkSweep, PS Scavenge</pre>
+<pre id="statistics-100">Used heap memory:                112MB (   107 MiB) max;     47MB (    45 MiB) avg;    322MB (   307 MiB) peak</pre>
+<pre id="statistics-101">Used non-heap memory:             31MB (    29 MiB) max;     25MB (    24 MiB) avg;     34MB (    32 MiB) peak</pre>
+<pre id="statistics-102">Used in PS Old Gen pool:          27MB (    26 MiB) max;      7MB (     7 MiB) avg;     40MB (    38 MiB) peak</pre>
+<pre id="statistics-103">Allocated heap memory:           257MB (   245 MiB) max;    232MB (   221 MiB) avg</pre>
+<pre id="statistics-104">Allocated non-heap memory:        33MB (    31 MiB) max;     27MB (    26 MiB) avg</pre>
+<pre id="statistics-105">Total process virtual memory:   5291MB (  5046 MiB) max;   5280MB (  5035 MiB) avg</pre>
+<pre id="statistics-106"></pre>
+    </div>
+    <div class="fileContent content" ng-show="tabIsSet(6)" ng-class="{active: tabIsSet(6)}">
+<pre id="config-0">analysis.programNames = Main</pre>
+<pre id="config-1">ARGCPA.cpa = cpa.composite.CompositeCPA</pre>
+<pre id="config-2">CompositeCPA.cpas = cpa.rtt.RTTCPA , cpa.location.LocationCPA, cpa.callstack.CallstackCPA, cpa.value.ValueAnalysisCPA</pre>
+<pre id="config-3">counterexample.export.exportAsSource = false</pre>
+<pre id="config-4">counterexample.export.exportWitness = false</pre>
+<pre id="config-5">cpa = cpa.arg.ARGCPA</pre>
+<pre id="config-6">java.classpath = MinePumpSingle/spec1/product29_spec1_true</pre>
+<pre id="config-7">language = Java</pre>
+<pre id="config-8">limits.time.cpu = 900s</pre>
+<pre id="config-9">log.level = INFO</pre>
+<pre id="config-10">output.path = cpachecker_out/product29_spec1_true</pre>
+<pre id="config-11">specification = ../specification/JavaAssertion.spc</pre>
+<pre id="config-12"></pre>
+    </div>
+  </section>
+</div>
+
+<div class="toaster" id="toaster"></div>
+
+</body>
+</html>

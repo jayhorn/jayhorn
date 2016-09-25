@@ -1,0 +1,109 @@
+RTTCPA statistics
+-----------------
+Max. number of variables: 8
+Max. number of globals variables: 7
+Avg. number of variables: 5.402538801011554
+Avg. number of global variables: 5.402489215054297
+
+ValueAnalysisCPA statistics
+---------------------------
+Number of variables:                                 305011 (count: 20167, min: 0, max: 20, avg: 15.12)
+Number of global variables:                           20165 (count: 20167, min: 0, max: 1, avg: 1.00)
+
+ValueAnalysisPrecisionAdjustment statistics
+-------------------------------------------
+Number of abstraction computations:                   20419
+Total time for liveness abstraction:                   0.000s
+Total time for abstraction computation:                0.218s
+Total time for path thresholds:                        0.000s
+Number of tracked memory locations:                37
+
+ValueAnalysisTransferRelation statistics
+----------------------------------------
+Number of Assumptions:                                 5472
+Number of deterministic Assumptions:                   3178
+Level of Determinism:                              58%
+
+ConstraintsStrengthenOperator statistics
+----------------------------------------
+Total time for strengthening by ConstraintsCPA:     0.000s
+Replaced symbolic expressions: 0
+
+AutomatonAnalysis (AssertionAutomaton) statistics
+-------------------------------------------------
+Number of states:                                  1
+Total time for successor computation:                  0.088s
+Automaton transfers with branching:                0
+Automaton transfer successors:                        21307 (count: 21307, min: 1, max: 1, avg: 1.00) [1 x 21307]
+
+CPA algorithm statistics
+------------------------
+Number of iterations:            20167
+Max size of waitlist:            10
+Average size of waitlist:        6
+Number of computed successors:   20419
+Max successors for one state:    2
+Number of times merged:          0
+Number of times stopped:         253
+Number of times breaked:         0
+
+Total time for CPA algorithm:         3.030s (Max:     3.030s)
+  Time for choose from waitlist:      0.036s
+  Time for precision adjustment:      0.719s
+  Time for transfer relation:         1.318s
+  Time for stop operator:             0.607s
+  Time for adding to reached set:     0.126s
+
+Code Coverage
+-----------------------------
+  Function coverage:      0.875
+  Visited lines:          120
+  Total lines:            29
+  Line coverage:          4.138
+  Visited conditions:     13
+  Total conditions:       14
+  Condition coverage:     0.929
+
+CPAchecker general statistics
+-----------------------------
+Number of program locations:     295
+Number of CFA edges:             329
+Number of functions:             38
+Number of loops:                 2
+Size of reached set:             20167
+  Number of reached locations:   262 (89%)
+    Avg states per location:     76
+    Max states per location:     335 (at node N4)
+  Number of reached functions:   33 (87%)
+  Number of partitions:          16396
+    Avg size of partitions:      1
+    Max size of partitions:      200 (with key [N45 (before Main.java, line 30), Function Main_randomSequenceOfActions_int called from node N2, stack depth 2 [841e575], stack [Main_main_String[], Main_randomSequenceOfActions_int]])
+  Number of target states:       0
+
+Time for analysis setup:          3.357s
+  Time for loading CPAs:          0.734s
+  Time for loading parser:        0.711s
+  Time for CFA construction:      1.829s
+    Time for parsing file(s):     1.390s
+    Time for AST to CFA:          0.243s
+    Time for CFA sanity check:    0.059s
+    Time for post-processing:     0.077s
+    Time for CFA export:          0.209s
+Time for Analysis:                3.031s
+CPU time for analysis:            7.015s
+Time for analyzing result:        0.014s
+Total time for CPAchecker:        6.400s
+Total CPU time for CPAchecker:   13.586s
+Time for statistics:              2.527s
+
+Time for Garbage Collector:       0.297s (in 11 runs)
+Garbage Collector(s) used:    PS MarkSweep, PS Scavenge
+Used heap memory:                131MB (   125 MiB) max;     55MB (    53 MiB) avg;    341MB (   325 MiB) peak
+Used non-heap memory:             39MB (    38 MiB) max;     31MB (    29 MiB) avg;     41MB (    39 MiB) peak
+Used in PS Old Gen pool:          29MB (    27 MiB) max;     11MB (    10 MiB) avg;     55MB (    52 MiB) peak
+Allocated heap memory:           294MB (   280 MiB) max;    233MB (   222 MiB) avg
+Allocated non-heap memory:        40MB (    39 MiB) max;     32MB (    30 MiB) avg
+Total process virtual memory:   5311MB (  5065 MiB) max;   5290MB (  5045 MiB) avg
+
+Verification result: TRUE. No property violation found by chosen configuration.
+More details about the verification run can be found in the directory "./cpachecker_out/product59_spec1_true".

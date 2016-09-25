@@ -1,0 +1,7 @@
+digraph MinePumpSystem.MinePump_activatePump {
+259 [shape="circle" label="N259\n3"]
+260 [shape="circle" label="N260\n2"]
+260 [style="filled,bold" penwidth="1" fillcolor="white" fontname="Courier New" shape="Mrecord" label=<<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td align="right">260</td><td align="left">MinePumpSystem.MinePump_pumpRunning = true;</td></tr><tr><td align="right">261</td><td align="left">default return</td></tr></table>>]
+260 -> 258[label=""]
+259 -> 260 [label="Function start dummy edge" fontname="Courier New"]
+}

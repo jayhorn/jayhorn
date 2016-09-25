@@ -1,0 +1,183 @@
+none:	N1 -{INIT GLOBAL VARS}-> N309
+Main.java, line 8:	N309 -{private static int Main_cleanupTimeShifts = 2;}-> N310
+Main.java, lines 10-12:	N310 -{Function start dummy edge}-> N2
+Main.java, line 11:	N2 -{Main_randomSequenceOfActions_int(3)}-> N15
+Main.java, lines 20-53:	N15 -{Function start dummy edge}-> N16
+Main.java, line 21:	N16 -{Actions __CPAchecker_TMP_0;}-> N18
+Main.java, line 21:	N18 -{new Actions Actions_Actions}-> N79
+Actions.java, lines 14-17:	N79 -{Function start dummy edge}-> N80
+Actions.java, line 10:	N80 -{ boolean Actions_methAndRunningLastTime = false;}-> N82
+Actions.java, line 7:	N82 -{ MinePumpSystem.Environment Actions_env;}-> N84
+Actions.java, line 11:	N84 -{ boolean Actions_switchedOnBeforeTS = false;}-> N86
+Actions.java, line 8:	N86 -{ MinePumpSystem.MinePump Actions_p;}-> N88
+Actions.java, line 15:	N88 -{new MinePumpSystem.Environment MinePumpSystem.Environment_Environment}-> N215
+none:	N215 -{Function start dummy edge}-> N216
+Environment.java, line 7:	N216 -{private int MinePumpSystem.Environment_waterLevel = 1;}-> N218
+Environment.java, line 11:	N218 -{private boolean MinePumpSystem.Environment_methaneLevelCritical = false;}-> N220
+none:	N220 -{return this;}-> N214
+Actions.java, line 15:	N214 -{Return edge from MinePumpSystem.Environment_Environment to Actions_Actions: Actions_env = new MinePumpSystem.Environment MinePumpSystem.Environment_Environment;}-> N89
+Actions.java, line 16:	N89 -{new MinePumpSystem.MinePump MinePumpSystem.MinePump_MinePump_MinePumpSystem.Environment}-> N223
+MinePump.java, lines 20-23:	N223 -{Function start dummy edge}-> N224
+MinePump.java, line 8:	N224 -{ boolean MinePumpSystem.MinePump_pumpRunning = false;}-> N226
+MinePump.java, line 16:	N226 -{ MinePumpSystem.Environment MinePumpSystem.MinePump_env;}-> N228
+MinePump.java, line 12:	N228 -{ boolean MinePumpSystem.MinePump_systemActive = true;}-> N230
+MinePump.java, line 21:	N230 -{_unspecified_ super;}-> N231
+MinePump.java, line 22:	N231 -{MinePumpSystem.MinePump_env = env;}-> N232
+MinePump.java, lines 20-23:	N232 -{return this;}-> N222
+Actions.java, line 16:	N222 -{Return edge from MinePumpSystem.MinePump_MinePump_MinePumpSystem.Environment to Actions_Actions: Actions_p = new MinePumpSystem.MinePump MinePumpSystem.MinePump_MinePump_MinePumpSystem.Environment;}-> N90
+Actions.java, lines 14-17:	N90 -{return this;}-> N78
+Main.java, line 21:	N78 -{Return edge from Actions_Actions to Main_randomSequenceOfActions_int: __CPAchecker_TMP_0 = new Actions Actions_Actions;}-> N19
+Main.java, line 21:	N19 -{Actions a = __CPAchecker_TMP_0;}-> N20
+Main.java, line 23:	N20 -{int counter = 0;}-> N22
+Main.java, lines 24-48:	N22 -{while}-> N23
+Main.java, lines 24-48:	N23 -{[counter < maxLength]}-> N24
+Main.java, line 25:	N24 -{counter = counter + 1;}-> N26
+Main.java, line 27:	N26 -{boolean __CPAchecker_TMP_1;}-> N28
+Main.java, line 27:	N28 -{Main_getBoolean()}-> N5
+Main.java, lines 14-17:	N5 -{Function start dummy edge}-> N6
+Main.java, line 15:	N6 -{Random __CPAchecker_TMP_0;}-> N8
+Main.java, line 15:	N8 -{__CPAchecker_TMP_0 = new _unspecified_ new Random();}-> N9
+Main.java, line 15:	N9 -{Random random = __CPAchecker_TMP_0;}-> N10
+Main.java, line 16:	N10 -{__CPAchecker_TMP_1;}-> N12
+Main.java, line 16:	N12 -{__CPAchecker_TMP_1 = nextBoolean();}-> N13
+Main.java, line 16:	N13 -{return __CPAchecker_TMP_1;}-> N4
+Main.java, line 27:	N4 -{Return edge from Main_getBoolean to Main_randomSequenceOfActions_int: __CPAchecker_TMP_1 = Main_getBoolean();}-> N29
+Main.java, line 27:	N29 -{boolean action1 = __CPAchecker_TMP_1;}-> N30
+Main.java, line 27:	N30 -{[__CPAchecker_TMP_1]}-> N32
+Main.java, line 27:	N32 -{action1 = true;}-> N31
+Main.java, line 28:	N31 -{boolean __CPAchecker_TMP_2;}-> N35
+Main.java, line 28:	N35 -{Main_getBoolean()}-> N5
+Main.java, lines 14-17:	N5 -{Function start dummy edge}-> N6
+Main.java, line 15:	N6 -{Random __CPAchecker_TMP_0;}-> N8
+Main.java, line 15:	N8 -{__CPAchecker_TMP_0 = new _unspecified_ new Random();}-> N9
+Main.java, line 15:	N9 -{Random random = __CPAchecker_TMP_0;}-> N10
+Main.java, line 16:	N10 -{__CPAchecker_TMP_1;}-> N12
+Main.java, line 16:	N12 -{__CPAchecker_TMP_1 = nextBoolean();}-> N13
+Main.java, line 16:	N13 -{return __CPAchecker_TMP_1;}-> N4
+Main.java, line 28:	N4 -{Return edge from Main_getBoolean to Main_randomSequenceOfActions_int: __CPAchecker_TMP_2 = Main_getBoolean();}-> N36
+Main.java, line 28:	N36 -{boolean action2 = __CPAchecker_TMP_2;}-> N37
+Main.java, line 28:	N37 -{[__CPAchecker_TMP_2]}-> N39
+Main.java, line 28:	N39 -{action2 = true;}-> N38
+Main.java, line 29:	N38 -{boolean __CPAchecker_TMP_3;}-> N42
+Main.java, line 29:	N42 -{Main_getBoolean()}-> N5
+Main.java, lines 14-17:	N5 -{Function start dummy edge}-> N6
+Main.java, line 15:	N6 -{Random __CPAchecker_TMP_0;}-> N8
+Main.java, line 15:	N8 -{__CPAchecker_TMP_0 = new _unspecified_ new Random();}-> N9
+Main.java, line 15:	N9 -{Random random = __CPAchecker_TMP_0;}-> N10
+Main.java, line 16:	N10 -{__CPAchecker_TMP_1;}-> N12
+Main.java, line 16:	N12 -{__CPAchecker_TMP_1 = nextBoolean();}-> N13
+Main.java, line 16:	N13 -{return __CPAchecker_TMP_1;}-> N4
+Main.java, line 29:	N4 -{Return edge from Main_getBoolean to Main_randomSequenceOfActions_int: __CPAchecker_TMP_3 = Main_getBoolean();}-> N43
+Main.java, line 29:	N43 -{boolean action3 = __CPAchecker_TMP_3;}-> N44
+Main.java, line 29:	N44 -{[__CPAchecker_TMP_3]}-> N46
+Main.java, line 29:	N46 -{action3 = true;}-> N45
+Main.java, line 30:	N45 -{boolean action4 = false;}-> N49
+Main.java, line 31:	N49 -{[!(!action3)]}-> N50
+Main.java, lines 33-35:	N50 -{[action1]}-> N54
+Main.java, line 34:	N54 -{a_Actions_waterRise()}-> N93
+Actions.java, lines 21-23:	N93 -{Function start dummy edge}-> N94
+Actions.java, line 22:	N94 -{Actions_env_MinePumpSystem.Environment_waterRise()}-> N174
+Environment.java, lines 28-37:	N174 -{Function start dummy edge}-> N175
+Environment.java, lines 29-36:	N175 -{switch (MinePumpSystem.Environment_waterLevel)}-> N176
+Environment.java, line 30:	N176 -{[!(MinePumpSystem.Environment_waterLevel == 0)]}-> N180
+Environment.java, line 33:	N180 -{[MinePumpSystem.Environment_waterLevel == 1]}-> N183
+Environment.java, line 34:	N183 -{MinePumpSystem.Environment_waterLevel = 2;}-> N185
+Environment.java, line 35:	N185 -{break}-> N177
+none:	N177 -{default return}-> N173
+Actions.java, line 22:	N173 -{Return edge from MinePumpSystem.Environment_waterRise to Actions_waterRise: Actions_env_MinePumpSystem.Environment_waterRise();}-> N95
+none:	N95 -{default return}-> N92
+Main.java, line 34:	N92 -{Return edge from Actions_waterRise to Main_randomSequenceOfActions_int: a_Actions_waterRise();}-> N55
+none:	N55 -{}-> N53
+Main.java, lines 37-39:	N53 -{[action2]}-> N57
+Main.java, line 38:	N57 -{a_Actions_methaneChange()}-> N97
+Actions.java, lines 26-28:	N97 -{Function start dummy edge}-> N98
+Actions.java, line 27:	N98 -{Actions_env_MinePumpSystem.Environment_changeMethaneLevel()}-> N188
+Environment.java, lines 41-43:	N188 -{Function start dummy edge}-> N189
+Environment.java, line 42:	N189 -{[!MinePumpSystem.Environment_methaneLevelCritical]}-> N191
+Environment.java, line 42:	N191 -{MinePumpSystem.Environment_methaneLevelCritical = true;}-> N190
+none:	N190 -{default return}-> N187
+Actions.java, line 27:	N187 -{Return edge from MinePumpSystem.Environment_changeMethaneLevel to Actions_methaneChange: Actions_env_MinePumpSystem.Environment_changeMethaneLevel();}-> N99
+none:	N99 -{default return}-> N96
+Main.java, line 38:	N96 -{Return edge from Actions_methaneChange to Main_randomSequenceOfActions_int: a_Actions_methaneChange();}-> N58
+none:	N58 -{}-> N56
+Main.java, lines 41-45:	N56 -{[action3]}-> N60
+Main.java, line 42:	N60 -{a_Actions_startSystem()}-> N109
+Actions.java, lines 36-39:	N109 -{Function start dummy edge}-> N110
+Actions.java, line 37:	N110 -{boolean __CPAchecker_TMP_0;}-> N113
+Actions.java, line 37:	N113 -{Actions_p_MinePumpSystem.MinePump_isSystemActive()}-> N306
+MinePump.java, lines 105-107:	N306 -{Function start dummy edge}-> N307
+MinePump.java, line 106:	N307 -{return MinePumpSystem.MinePump_systemActive;}-> N305
+Actions.java, line 37:	N305 -{Return edge from MinePumpSystem.MinePump_isSystemActive to Actions_startSystem: __CPAchecker_TMP_0 = Actions_p_MinePumpSystem.MinePump_isSystemActive();}-> N114
+Actions.java, lines 37-38:	N114 -{[!(!__CPAchecker_TMP_0)]}-> N111
+none:	N111 -{default return}-> N108
+Main.java, line 42:	N108 -{Return edge from Actions_startSystem to Main_randomSequenceOfActions_int: a_Actions_startSystem();}-> N62
+none:	N62 -{}-> N59
+Main.java, line 47:	N59 -{a_Actions_timeShift()}-> N117
+Actions.java, lines 41-48:	N117 -{Function start dummy edge}-> N118
+Actions.java, line 43:	N118 -{Actions_p_MinePumpSystem.MinePump_timeShift()}-> N235
+MinePump.java, lines 27-32:	N235 -{Function start dummy edge}-> N236
+MinePump.java, lines 28-29:	N236 -{[!(MinePumpSystem.MinePump_pumpRunning)]}-> N237
+MinePump.java, lines 30-31:	N237 -{[MinePumpSystem.MinePump_systemActive]}-> N241
+MinePump.java, line 31:	N241 -{MinePumpSystem.MinePump_processEnvironment()}-> N247
+MinePump.java, lines 42-49:	N247 -{Function start dummy edge}-> N248
+MinePump.java, line 43:	N248 -{boolean __CPAchecker_TMP_0;}-> N253
+MinePump.java, line 43:	N253 -{MinePumpSystem.MinePump_isHighWaterLevel()}-> N289
+MinePump.java, lines 89-91:	N289 -{Function start dummy edge}-> N290
+MinePump.java, line 90:	N290 -{boolean __CPAchecker_TMP_0;}-> N292
+MinePump.java, line 90:	N292 -{MinePumpSystem.MinePump_env_MinePumpSystem.Environment_isHighWaterSensorDry()}-> N211
+Environment.java, lines 69-71:	N211 -{Function start dummy edge}-> N212
+Environment.java, line 70:	N212 -{return MinePumpSystem.Environment_waterLevel != 2;}-> N210
+MinePump.java, line 90:	N210 -{Return edge from MinePumpSystem.Environment_isHighWaterSensorDry to MinePumpSystem.MinePump_isHighWaterLevel: __CPAchecker_TMP_0 = MinePumpSystem.MinePump_env_MinePumpSystem.Environment_isHighWaterSensorDry();}-> N293
+MinePump.java, line 90:	N293 -{return !__CPAchecker_TMP_0;}-> N288
+MinePump.java, line 43:	N288 -{Return edge from MinePumpSystem.MinePump_isHighWaterLevel to MinePumpSystem.MinePump_processEnvironment: __CPAchecker_TMP_0 = MinePumpSystem.MinePump_isHighWaterLevel();}-> N254
+MinePump.java, lines 43-48:	N254 -{[!MinePumpSystem.MinePump_pumpRunning]}-> N252
+MinePump.java, lines 43-48:	N252 -{[__CPAchecker_TMP_0]}-> N250
+MinePump.java, line 44:	N250 -{MinePumpSystem.MinePump_activatePump()}-> N259
+MinePump.java, lines 53-55:	N259 -{Function start dummy edge}-> N260
+MinePump.java, line 54:	N260 -{MinePumpSystem.MinePump_pumpRunning = true;}-> N261
+none:	N261 -{default return}-> N258
+MinePump.java, line 44:	N258 -{Return edge from MinePumpSystem.MinePump_activatePump to MinePumpSystem.MinePump_processEnvironment: MinePumpSystem.MinePump_activatePump();}-> N255
+MinePump.java, line 45:	N255 -{MinePumpSystem.MinePump_processEnvironment__wrappee__base()}-> N244
+MinePump.java, lines 35-37:	N244 -{Function start dummy edge}-> N245
+none:	N245 -{default return}-> N243
+MinePump.java, line 45:	N243 -{Return edge from MinePumpSystem.MinePump_processEnvironment__wrappee__base to MinePumpSystem.MinePump_processEnvironment: MinePumpSystem.MinePump_processEnvironment__wrappee__base();}-> N256
+none:	N256 -{}-> N249
+none:	N249 -{default return}-> N246
+MinePump.java, line 31:	N246 -{Return edge from MinePumpSystem.MinePump_processEnvironment to MinePumpSystem.MinePump_timeShift: MinePumpSystem.MinePump_processEnvironment();}-> N242
+none:	N242 -{}-> N240
+none:	N240 -{default return}-> N234
+Actions.java, line 43:	N234 -{Return edge from MinePumpSystem.MinePump_timeShift to Actions_timeShift: Actions_p_MinePumpSystem.MinePump_timeShift();}-> N119
+Actions.java, line 45:	N119 -{boolean __CPAchecker_TMP_0;}-> N122
+Actions.java, line 45:	N122 -{Actions_p_MinePumpSystem.MinePump_isSystemActive()}-> N306
+MinePump.java, lines 105-107:	N306 -{Function start dummy edge}-> N307
+MinePump.java, line 106:	N307 -{return MinePumpSystem.MinePump_systemActive;}-> N305
+Actions.java, line 45:	N305 -{Return edge from MinePumpSystem.MinePump_isSystemActive to Actions_timeShift: __CPAchecker_TMP_0 = Actions_p_MinePumpSystem.MinePump_isSystemActive();}-> N123
+Actions.java, lines 45-47:	N123 -{[__CPAchecker_TMP_0]}-> N121
+Actions.java, line 46:	N121 -{Actions_Specification1()}-> N132
+Actions.java, lines 55-65:	N132 -{Function start dummy edge}-> N133
+Actions.java, line 57:	N133 -{MinePumpSystem.Environment __CPAchecker_TMP_0;}-> N135
+Actions.java, line 57:	N135 -{Actions_p_MinePumpSystem.MinePump_getEnv()}-> N285
+MinePump.java, lines 83-85:	N285 -{Function start dummy edge}-> N286
+MinePump.java, line 84:	N286 -{return MinePumpSystem.MinePump_env;}-> N284
+Actions.java, line 57:	N284 -{Return edge from MinePumpSystem.MinePump_getEnv to Actions_Specification1: __CPAchecker_TMP_0 = Actions_p_MinePumpSystem.MinePump_getEnv();}-> N136
+Actions.java, line 57:	N136 -{MinePumpSystem.Environment e = __CPAchecker_TMP_0;}-> N137
+Actions.java, line 59:	N137 -{boolean __CPAchecker_TMP_1;}-> N139
+Actions.java, line 59:	N139 -{e_MinePumpSystem.Environment_isMethaneLevelCritical()}-> N194
+Environment.java, lines 47-49:	N194 -{Function start dummy edge}-> N195
+Environment.java, line 48:	N195 -{return MinePumpSystem.Environment_methaneLevelCritical;}-> N193
+Actions.java, line 59:	N193 -{Return edge from MinePumpSystem.Environment_isMethaneLevelCritical to Actions_Specification1: __CPAchecker_TMP_1 = e_MinePumpSystem.Environment_isMethaneLevelCritical();}-> N140
+Actions.java, line 59:	N140 -{boolean b1 = __CPAchecker_TMP_1;}-> N141
+Actions.java, line 59:	N141 -{[__CPAchecker_TMP_1]}-> N143
+Actions.java, line 59:	N143 -{b1 = true;}-> N142
+Actions.java, line 60:	N142 -{boolean __CPAchecker_TMP_2;}-> N146
+Actions.java, line 60:	N146 -{Actions_p_MinePumpSystem.MinePump_isPumpRunning()}-> N263
+MinePump.java, lines 59-61:	N263 -{Function start dummy edge}-> N264
+MinePump.java, line 60:	N264 -{return MinePumpSystem.MinePump_pumpRunning;}-> N262
+Actions.java, line 60:	N262 -{Return edge from MinePumpSystem.MinePump_isPumpRunning to Actions_Specification1: __CPAchecker_TMP_2 = Actions_p_MinePumpSystem.MinePump_isPumpRunning();}-> N147
+Actions.java, line 60:	N147 -{boolean b2 = __CPAchecker_TMP_2;}-> N148
+Actions.java, line 60:	N148 -{[__CPAchecker_TMP_2]}-> N150
+Actions.java, line 60:	N150 -{b2 = true;}-> N149
+Actions.java, lines 62-64:	N149 -{[b1]}-> N154
+Actions.java, lines 62-64:	N154 -{[b2]}-> N153
+Actions.java, line 63:	N153 -{}-> N157
+Actions.java, line 63:	N157 -{assert fail}-> N158

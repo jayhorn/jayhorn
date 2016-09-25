@@ -1,0 +1,5 @@
+none:	N1 -{INIT GLOBAL VARS}-> N353
+Main.java, line 8:	N353 -{private static int Main_cleanupTimeShifts = 2;}-> N354
+Main.java, lines 10-13:	N354 -{Function start dummy edge}-> N2
+Main.java, line 11:	N2 -{}-> N5
+Main.java, line 11:	N5 -{assert fail}-> N6

@@ -1,0 +1,14 @@
+digraph ARG {
+node [style="filled" shape="box" color="white"]
+0 [label="0 @ N1\nMain_main_String[] entry\nValueAnalysisState: []\n" id="0"]
+1 [label="1 @ N353\nMain_main_String[]\nValueAnalysisState: []\n" id="1"]
+2 [label="2 @ N354\nMain_main_String[]\nValueAnalysisState: [Main_cleanupTimeShifts=NumericValue [number=2]]\n" id="2"]
+3 [label="3 @ N2\nMain_main_String[]\nValueAnalysisState: [Main_cleanupTimeShifts=NumericValue [number=2]]\n" id="3"]
+4 [label="4 @ N5\nMain_main_String[]\nValueAnalysisState: [Main_cleanupTimeShifts=NumericValue [number=2]]\n" id="4"]
+5 [fillcolor="red" label="5 @ N6\nMain_main_String[]\nValueAnalysisState: [Main_cleanupTimeShifts=NumericValue [number=2]]\n AutomatonState: AssertionAutomaton: _predefinedState_ERROR\n" id="5"]
+0 -> 1 [color="red" label="Line 0: \lINIT GLOBAL VARS\l" id="0 -> 1"]
+1 -> 2 [color="red" label="Line 8: \lprivate static int Main_cleanupTimeShifts = 2;\l" id="1 -> 2"]
+2 -> 3 [color="red" label="Line 10: \lFunction start dummy edge\l" id="2 -> 3"]
+3 -> 4 [color="red" label="Line 11: \l\l" id="3 -> 4"]
+4 -> 5 [color="red" label="Line 11: \lassert fail\l" id="4 -> 5"]
+}

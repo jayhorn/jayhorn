@@ -1,0 +1,7 @@
+digraph Main_getBoolean {
+9 [shape="circle" label="N9\n7"]
+10 [shape="circle" label="N10\n6"]
+10 [style="filled,bold" penwidth="1" fillcolor="white" fontname="Courier New" shape="Mrecord" label=<<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td align="right">10</td><td align="left">Random __CPAchecker_TMP_0;</td></tr><tr><td align="right">12</td><td align="left">__CPAchecker_TMP_0 = new _unspecified_ new Random();</td></tr><tr><td align="right">13</td><td align="left">Random random = __CPAchecker_TMP_0;</td></tr><tr><td align="right">14</td><td align="left">__CPAchecker_TMP_1;</td></tr><tr><td align="right">16</td><td align="left">__CPAchecker_TMP_1 = nextBoolean();</td></tr><tr><td align="right">17</td><td align="left">return __CPAchecker_TMP_1;</td></tr></table>>]
+10 -> 8[label=""]
+9 -> 10 [label="Function start dummy edge" fontname="Courier New"]
+}

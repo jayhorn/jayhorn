@@ -1,0 +1,130 @@
+digraph CFA {
+1 [shape="circle" label="N1\n5"]
+353 [shape="circle" label="N353\n4"]
+354 [shape="circle" label="N354\n3"]
+2 [shape="circle" label="N2\n2"]
+5 [shape="circle" label="N5\n1"]
+6 [shape="circle" label="N6\n0"]
+node [shape="circle"]
+subgraph cluster_Actions_Actions {
+label="Actions_Actions()"
+}
+subgraph cluster_Actions_Specification1 {
+label="Actions_Specification1()"
+}
+subgraph cluster_Actions_getSystemState {
+label="Actions_getSystemState()"
+}
+subgraph cluster_Actions_methaneChange {
+label="Actions_methaneChange()"
+}
+subgraph cluster_Actions_startSystem {
+label="Actions_startSystem()"
+}
+subgraph cluster_Actions_stopSystem {
+label="Actions_stopSystem()"
+}
+subgraph cluster_Actions_timeShift {
+label="Actions_timeShift()"
+}
+subgraph cluster_Actions_waterRise {
+label="Actions_waterRise()"
+}
+subgraph cluster_Main_Main {
+label="Main_Main()"
+}
+subgraph cluster_Main_getBoolean {
+label="Main_getBoolean()"
+}
+subgraph cluster_Main_main_String_array {
+label="Main_main_String[]()"
+1 -> 353 [label="INIT GLOBAL VARS"]
+353 -> 354 [label="private static int Main_cleanupTimeShifts = 2;"]
+354 -> 2 [label="Function start dummy edge"]
+2 -> 5 [label=""]
+5 -> 6 [label="assert fail"]}
+subgraph cluster_Main_randomSequenceOfActions_int {
+label="Main_randomSequenceOfActions_int()"
+}
+subgraph cluster_MinePumpSystem_Environment_Environment {
+label="MinePumpSystem.Environment_Environment()"
+}
+subgraph cluster_MinePumpSystem_Environment_changeMethaneLevel {
+label="MinePumpSystem.Environment_changeMethaneLevel()"
+}
+subgraph cluster_MinePumpSystem_Environment_getWaterLevel {
+label="MinePumpSystem.Environment_getWaterLevel()"
+}
+subgraph cluster_MinePumpSystem_Environment_isHighWaterSensorDry {
+label="MinePumpSystem.Environment_isHighWaterSensorDry()"
+}
+subgraph cluster_MinePumpSystem_Environment_isLowWaterSensorDry {
+label="MinePumpSystem.Environment_isLowWaterSensorDry()"
+}
+subgraph cluster_MinePumpSystem_Environment_isMethaneLevelCritical {
+label="MinePumpSystem.Environment_isMethaneLevelCritical()"
+}
+subgraph cluster_MinePumpSystem_Environment_lowerWaterLevel {
+label="MinePumpSystem.Environment_lowerWaterLevel()"
+}
+subgraph cluster_MinePumpSystem_Environment_toString {
+label="MinePumpSystem.Environment_toString()"
+}
+subgraph cluster_MinePumpSystem_Environment_waterRise {
+label="MinePumpSystem.Environment_waterRise()"
+}
+subgraph cluster_MinePumpSystem_MinePump_MinePump_MinePumpSystem_Environment {
+label="MinePumpSystem.MinePump_MinePump_MinePumpSystem.Environment()"
+}
+subgraph cluster_MinePumpSystem_MinePump_activatePump {
+label="MinePumpSystem.MinePump_activatePump()"
+}
+subgraph cluster_MinePumpSystem_MinePump_activatePump__wrappee__lowWaterSensor {
+label="MinePumpSystem.MinePump_activatePump__wrappee__lowWaterSensor()"
+}
+subgraph cluster_MinePumpSystem_MinePump_deactivatePump {
+label="MinePumpSystem.MinePump_deactivatePump()"
+}
+subgraph cluster_MinePumpSystem_MinePump_getEnv {
+label="MinePumpSystem.MinePump_getEnv()"
+}
+subgraph cluster_MinePumpSystem_MinePump_isHighWaterLevel {
+label="MinePumpSystem.MinePump_isHighWaterLevel()"
+}
+subgraph cluster_MinePumpSystem_MinePump_isLowWaterLevel {
+label="MinePumpSystem.MinePump_isLowWaterLevel()"
+}
+subgraph cluster_MinePumpSystem_MinePump_isMethaneAlarm {
+label="MinePumpSystem.MinePump_isMethaneAlarm()"
+}
+subgraph cluster_MinePumpSystem_MinePump_isPumpRunning {
+label="MinePumpSystem.MinePump_isPumpRunning()"
+}
+subgraph cluster_MinePumpSystem_MinePump_isSystemActive {
+label="MinePumpSystem.MinePump_isSystemActive()"
+}
+subgraph cluster_MinePumpSystem_MinePump_processEnvironment {
+label="MinePumpSystem.MinePump_processEnvironment()"
+}
+subgraph cluster_MinePumpSystem_MinePump_processEnvironment__wrappee__base {
+label="MinePumpSystem.MinePump_processEnvironment__wrappee__base()"
+}
+subgraph cluster_MinePumpSystem_MinePump_processEnvironment__wrappee__highWaterSensor {
+label="MinePumpSystem.MinePump_processEnvironment__wrappee__highWaterSensor()"
+}
+subgraph cluster_MinePumpSystem_MinePump_processEnvironment__wrappee__methaneQuery {
+label="MinePumpSystem.MinePump_processEnvironment__wrappee__methaneQuery()"
+}
+subgraph cluster_MinePumpSystem_MinePump_startSystem {
+label="MinePumpSystem.MinePump_startSystem()"
+}
+subgraph cluster_MinePumpSystem_MinePump_stopSystem {
+label="MinePumpSystem.MinePump_stopSystem()"
+}
+subgraph cluster_MinePumpSystem_MinePump_timeShift {
+label="MinePumpSystem.MinePump_timeShift()"
+}
+subgraph cluster_MinePumpSystem_MinePump_toString {
+label="MinePumpSystem.MinePump_toString()"
+}
+}

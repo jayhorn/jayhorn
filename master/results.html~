@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+<!--[if !IE]><!-->
+<html lang="en">
+<!--<![endif]-->
+	<head>
+		<meta charset="utf-8">
+		<title>Benchmarking Java Program Verifiers</title>
+
+
+		<!-- Mobile Meta -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<!-- Favicon -->
+		<link rel="shortcut icon" href="images/favicon.ico">
+
+		<!-- Web Fonts -->
+		<link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700,300&amp;subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+		<link href='http://fonts.googleapis.com/css?family=Raleway:700,400,300' rel='stylesheet' type='text/css'>
+
+		<!-- Bootstrap core CSS -->
+		<link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+
+		<!-- Font Awesome CSS -->
+		<link href="fonts/font-awesome/css/font-awesome.css" rel="stylesheet">
+
+                <link rel="stylesheet" href="css/gh-fork-ribbon.css">
+
+		<!-- Plugins -->
+		<link href="css/animations.css" rel="stylesheet">
+
+		<!-- Worthy core CSS file -->
+		<link href="css/style.css" rel="stylesheet">
+
+		<!-- Custom css -->
+		<link href="css/custom.css" rel="stylesheet">
+	</head>
+
+	<body class="no-trans">
+		<!-- scrollToTop -->
+		<!-- ================ -->
+		<div class="scrollToTop"><i class="icon-up-open-big"></i></div>
+
+		<!-- header start -->
+		<!-- ================ -->
+		<header class="header fixed clearfix navbar navbar-fixed-top">
+
+		</header>
+		<!-- header end -->
+		<div class="section">
+			<div class="container object-non-visible" data-animation-effect="fadeIn">
+				<h1 id="bench" class="title text-center"><span>Benchmarking Java Automated Verifiers</span></h1>
+
+<div  class="tabbable">
+    <ul class="nav nav-tabs">
+      <li class="active"><a data-toggle="tab" href="#jayhorn"><h3 id="bench" class="title text-center"><span>JayHorn</span></h3></a></li>
+      <li class=""><a data-toggle="tab" href="#cbmc"><h3 id="bench" class="title text-center"><span>CBMC</span></h3></a></li>
+      <li class=""><a data-toggle="tab" href="#cpachecker"><h3 id="bench" class="title text-center"><span>CPAChecker</span></h3></a></li>
+      <li class=""><a data-toggle="tab" href="#infer"><h3 id="bench" class="title text-center"><span>Infer</span></h3></a></li>
+    </ul>
+      <div class="tab-content">
+
+
+          <div id="jayhorn" class="tab-pane active">
+            <table class="table">
+ <tr class = "info">
+<td><b>Benchmark</a></td>
+      <td><b>Result</a></td>
+      <td><b>Expected</a></td>
+    <td><b>Soot2Cfg (Time)</b></td>
+<td><b>CheckSat (Time)</b></td>
+<td><b>Hornify (Time)</b></td>
+    </tr>
+
+
+ <tr data-toggle="collapse" data-target="#jayhorn0" class="accordion-toggle active">
+      <td>test/BellmanFord/BellmanFord.java</td>
+<td>UNSAFE</td>
+ <td>UNKNOWN</td>
+    <td>199.2μs</td>
+<td>4.481s</td>
+<td>808.5ms</td>
+    </tr>
+
+
+<tr class = active>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="jayhorn0"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>Return types of <Havoc_Class: boolean havoc_boolean()>: [java.lang.Throwable, boolean]<br>Return types of <Havoc_Class: JayArray_int havoc_JayArray_int()>: [java.lang.Throwable, JayArray_int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <BellmanFord: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+</tr>
+
+
+
+ <tr data-toggle="collapse" data-target="#jayhorn1" class="accordion-toggle active">
+      <td>test/maxsum/MaxSum.java</td>
+<td>UNSAFE</td>
+ <td>UNKNOWN</td>
+    <td>336.0μs</td>
+<td>2.680s</td>
+<td>703.1ms</td>
+    </tr>
+
+
+<tr class = active>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="jayhorn1"> 		 ---   JAYHORN : Static Analayzer for Java Programs ---- <br>[root] - Building CFG  ... <br>Return types of <JayArray_java_lang_String: java.lang.String get(int)>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.lang.Integer: int parseInt(java.lang.String)>: [java.lang.Throwable, int]<br>Return types of <java.util.Random: int nextInt(int)>: [java.lang.Throwable, int]<br>Return types of <java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>: [java.lang.Throwable, java.lang.StringBuilder]<br>Return types of <java.lang.StringBuilder: java.lang.StringBuilder append(int)>: [java.lang.Throwable, java.lang.StringBuilder]<br>Return types of <java.lang.StringBuilder: java.lang.String toString()>: [java.lang.Throwable, java.lang.String]<br>Return types of <java.io.PrintStream: void println(java.lang.String)>: [java.lang.Throwable]<br>Return types of <Havoc_Class: int havoc_int()>: [java.lang.Throwable, int]<br>[root] - Safety Verification ... <br>[root] - Inlining<br>[root] - Hornify  ... <br>[root] - Check if program has one entry ... <br>[root] - Interprocedural Push/Pull Ordering<br>[root] - Building type hierarchy ... <br>[root] - Generating Method Contract ... <br>[root] - Transform Program Methods into Horn Clauses ... <br>[root] - Running from entry point: <MaxSum: void main(JayArray_java_lang_String)><br>[root] - Safety Result ... UNSAFE<br> </div> </td>
+</tr>
+
+
+</table>
+</div>
+
+          <div id="infer" class="tab-pane">
+            <table class="table">
+ <tr class = "info">
+<td><b>Benchmark</a></td>
+      <td><b>Result</a></td>
+      <td><b>Expected</a></td>
+    <td><b>Analysis (Time)</b></td>
+<td><b> Capture (Time)</b></td>
+<td><b> Reporting (Time)</b></td>
+    </tr>
+
+
+ <tr data-toggle="collapse" data-target="#infer0" class="accordion-toggle active">
+      <td>BellmanFord</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
+    <td>0.108484983444</td>
+<td>1.1551990509</td>
+<td>0.0562310218811</td>
+    </tr>
+
+
+<tr class = active>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="infer0"> [INFO] output of locale.getdefaultlocale(): ('en_US', 'UTF-8')
+<br>[INFO] encoding we chose in the end: UTF-8
+<br>[INFO] Running command /usr/local/bin/../Cellar/infer/0.9.2/bin/../lib/infer/infer/lib/python/infer.py --analyzer checkers --multicore 4 --out BellmanFord_infer_out --project_root /Users/Teme/Documents/GitHub/jayhorn-benchmarks -- javac /Users/Teme/Documents/GitHub/jayhorn-benchmarks/test/BellmanFord/BellmanFord.java -d /Users/Teme/Documents/GitHub/jayhorn-benchmarks/test/BellmanFord/BellmanFord_build
+<br>[INFO] Path to infer script /usr/local/bin/../Cellar/infer/0.9.2/bin/../lib/infer/infer/lib/python/infer.py (/usr/local/Cellar/infer/0.9.2/lib/infer/infer/lib/python/infer.py)
+<br>[INFO] 
+<br>[INFO] Platform: Darwin-15.3.0-x86_64-i386-64bit
+<br>[INFO] PATH=/usr/local/texlive/2016/bin/universal-darwin/:/Users/Teme/.gem/ruby/2.0.0/bin:/Users/Teme/Users/Teme/Tools/princess:/Users/Teme/.node_modules_global/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/local/bin:/Users/Teme/Documents/GitHub/seahorn/build/run/bin:/Users/Teme/Tools/gradle-2.8/bin:/Users/Teme/Tools/maven/bin:/Users/Teme/Tools/activator:/Users/Teme/Documents/GitHub/seahorn/build:/Users/Teme/Documents/GitHub/zustre/build/run/bin:/Users/Teme/Downloads/yices-2.4.2/bin:/Users/Teme/Documents/GitHub/jayhorn/bin
+<br>[INFO] SHELL=/bin/zsh
+<br>[INFO] PWD=/Users/Teme/Documents/GitHub/jayhorn-benchmarks
+<br>[INFO] Starting analysis
+<br>[INFO] Capture phase was successful
+<br>[INFO] Aggregating stats
+<br>[INFO] 
+<br> </div> </td>
+</tr>
+
+
+
+ <tr data-toggle="collapse" data-target="#infer1" class="accordion-toggle active">
+      <td>MaxSum</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
+    <td>0.0953259468079</td>
+<td>1.25314497948</td>
+<td>0.0565769672394</td>
+    </tr>
+
+
+<tr class = active>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="infer1"> [INFO] output of locale.getdefaultlocale(): ('en_US', 'UTF-8')
+<br>[INFO] encoding we chose in the end: UTF-8
+<br>[INFO] Running command /usr/local/bin/../Cellar/infer/0.9.2/bin/../lib/infer/infer/lib/python/infer.py --analyzer checkers --multicore 4 --out MaxSum_infer_out --project_root /Users/Teme/Documents/GitHub/jayhorn-benchmarks -- javac /Users/Teme/Documents/GitHub/jayhorn-benchmarks/test/maxsum/MaxSum.java -d /Users/Teme/Documents/GitHub/jayhorn-benchmarks/test/maxsum/MaxSum_build
+<br>[INFO] Path to infer script /usr/local/bin/../Cellar/infer/0.9.2/bin/../lib/infer/infer/lib/python/infer.py (/usr/local/Cellar/infer/0.9.2/lib/infer/infer/lib/python/infer.py)
+<br>[INFO] 
+<br>[INFO] Platform: Darwin-15.3.0-x86_64-i386-64bit
+<br>[INFO] PATH=/usr/local/texlive/2016/bin/universal-darwin/:/Users/Teme/.gem/ruby/2.0.0/bin:/Users/Teme/Users/Teme/Tools/princess:/Users/Teme/.node_modules_global/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/local/bin:/Users/Teme/Documents/GitHub/seahorn/build/run/bin:/Users/Teme/Tools/gradle-2.8/bin:/Users/Teme/Tools/maven/bin:/Users/Teme/Tools/activator:/Users/Teme/Documents/GitHub/seahorn/build:/Users/Teme/Documents/GitHub/zustre/build/run/bin:/Users/Teme/Downloads/yices-2.4.2/bin:/Users/Teme/Documents/GitHub/jayhorn/bin
+<br>[INFO] SHELL=/bin/zsh
+<br>[INFO] PWD=/Users/Teme/Documents/GitHub/jayhorn-benchmarks
+<br>[INFO] Starting analysis
+<br>[INFO] Capture phase was successful
+<br>[INFO] Aggregating stats
+<br>[INFO] 
+<br> </div> </td>
+</tr>
+
+
+</table>
+</div>
+
+          <div id="infer" class="tab-pane">
+            <table class="table">
+ <tr class = "info">
+<td><b>Benchmark</a></td>
+      <td><b>Result</a></td>
+      <td><b>Expected</a></td>
+    <td><b>Analysis (Time)</b></td>
+<td><b> Capture (Time)</b></td>
+<td><b> Reporting (Time)</b></td>
+    </tr>
+
+
+ <tr data-toggle="collapse" data-target="#infer0" class="accordion-toggle active">
+      <td>BellmanFord</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
+    <td>0.108484983444</td>
+<td>1.1551990509</td>
+<td>0.0562310218811</td>
+    </tr>
+
+
+<tr class = active>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="infer0"> [INFO] output of locale.getdefaultlocale(): ('en_US', 'UTF-8')
+<br>[INFO] encoding we chose in the end: UTF-8
+<br>[INFO] Running command /usr/local/bin/../Cellar/infer/0.9.2/bin/../lib/infer/infer/lib/python/infer.py --analyzer checkers --multicore 4 --out BellmanFord_infer_out --project_root /Users/Teme/Documents/GitHub/jayhorn-benchmarks -- javac /Users/Teme/Documents/GitHub/jayhorn-benchmarks/test/BellmanFord/BellmanFord.java -d /Users/Teme/Documents/GitHub/jayhorn-benchmarks/test/BellmanFord/BellmanFord_build
+<br>[INFO] Path to infer script /usr/local/bin/../Cellar/infer/0.9.2/bin/../lib/infer/infer/lib/python/infer.py (/usr/local/Cellar/infer/0.9.2/lib/infer/infer/lib/python/infer.py)
+<br>[INFO] 
+<br>[INFO] Platform: Darwin-15.3.0-x86_64-i386-64bit
+<br>[INFO] PATH=/usr/local/texlive/2016/bin/universal-darwin/:/Users/Teme/.gem/ruby/2.0.0/bin:/Users/Teme/Users/Teme/Tools/princess:/Users/Teme/.node_modules_global/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/local/bin:/Users/Teme/Documents/GitHub/seahorn/build/run/bin:/Users/Teme/Tools/gradle-2.8/bin:/Users/Teme/Tools/maven/bin:/Users/Teme/Tools/activator:/Users/Teme/Documents/GitHub/seahorn/build:/Users/Teme/Documents/GitHub/zustre/build/run/bin:/Users/Teme/Downloads/yices-2.4.2/bin:/Users/Teme/Documents/GitHub/jayhorn/bin
+<br>[INFO] SHELL=/bin/zsh
+<br>[INFO] PWD=/Users/Teme/Documents/GitHub/jayhorn-benchmarks
+<br>[INFO] Starting analysis
+<br>[INFO] Capture phase was successful
+<br>[INFO] Aggregating stats
+<br>[INFO] 
+<br> </div> </td>
+</tr>
+
+
+
+ <tr data-toggle="collapse" data-target="#infer1" class="accordion-toggle active">
+      <td>MaxSum</td>
+<td>SAFE</td>
+ <td>UNKNOWN</td>
+    <td>0.0953259468079</td>
+<td>1.25314497948</td>
+<td>0.0565769672394</td>
+    </tr>
+
+
+<tr class = active>
+    <td  class="hiddenRow"><div class="accordian-body collapse" id="infer1"> [INFO] output of locale.getdefaultlocale(): ('en_US', 'UTF-8')
+<br>[INFO] encoding we chose in the end: UTF-8
+<br>[INFO] Running command /usr/local/bin/../Cellar/infer/0.9.2/bin/../lib/infer/infer/lib/python/infer.py --analyzer checkers --multicore 4 --out MaxSum_infer_out --project_root /Users/Teme/Documents/GitHub/jayhorn-benchmarks -- javac /Users/Teme/Documents/GitHub/jayhorn-benchmarks/test/maxsum/MaxSum.java -d /Users/Teme/Documents/GitHub/jayhorn-benchmarks/test/maxsum/MaxSum_build
+<br>[INFO] Path to infer script /usr/local/bin/../Cellar/infer/0.9.2/bin/../lib/infer/infer/lib/python/infer.py (/usr/local/Cellar/infer/0.9.2/lib/infer/infer/lib/python/infer.py)
+<br>[INFO] 
+<br>[INFO] Platform: Darwin-15.3.0-x86_64-i386-64bit
+<br>[INFO] PATH=/usr/local/texlive/2016/bin/universal-darwin/:/Users/Teme/.gem/ruby/2.0.0/bin:/Users/Teme/Users/Teme/Tools/princess:/Users/Teme/.node_modules_global/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/local/bin:/Users/Teme/Documents/GitHub/seahorn/build/run/bin:/Users/Teme/Tools/gradle-2.8/bin:/Users/Teme/Tools/maven/bin:/Users/Teme/Tools/activator:/Users/Teme/Documents/GitHub/seahorn/build:/Users/Teme/Documents/GitHub/zustre/build/run/bin:/Users/Teme/Downloads/yices-2.4.2/bin:/Users/Teme/Documents/GitHub/jayhorn/bin
+<br>[INFO] SHELL=/bin/zsh
+<br>[INFO] PWD=/Users/Teme/Documents/GitHub/jayhorn-benchmarks
+<br>[INFO] Starting analysis
+<br>[INFO] Capture phase was successful
+<br>[INFO] Aggregating stats
+<br>[INFO] 
+<br> </div> </td>
+</tr>
+
+
+</table>
+</div>
+
+      <div id="cbmc" class="tab-pane">
+        <table class="table">
+
+        </table>
+      </div>
+
+
+              </div>
+
+			</div>
+		</div>
+
+
+
+
+		<!-- JavaScript files placed at the end of the document so the pages load faster
+		================================================== -->
+		<!-- Jquery and Bootstap core js files -->
+		<script type="text/javascript" src="plugins/jquery.min.js"></script>
+		<script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
+
+		<!-- Modernizr javascript -->
+		<script type="text/javascript" src="plugins/modernizr.js"></script>
+
+		<!-- Isotope javascript -->
+		<script type="text/javascript" src="plugins/isotope/isotope.pkgd.min.js"></script>
+
+		<!-- Backstretch javascript -->
+		<script type="text/javascript" src="plugins/jquery.backstretch.min.js"></script>
+
+		<!-- Appear javascript -->
+		<script type="text/javascript" src="plugins/jquery.appear.js"></script>
+
+		<!-- Initialization of Plugins -->
+		<script type="text/javascript" src="js/template.js"></script>
+
+		<!-- Custom Scripts -->
+		<script type="text/javascript" src="js/custom.js"></script>
+
+	</body>
+</html>

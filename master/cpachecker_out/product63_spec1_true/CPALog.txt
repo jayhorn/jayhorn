@@ -1,0 +1,11 @@
+2016-09-24 21:57:24:206	INFO	ResourceLimitChecker.fromConfiguration	Using the following resource limits: CPU-time limit of 900s
+
+2016-09-24 21:57:24:356	INFO	CPAchecker.run	CPAchecker 1.6.1-svn 23198M (Java HotSpot(TM) 64-Bit Server VM 1.8.0_65) started
+
+2016-09-24 21:57:26:675	INFO	CFACreationUtils.addEdgeToCFA	Main.java, line 12: Dead code detected: randomSequenceOfActions(3);
+
+
+2016-09-24 21:57:27:829	INFO	CPAchecker.runAlgorithm	Starting analysis ...
+
+2016-09-24 21:57:27:878	INFO	CPAchecker.runAlgorithm	Stopping analysis ...
+
