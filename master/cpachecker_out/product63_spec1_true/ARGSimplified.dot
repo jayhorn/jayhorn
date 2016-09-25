@@ -1,6 +1,0 @@
-digraph ARG {
-node [style="filled" shape="box" color="white"]
-0 [label="0 @ N1\nMain_main_String[] entry\nValueAnalysisState: []\n" id="0"]
-5 [fillcolor="red" label="5 @ N6\nMain_main_String[]\nValueAnalysisState: [Main_cleanupTimeShifts=NumericValue [number=2]]\n AutomatonState: AssertionAutomaton: _predefinedState_ERROR\n" id="5"]
-0 -> 5 []
-}

@@ -1,7 +1,0 @@
-digraph MinePumpSystem.MinePump_processEnvironment__wrappee__base {
-248 [shape="circle" label="N248\n2"]
-249 [shape="circle" label="N249\n1"]
-247 [shape="circle" label="N247\n0"]
-248 -> 249 [label="Function start dummy edge" fontname="Courier New"]
-249 -> 247 [label="default return" fontname="Courier New"]
-}

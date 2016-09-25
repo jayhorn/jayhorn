@@ -1,7 +1,0 @@
-digraph MinePumpSystem.MinePump_getEnv {
-304 [shape="circle" label="N304\n2"]
-305 [shape="circle" label="N305\n1"]
-303 [shape="circle" label="N303\n0"]
-304 -> 305 [label="Function start dummy edge" fontname="Courier New"]
-305 -> 303 [label="return MinePumpSystem.MinePump_env;" fontname="Courier New"]
-}

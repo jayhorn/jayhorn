@@ -1,7 +1,0 @@
-digraph Main_Main {
-75 [shape="circle" label="N75\n2"]
-76 [shape="circle" label="N76\n1"]
-74 [shape="circle" label="N74\n0"]
-75 -> 76 [label="Function start dummy edge" fontname="Courier New"]
-76 -> 74 [label="return this;" fontname="Courier New"]
-}

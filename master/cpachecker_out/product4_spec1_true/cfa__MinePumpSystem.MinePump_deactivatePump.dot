@@ -1,7 +1,0 @@
-digraph MinePumpSystem.MinePump_deactivatePump {
-255 [shape="circle" label="N255\n3"]
-256 [shape="circle" label="N256\n2"]
-256 [style="filled,bold" penwidth="1" fillcolor="white" fontname="Courier New" shape="Mrecord" label=<<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td align="right">256</td><td align="left">MinePumpSystem.MinePump_pumpRunning = false;</td></tr><tr><td align="right">257</td><td align="left">default return</td></tr></table>>]
-256 -> 254[label=""]
-255 -> 256 [label="Function start dummy edge" fontname="Courier New"]
-}

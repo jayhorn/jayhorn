@@ -1,7 +1,0 @@
-digraph MinePumpSystem.MinePump_isSystemActive {
-306 [shape="circle" label="N306\n2"]
-307 [shape="circle" label="N307\n1"]
-305 [shape="circle" label="N305\n0"]
-306 -> 307 [label="Function start dummy edge" fontname="Courier New"]
-307 -> 305 [label="return MinePumpSystem.MinePump_systemActive;" fontname="Courier New"]
-}

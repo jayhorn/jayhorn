@@ -1,7 +1,0 @@
-digraph MinePumpSystem.MinePump_stopSystem {
-288 [shape="circle" label="N288\n2"]
-289 [shape="circle" label="N289\n1"]
-287 [shape="circle" label="N287\n0"]
-288 -> 289 [label="Function start dummy edge" fontname="Courier New"]
-289 -> 287 [label="default return" fontname="Courier New"]
-}

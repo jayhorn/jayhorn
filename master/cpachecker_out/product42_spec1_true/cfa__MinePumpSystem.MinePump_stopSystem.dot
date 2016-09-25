@@ -1,4 +1,0 @@
-digraph MinePumpSystem.MinePump_stopSystem {
-312 [style="filled,bold" penwidth="1" fillcolor="white" fontname="Courier New" shape="Mrecord" label=<<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td align="right">312</td><td align="left">Function start dummy edge</td></tr><tr><td align="right">313</td><td align="left">default return</td></tr></table>>]
-312 -> 311[label=""]
-}
