@@ -1,0 +1,78 @@
+digraph TypeHierarchy { 
+        fontname = "Bitstream Vera Sans"
+        fontsize = 8
+
+        node [
+                  fontname = "Bitstream Vera Sans"
+                  fontsize = 8
+                  shape = "record"
+        ]
+
+        edge [
+                  fontname = "Bitstream Vera Sans"
+                  fontsize = 8
+        ]
+
+        Random [
+                  label = "{Random||}"
+        ]
+
+        Actions [
+                  label = "{Actions|methAndRunningLastTime: boolean\lswitchedOnBeforeTS: boolean\lp: MinePumpSystem.MinePump\lenv: MinePumpSystem.Environment\l| startSystem(): void\l methaneChange(): void\l Actions(): Actions\l Specification1(): void\l waterRise(): void\l timeShift(): void\l getSystemState(): String\l stopSystem(): void\l}"
+        ]
+
+        MinePumpSystem_Environment [
+                  label = "{Environment|-waterLevel: int\l-methaneLevelCritical: boolean\l|+ changeMethaneLevel(): void\l+ isMethaneLevelCritical(): boolean\l lowerWaterLevel(): void\l+ toString(): MinePumpSystem.String\l isLowWaterSensorDry(): boolean\l+ waterRise(): void\l isHighWaterSensorDry(): boolean\l+ getWaterLevel(): int\l}"
+        ]
+
+        MinePumpSystem_MinePump [
+                  label = "{MinePump|systemActive: boolean\lenv: MinePumpSystem.Environment\lpumpRunning: boolean\l|+ toString(): MinePumpSystem.String\l isHighWaterLevel(): boolean\l+ processEnvironment(): void\l deactivatePump(): void\l+ startSystem(): void\l- processEnvironment__wrappee__highWaterSensor(): void\l+ isSystemActive(): boolean\l+ timeShift(): void\l isMethaneAlarm(): boolean\l- processEnvironment__wrappee__base(): void\l+ MinePump(env:MinePumpSystem.Environment): MinePumpSystem.MinePump\l+ stopSystem(): void\l+ getEnv(): MinePumpSystem.Environment\l+ isPumpRunning(): boolean\l activatePump(): void\l}"
+        ]
+
+        String [
+                  label = "{String||}"
+        ]
+
+        java_lang_String [
+                  label = "{String||}"
+        ]
+
+        java_lang_Object [
+                  label = "{Object||}"
+        ]
+
+        MinePumpSystem_String [
+                  label = "{String||}"
+        ]
+
+        Main [
+                  label = "{Main|-cleanupTimeShifts: int\l|+ main(args:String[] ): void\l+ randomSequenceOfActions(maxLength:int): void\l+ getBoolean(): boolean\l}"
+        ]
+
+        edge [
+                  arrowhead = "empty"
+                  style = "solid"
+                  arrowtail = "none"
+        ]
+
+        Random -> java_lang_Object
+        Actions -> java_lang_Object
+        MinePumpSystem_Environment -> java_lang_Object
+        MinePumpSystem_MinePump -> java_lang_Object
+        String -> _unspecified_
+        java_lang_String -> java_lang_Object
+        MinePumpSystem_String -> java_lang_Object
+        Main -> java_lang_Object
+        edge [
+                  arrowhead = "empty"
+                  style = "dashed"
+                  arrowtail = "none"
+        ]
+
+        edge [
+                  arrowhead = "normal"
+                  style = "solid"
+                  arrowtail = "odot"
+        ]
+
+}

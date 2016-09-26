@@ -1,0 +1,7 @@
+digraph MinePumpSystem.Environment_getWaterLevel {
+205 [shape="circle" label="N205\n2"]
+206 [shape="circle" label="N206\n1"]
+204 [shape="circle" label="N204\n0"]
+205 -> 206 [label="Function start dummy edge" fontname="Courier New"]
+206 -> 204 [label="return MinePumpSystem.Environment_waterLevel;" fontname="Courier New"]
+}

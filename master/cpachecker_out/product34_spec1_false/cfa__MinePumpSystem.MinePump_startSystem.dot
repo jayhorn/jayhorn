@@ -1,0 +1,13 @@
+digraph MinePumpSystem.MinePump_startSystem {
+295 [shape="circle" label="N295\n7"]
+296 [shape="diamond" label="N296\n6"]
+299 [shape="circle" label="N299\n1"]
+298 [shape="circle" label="N298\n5"]
+300 [shape="circle" label="N300\n0"]
+298 [style="filled,bold" penwidth="1" fillcolor="white" fontname="Courier New" shape="Mrecord" label=<<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td align="right">298</td><td align="left">assert success</td></tr><tr><td align="right">297</td><td align="left">MinePumpSystem.MinePump_systemActive = true;</td></tr><tr><td align="right">301</td><td align="left">default return</td></tr></table>>]
+298 -> 294[label=""]
+295 -> 296 [label="Function start dummy edge" fontname="Courier New"]
+296 -> 299 [label="[!(!MinePumpSystem.MinePump_pumpRunning)]" fontname="Courier New"]
+296 -> 298 [label="[!MinePumpSystem.MinePump_pumpRunning]" fontname="Courier New"]
+299 -> 300 [label="assert fail" fontname="Courier New"]
+}

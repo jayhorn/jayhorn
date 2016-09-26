@@ -1,0 +1,13 @@
+digraph MinePumpSystem.MinePump_isHighWaterLevel {
+300 [shape="circle" label="N300\n4"]
+301 [shape="circle" label="N301\n3"]
+303 [shape="circle" label="N303\n2"]
+304 [shape="circle" label="N304\n1"]
+299 [shape="circle" label="N299\n0"]
+300 -> 301 [label="Function start dummy edge" fontname="Courier New"]
+100027 [shape="component" label="MinePumpSystem.Environment_isHighWaterSensorDry"]
+303 -> 100027 [label="__CPAchecker_TMP_0 = MinePumpSystem.MinePump_env_MinePumpSystem.Environment_isHighWaterSensorDry();" fontname="Courier New"]
+100027 -> 304 [label="" fontname="Courier New"]
+301 -> 303 [label="boolean __CPAchecker_TMP_0;" fontname="Courier New"]
+304 -> 299 [label="return !__CPAchecker_TMP_0;" fontname="Courier New"]
+}

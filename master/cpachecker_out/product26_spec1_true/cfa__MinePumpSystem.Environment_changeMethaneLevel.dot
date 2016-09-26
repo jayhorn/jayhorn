@@ -1,0 +1,14 @@
+digraph MinePumpSystem.Environment_changeMethaneLevel {
+188 [shape="circle" label="N188\n5"]
+189 [shape="diamond" label="N189\n4"]
+192 [shape="circle" label="N192\n2"]
+191 [shape="circle" label="N191\n3"]
+190 [shape="circle" label="N190\n1"]
+187 [shape="circle" label="N187\n0"]
+188 -> 189 [label="Function start dummy edge" fontname="Courier New"]
+189 -> 192 [label="[!(!MinePumpSystem.Environment_methaneLevelCritical)]" fontname="Courier New"]
+189 -> 191 [label="[!MinePumpSystem.Environment_methaneLevelCritical]" fontname="Courier New"]
+190 -> 187 [label="default return" fontname="Courier New"]
+191 -> 190 [label="MinePumpSystem.Environment_methaneLevelCritical = true;" fontname="Courier New"]
+192 -> 190 [label="MinePumpSystem.Environment_methaneLevelCritical = false;" fontname="Courier New"]
+}

@@ -1,0 +1,7 @@
+digraph MaxSum_MaxSum {
+89 [shape="circle" label="N89\n2"]
+90 [shape="circle" label="N90\n1"]
+88 [shape="circle" label="N88\n0"]
+89 -> 90 [label="Function start dummy edge" fontname="Courier New"]
+90 -> 88 [label="return this;" fontname="Courier New"]
+}

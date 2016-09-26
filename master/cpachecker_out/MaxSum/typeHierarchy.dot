@@ -1,0 +1,58 @@
+digraph TypeHierarchy { 
+        fontname = "Bitstream Vera Sans"
+        fontsize = 8
+
+        node [
+                  fontname = "Bitstream Vera Sans"
+                  fontsize = 8
+                  shape = "record"
+        ]
+
+        edge [
+                  fontname = "Bitstream Vera Sans"
+                  fontsize = 8
+        ]
+
+        Random [
+                  label = "{Random||}"
+        ]
+
+        String [
+                  label = "{String||}"
+        ]
+
+        java_lang_String [
+                  label = "{String||}"
+        ]
+
+        MaxSum [
+                  label = "{MaxSum||+ main(args:String[] ): void\l- max3(a:int,b:int,c:int): int\l- maxSumRec(a:int[] ,left:int,right:int): int\l+ maxSubSum4(a:int[] ): int\l}"
+        ]
+
+        java_lang_Object [
+                  label = "{Object||}"
+        ]
+
+        edge [
+                  arrowhead = "empty"
+                  style = "solid"
+                  arrowtail = "none"
+        ]
+
+        Random -> java_lang_Object
+        String -> _unspecified_
+        java_lang_String -> java_lang_Object
+        MaxSum -> java_lang_Object
+        edge [
+                  arrowhead = "empty"
+                  style = "dashed"
+                  arrowtail = "none"
+        ]
+
+        edge [
+                  arrowhead = "normal"
+                  style = "solid"
+                  arrowtail = "odot"
+        ]
+
+}

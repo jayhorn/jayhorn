@@ -1,0 +1,8 @@
+2016-09-26 14:19:18:779	INFO	ResourceLimitChecker.fromConfiguration	Using the following resource limits: CPU-time limit of 900s
+
+2016-09-26 14:19:18:822	INFO	CPAchecker.run	CPAchecker 1.6.1-svn 23198M (Java HotSpot(TM) 64-Bit Server VM 1.8.0_65) started
+
+2016-09-26 14:19:20:624	INFO	CPAchecker.runAlgorithm	Starting analysis ...
+
+2016-09-26 14:19:22:308	INFO	CPAchecker.runAlgorithm	Stopping analysis ...
+

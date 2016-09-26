@@ -1,0 +1,78 @@
+digraph TypeHierarchy { 
+        fontname = "Bitstream Vera Sans"
+        fontsize = 8
+
+        node [
+                  fontname = "Bitstream Vera Sans"
+                  fontsize = 8
+                  shape = "record"
+        ]
+
+        edge [
+                  fontname = "Bitstream Vera Sans"
+                  fontsize = 8
+        ]
+
+        Random [
+                  label = "{Random||}"
+        ]
+
+        Actions [
+                  label = "{Actions|methAndRunningLastTime: boolean\lenv: MinePumpSystem.Environment\lswitchedOnBeforeTS: boolean\lp: MinePumpSystem.MinePump\l| Specification1(): void\l stopSystem(): void\l methaneChange(): void\l Actions(): Actions\l startSystem(): void\l getSystemState(): String\l waterRise(): void\l timeShift(): void\l}"
+        ]
+
+        MinePumpSystem_Environment [
+                  label = "{Environment|-methaneLevelCritical: boolean\l-waterLevel: int\l| isLowWaterSensorDry(): boolean\l+ waterRise(): void\l isHighWaterSensorDry(): boolean\l lowerWaterLevel(): void\l+ getWaterLevel(): int\l+ isMethaneLevelCritical(): boolean\l+ changeMethaneLevel(): void\l+ toString(): MinePumpSystem.String\l}"
+        ]
+
+        MinePumpSystem_MinePump [
+                  label = "{MinePump|pumpRunning: boolean\lenv: MinePumpSystem.Environment\lsystemActive: boolean\l|+ toString(): MinePumpSystem.String\l deactivatePump(): void\l+ startSystem(): void\l+ getEnv(): MinePumpSystem.Environment\l isMethaneAlarm(): boolean\l+ isPumpRunning(): boolean\l+ isSystemActive(): boolean\l- activatePump__wrappee__base(): void\l+ MinePump(env:MinePumpSystem.Environment): MinePumpSystem.MinePump\l+ stopSystem(): void\l+ timeShift(): void\l processEnvironment(): void\l activatePump(): void\l}"
+        ]
+
+        String [
+                  label = "{String||}"
+        ]
+
+        java_lang_String [
+                  label = "{String||}"
+        ]
+
+        java_lang_Object [
+                  label = "{Object||}"
+        ]
+
+        MinePumpSystem_String [
+                  label = "{String||}"
+        ]
+
+        Main [
+                  label = "{Main|-cleanupTimeShifts: int\l|+ main(args:String[] ): void\l+ randomSequenceOfActions(maxLength:int): void\l+ getBoolean(): boolean\l}"
+        ]
+
+        edge [
+                  arrowhead = "empty"
+                  style = "solid"
+                  arrowtail = "none"
+        ]
+
+        Random -> java_lang_Object
+        Actions -> java_lang_Object
+        MinePumpSystem_Environment -> java_lang_Object
+        MinePumpSystem_MinePump -> java_lang_Object
+        String -> java_lang_Object
+        java_lang_String -> java_lang_Object
+        MinePumpSystem_String -> java_lang_Object
+        Main -> java_lang_Object
+        edge [
+                  arrowhead = "empty"
+                  style = "dashed"
+                  arrowtail = "none"
+        ]
+
+        edge [
+                  arrowhead = "normal"
+                  style = "solid"
+                  arrowtail = "odot"
+        ]
+
+}

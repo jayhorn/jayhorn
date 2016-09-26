@@ -1,0 +1,7 @@
+digraph MaxSum_maxSubSum4_int[] {
+54 [shape="circle" label="N54\n3"]
+55 [shape="circle" label="N55\n2"]
+55 [style="filled,bold" penwidth="1" fillcolor="white" fontname="Courier New" shape="Mrecord" label=<<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td align="right">55</td><td align="left">int __CPAchecker_TMP_0;</td></tr><tr><td align="right">57</td><td align="left">return __CPAchecker_TMP_0;</td></tr></table>>]
+55 -> 53[label=""]
+54 -> 55 [label="Function start dummy edge" fontname="Courier New"]
+}
