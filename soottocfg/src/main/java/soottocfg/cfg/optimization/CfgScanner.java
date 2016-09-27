@@ -86,9 +86,9 @@ public class CfgScanner extends CfgVisitor {
 
 	@Override
 	protected Statement processStatement(PullStatement s) { 
-		for (IdentifierExpression l : s.getLeft()) {
-			processExpression(l);
-		}
+//		for (IdentifierExpression l : s.getLeft()) {
+//			processExpression(l);
+//		}
 		processExpression(s.getObject());
 		return s;
 	}
