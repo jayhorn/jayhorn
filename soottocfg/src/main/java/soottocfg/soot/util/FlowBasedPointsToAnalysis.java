@@ -12,6 +12,7 @@ import com.google.common.base.Verify;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
@@ -134,8 +135,17 @@ public class FlowBasedPointsToAnalysis {
 	}
 	
 	public boolean mayAlias(Expression ref1, Expression ref2) {
+		if (ref1 instanceof NullLiteral || ref2 instanceof NullLiteral)
+			return false;
+		
 		ReferenceType rt1 = getReferenceType(ref1);
 		ReferenceType rt2 = getReferenceType(ref2);
+		
+		if (rt1.getClassVariable()==null || rt2.getClassVariable()==null) {
+			System.err.println("Class var not set: " + ref1 + " and " + ref2);
+			return false; // not sure what to do here?
+		}
+		
 		if (!rt1.getClassVariable().subclassOf(rt2.getClassVariable()) 
 				&& !rt1.getClassVariable().superclassOf(rt2.getClassVariable()))
 			return false;

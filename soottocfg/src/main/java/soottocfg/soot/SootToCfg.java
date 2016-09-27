@@ -47,6 +47,7 @@ import soottocfg.soot.transformers.AssertionReconstruction;
 import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.SpecClassTransformer;
 import soottocfg.soot.transformers.SwitchStatementRemover;
+import soottocfg.soot.transformers.CfgCallInliner;
 import soottocfg.soot.transformers.VirtualCallResolver;
 import soottocfg.soot.util.DuplicatedCatchDetection;
 import soottocfg.soot.util.FlowBasedPointsToAnalysis;
@@ -126,6 +127,12 @@ public class SootToCfg {
 		CfgStubber stubber = new CfgStubber();
 		stubber.stubUnboundFieldsAndMethods(program);
 		
+		System.out.println("Inlining");
+		CfgCallInliner inliner = new CfgCallInliner(program);
+		inliner.inlineFromMain(Options.v().getInlineMaxSize(), Options.v().getInlineCount());
+//		inliner.inlineFromMain(8, 3);
+//		System.err.println(program);
+		
 		if (program.getEntryPoints()==null || program.getEntryPoints().length==0) {
 			System.err.println("WARNING: No entry point found in program!");
 			SootTranslationHelpers.v().reset();
@@ -140,7 +147,7 @@ public class SootToCfg {
 		
 		// add missing pushes
 		MissingPushAdder.addMissingPushes(program);
-
+		
 		// simplify push-pull
 		if (Options.v().memPrecision() >= 1) {
 			PushPullSimplifier pps = new PushPullSimplifier();
@@ -148,7 +155,7 @@ public class SootToCfg {
 			if (Options.v().outDir() != null)
 				writeFile(".simpl.cfg", program.toString());
 		}
-
+		
 		// add push IDs
 		if (Options.v().memPrecision() >= 2) {
 			PushIdentifierAdder pia = new PushIdentifierAdder();
@@ -156,6 +163,8 @@ public class SootToCfg {
 			if (Options.v().outDir() != null)
 				writeFile("precise.cfg", program.toString());
 		}
+		
+
 		
 		// print CFG
 		if (Options.v().printCFG()) {

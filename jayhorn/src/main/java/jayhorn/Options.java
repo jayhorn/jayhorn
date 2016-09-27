@@ -233,6 +233,8 @@ public class Options {
 		soottocfg.Options.v().setExcAsAssert(insertRuntimeAssertions);
 		soottocfg.Options.v().setMemPrecision(memPrecision);
 		soottocfg.Options.v().setPrintCFG(printCFG);
+		soottocfg.Options.v().setInlineMaxSize(inlineMaxSize);
+		soottocfg.Options.v().setInlineCount(inlineCount);
 	}
 	
 	/**

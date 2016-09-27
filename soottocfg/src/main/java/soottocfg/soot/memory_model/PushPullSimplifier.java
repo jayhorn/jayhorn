@@ -5,10 +5,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import soot.PointsToAnalysis;
-import soot.PointsToSet;
-import soot.Scene;
-import soot.SootField;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
@@ -23,8 +19,9 @@ import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.variable.Variable;
-import soottocfg.soot.util.SootTranslationHelpers;
+import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.soot.SootToCfg;
 
 public class PushPullSimplifier {
 	
@@ -274,53 +271,60 @@ public class PushPullSimplifier {
 		return eaten;
 	}
 
-	/* Temporary: only compare the actual identifiers. TODO: points-to analysis */
 	private boolean distinct(Set<IdentifierExpression> vars1, Set<IdentifierExpression> vars2) {
-		// Code based on alias analysis, does not work yet
-//		if (soottocfg.Options.v().memPrecision() >= 3) {
-//			for (IdentifierExpression exp1 : vars1) {
-//				for (IdentifierExpression exp2 : vars2) {
-//					if (debug)
-//						System.out.println("Checking distinctness of " + exp1 + exp1.getType() + " and " + exp2 + exp2.getType());
-//					if (exp1.getType() instanceof ReferenceType 
-//							&& exp2.getType() instanceof ReferenceType 
-//							&& FlowBasedPointsToAnalysis.mayAlias(exp1, exp2))
-//						return false;
-//				}
-//			}
-//			return true;	
-//		}
-//		return false;
-		
-		NewMemoryModel mem = (NewMemoryModel) SootTranslationHelpers.v().getMemoryModel();
-		PointsToAnalysis pta = Scene.v().getPointsToAnalysis();
+		// Code based on alias analysis
 		for (IdentifierExpression exp1 : vars1) {
 			for (IdentifierExpression exp2 : vars2) {
 				if (debug)
-					System.out.println("Checking distinctness of " + exp1 + " and " + exp2);
-				Variable v1 = exp1.getVariable();
-				Variable v2 = exp2.getVariable();
-				if (v1.getName().equals(v2.getName())) {
-					if (debug)
-						System.out.println("Not distinct.");
-					return false;
-				}
-				SootField sf1 = mem.lookupField(v1);
-				SootField sf2 = mem.lookupField(v2);
-				// oopsie, only works for static fields for now
-				// TODO for instance fields we need to store Locals
-				if (sf1!=null && sf1.isStatic() && sf2!=null && sf2.isStatic()) {
-					PointsToSet pointsTo1 = pta.reachingObjects(sf1);
-					PointsToSet pointsTo2 = pta.reachingObjects(sf2);
-					if (pointsTo1.hasNonEmptyIntersection(pointsTo2)){
-						if (debug)
-							System.out.println("Point to same location, not distinct.");
-						return false;
+					System.out.println("Checking distinctness of " + exp1 + exp1.getType() + " and " + exp2 + exp2.getType());
+				if (exp1.getType() instanceof ReferenceType
+						&& exp2.getType() instanceof ReferenceType) {
+					if (soottocfg.Options.v().memPrecision() >= 3) {
+						if (SootToCfg.getPointsToAnalysis().mayAlias(exp1, exp2))
+							return false;
+					} else {
+						ReferenceType rt1 = (ReferenceType) exp1.getType();
+						ReferenceType rt2 = (ReferenceType) exp2.getType();
+						ClassVariable cv1 = rt1.getClassVariable();
+						ClassVariable cv2 = rt2.getClassVariable();
+						if (cv1!=null && cv2!=null 
+								&& (cv1.subclassOf(cv2) || !cv1.superclassOf(cv2)))
+							return false;
 					}
 				}
 			}
 		}
-		return true;
+		return true;	
+			
+//		NewMemoryModel mem = (NewMemoryModel) SootTranslationHelpers.v().getMemoryModel();
+//		PointsToAnalysis pta = Scene.v().getPointsToAnalysis();
+//		for (IdentifierExpression exp1 : vars1) {
+//			for (IdentifierExpression exp2 : vars2) {
+//				if (debug)
+//					System.out.println("Checking distinctness of " + exp1 + " and " + exp2);
+//				Variable v1 = exp1.getVariable();
+//				Variable v2 = exp2.getVariable();
+//				if (v1.getName().equals(v2.getName())) {
+//					if (debug)
+//						System.out.println("Not distinct.");
+//					return false;
+//				}
+//				SootField sf1 = mem.lookupField(v1);
+//				SootField sf2 = mem.lookupField(v2);
+//				// oopsie, only works for static fields for now
+//				// TODO for instance fields we need to store Locals
+//				if (sf1!=null && sf1.isStatic() && sf2!=null && sf2.isStatic()) {
+//					PointsToSet pointsTo1 = pta.reachingObjects(sf1);
+//					PointsToSet pointsTo2 = pta.reachingObjects(sf2);
+//					if (pointsTo1.hasNonEmptyIntersection(pointsTo2)){
+//						if (debug)
+//							System.out.println("Point to same location, not distinct.");
+//						return false;
+//					}
+//				}
+//			}
+//		}
+//		return true;
 	}
 	
 	private int movePullsUpInCFG(Set<CfgBlock> blocks) {
@@ -388,66 +392,66 @@ public class PushPullSimplifier {
 		return moves;
 	}
 	
-//	private int moveAssumeFalseUpInCFG(Set<CfgBlock> blocks) {
-//		int moves = 0;
-//		for (CfgBlock b : blocks) {
-//			if (!b.getStatements().isEmpty()) {
-//				Statement stmt = b.getStatements().get(0);
-//				if (stmt instanceof AssumeStatement) {
-//					AssumeStatement as = (AssumeStatement) stmt;
-//					if (as.getExpression() instanceof BooleanLiteral && 
-//							((BooleanLiteral) as.getExpression()).equals(BooleanLiteral.falseLiteral())) {
-//						System.out.println("Found assume(false)");
-//						// Found one! Now only move it up if all predecessors are actually up.
-//						boolean allUp = true;
-//						Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
-//						for (CfgEdge in : incoming) {
-//							CfgBlock prev = b.getMethod().getEdgeSource(in);
-//							if (!isUp(prev,b))
-//								allUp = false;
-//						}
-//						if (allUp && !incoming.isEmpty()) {
-//							for (CfgEdge in : incoming) {
-//								CfgBlock prev = b.getMethod().getEdgeSource(in);
-//								prev.addStatement(as);							
-//							}
-//							b.removeStatement(as);
-//							moves++;
-//							if (debug)
-//								System.out.println("Moved assume(false) up in CFG.");
-//						}
-//					}
-//				}
-//			}
-//		}
-//		return moves;
-//	}
+	private int moveAssumeFalseUpInCFG(Set<CfgBlock> blocks) {
+		int moves = 0;
+		for (CfgBlock b : blocks) {
+			if (!b.getStatements().isEmpty()) {
+				Statement stmt = b.getStatements().get(0);
+				if (stmt instanceof AssumeStatement) {
+					AssumeStatement as = (AssumeStatement) stmt;
+					if (as.getExpression() instanceof BooleanLiteral && 
+							((BooleanLiteral) as.getExpression()).equals(BooleanLiteral.falseLiteral())) {
+						System.out.println("Found assume(false)");
+						// Found one! Now only move it up if all predecessors are actually up.
+						boolean allUp = true;
+						Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
+						for (CfgEdge in : incoming) {
+							CfgBlock prev = b.getMethod().getEdgeSource(in);
+							if (!isUp(prev,b))
+								allUp = false;
+						}
+						if (allUp && !incoming.isEmpty()) {
+							for (CfgEdge in : incoming) {
+								CfgBlock prev = b.getMethod().getEdgeSource(in);
+								prev.addStatement(as);							
+							}
+							b.removeStatement(as);
+							moves++;
+							if (debug)
+								System.out.println("Moved assume(false) up in CFG.");
+						}
+					}
+				}
+			}
+		}
+		return moves;
+	}
 	
-//	private int removeEmptyBlocks(Method m) {
-//		int removed = 0;
-//		Set<CfgBlock> toRemove = new HashSet<CfgBlock>();
-//		for (CfgBlock b : m.vertexSet()) {
-//			if (b.getStatements().isEmpty()) {
-//				//make all predecessors point to unique successor
-//				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
-//				if (outgoing.size()==1) {
-//					Set<CfgEdge> toRemoveEdges = new HashSet<CfgEdge>();
-//					CfgBlock next = b.getMethod().getEdgeTarget((CfgEdge)outgoing.toArray()[0]);
-//					Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
-//					for (CfgEdge in : incoming) {
-//						CfgBlock prev = b.getMethod().getEdgeSource(in);
-//						toRemoveEdges.add(in);
-//						b.getMethod().addEdge(prev, next);
-//					}
-//					toRemove.add(b);
-//					b.getMethod().removeAllEdges(toRemoveEdges);
-//				}
-//			}
-//		}
-//		// this one breaks everything...
-////		m.removeAllVertices(toRemove);
-//		return removed;
-//	}
+	private int removeEmptyBlocks(Method m) {
+		int removed = 0;
+		Set<CfgBlock> toRemove = new HashSet<CfgBlock>();
+		for (CfgBlock b : m.vertexSet()) {
+			if (b.getStatements().isEmpty()) {
+				//make all predecessors point to unique successor
+				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
+				if (outgoing.size()==1) {
+					Set<CfgEdge> toRemoveEdges = new HashSet<CfgEdge>();
+					CfgBlock next = b.getMethod().getEdgeTarget((CfgEdge)outgoing.toArray()[0]);
+					Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
+					for (CfgEdge in : incoming) {
+						CfgBlock prev = b.getMethod().getEdgeSource(in);
+						toRemoveEdges.add(in);
+						b.getMethod().addEdge(prev, next);
+					}
+					toRemove.add(b);
+					b.getMethod().removeAllEdges(toRemoveEdges);
+				}
+			}
+		}
+		// this one breaks everything...
+		m.removeAllVertices(toRemove);
+		return removed;
+	}
 	
 	private boolean sameVars(PushStatement push, PullStatement pull) {
 		List<Expression> pushvars = push.getRight();

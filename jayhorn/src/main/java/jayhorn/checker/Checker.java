@@ -1,6 +1,3 @@
-/**
- *
- */
 package jayhorn.checker;
 
 import java.util.HashMap;
@@ -20,7 +17,6 @@ import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
-import jayhorn.utils.CfgCallInliner;
 import jayhorn.utils.Stats;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.method.Method;
@@ -46,10 +42,6 @@ public class Checker {
 			Log.error("The program has no entry points and thus is trivially verified.");
 			return true;
 		}
-		Log.info("Inlining");
-		CfgCallInliner inliner = new CfgCallInliner(program);
-		inliner.inlineFromMain(Options.v().getInlineMaxSize(), Options.v().getInlineCount());
-		System.err.println(program);
 		Log.info("Hornify  ... ");
 		Hornify hf = new Hornify(factory);
 		Stopwatch toHornTimer = Stopwatch.createStarted();
