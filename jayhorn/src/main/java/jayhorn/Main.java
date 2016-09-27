@@ -45,9 +45,10 @@ public class Main {
   			soottocfg.Options.v().setOutDir(outDir);
   			soottocfg.Options.v().setOutBaseName(outName);
   		}
-  		soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());	
   	
   		Stopwatch sootTocfgTimer = Stopwatch.createStarted();
+  		soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());	
+  	
   		Program program = soot2cfg.getProgram();
   	    Stats.stats().add("SootToCFG", String.valueOf(sootTocfgTimer.stop()));
   		
