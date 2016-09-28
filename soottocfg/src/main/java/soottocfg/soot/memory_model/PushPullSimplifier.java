@@ -70,9 +70,8 @@ public class PushPullSimplifier {
 			simplifications += movePullUp(b);
 			simplifications += movePushDown(b);
 			simplifications += swapPushPull(b);
-			// I think running these is only sound when 'distinct()' is
-//			simplifications += orderPulls(b);
-//			simplifications += orderPushes(b);
+			simplifications += orderPulls(b);
+			simplifications += orderPushes(b);
 			simplifications += assumeFalseEatPreceeding(b);
 		} while (simplifications > 0);
 	}
@@ -287,7 +286,7 @@ public class PushPullSimplifier {
 			if (stmts.get(i) instanceof PushStatement && stmts.get(i+1) instanceof PushStatement) {
 				PushStatement push1 = (PushStatement) stmts.get(i);
 				PushStatement push2 = (PushStatement) stmts.get(i+1);
-				if (push1.getObject().toString().compareTo(push2.getObject().toString()) < 0) {
+				if (push1.getObject().toString().compareTo(push2.getObject().toString()) > 0) {
 					//only swap if none of the vars in the pull and push point to the same location
 					Set<IdentifierExpression> push1vars = push1.getIdentifierExpressions();
 					Set<IdentifierExpression> push2vars = push2.getIdentifierExpressions();
