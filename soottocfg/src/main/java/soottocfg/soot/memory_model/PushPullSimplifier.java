@@ -24,6 +24,8 @@ import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.soot.SootToCfg;
+import soottocfg.soot.util.FlowBasedPointsToAnalysis;
 import soottocfg.soot.util.SootTranslationHelpers;
 
 public class PushPullSimplifier {
@@ -240,9 +242,10 @@ public class PushPullSimplifier {
 				PushStatement push = (PushStatement) stmts.get(i);
 				PullStatement pull = (PullStatement) stmts.get(i+1);
 				//only swap if none of the vars in the pull and push point to the same location
-				Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
-				Set<IdentifierExpression> pushvars = push.getIdentifierExpressions();
-				if (distinct(pullvars,pushvars)) {
+//				Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
+//				Set<IdentifierExpression> pushvars = push.getIdentifierExpressions();
+//				if (distinct(pullvars,pushvars)) {
+				if (!SootToCfg.getPointsToAnalysis().mayAlias(pull.getObject(), push.getObject())) {
 					b.swapStatements(i, i+1);
 					if (debug)
 						System.out.println("Applied rule (VII); swapped " + push + " and " + pull);
