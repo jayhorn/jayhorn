@@ -67,7 +67,7 @@ public class Main {
     
 	public static void main(String[] args) {
 		Log.info("\t\t ---   JAYHORN : Static Analayzer for Java Programs ---- ");
-		
+
 		Options options = Options.v();
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
