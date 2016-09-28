@@ -66,7 +66,7 @@ public class Main {
       }
     
 	public static void main(String[] args) {
-		System.out.println("\t\t ---   JAYHORN : Static Analayzer for Java Programs ---- ");
+		System.out.println("\t\t ---   JAYHORN : Static Analyzer for Java Programs ---- ");
 		
 		Options options = Options.v();
 		CmdLineParser parser = new CmdLineParser(options);
