@@ -213,7 +213,7 @@ public class SootRunner {
 						VoidType.v());
 				
 				mainClass = c;
-				System.err.println(mainMethod.getSignature());
+//				System.err.println(mainMethod.getSignature());
 				sb.append(mainMethod.getSignature());
 				sb.append("\n");
 			}
