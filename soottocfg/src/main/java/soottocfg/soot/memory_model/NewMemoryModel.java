@@ -104,7 +104,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			// in constructor only push 'this' after the last access
 			if (m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal())) {
 				
-				//check if there is any path from 'u' to the tail(s) that does not contain an access to 'this'
+				//check if there is any path from 'u' to the tail(s) that does not contain an write to 'this'
 				List<Unit> tails = graph.getTails();
 				List<Unit> todo = new LinkedList<Unit>();
 				todo.add(u);
@@ -112,7 +112,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 				while (!todo.isEmpty()) {
 					Unit unit = todo.remove(0);
 					
-					// if it contains another access to 'this', stop exploring this path
+					// if it contains another write to 'this', stop exploring this path
 					Stmt s = (Stmt) unit;
 					if (s.containsFieldRef()) {
 						FieldRef fr2 = s.getFieldRef();
@@ -290,13 +290,13 @@ public class NewMemoryModel extends BasicMemoryModel {
 		this.statementSwitch.push(new AssignStatement(loc, left,
 				new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar)));
 		// ------------- push -----------------
-		if (pushAt(u, fieldRef)) {
-			List<Expression> packedVars = new LinkedList<Expression>();
-			for (int i = 0; i < vars.length; i++) {
-				packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
-			}
-			this.statementSwitch.push(new PushStatement(loc, classVar, base, packedVars));
-		}
+//		if (pushAt(u, fieldRef)) {
+//			List<Expression> packedVars = new LinkedList<Expression>();
+//			for (int i = 0; i < vars.length; i++) {
+//				packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
+//			}
+//			this.statementSwitch.push(new PushStatement(loc, classVar, base, packedVars));
+//		}
 		// ------------------------------------
 	}
 

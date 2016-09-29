@@ -81,14 +81,13 @@ public class CbmcSrcTests {
 		try {
 //			soottocfg.Options.v().passCallerIdIntoMethods(true);
 //			soottocfg.Options.v().setPrintCFG(false);
-			soottocfg.Options.v().setMemPrecision(3);
 //			soottocfg.Options.v().setExcAsAssert(true);
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
-			soottocfg.Options.v().setMemPrecision(0);
+			soottocfg.Options.v().setMemPrecision(3);
 
 			soot2cfg.run(classDir.getAbsolutePath(), null);
-			jayhorn.Options.v().setTimeout(5);			
+			jayhorn.Options.v().setTimeout(60);			
 			jayhorn.Options.v().setPrintHorn(false);
 						
 //			Checker checker = new Checker(factory);

@@ -83,6 +83,7 @@ public class ClassicProblemsHornTest {
 		try {
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
+			soottocfg.Options.v().setMemPrecision(3);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			
 			Program program = soot2cfg.getProgram();
