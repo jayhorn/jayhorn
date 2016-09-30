@@ -87,7 +87,7 @@ public class CbmcSrcTests {
 			soottocfg.Options.v().setMemPrecision(3);
 
 			soot2cfg.run(classDir.getAbsolutePath(), null);
-			jayhorn.Options.v().setTimeout(60);			
+			jayhorn.Options.v().setTimeout(400);
 			jayhorn.Options.v().setPrintHorn(false);
 						
 //			Checker checker = new Checker(factory);
