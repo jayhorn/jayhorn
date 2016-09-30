@@ -16,6 +16,21 @@ For information on how to download and run JayHorn check [our website](http://ja
 
 Join the chat [![Join the chat at https://gitter.im/jayhorn/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jayhorn/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+## Soundines Statement
+This project has been done in the spirit of soundiness. When building practical program analyses, it is often necessary to cut corners. In order to be open about language features that we do not support or support only partially, we are attaching this soundiness statement.
+
+Our analysis does not have a fully sound handling of the following features:
+- JNI, implicit method invocations (finalizers, class initializers, Thread.&lt;init&gt;, etc.)
+- integer overflow
+- exceptions and flow related to that
+- reflection API (e.g., Method.invoke(), Class.newInstance )
+- invokedynamic
+- code generation at runtime, dynamic loading
+- different class loaders
+- key native methods (Object.run, Object.doPrivileged)
+
+This statement has been produced with the Soundiness Statement Generator from [soundiness.org](http://soundiness.org).
+
 ## Waffle Statistics
 Waffel.io [![Stories in Ready](https://badge.waffle.io/jayhorn/jayhorn.svg?label=ready&title=Ready)](http://waffle.io/jayhorn/jayhorn)
 
