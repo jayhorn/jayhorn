@@ -110,35 +110,41 @@ public class StatementEncoder {
 
         List<Long> assumedPushIds = null;
 
-        public void lookAhead(Statement s) {
-          assumedPushIds = null;
+    private boolean isLashpushAssumption(Statement s) {
+        if (!(s instanceof AssumeStatement))
+            return false;
+        
+        AssumeStatement as = (AssumeStatement)s;
 
-          if (s instanceof AssumeStatement) {
-            AssumeStatement as = (AssumeStatement)s;
-
-            boolean allLastpush = true;
-            for (IdentifierExpression e : as.getUseIdentifierExpressions())
-              allLastpush =
+        boolean allLastpush = true;
+        for (IdentifierExpression e : as.getUseIdentifierExpressions())
+            allLastpush =
                 allLastpush && e.getVariable().getName().contains("lastpush");
 
-            if (allLastpush) {
-              assumedPushIds = new ArrayList<Long>();
+        return allLastpush;
+    }
 
-              Stack<Expression> stack = new Stack<Expression>();
-              stack.push(as.getExpression());
-              while (!stack.isEmpty()) {
+    public void lookAhead(Statement s) {
+        assumedPushIds = null;
+        
+        if (isLashpushAssumption(s)) {
+            AssumeStatement as = (AssumeStatement)s;
+            assumedPushIds = new ArrayList<Long>();
+
+            Stack<Expression> stack = new Stack<Expression>();
+            stack.push(as.getExpression());
+            while (!stack.isEmpty()) {
                 BinaryExpression e = (BinaryExpression)stack.pop();
                   
                 if (e.getOp() == BinaryExpression.BinaryOperator.Or) {
-                  stack.push(e.getLeft());
-                  stack.push(e.getRight());
+                    stack.push(e.getLeft());
+                    stack.push(e.getRight());
                 } else if (e.getOp() == BinaryExpression.BinaryOperator.Eq) {
-                  assumedPushIds.add(((IntegerLiteral)e.getRight()).getValue());
+                    assumedPushIds.add(((IntegerLiteral)e.getRight()).getValue());
                 }
-              }
             }
-          }
         }
+    }
 
 	/**
 	 * for "assert(cond)"
@@ -177,7 +183,10 @@ public class StatementEncoder {
 	public List<ProverHornClause> assumeToClause(AssumeStatement as, HornPredicate postPred, ProverExpr preAtom,
 			Map<Variable, ProverExpr> varMap) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
-		final ProverExpr cond = expEncoder.exprToProverExpr(as.getExpression(), varMap);
+		final ProverExpr cond =
+                    isLashpushAssumption(as) ?
+                    p.mkLiteral(true) :
+                    expEncoder.exprToProverExpr(as.getExpression(), varMap);
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, cond));
 		return clauses;
