@@ -99,10 +99,10 @@ public abstract class BasicMemoryModel extends MemoryModel {
 
 		Variable newLocal = mi.createFreshLocal("$new", newType, true, true);
 		// add: assume newLocal!=null
-		this.statementSwitch.push(new AssumeStatement(statementSwitch.getCurrentLoc(),
-				new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
-						new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
-						this.mkNullConstant())));
+//		this.statementSwitch.push(new AssumeStatement(statementSwitch.getCurrentLoc(),
+//				new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
+//						new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
+//						this.mkNullConstant())));
 
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
 	}

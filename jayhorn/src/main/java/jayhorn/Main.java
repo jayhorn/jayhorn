@@ -45,9 +45,10 @@ public class Main {
   			soottocfg.Options.v().setOutDir(outDir);
   			soottocfg.Options.v().setOutBaseName(outName);
   		}
-  		soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());	
   	
   		Stopwatch sootTocfgTimer = Stopwatch.createStarted();
+  		soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());	
+  	
   		Program program = soot2cfg.getProgram();
   	    Stats.stats().add("SootToCFG", String.valueOf(sootTocfgTimer.stop()));
   		
@@ -65,8 +66,8 @@ public class Main {
       }
     
 	public static void main(String[] args) {
-		System.out.println("\t\t ---   JAYHORN : Static Analayzer for Java Programs ---- ");
-		
+		Log.info("\t\t ---   JAYHORN : Static Analayzer for Java Programs ---- ");
+
 		Options options = Options.v();
 		CmdLineParser parser = new CmdLineParser(options);
 		try {

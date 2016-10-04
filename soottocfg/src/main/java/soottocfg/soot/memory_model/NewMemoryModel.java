@@ -43,6 +43,7 @@ import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
  * @author schaef
+ * @author rodykers
  *
  */
 public class NewMemoryModel extends BasicMemoryModel {
@@ -99,11 +100,11 @@ public class NewMemoryModel extends BasicMemoryModel {
 		
 		if (fr instanceof InstanceFieldRef) {
 			InstanceFieldRef ifr = (InstanceFieldRef) fr;
-			
+
 			// in constructor only push 'this' after the last access
 			if (m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal())) {
 				
-				//check if there is any path from 'u' to the tail(s) that does not contain an access to 'this'
+				//check if there is any path from 'u' to the tail(s) that does not contain an write to 'this'
 				List<Unit> tails = graph.getTails();
 				List<Unit> todo = new LinkedList<Unit>();
 				todo.add(u);
@@ -111,22 +112,25 @@ public class NewMemoryModel extends BasicMemoryModel {
 				while (!todo.isEmpty()) {
 					Unit unit = todo.remove(0);
 					
-					// if it contains another access to 'this', stop exploring this path
-					Stmt s = (Stmt) u;
+					// if it contains another write to 'this', stop exploring this path
+					Stmt s = (Stmt) unit;
 					if (s.containsFieldRef()) {
 						FieldRef fr2 = s.getFieldRef();
 						if (fr2 instanceof InstanceFieldRef) {
 							InstanceFieldRef ifr2 = (InstanceFieldRef) fr2;
-							if (ifr2.getBase().equals(m.getActiveBody().getThisLocal()) && !ifr2.equals(ifr)) {
+							if (ifr2.getBase().equals(m.getActiveBody().getThisLocal()) && !u.equals(unit)) {
 								continue;
 							}
 						}
 					}
 					
-					if (tails.contains(unit))
-						foundPathWithoutAccess = true; // at the end of this path
-					else
+					if (tails.contains(unit)) {
+						if (!s.containsInvokeExpr()) {
+							foundPathWithoutAccess = true; // at the end of this path
+						}
+					} else { 
 						todo.addAll(graph.getSuccsOf(unit));
+					}
 				}
 				return foundPathWithoutAccess;
 			}
@@ -143,10 +147,10 @@ public class NewMemoryModel extends BasicMemoryModel {
 					Unit unit = todo.remove(0);
 					
 					// if it contains another access to a static field, stop exploring this path
-					Stmt s = (Stmt) u;
+					Stmt s = (Stmt) unit;
 					if (s.containsFieldRef()) {
 						FieldRef fr2 = s.getFieldRef();
-						if (fr2 instanceof StaticFieldRef && !fr2.equals(fr))
+						if (fr2 instanceof StaticFieldRef && !u.equals(unit))
 								continue;
 					}
 					
@@ -160,7 +164,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 		}	
 		return true;
 	}
-
+	
 	@Override
 	public void mkHeapWriteStatement(Unit u, FieldRef fieldRef, Value rhs) {
 		SourceLocation loc = SootTranslationHelpers.v().getSourceLocation(u);
@@ -286,13 +290,13 @@ public class NewMemoryModel extends BasicMemoryModel {
 		this.statementSwitch.push(new AssignStatement(loc, left,
 				new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar)));
 		// ------------- push -----------------
-		if (pushAt(u, fieldRef)) {
-			List<Expression> packedVars = new LinkedList<Expression>();
-			for (int i = 0; i < vars.length; i++) {
-				packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
-			}
-			this.statementSwitch.push(new PushStatement(loc, classVar, base, packedVars));
-		}
+//		if (pushAt(u, fieldRef)) {
+//			List<Expression> packedVars = new LinkedList<Expression>();
+//			for (int i = 0; i < vars.length; i++) {
+//				packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
+//			}
+//			this.statementSwitch.push(new PushStatement(loc, classVar, base, packedVars));
+//		}
 		// ------------------------------------
 	}
 

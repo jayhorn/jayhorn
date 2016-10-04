@@ -11,12 +11,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
+import org.jgrapht.alg.BellmanFordShortestPath;
 import org.jgrapht.ext.DOTExporter;
 import org.jgrapht.ext.StringNameProvider;
 import org.jgrapht.graph.AbstractBaseGraph;
@@ -60,10 +62,12 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	private Set<Variable> locals;
 	private CfgBlock source, sink;
 	private boolean isProgramEntry = false;
+	private transient BellmanFordShortestPath<CfgBlock, CfgEdge> sourceBF;
+	private transient BellmanFordShortestPath<CfgBlock, CfgEdge> sinkBF;
 
 	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, List<Type> outTypes,
 			SourceLocation sourceLocation) {
-		Preconditions.checkArgument(p.loopupMethod(uniqueName) == null,
+		Preconditions.checkArgument(p.lookupMethod(uniqueName) == null,
 				"Method with name " + uniqueName + " already exists");
 		// add the exceptional return type to all methods that are generated.
 		List<Type> returnTypes = new LinkedList<Type>();
@@ -81,7 +85,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		location = loc;
 		methodName = uniqueName;
 		returnTypes = outTypes;
-		locals = new HashSet<Variable>();
+		locals = new LinkedHashSet<Variable>();
 		this.parameterList = Collections.unmodifiableList(params);
 	}
 
@@ -133,7 +137,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 
 		this.thisVariable = thisVariable;
 		this.returnVariable = returnVariables;
-		this.locals = new HashSet<Variable>(locals);
+		this.locals = new LinkedHashSet<Variable>(locals);
 		this.source = source;
 		this.isProgramEntry = isEntryPoint;
 
@@ -153,6 +157,9 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 					new IdentifierExpression(loc, this.parameterList.get(0)));
 			this.source.addStatement(0, thisAssign);
 		}
+		
+		sourceBF = new BellmanFordShortestPath<CfgBlock, CfgEdge>(this, getSource());
+		sinkBF = new BellmanFordShortestPath<CfgBlock, CfgEdge>(this, getSink());
 	}
 
 	/**
@@ -470,5 +477,17 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		} while (changed);
 
 		return new LiveVars<CfgBlock>(in, out);
+	}
+	
+	public int distanceToSource(CfgBlock b) {
+		if (b.equals(getSource()))
+			return 0;
+		else return (int) sourceBF.getCost(b);
+	}
+	
+	public int distanceToSink(CfgBlock b) {
+		if (b.equals(getSink()))
+			return 0;
+		else return (int) sinkBF.getCost(b);
 	}
 }

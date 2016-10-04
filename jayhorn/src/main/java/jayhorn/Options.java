@@ -68,6 +68,10 @@ public class Options {
 	public List<String> getSolverOptions() {
 		return Arrays.asList(solverOptions.split(","));
 	}
+	
+	public void setSolverOptions(String so) {
+		solverOptions = so;
+	}
 
 	/**
 	 * JAR file
@@ -106,6 +110,9 @@ public class Options {
 	
 	@Option(name = "-stats", usage = "Generate Stats", required = false)
 	public boolean stats = false;
+	
+	@Option(name = "-solution", usage = "Output full solution or counter-example", required = false)
+	public boolean solution = false;
 
 	/*
 	 * Memory precision

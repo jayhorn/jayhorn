@@ -79,8 +79,8 @@ public class FailingTests {
 		try {			
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
-			soottocfg.Options.v().setMemPrecision(3);
-//			soottocfg.Options.v().setExcAsAssert(true);
+			soottocfg.Options.v().setMemPrecision(2);
+			soottocfg.Options.v().setExcAsAssert(false);
 			soottocfg.Options.v().setPrintCFG(true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			Program program = soot2cfg.getProgram();

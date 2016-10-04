@@ -45,11 +45,13 @@ public class PushIdentifierAdder {
 		for (ClassVariable cv : cvs) {
 			Variable lastpush = new Variable(LP, IntType.instance());
 			cv.addGhostField(lastpush);
+			if (debug) 
+				System.out.println("Added 'lastpush' field to " + cv.getName());
 		}
 	}
 
 	private void addToPushesAndPulls(Program p) {
-		InterProceduralPullPushOrdering ordering = new InterProceduralPullPushOrdering(p.getEntryPoints()[0]);
+		InterProceduralPullPushOrdering ordering = new InterProceduralPullPushOrdering(p.getEntryPoint());
 		Variable lp = new Variable(LP, IntType.instance());
 		Method[] ms = p.getMethods();
 		for (Method m : ms) {

@@ -49,7 +49,7 @@ public class Options {
 		return memPrecision;
 	}
 	
-	public void setMemPrecision(int prec) {
+	public void setMemPrecision(int prec) {		
 		this.memPrecision = prec;
 	}
 	

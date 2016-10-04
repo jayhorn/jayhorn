@@ -13,10 +13,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.google.common.base.Verify;
+
+import soot.ArrayType;
 import soot.Body;
 import soot.BooleanType;
 import soot.Hierarchy;
 import soot.Local;
+import soot.NullType;
 import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
@@ -64,7 +68,7 @@ public class VirtualCallResolver extends AbstractSceneTransformer {
 
 	private void transform(Body body) {
 
-		ltf = new LocalTypeFinder(new CompleteUnitGraph(body),body);
+		ltf = new LocalTypeFinder(new CompleteUnitGraph(body), body);
 
 		Map<Unit, Pair<InstanceInvokeExpr, List<SootMethod>>> callsToResolve = new HashMap<Unit, Pair<InstanceInvokeExpr, List<SootMethod>>>();
 
@@ -77,7 +81,8 @@ public class VirtualCallResolver extends AbstractSceneTransformer {
 					if (callees.isEmpty()) {
 						throw new RuntimeException("Failed to resolve virutal call " + ie);
 					} else if (callees.size() == 1 && callees.get(0).equals(ie.getMethod())) {
-						// if the only callee is the method itself, we don't have to
+						// if the only callee is the method itself, we don't
+						// have to
 						// do anything.
 					} else {
 						callsToResolve.put(s,
@@ -137,7 +142,7 @@ public class VirtualCallResolver extends AbstractSceneTransformer {
 					Jimple.v().newVirtualInvokeExpr(l, callee.makeRef(), ivk.getArgs()), s);
 			units.add(newAssign);
 		} else if (originalCall instanceof IdentityStmt) {
-			throw new RuntimeException("Not imeplemented "+originalCall);
+			throw new RuntimeException("Not imeplemented " + originalCall);
 		}
 		// jump back to the statement after the original call.
 		Unit succ = body.getUnits().getSuccOf(originalCall);
@@ -158,37 +163,45 @@ public class VirtualCallResolver extends AbstractSceneTransformer {
 		List<SootMethod> res = new LinkedList<SootMethod>();
 
 		SootMethod callee = call.getMethod();
-		// SootClass sc = callee.getDeclaringClass();
-		// if (call.getBase().getType() instanceof RefType) {
-		// //then we can use a tighter type.
-		// RefType rt = (RefType)call.getBase().getType();
-		// sc = rt.getSootClass();
-		// } else if (call.getBase().getType() instanceof ArrayType) {
-		// //TODO: this should be array.clone
-		// res.add(callee);
-		// return res;
-		// } else {
-		// System.err.println(call.getBase().getType().getClass());
-		// }
 
+		Collection<SootClass> possibleClasses = new HashSet<SootClass>();
+
+		/*
+		 * Special invoke is either a call to a constructor
+		 * or to a super class method.
+		 */
 		if (call instanceof SpecialInvokeExpr) {
 			// TODO: is this correct?
 			SpecialInvokeExpr sivk = (SpecialInvokeExpr) call;
 			if (sivk.getMethod().isConstructor()) {
 				res.add(callee);
 				return res;
+			} else {
+				// Call to superclass method.
+				possibleClasses.add(call.getMethod().getDeclaringClass());
 			}
-		}
-
-		// in jimple, the base must be a local.
-		assert (call.getBase() instanceof Local);
-		Collection<SootClass> possibleClasses = new HashSet<SootClass>();
-		for (Type t : ltf.getLocalTypesBefore(u, (Local) call.getBase())) {
-			if (t instanceof RefType) {
-				SootClass subClass = ((RefType) t).getSootClass();
-				if (!subClass.isAbstract() && !subClass.isInterface()) {
-					possibleClasses.add(subClass);
+		} else {
+			for (Type t : ltf.getLocalTypesBefore(u, (Local) call.getBase())) {
+				if (t instanceof RefType) {
+					SootClass subClass = ((RefType) t).getSootClass();
+					if (!subClass.isAbstract() && !subClass.isInterface()
+							&& subClass.declaresMethod(callee.getSubSignature())) {
+						possibleClasses.add(subClass);
+					}
+				} else if (t instanceof NullType) {
+					/*This case can be ignored since we insert a runtime
+					 * assertion that the base is non-null anyway. So the
+					 * assertion will fail before we resolve the call.
+					 */
+				} else {
+					Verify.verify(t instanceof ArrayType, "possible callee of type " + t.getClass() + " not expected");
+					/* This is sth like
+					 * int[] a = ...;
+					 * a.clone();
+					 * Here, we don't have to distinguish subtypes.
+					 */
 				}
+
 			}
 		}
 
@@ -208,15 +221,21 @@ public class VirtualCallResolver extends AbstractSceneTransformer {
 		}
 
 		if (res.isEmpty()) {
-			// TODO check when this happens... usually when we have no body for
-			// any version
-			// of this method.
+			/* TODO check when this happens... usually when we have no 
+			 * body for any version of this method.
+			 * 
+			 * Another case is when the base is an array. E.g., 
+			 * int[] arr;
+			 * arr.clone();
+			 * For arrays, we do not have to distinguish virtual calls since
+			 * we cannot overload the array class anyway.  
+			 */
 			res.add(callee);
 		}
 		if (res.size() == 1) {
 			return res;
 		}
-
+		
 		// magic constant to keep the class file small.
 		if (res.size() > 30) {
 			System.err.println("Ignoring " + res.size() + " cases for " + u);

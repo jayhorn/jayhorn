@@ -92,7 +92,7 @@ public class PushStatement extends Statement {
 		for (Expression e : right) {
 			used.addAll(e.getUseIdentifierExpressions());	
 		}
-                used.add(object);
+        used.add(object);
 		return used;
 	}
 
@@ -140,5 +140,18 @@ public class PushStatement extends Statement {
 		}
 		return new PushStatement(getSourceLocation(), classConstant, object.substitute(subs), rightCopy, this.id);
 
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof PushStatement))
+			return false;
+		PushStatement other = (PushStatement) o;
+		return this.id == other.id;
+	}
+	
+	@Override
+	public int hashCode() {
+		return id;
 	}
 }

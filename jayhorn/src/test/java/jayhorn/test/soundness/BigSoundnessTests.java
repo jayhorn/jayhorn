@@ -5,6 +5,7 @@ package jayhorn.test.soundness;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -57,6 +58,7 @@ public class BigSoundnessTests {
 	private static void collectFileNamesRecursively(File file, List<Object[]> filenames) {
 		File[] directoryListing = file.listFiles();
 		if (directoryListing != null) {
+			Arrays.sort(directoryListing);
 			for (File child : directoryListing) {
 				if (child.isFile() && child.getName().endsWith(".java")) {
 					filenames.add(new Object[] { child, child.getName() });
@@ -74,7 +76,7 @@ public class BigSoundnessTests {
 	}
 
 	@Test
-	public void testWithPrincess() {
+	public void testWithPrincess() throws IOException {
 		verifyAssertions(new PrincessProverFactory());
 	}
 
@@ -83,7 +85,7 @@ public class BigSoundnessTests {
 	// verifyAssertions(new Z3ProverFactory());
 	// }
 
-	protected void verifyAssertions(ProverFactory factory) {
+	protected void verifyAssertions(ProverFactory factory) throws IOException {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with " + factory.getClass() + "\n");
 		File classDir = null;
 		try {
@@ -92,17 +94,13 @@ public class BigSoundnessTests {
 			// soottocfg.Options.v().setExcAsAssert(true);
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
-
 			soottocfg.Options.v().setMemPrecision(3);
 			soottocfg.Options.v().setInlineCount(3);
-			soottocfg.Options.v().setInlineMaxSize(8);
+			soottocfg.Options.v().setInlineMaxSize(20);
 
 			soot2cfg.run(classDir.getAbsolutePath(), null);
-			jayhorn.Options.v().setTimeout(60);
+			jayhorn.Options.v().setTimeout(80);
 			jayhorn.Options.v().setPrintHorn(false);
-
-			jayhorn.Options.v().setInlineMaxSize(20);
-			jayhorn.Options.v().setInlineCount(3);
 			
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			boolean result = false;
@@ -146,7 +144,7 @@ public class BigSoundnessTests {
 
 		} catch (IOException e) {
 			e.printStackTrace();
-			Assert.fail();
+			throw e;
 		} finally {
 			if (classDir != null) {
 				classDir.deleteOnExit();

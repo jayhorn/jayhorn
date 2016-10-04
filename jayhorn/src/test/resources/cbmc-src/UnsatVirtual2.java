@@ -7,6 +7,7 @@ class B extends A
 {
   public void f()
   {
+	  super.f();
     assert false;
   }
 };

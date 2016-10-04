@@ -125,6 +125,12 @@ public class FlowBasedPointsToAnalysis {
 	public boolean mustAlias(Expression ref1, Expression ref2) {
 		ReferenceType rt1 = getReferenceType(ref1);
 		ReferenceType rt2 = getReferenceType(ref2);
+		
+		if (rt1.getClassVariable()==null || rt2.getClassVariable()==null) {
+//			System.err.println("Class var not set: " + ref1 + " and " + ref2);
+			return false; 
+		}
+		
 		if (!rt1.getClassVariable().subclassOf(rt2.getClassVariable()) 
 				&& !rt1.getClassVariable().superclassOf(rt2.getClassVariable()))
 			return false;
@@ -142,8 +148,8 @@ public class FlowBasedPointsToAnalysis {
 		ReferenceType rt2 = getReferenceType(ref2);
 		
 		if (rt1.getClassVariable()==null || rt2.getClassVariable()==null) {
-			System.err.println("Class var not set: " + ref1 + " and " + ref2);
-			return false; // not sure what to do here?
+//			System.err.println("Class var not set: " + ref1 + " and " + ref2);
+			return false;
 		}
 		
 		if (!rt1.getClassVariable().subclassOf(rt2.getClassVariable()) 

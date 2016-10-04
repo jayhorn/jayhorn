@@ -106,7 +106,7 @@ public class InterProceduralPullPushOrdering {
 		Set<ClassVariable> usedSubtypes = new HashSet<ClassVariable>();
 		usedSubtypes.add(pull.getClassSignature());
 		if (!pullMap.containsKey(pull)) {
-			System.err.println("Pull not reachable from program entry: " + pull);
+//			System.err.println("Pull not reachable from program entry: " + pull);
 			return usedSubtypes;
 		}
 		FixedPointObject fpo = pullMap.get(pull);
@@ -147,7 +147,7 @@ public class InterProceduralPullPushOrdering {
 		Set<FixedPointObject> ret = new HashSet<FixedPointObject>();
 
 		if (!pullMap.containsKey(pull)) {
-			System.err.println("Pull not reachable from program entry: " + pull);
+//			System.err.println("Pull not reachable from program entry: " + pull);
 			return ret;
 		}
 
@@ -162,14 +162,10 @@ public class InterProceduralPullPushOrdering {
 			if (cur.stmt.isPresent() && cur.stmt.get() instanceof PushStatement) {
 				PushStatement push = (PushStatement) cur.stmt.get();
 				if (mayAlias(push, pull)) {
-//					System.out.println("May Alias: " + push + " and " + pull);
 					ret.add(cur);
 					if (mustShadow(push, pull)) {
-						System.out.println("Must shadow: " + push + " this " + pull);
 						stopTraverse = true;
 					}
-//				} else {
-//					System.out.println("DO NOT alias: " + push + " and " + pull);
 				}
 			}
 			

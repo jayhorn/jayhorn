@@ -37,14 +37,17 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+import com.google.common.base.Verify;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ClassInfo;
 
+import soot.ArrayType;
 import soot.BooleanType;
 import soot.Modifier;
 import soot.PackManager;
+import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
@@ -188,22 +191,56 @@ public class SootRunner {
 			// finally, run soot
 			loadClassesIntoScene(new LinkedList<String>());
 
+			// now set the main class
+			inferMainMethod();
+
 		} catch (Exception e) {
 			throw e;
 		}
 	}
 
+	private void inferMainMethod() {
+		SootMethod mainMethod = null;
+		SootClass mainClass = null;
+		boolean toManyMains = false;
+		StringBuilder sb = new StringBuilder();
+		for (SootClass c : Scene.v().getApplicationClasses()) {
+			if (c.declaresMethod("main", Arrays.asList((Type)ArrayType.v(RefType.v("java.lang.String"), 1)), VoidType.v())) {
+				if (mainMethod != null) {
+					toManyMains = true;
+				}
+				mainMethod = c.getMethod("main", Arrays.asList((Type)ArrayType.v(RefType.v("java.lang.String"), 1)),
+						VoidType.v());
+				
+				mainClass = c;
+//				System.err.println(mainMethod.getSignature());
+				sb.append(mainMethod.getSignature());
+				sb.append("\n");
+			}
+		}
+		Verify.verify(mainClass!=null && mainMethod!=null, "No main method found. Terminating.");
+		Scene.v().setMainClass(mainClass);
+		if (toManyMains) {
+			System.err.println("More than one main found:");
+			System.err.println(sb.toString());
+			System.err.println("Picking the last one.");
+		}
+	}
+
 	/**
-	 * Soot only runs properly if there are only class files in the processed directory.
-	 * If there are source files mixed with class files, stange errors happen because
-	 * soot mixes them in the scene. 
+	 * Soot only runs properly if there are only class files in the processed
+	 * directory.
+	 * If there are source files mixed with class files, stange errors happen
+	 * because
+	 * soot mixes them in the scene.
 	 * To avoid these random error, we fail early.
+	 * 
 	 * @param dirs
 	 */
-	private void enforceNoSrcPolicy(List<String> dirs) {		
+	private void enforceNoSrcPolicy(List<String> dirs) {
 		for (String dir : dirs) {
 			for (File f : Files.fileTreeTraverser().preOrderTraversal(new File(dir))) {
-				if (f!=null && f.isFile() && f.getName().endsWith(".java")) {
+				if (f != null && f.isFile() && f.getName().endsWith(".java")) {
 					StringBuilder sb = new StringBuilder();
 					sb.append("Found mix of source and class files in folder ");
 					sb.append(f.getParent());
@@ -216,7 +253,7 @@ public class SootRunner {
 			}
 		}
 	}
-	
+
 	/**
 	 * Run Soot and creates an inter-procedural callgraph that could be loaded
 	 * by Soot.
