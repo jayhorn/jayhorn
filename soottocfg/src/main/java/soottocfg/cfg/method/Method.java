@@ -157,9 +157,6 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 					new IdentifierExpression(loc, this.parameterList.get(0)));
 			this.source.addStatement(0, thisAssign);
 		}
-		
-		sourceBF = new BellmanFordShortestPath<CfgBlock, CfgEdge>(this, getSource());
-		sinkBF = new BellmanFordShortestPath<CfgBlock, CfgEdge>(this, getSink());
 	}
 
 	/**
@@ -204,6 +201,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 				}
 			}
 		}
+//		Verify.verify(source != null, "No source in graph!");
 		return source;
 	}
 
@@ -216,6 +214,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 				}
 			}
 		}
+//		Verify.verify(sink != null, "No sink in graph!");
 		return sink;
 	}
 
@@ -480,12 +479,16 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	}
 	
 	public int distanceToSource(CfgBlock b) {
+		if (sourceBF==null)
+			sourceBF = new BellmanFordShortestPath<CfgBlock, CfgEdge>(this, getSource());
 		if (b.equals(getSource()))
 			return 0;
 		else return (int) sourceBF.getCost(b);
 	}
 	
 	public int distanceToSink(CfgBlock b) {
+		if (sinkBF==null)
+			sinkBF = new BellmanFordShortestPath<CfgBlock, CfgEdge>(this, getSink());
 		if (b.equals(getSink()))
 			return 0;
 		else return (int) sinkBF.getCost(b);

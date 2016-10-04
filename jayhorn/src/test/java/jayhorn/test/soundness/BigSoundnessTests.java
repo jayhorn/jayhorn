@@ -90,7 +90,7 @@ public class BigSoundnessTests {
 		File classDir = null;
 		try {
 //			soottocfg.Options.v().passCallerIdIntoMethods(true);
-			// soottocfg.Options.v().setPrintCFG(false);
+			 soottocfg.Options.v().setPrintCFG(true);
 			// soottocfg.Options.v().setExcAsAssert(true);
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();

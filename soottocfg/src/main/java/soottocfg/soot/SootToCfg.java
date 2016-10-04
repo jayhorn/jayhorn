@@ -150,8 +150,8 @@ public class SootToCfg {
 		}
 
 		// alias analysis
+		setPointsToAnalysis(new FlowBasedPointsToAnalysis());
 		if (Options.v().memPrecision() >= 3) {
-			setPointsToAnalysis(new FlowBasedPointsToAnalysis());
 			getPointsToAnalysis().run(program);
 		}
 
