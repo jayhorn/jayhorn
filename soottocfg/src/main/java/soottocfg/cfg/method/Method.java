@@ -63,7 +63,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	private CfgBlock source, sink;
 	private boolean isProgramEntry = false;
 	private transient BellmanFordShortestPath<CfgBlock, CfgEdge> sourceBF;
-	private transient BellmanFordShortestPath<CfgBlock, CfgEdge> sinkBF;
+	private transient Map<CfgBlock,BellmanFordShortestPath<CfgBlock, CfgEdge>> sinkBF;
 
 	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, List<Type> outTypes,
 			SourceLocation sourceLocation) {
@@ -487,10 +487,15 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	}
 	
 	public int distanceToSink(CfgBlock b) {
-		if (sinkBF==null)
-			sinkBF = new BellmanFordShortestPath<CfgBlock, CfgEdge>(this, getSink());
 		if (b.equals(getSink()))
 			return 0;
-		else return (int) sinkBF.getCost(b);
+		if (sinkBF==null)
+			sinkBF = new HashMap<CfgBlock, BellmanFordShortestPath<CfgBlock, CfgEdge>>();
+		BellmanFordShortestPath<CfgBlock, CfgEdge> toSink = sinkBF.get(b);
+		if (toSink==null) {
+			toSink = new BellmanFordShortestPath<CfgBlock, CfgEdge>(this, b);
+			sinkBF.put(b, toSink);
+		}
+		return (int) toSink.getCost(getSink());
 	}
 }

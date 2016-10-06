@@ -142,7 +142,7 @@ public class CfgCallInliner {
 				if (s instanceof CallStatement) {
 					CallStatement cs = (CallStatement) s;
 					Method callee = cs.getCallTarget();
-					if (!callee.equals(method)) {
+					if (!callee.equals(method) && !callee.isConstructor() && !callee.isStaticInitializer()) {
 						if (totalCallsTo.get(callee.getMethodName()) < maxOccurences
 								|| totalStmts.get(callee.getMethodName()) < maxSize) {
 							// first apply inlining to the callee
