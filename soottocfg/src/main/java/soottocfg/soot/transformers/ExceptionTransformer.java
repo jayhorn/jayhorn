@@ -755,9 +755,9 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 				} else {
 					result.add(new Pair<Value, List<Unit>>(jimpleNeZero(helperLocal), helperStatements));
 				}
-			} else {
-				System.err.println("Not guarding cast from " + e.getOp().getType() + " to " + e.getCastType()
-						+ ". This should be done by the compiler.");
+//			} else {
+//				System.err.println("Not guarding cast from " + e.getOp().getType() + " to " + e.getCastType()
+//						+ ". This should be done by the compiler.");
 			}
 			return result;
 		}

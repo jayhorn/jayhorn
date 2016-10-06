@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
+import org.jgrapht.alg.BellmanFordShortestPath;
 import org.jgrapht.ext.DOTExporter;
 import org.jgrapht.ext.StringNameProvider;
 import org.jgrapht.graph.AbstractBaseGraph;
@@ -61,6 +62,8 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	private Set<Variable> locals;
 	private CfgBlock source, sink;
 	private boolean isProgramEntry = false;
+	private transient BellmanFordShortestPath<CfgBlock, CfgEdge> sourceBF;
+	private transient BellmanFordShortestPath<CfgBlock, CfgEdge> sinkBF;
 
 	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, List<Type> outTypes,
 			SourceLocation sourceLocation) {
@@ -154,6 +157,9 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 					new IdentifierExpression(loc, this.parameterList.get(0)));
 			this.source.addStatement(0, thisAssign);
 		}
+		
+		sourceBF = new BellmanFordShortestPath<CfgBlock, CfgEdge>(this, getSource());
+		sinkBF = new BellmanFordShortestPath<CfgBlock, CfgEdge>(this, getSink());
 	}
 
 	/**
@@ -471,5 +477,17 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		} while (changed);
 
 		return new LiveVars<CfgBlock>(in, out);
+	}
+	
+	public int distanceToSource(CfgBlock b) {
+		if (b.equals(getSource()))
+			return 0;
+		else return (int) sourceBF.getCost(b);
+	}
+	
+	public int distanceToSink(CfgBlock b) {
+		if (b.equals(getSink()))
+			return 0;
+		else return (int) sinkBF.getCost(b);
 	}
 }

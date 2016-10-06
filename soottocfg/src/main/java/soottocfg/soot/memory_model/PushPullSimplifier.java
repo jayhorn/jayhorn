@@ -1,14 +1,10 @@
 package soottocfg.soot.memory_model;
 
 import java.util.HashSet;
-import java.util.LinkedList;
+//import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import soot.PointsToAnalysis;
-import soot.PointsToSet;
-import soot.Scene;
-import soot.SootField;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
@@ -23,8 +19,9 @@ import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.variable.Variable;
-import soottocfg.soot.util.SootTranslationHelpers;
+import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.soot.SootToCfg;
 
 public class PushPullSimplifier {
 	
@@ -49,8 +46,8 @@ public class PushPullSimplifier {
 				
 				// inter-block simplifications
 				simplifications = 0;
-				simplifications += movePullsUpInCFG(blocks);
-				simplifications += movePushesDownInCFG(blocks);
+				simplifications += movePullsUpInCFG(m);
+				simplifications += movePushesDownInCFG(m);
 //				simplifications += removeEmptyBlocks(m);
 				
 				// does not seem sound, need to think more about it...
@@ -73,9 +70,8 @@ public class PushPullSimplifier {
 			simplifications += movePullUp(b);
 			simplifications += movePushDown(b);
 			simplifications += swapPushPull(b);
-			// I think running these is only sound when 'distinct()' is
-//			simplifications += orderPulls(b);
-//			simplifications += orderPushes(b);
+			simplifications += orderPulls(b);
+			simplifications += orderPushes(b);
 			simplifications += assumeFalseEatPreceeding(b);
 		} while (simplifications > 0);
 	}
@@ -99,7 +95,7 @@ public class PushPullSimplifier {
 					assert (pull1vars.size()==pull2vars.size());
 					for (int j = 0; j < pull1vars.size(); j++) {
 						if (!pull1vars.get(j).toString().equals(pull2vars.get(j).toString())) {
-							System.out.println("Add assignment (TODO: test)");
+//							System.out.println("Add assignment (TODO: test)");
 							AssignStatement assign = new AssignStatement(SourceLocation.ANALYSIS,pull2vars.get(j),pull1vars.get(j));
 							b.addStatement(i+1, assign);
 						}
@@ -240,9 +236,10 @@ public class PushPullSimplifier {
 				PushStatement push = (PushStatement) stmts.get(i);
 				PullStatement pull = (PullStatement) stmts.get(i+1);
 				//only swap if none of the vars in the pull and push point to the same location
-				Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
-				Set<IdentifierExpression> pushvars = push.getIdentifierExpressions();
-				if (distinct(pullvars,pushvars)) {
+//				Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
+//				Set<IdentifierExpression> pushvars = push.getIdentifierExpressions();
+//				if (distinct(pullvars,pushvars)) {
+				if (!SootToCfg.getPointsToAnalysis().mayAlias(pull.getObject(), push.getObject())) {
 					b.swapStatements(i, i+1);
 					if (debug)
 						System.out.println("Applied rule (VII); swapped " + push + " and " + pull);
@@ -289,7 +286,7 @@ public class PushPullSimplifier {
 			if (stmts.get(i) instanceof PushStatement && stmts.get(i+1) instanceof PushStatement) {
 				PushStatement push1 = (PushStatement) stmts.get(i);
 				PushStatement push2 = (PushStatement) stmts.get(i+1);
-				if (push1.getObject().toString().compareTo(push2.getObject().toString()) < 0) {
+				if (push1.getObject().toString().compareTo(push2.getObject().toString()) > 0) {
 					//only swap if none of the vars in the pull and push point to the same location
 					Set<IdentifierExpression> push1vars = push1.getIdentifierExpressions();
 					Set<IdentifierExpression> push2vars = push2.getIdentifierExpressions();
@@ -329,48 +326,24 @@ public class PushPullSimplifier {
 		return eaten;
 	}
 
-	/* Temporary: only compare the actual identifiers. TODO: points-to analysis */
 	private boolean distinct(Set<IdentifierExpression> vars1, Set<IdentifierExpression> vars2) {
-		// Code based on alias analysis, does not work yet
-//		if (soottocfg.Options.v().memPrecision() >= 3) {
-//			for (IdentifierExpression exp1 : vars1) {
-//				for (IdentifierExpression exp2 : vars2) {
-//					if (debug)
-//						System.out.println("Checking distinctness of " + exp1 + exp1.getType() + " and " + exp2 + exp2.getType());
-//					if (exp1.getType() instanceof ReferenceType 
-//							&& exp2.getType() instanceof ReferenceType 
-//							&& FlowBasedPointsToAnalysis.mayAlias(exp1, exp2))
-//						return false;
-//				}
-//			}
-//			return true;	
-//		}
-//		return false;
-		
-		NewMemoryModel mem = (NewMemoryModel) SootTranslationHelpers.v().getMemoryModel();
-		PointsToAnalysis pta = Scene.v().getPointsToAnalysis();
 		for (IdentifierExpression exp1 : vars1) {
 			for (IdentifierExpression exp2 : vars2) {
 				if (debug)
-					System.out.println("Checking distinctness of " + exp1 + " and " + exp2);
-				Variable v1 = exp1.getVariable();
-				Variable v2 = exp2.getVariable();
-				if (v1.getName().equals(v2.getName())) {
-					if (debug)
-						System.out.println("Not distinct.");
-					return false;
-				}
-				SootField sf1 = mem.lookupField(v1);
-				SootField sf2 = mem.lookupField(v2);
-				// oopsie, only works for static fields for now
-				// TODO for instance fields we need to store Locals
-				if (sf1!=null && sf1.isStatic() && sf2!=null && sf2.isStatic()) {
-					PointsToSet pointsTo1 = pta.reachingObjects(sf1);
-					PointsToSet pointsTo2 = pta.reachingObjects(sf2);
-					if (pointsTo1.hasNonEmptyIntersection(pointsTo2)){
-						if (debug)
-							System.out.println("Point to same location, not distinct.");
-						return false;
+					System.out.println("Checking distinctness of " + exp1 + exp1.getType() + " and " + exp2 + exp2.getType());
+				if (exp1.getType() instanceof ReferenceType
+						&& exp2.getType() instanceof ReferenceType) {
+					if (soottocfg.Options.v().memPrecision() >= 3) {
+						if (SootToCfg.getPointsToAnalysis().mayAlias(exp1, exp2))
+							return false;
+					} else {
+						ReferenceType rt1 = (ReferenceType) exp1.getType();
+						ReferenceType rt2 = (ReferenceType) exp2.getType();
+						ClassVariable cv1 = rt1.getClassVariable();
+						ClassVariable cv2 = rt2.getClassVariable();
+						if (cv1!=null && cv2!=null 
+								&& (cv1.subclassOf(cv2) || !cv1.superclassOf(cv2)))
+							return false;
 					}
 				}
 			}
@@ -378,9 +351,9 @@ public class PushPullSimplifier {
 		return true;
 	}
 	
-	private int movePullsUpInCFG(Set<CfgBlock> blocks) {
+	private int movePullsUpInCFG(Method m) {
 		int moves = 0;
-		for (CfgBlock b : blocks) {
+		for (CfgBlock b : m.vertexSet()) {
 			List<Statement> stmts = b.getStatements();
 			int s = 0;
 			Set<Statement> toRemove = new HashSet<Statement>();
@@ -389,7 +362,7 @@ public class PushPullSimplifier {
 				for (CfgEdge in : incoming) {
 					CfgBlock prev = b.getMethod().getEdgeSource(in);
 					// only move up in CFG
-					if (isUp(prev,b)) {
+					if (m.distanceToSource(prev) < m.distanceToSource(b)) {
 						Statement stmt = stmts.get(s);
 						//don't create references to the same statement in multiple blocks
 						if (toRemove.contains(stmt))
@@ -410,9 +383,9 @@ public class PushPullSimplifier {
 		return moves;
 	}
 	
-	private int movePushesDownInCFG(Set<CfgBlock> blocks) {
+	private int movePushesDownInCFG(Method m) {
 		int moves = 0;
-		for (CfgBlock b : blocks) {
+		for (CfgBlock b : m.vertexSet()) {
 			List<Statement> stmts = b.getStatements();
 			int s = stmts.size()-1;
 			Set<Statement> toRemove = new HashSet<Statement>();
@@ -421,7 +394,7 @@ public class PushPullSimplifier {
 				for (CfgEdge out : outgoing) {
 					CfgBlock next = b.getMethod().getEdgeTarget(out);
 					// only move down in source
-					if (isDown(next,b)) {
+					if (m.distanceToSink(next) < m.distanceToSink(b)) {
 						
 						Statement stmt = stmts.get(s);
 						//don't create references to the same statement in multiple blocks
@@ -516,44 +489,6 @@ public class PushPullSimplifier {
 				return false;
 		}
 		
-		return true;
-	}
-	
-	// check if cur occurs in the CFG before prev, in that case,
-	//  there is a cycle and we are not moving up 
-	private boolean isUp(CfgBlock prev, CfgBlock cur) {
-		List<CfgBlock> todo = new LinkedList<CfgBlock>();
-		Set<CfgBlock> done = new HashSet<CfgBlock>();
-		todo.add(prev);
-		while (!todo.isEmpty()) {
-			CfgBlock b = todo.remove(0);
-			if (!done.contains(b)) {
-				if (b.equals(cur))
-					return false;
-				done.add(b);
-				Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
-				for (CfgEdge in : incoming)
-					todo.add(b.getMethod().getEdgeSource(in));
-			}
-		}
-		return true;
-	}
-
-	private boolean isDown(CfgBlock next, CfgBlock cur) {
-		List<CfgBlock> todo = new LinkedList<CfgBlock>();
-		Set<CfgBlock> done = new HashSet<CfgBlock>();
-		todo.add(next);
-		while (!todo.isEmpty()) {
-			CfgBlock b = todo.remove(0);
-			if (!done.contains(b)) {
-				if (b.equals(cur))
-					return false;
-				done.add(b);
-				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
-				for (CfgEdge out : outgoing)
-					todo.add(b.getMethod().getEdgeTarget(out));
-			}
-		}
 		return true;
 	}
 }

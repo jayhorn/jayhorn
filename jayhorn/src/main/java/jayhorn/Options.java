@@ -68,6 +68,10 @@ public class Options {
 	public List<String> getSolverOptions() {
 		return Arrays.asList(solverOptions.split(","));
 	}
+	
+	public void setSolverOptions(String so) {
+		solverOptions = so;
+	}
 
 	/**
 	 * JAR file
