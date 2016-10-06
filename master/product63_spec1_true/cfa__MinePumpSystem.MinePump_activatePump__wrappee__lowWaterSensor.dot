@@ -1,7 +1,0 @@
-digraph MinePumpSystem.MinePump_activatePump__wrappee__lowWaterSensor {
-280 [shape="circle" label="N280\n3"]
-281 [shape="circle" label="N281\n2"]
-281 [style="filled,bold" penwidth="1" fillcolor="white" fontname="Courier New" shape="Mrecord" label=<<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td align="right">281</td><td align="left">MinePumpSystem.MinePump_pumpRunning = true;</td></tr><tr><td align="right">282</td><td align="left">default return</td></tr></table>>]
-281 -> 279[label=""]
-280 -> 281 [label="Function start dummy edge" fontname="Courier New"]
-}

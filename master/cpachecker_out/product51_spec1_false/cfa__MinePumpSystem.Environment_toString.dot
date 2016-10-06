@@ -1,4 +1,0 @@
-digraph MinePumpSystem.Environment_toString {
-198 [style="filled,bold" penwidth="1" fillcolor="white" fontname="Courier New" shape="Mrecord" label=<<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td align="right">198</td><td align="left">Function start dummy edge</td></tr><tr><td align="right">199</td><td align="left">java.lang.String __CPAchecker_TMP_0;</td></tr><tr><td align="right">201</td><td align="left">return (((Env(Water: + MinePumpSystem.Environment_waterLevel) + ,Meth:) + __CPAchecker_TMP_0) + );</td></tr></table>>]
-198 -> 197[label=""]
-}

@@ -1,4 +1,0 @@
-digraph MaxSum_max3_int_int_int {
-49 [style="filled,bold" penwidth="1" fillcolor="white" fontname="Courier New" shape="Mrecord" label=<<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td align="right">49</td><td align="left">Function start dummy edge</td></tr><tr><td align="right">50</td><td align="left">int __CPAchecker_TMP_0;</td></tr><tr><td align="right">52</td><td align="left">return __CPAchecker_TMP_0;</td></tr></table>>]
-49 -> 48[label=""]
-}

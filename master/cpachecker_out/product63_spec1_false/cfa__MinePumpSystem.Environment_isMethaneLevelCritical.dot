@@ -1,7 +1,0 @@
-digraph MinePumpSystem.Environment_isMethaneLevelCritical {
-198 [shape="circle" label="N198\n2"]
-199 [shape="circle" label="N199\n1"]
-197 [shape="circle" label="N197\n0"]
-198 -> 199 [label="Function start dummy edge" fontname="Courier New"]
-199 -> 197 [label="return MinePumpSystem.Environment_methaneLevelCritical;" fontname="Courier New"]
-}

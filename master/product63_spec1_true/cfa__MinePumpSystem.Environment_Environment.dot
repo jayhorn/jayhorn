@@ -1,4 +1,0 @@
-digraph MinePumpSystem.Environment_Environment {
-214 [style="filled,bold" penwidth="1" fillcolor="white" fontname="Courier New" shape="Mrecord" label=<<table border="0" cellborder="0" cellpadding="3" bgcolor="white"><tr><td align="right">214</td><td align="left">Function start dummy edge</td></tr><tr><td align="right">215</td><td align="left">private MinePumpSystem.Environment.WaterLevelEnum MinePumpSystem.Environment_waterLevel = MinePumpSystem.Environment.WaterLevelEnum_normal;</td></tr><tr><td align="right">217</td><td align="left">private boolean MinePumpSystem.Environment_methaneLevelCritical = false;</td></tr><tr><td align="right">219</td><td align="left">return this;</td></tr></table>>]
-214 -> 213[label=""]
-}

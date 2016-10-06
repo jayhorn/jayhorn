@@ -1,7 +1,0 @@
-digraph MinePumpSystem.Environment_isHighWaterSensorDry {
-213 [shape="circle" label="N213\n2"]
-214 [shape="circle" label="N214\n1"]
-212 [shape="circle" label="N212\n0"]
-213 -> 214 [label="Function start dummy edge" fontname="Courier New"]
-214 -> 212 [label="return MinePumpSystem.Environment_waterLevel != 2;" fontname="Courier New"]
-}

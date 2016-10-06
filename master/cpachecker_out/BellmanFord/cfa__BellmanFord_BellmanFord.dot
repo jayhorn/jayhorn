@@ -1,7 +1,0 @@
-digraph BellmanFord_BellmanFord {
-91 [shape="circle" label="N91\n2"]
-92 [shape="circle" label="N92\n1"]
-90 [shape="circle" label="N90\n0"]
-91 -> 92 [label="Function start dummy edge" fontname="Courier New"]
-92 -> 90 [label="return this;" fontname="Courier New"]
-}
