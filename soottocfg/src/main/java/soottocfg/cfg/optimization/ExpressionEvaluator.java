@@ -84,10 +84,9 @@ public class ExpressionEvaluator {
 				// TODO We need a bit of data flow analysis here...
 			}
 			break;
-		default:
-			int test = 0;
-			break;
 		// TODO all other cases
+		default:
+			break;
 		}
 		return Optional.absent();
 	}
