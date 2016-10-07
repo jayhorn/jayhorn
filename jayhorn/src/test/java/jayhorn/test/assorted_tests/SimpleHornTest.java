@@ -77,13 +77,12 @@ public class SimpleHornTest {
 
 	
 	protected void verifyAssertions(ProverFactory factory) {
-		jayhorn.Options.v().setTimeout(60);
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
-			soottocfg.Options.v().setPrintCFG(true);
+//			soottocfg.Options.v().setPrintCFG(true);
 			soottocfg.Options.v().setMemPrecision(3);
 			soottocfg.Options.v().setInlineCount(3);
 			soottocfg.Options.v().setInlineMaxSize(20);

@@ -17,8 +17,11 @@ import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
+//import soottocfg.cfg.statement.PullStatement;
+//import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.ReferenceType;
+//import soottocfg.cfg.util.InterProceduralPullPushOrdering;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.transformers.ArrayTransformer;
@@ -53,6 +56,7 @@ public class FlowBasedPointsToAnalysis {
 		}
 		
 		// then propagate point to sets until we reach a fixpoint
+//		InterProceduralPullPushOrdering ordering = new InterProceduralPullPushOrdering(program.getEntryPoint());
 		int changes;
 		do {
 			changes = 0;
@@ -83,7 +87,6 @@ public class FlowBasedPointsToAnalysis {
 							}
 							List<Variable> rets = target.getOutParams();
 							List<Expression> rec = cs.getReceiver();
-//							System.out.println("Rec: " + rec + "; rets: " + rets);
 							Verify.verify(rec.size()==1 || rets.size()==rec.size(),
 									"In "+m.getMethodName()+ " for "+ cs+": "+rets.size()+"!="+rec.size());
 							for (int i = 1; i < rec.size(); i++) {
@@ -93,7 +96,15 @@ public class FlowBasedPointsToAnalysis {
 									changes += rightIntoLeft(right, left);
 								}
 							}
-						} 
+//						} else if (s instanceof PullStatement) {
+//							PullStatement pull = (PullStatement) s;
+//							Variable left = variableFromExpression(pull.getObject());
+//							Set<PushStatement> pushes = ordering.getPushsInfluencing(pull);
+//							for (PushStatement push : pushes) {
+//								Variable right = variableFromExpression(push.getObject());
+//								changes += rightIntoLeft(right, left);
+//							}
+						}
 					}
 				}
 			}

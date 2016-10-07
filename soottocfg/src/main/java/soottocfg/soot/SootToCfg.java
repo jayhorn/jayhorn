@@ -117,13 +117,6 @@ public class SootToCfg {
 						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
 		program.setExceptionGlobal(exceptionGlobal);
 		
-		// add havoc method for ints for lastpull
-		// SootMethod havocSoot =
-		// SootTranslationHelpers.v().getHavocMethod(soot.IntType.v());
-		// SootTranslationHelpers.v().setCurrentMethod(havocSoot);
-		// Method havoc =
-		// SootTranslationHelpers.v().lookupOrCreateMethod(havocSoot);
-
 		constructCfg();
 
 		// now set the entry points.
@@ -134,14 +127,13 @@ public class SootToCfg {
 			writeFile(".cfg", program.toString());
 		}
 
+		// stub
 		CfgStubber stubber = new CfgStubber();
 		stubber.stubUnboundFieldsAndMethods(program);
 		
-		System.out.println("Inlining");
+		// inline method calls
 		CfgCallInliner inliner = new CfgCallInliner(program);
 		inliner.inlineFromMain(Options.v().getInlineMaxSize(), Options.v().getInlineCount());
-//		inliner.inlineFromMain(8, 3);
-//		System.err.println(program);
 		
 		if (program.getEntryPoint()==null) {
 			System.err.println("WARNING: No entry point found in program!");

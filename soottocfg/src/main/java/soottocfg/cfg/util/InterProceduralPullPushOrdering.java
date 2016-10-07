@@ -163,7 +163,9 @@ public class InterProceduralPullPushOrdering {
 				PushStatement push = (PushStatement) cur.stmt.get();
 				if (mayAlias(push, pull)) {
 					ret.add(cur);
+//					System.out.println("Must shadow " + push + " -> " + pull + " ?");
 					if (mustShadow(push, pull)) {
+//						System.out.println("Yes!");
 						stopTraverse = true;
 					}
 				}
