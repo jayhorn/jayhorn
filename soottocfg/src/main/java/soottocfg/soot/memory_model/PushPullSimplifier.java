@@ -361,6 +361,7 @@ public class PushPullSimplifier {
 				Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
 				for (CfgEdge in : incoming) {
 					CfgBlock prev = b.getMethod().getEdgeSource(in);
+					
 					// only move up in CFG
 					if (m.distanceToSource(prev) < m.distanceToSource(b)) {
 						Statement stmt = stmts.get(s);
@@ -393,9 +394,9 @@ public class PushPullSimplifier {
 				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
 				for (CfgEdge out : outgoing) {
 					CfgBlock next = b.getMethod().getEdgeTarget(out);
+					
 					// only move down in source
 					if (m.distanceToSink(next) < m.distanceToSink(b)) {
-						
 						Statement stmt = stmts.get(s);
 						//don't create references to the same statement in multiple blocks
 						if (toRemove.contains(stmt))
@@ -473,7 +474,7 @@ public class PushPullSimplifier {
 //			}
 //		}
 //		// this one breaks everything...
-////		m.removeAllVertices(toRemove);
+//		m.removeAllVertices(toRemove);
 //		return removed;
 //	}
 	

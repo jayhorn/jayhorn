@@ -72,6 +72,7 @@ public class CfgStubber {
 					for (Variable v : rt.getClassVariable().getAssociatedFields()) {
 						if (v.getName().contains(SootTranslationHelpers.typeFieldName)) {
 							// Make sure that we set the correct dynamic type.
+//							System.out.println("Adding ID: " + rt.getClassVariable());
 							rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
 						} else {
 							Variable undefLocal = new Variable("undef_field" + (i++), IntType.instance());

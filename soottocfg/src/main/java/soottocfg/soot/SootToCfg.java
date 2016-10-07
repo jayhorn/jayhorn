@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,7 +32,10 @@ import soot.jimple.toolkits.scalar.UnreachableCodeEliminator;
 import soottocfg.Options;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
+import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.util.CfgStubber;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.memory_model.MemoryModel;
@@ -45,6 +49,7 @@ import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.SpecClassTransformer;
 import soottocfg.soot.transformers.StaticInitializerTransformer;
 import soottocfg.soot.transformers.SwitchStatementRemover;
+import soottocfg.soot.transformers.CfgCallInliner;
 import soottocfg.soot.transformers.VirtualCallResolver;
 import soottocfg.soot.util.DuplicatedCatchDetection;
 import soottocfg.soot.util.FlowBasedPointsToAnalysis;
@@ -133,25 +138,30 @@ public class SootToCfg {
 			writeFile(".cfg", program.toString());
 		}
 
+		// stub
 		CfgStubber stubber = new CfgStubber();
 		stubber.stubUnboundFieldsAndMethods(program);
-
-		if (program.getEntryPoint() == null) {
-//			System.err.println("WARNING: No entry point found in program!");
-//			SootTranslationHelpers.v().reset();
-//			return;
-			throw new RuntimeException("FAILURE: No entry point found in program!");
+		
+		// inline method calls
+		CfgCallInliner inliner = new CfgCallInliner(program);
+		inliner.inlineFromMain(Options.v().getInlineMaxSize(), Options.v().getInlineCount());
+		removeUnreachableMethods(program);
+		
+		if (program.getEntryPoint()==null) {
+			System.err.println("WARNING: No entry point found in program!");
+			SootTranslationHelpers.v().reset();
+			return;
 		}
 
 		// alias analysis
+		setPointsToAnalysis(new FlowBasedPointsToAnalysis());
 		if (Options.v().memPrecision() >= 3) {
-			setPointsToAnalysis(new FlowBasedPointsToAnalysis());
 			getPointsToAnalysis().run(program);
 		}
 
 		// add missing pushes
 		MissingPushAdder.addMissingPushes(program);
-
+		
 		// simplify push-pull
 		if (Options.v().memPrecision() >= 1) {
 			PushPullSimplifier pps = new PushPullSimplifier();
@@ -159,7 +169,7 @@ public class SootToCfg {
 			if (Options.v().outDir() != null)
 				writeFile(".simpl.cfg", program.toString());
 		}
-
+		
 		// add push IDs
 		if (Options.v().memPrecision() >= 2) {
 			PushIdentifierAdder pia = new PushIdentifierAdder();
@@ -415,5 +425,45 @@ public class SootToCfg {
 
 	private static void setPointsToAnalysis(FlowBasedPointsToAnalysis pointsto) {
 		pta = pointsto;
+	}
+	
+	private void removeUnreachableMethods(Program program) {
+		Set<Method> reachable = reachableMethod(program.getEntryPoint());
+		Set<Method> toRemove = new HashSet<Method>();
+		for (Method m : program.getMethods()) {
+			if (!reachable.contains(m)) {
+				toRemove.add(m);
+			} 
+		}
+		program.removeMethods(toRemove);
+	}
+	
+	private Set<Method> reachableMethod(Method main) {
+		Set<Method> reachable = new HashSet<Method>();
+		List<Method> todo = new LinkedList<Method>();
+		todo.add(main);
+		while (!todo.isEmpty()) {
+			Method m = todo.remove(0);
+			reachable.add(m);
+			for (Method n : calledMethods(m)) {
+				if (!reachable.contains(n) && !todo.contains(n)) {
+					todo.add(n);
+				}
+			}
+		}
+		return reachable;
+	}
+	
+	private List<Method> calledMethods(Method m) {
+		List<Method> res = new LinkedList<Method>();
+		for (CfgBlock b : m.vertexSet()) {
+			for (Statement s : b.getStatements()) {
+				if (s instanceof CallStatement) {
+					CallStatement cs = (CallStatement) s;
+					res.add(cs.getCallTarget());
+				}
+			}
+		}
+		return res;
 	}
 }

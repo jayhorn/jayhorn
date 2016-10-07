@@ -5,10 +5,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 import soottocfg.cfg.LiveVars;
-import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
@@ -74,7 +74,9 @@ public class DeadCodeElimination extends CfgUpdater {
 
 		for (CfgEdge edge : currentMethod.outgoingEdgesOf(block)) {
 			if (edge.getLabel().isPresent()) {
-				if (edge.getLabel().get().equals(BooleanLiteral.falseLiteral())) {
+				Optional<Object> res = ExpressionEvaluator.eval(edge.getLabel().get());
+				if (res.isPresent() && !(Boolean)res.get()) {
+//				if (edge.getLabel().get().equals(BooleanLiteral.falseLiteral())) {
 					toRemove.add(edge);
 				} else {
 					// TODO?

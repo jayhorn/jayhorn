@@ -257,4 +257,4 @@ public class CfgBlock implements Node, Serializable {
 		copy.setStatements(stmtCopy);
 		return copy;
 	}
-}
+} 
