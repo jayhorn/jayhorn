@@ -120,13 +120,6 @@ public class SootToCfg {
 				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
 						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
 		program.setExceptionGlobal(exceptionGlobal);
-		
-		// add havoc method for ints for lastpull
-		// SootMethod havocSoot =
-		// SootTranslationHelpers.v().getHavocMethod(soot.IntType.v());
-		// SootTranslationHelpers.v().setCurrentMethod(havocSoot);
-		// Method havoc =
-		// SootTranslationHelpers.v().lookupOrCreateMethod(havocSoot);
 
 		constructCfg();
 
@@ -186,7 +179,7 @@ public class SootToCfg {
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
 	}
-
+	
 	/**
 	 * Like run, but only performs the behavior preserving transformations
 	 * and does construct a CFG. This method is only needed to test the
@@ -230,10 +223,7 @@ public class SootToCfg {
 			Body body = null;
 			try {
 				body = sm.retrieveActiveBody();
-//				System.err.println(sm.getSignature());
-//				System.err.println(body);
-				// soot.jimple.toolkits.scalar.CopyPropagator.v().transform(body);
-				// soot.jimple.toolkits.annotation.nullcheck.NullPointerChecker.v().transform(body);
+				performSootOptimizations(body);
 			} catch (RuntimeException e) {
 				// TODO: print warning that body couldn't be retrieved.
 				return;
@@ -353,6 +343,15 @@ public class SootToCfg {
 		}		
 	}
 
+	 // apply some standard Soot optimizations
+	private void performSootOptimizations(Body body) {
+		 soot.jimple.toolkits.scalar.CopyPropagator.v().transform(body);
+		 soot.jimple.toolkits.scalar.UnreachableCodeEliminator.v().transform(body);
+		 soot.jimple.toolkits.scalar.ConstantCastEliminator.v().transform(body);
+		 soot.jimple.toolkits.scalar.ConstantPropagatorAndFolder.v().transform(body);
+		 soot.jimple.toolkits.scalar.DeadAssignmentEliminator.v().transform(body);
+		 soot.jimple.toolkits.scalar.EmptySwitchEliminator.v().transform(body);
+	}
 
 	private void addDefaultInitializers(SootMethod constructor, SootClass containingClass) {
 		if (constructor.isConstructor()) {

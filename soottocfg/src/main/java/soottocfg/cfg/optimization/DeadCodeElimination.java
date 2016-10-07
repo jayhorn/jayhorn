@@ -75,9 +75,13 @@ public class DeadCodeElimination extends CfgUpdater {
 		for (CfgEdge edge : currentMethod.outgoingEdgesOf(block)) {
 			if (edge.getLabel().isPresent()) {
 				Optional<Object> res = ExpressionEvaluator.eval(edge.getLabel().get());
-				if (res.isPresent() && !(Boolean)res.get()) {
-//				if (edge.getLabel().get().equals(BooleanLiteral.falseLiteral())) {
-					toRemove.add(edge);
+				if (res.isPresent()) {
+					if (!(Boolean)res.get()) {
+						// condition false, remove edge
+						toRemove.add(edge);
+					} else {
+						// condition true, remove all other edges?
+					}
 				} else {
 					// TODO?
 				}
