@@ -100,7 +100,7 @@ public class UnreachableNodeRemover<A, B extends DefaultEdge> {
 				NaiveLcaFinder<A, B> lca = new NaiveLcaFinder<A, B>(graph);
 				A ancestor = lca.findLca(b, sink);
 				List<B> path = DijkstraShortestPath.findPathBetween(graph, ancestor, b);
-				Preconditions.checkArgument(!path.isEmpty());
+				Preconditions.checkArgument(path!=null && !path.isEmpty());
 				edgesToRemove.add(path.get(0));
 			}
 		}

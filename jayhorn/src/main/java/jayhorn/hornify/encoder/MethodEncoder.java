@@ -223,11 +223,16 @@ public class MethodEncoder {
 		HornPredicate prePred = initPred;
 		int counter = 0;
 
-		for (Statement s : block.getStatements()) {
+		StatementEncoder senc = new StatementEncoder(p, this.expEnc);
+
+                List<Statement> stmts = block.getStatements();
+		for (int i = 0; i < stmts.size(); ++i) {
+                        final Statement s = stmts.get(i);
 			final String postName = initName + "_" + (++counter);
 			final List<Variable> interVarList = HornHelper.hh().setToSortedList(liveAfter.get(s));
 			final HornPredicate postPred = freshHornPredicate(postName, interVarList);
-			StatementEncoder senc = new StatementEncoder(p, this.expEnc);
+                        if (i < stmts.size() - 1)
+                          senc.lookAhead(stmts.get(i + 1));
 			this.clauses.addAll(senc.statementToClause(s, prePred, postPred));
 
 			prePred = postPred;

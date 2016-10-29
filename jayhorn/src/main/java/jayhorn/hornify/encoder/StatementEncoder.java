@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import com.google.common.base.Verify;
 
@@ -20,6 +21,8 @@ import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverType;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
@@ -105,10 +108,14 @@ public class StatementEncoder {
 			System.out.println("Call " + clause);
 			return clause;
 		} else if (s instanceof PullStatement) {
-			List<ProverHornClause> clause = pullToClause((PullStatement) s, postPred, preAtom, varMap);
-			S2H.sh().addClause(s, clause);
-			System.out.println("Pull " + clause);
-			return clause;
+			if (assumedPushIds == null) {
+	  			  return pullToClause((PullStatement) s, postPred, preAtom, varMap, -1);
+	                        } else {
+	                          List<ProverHornClause> res = new ArrayList<ProverHornClause>();
+	                          for (Long id : assumedPushIds)
+	                            res.addAll(pullToClause((PullStatement) s, postPred, preAtom, varMap, id));
+	                          return res;
+	                        }
 		} else if (s instanceof PushStatement) {
 			List<ProverHornClause> clause = pushToClause((PushStatement) s, postPred, preAtom, varMap);
 			S2H.sh().addClause(s, clause);
@@ -118,6 +125,38 @@ public class StatementEncoder {
 
 		throw new RuntimeException("Statement type " + s + " not implemented!");
 	}
+
+        List<Long> assumedPushIds = null;
+
+        public void lookAhead(Statement s) {
+          assumedPushIds = null;
+
+          if (s instanceof AssumeStatement) {
+            AssumeStatement as = (AssumeStatement)s;
+
+            boolean allLastpush = true;
+            for (IdentifierExpression e : as.getUseIdentifierExpressions())
+              allLastpush =
+                allLastpush && e.getVariable().getName().contains("lastpush");
+
+            if (allLastpush) {
+              assumedPushIds = new ArrayList<Long>();
+
+              Stack<Expression> stack = new Stack<Expression>();
+              stack.push(as.getExpression());
+              while (!stack.isEmpty()) {
+                BinaryExpression e = (BinaryExpression)stack.pop();
+                  
+                if (e.getOp() == BinaryExpression.BinaryOperator.Or) {
+                  stack.push(e.getLeft());
+                  stack.push(e.getRight());
+                } else if (e.getOp() == BinaryExpression.BinaryOperator.Eq) {
+                  assumedPushIds.add(((IntegerLiteral)e.getRight()).getValue());
+                }
+              }
+            }
+          }
+        }
 
 	/**
 	 * for "assert(cond)"
@@ -169,6 +208,8 @@ public class StatementEncoder {
 		return clauses;
 	}
 
+        private long lastpushId = -1;
+
 	public List<ProverHornClause> assignToClause(AssignStatement as, HornPredicate postPred, ProverExpr preAtom,
 			Map<Variable, ProverExpr> varMap) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
@@ -180,6 +221,10 @@ public class StatementEncoder {
 
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
+
+                if (idLhs.getVariable().getName().contains("lastpush") &&
+                    (as.getRight() instanceof IntegerLiteral))
+                  lastpushId = ((IntegerLiteral)as.getRight()).getValue();
 
 		return clauses;
 	}
@@ -279,7 +324,8 @@ public class StatementEncoder {
 	 * @return
 	 */
 	public List<ProverHornClause> pullToClause(PullStatement pull, HornPredicate postPred, ProverExpr preAtom,
-			Map<Variable, ProverExpr> varMap) {
+			Map<Variable, ProverExpr> varMap,
+                        long pushId) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 		// get the possible (sub)types of the object used in pull.
 		// TODO: find a more precise implementation.
@@ -288,7 +334,7 @@ public class StatementEncoder {
 		
 		for (ClassVariable sig : possibleTypes) {
 			// get the invariant for this subtype.
-			final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig);
+			final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, pushId);
 
 			// the first argument is always the reference
                         // to the object
@@ -353,7 +399,7 @@ public class StatementEncoder {
 		Verify.verify(sig.getAssociatedFields().length == ps.getRight().size(),
 				"Unequal lengths: " + sig + " and " + ps.getRight() + " in " + ps);
 		// get the invariant for the ClassVariable
-		final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig);
+		final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, lastpushId);
 		final List<Expression> invariantArgs = new LinkedList<Expression>();
 		invariantArgs.add(ps.getObject());
 		invariantArgs.addAll(ps.getRight());

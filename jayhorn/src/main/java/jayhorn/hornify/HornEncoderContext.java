@@ -42,7 +42,8 @@ public class HornEncoderContext {
 	private final Prover p;
 
 	private Map<ClassVariable, Integer> typeIds = new LinkedHashMap<ClassVariable, Integer>();
-	private Map<ClassVariable, HornPredicate> invariantPredicates = new HashMap<ClassVariable, HornPredicate>(); 
+	private Map<ClassVariable, Map<Long, HornPredicate>> invariantPredicates =
+          new HashMap<ClassVariable, Map<Long, HornPredicate>>(); 
 	private Map<Method, MethodContract> methodContracts = new LinkedHashMap<Method, MethodContract>();
 	public InterProceduralPullPushOrdering ppOrdering;
 	
@@ -107,16 +108,26 @@ public class HornEncoderContext {
 	 * @param sig
 	 * @return
 	 */
-	public HornPredicate lookupInvariantPredicate(ClassVariable sig) {
-		if (!invariantPredicates.containsKey(sig)) {
+	public HornPredicate lookupInvariantPredicate(ClassVariable sig,
+                                                      long pushId) {
+		if (!invariantPredicates.containsKey(sig))
+                  invariantPredicates.put
+                    (sig, new HashMap<Long, HornPredicate>());
+
+                final Map<Long, HornPredicate> subMap =
+                  invariantPredicates.get(sig);
+                if (!subMap.containsKey(pushId)) {
 			List<Variable> args = new ArrayList<Variable>();
 			args.add(new Variable("ref", new ReferenceType(sig)));
 			for (Variable v : sig.getAssociatedFields()) {
 				args.add(v);
 			}
-			invariantPredicates.put(sig, new HornPredicate(p, "inv_" + sig.getName(), args));
+                        String name = "inv_" + sig.getName();
+                        if (pushId >= 0)
+                          name = name + "_" + pushId;
+			subMap.put(pushId, new HornPredicate(p, name, args));
 		}
-		return invariantPredicates.get(sig);
+		return subMap.get(pushId);
 	}
 	
 	/**

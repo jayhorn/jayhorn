@@ -1,10 +1,9 @@
-
 class A
 {
   public int i;
 };
 
-class Sat03
+class SatLoopAndField
 {
 	  public static void main(String[] args)
 	  {

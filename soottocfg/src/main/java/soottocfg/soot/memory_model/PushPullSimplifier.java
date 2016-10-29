@@ -5,10 +5,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import soot.PointsToAnalysis;
-import soot.PointsToSet;
-import soot.Scene;
-import soot.SootField;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
@@ -23,8 +19,9 @@ import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.variable.Variable;
-import soottocfg.soot.util.SootTranslationHelpers;
+import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.soot.SootToCfg;
 
 public class PushPullSimplifier {
 	
@@ -73,9 +70,8 @@ public class PushPullSimplifier {
 			simplifications += movePullUp(b);
 			simplifications += movePushDown(b);
 			simplifications += swapPushPull(b);
-			// I think running these is only sound when 'distinct()' is
-//			simplifications += orderPulls(b);
-//			simplifications += orderPushes(b);
+			simplifications += orderPulls(b);
+			simplifications += orderPushes(b);
 			simplifications += assumeFalseEatPreceeding(b);
 		} while (simplifications > 0);
 	}
@@ -240,9 +236,10 @@ public class PushPullSimplifier {
 				PushStatement push = (PushStatement) stmts.get(i);
 				PullStatement pull = (PullStatement) stmts.get(i+1);
 				//only swap if none of the vars in the pull and push point to the same location
-				Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
-				Set<IdentifierExpression> pushvars = push.getIdentifierExpressions();
-				if (distinct(pullvars,pushvars)) {
+//				Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
+//				Set<IdentifierExpression> pushvars = push.getIdentifierExpressions();
+//				if (distinct(pullvars,pushvars)) {
+				if (!SootToCfg.getPointsToAnalysis().mayAlias(pull.getObject(), push.getObject())) {
 					b.swapStatements(i, i+1);
 					if (debug)
 						System.out.println("Applied rule (VII); swapped " + push + " and " + pull);
@@ -289,7 +286,7 @@ public class PushPullSimplifier {
 			if (stmts.get(i) instanceof PushStatement && stmts.get(i+1) instanceof PushStatement) {
 				PushStatement push1 = (PushStatement) stmts.get(i);
 				PushStatement push2 = (PushStatement) stmts.get(i+1);
-				if (push1.getObject().toString().compareTo(push2.getObject().toString()) < 0) {
+				if (push1.getObject().toString().compareTo(push2.getObject().toString()) > 0) {
 					//only swap if none of the vars in the pull and push point to the same location
 					Set<IdentifierExpression> push1vars = push1.getIdentifierExpressions();
 					Set<IdentifierExpression> push2vars = push2.getIdentifierExpressions();
@@ -329,48 +326,24 @@ public class PushPullSimplifier {
 		return eaten;
 	}
 
-	/* Temporary: only compare the actual identifiers. TODO: points-to analysis */
 	private boolean distinct(Set<IdentifierExpression> vars1, Set<IdentifierExpression> vars2) {
-		// Code based on alias analysis, does not work yet
-//		if (soottocfg.Options.v().memPrecision() >= 3) {
-//			for (IdentifierExpression exp1 : vars1) {
-//				for (IdentifierExpression exp2 : vars2) {
-//					if (debug)
-//						System.out.println("Checking distinctness of " + exp1 + exp1.getType() + " and " + exp2 + exp2.getType());
-//					if (exp1.getType() instanceof ReferenceType 
-//							&& exp2.getType() instanceof ReferenceType 
-//							&& FlowBasedPointsToAnalysis.mayAlias(exp1, exp2))
-//						return false;
-//				}
-//			}
-//			return true;	
-//		}
-//		return false;
-		
-		NewMemoryModel mem = (NewMemoryModel) SootTranslationHelpers.v().getMemoryModel();
-		PointsToAnalysis pta = Scene.v().getPointsToAnalysis();
 		for (IdentifierExpression exp1 : vars1) {
 			for (IdentifierExpression exp2 : vars2) {
 				if (debug)
-					System.out.println("Checking distinctness of " + exp1 + " and " + exp2);
-				Variable v1 = exp1.getVariable();
-				Variable v2 = exp2.getVariable();
-				if (v1.getName().equals(v2.getName())) {
-					if (debug)
-						System.out.println("Not distinct.");
-					return false;
-				}
-				SootField sf1 = mem.lookupField(v1);
-				SootField sf2 = mem.lookupField(v2);
-				// oopsie, only works for static fields for now
-				// TODO for instance fields we need to store Locals
-				if (sf1!=null && sf1.isStatic() && sf2!=null && sf2.isStatic()) {
-					PointsToSet pointsTo1 = pta.reachingObjects(sf1);
-					PointsToSet pointsTo2 = pta.reachingObjects(sf2);
-					if (pointsTo1.hasNonEmptyIntersection(pointsTo2)){
-						if (debug)
-							System.out.println("Point to same location, not distinct.");
-						return false;
+					System.out.println("Checking distinctness of " + exp1 + exp1.getType() + " and " + exp2 + exp2.getType());
+				if (exp1.getType() instanceof ReferenceType
+						&& exp2.getType() instanceof ReferenceType) {
+					if (soottocfg.Options.v().memPrecision() >= 3) {
+						if (SootToCfg.getPointsToAnalysis().mayAlias(exp1, exp2))
+							return false;
+					} else {
+						ReferenceType rt1 = (ReferenceType) exp1.getType();
+						ReferenceType rt2 = (ReferenceType) exp2.getType();
+						ClassVariable cv1 = rt1.getClassVariable();
+						ClassVariable cv2 = rt2.getClassVariable();
+						if (cv1!=null && cv2!=null 
+								&& (cv1.subclassOf(cv2) || !cv1.superclassOf(cv2)))
+							return false;
 					}
 				}
 			}

@@ -86,7 +86,7 @@ public class CfgStubber {
 				} else if (method.getReturnType().size() > 0) {
 					LinkedList<Variable> rets = new LinkedList<Variable>();
 					//when stubbing, set the exceptional return to null.
-					System.out.println("Return types of " + method.getMethodName() + ": " + method.getReturnType());
+					//System.out.println("Return types of " + method.getMethodName() + ": " + method.getReturnType());
 					Variable exceptionalRetVar = new Variable("exc", method.getReturnType().get(0));
 					rets.add(exceptionalRetVar);
 					AssignStatement noException = new AssignStatement(loc,
