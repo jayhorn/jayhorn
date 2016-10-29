@@ -344,45 +344,53 @@ public class PrincessProver implements Prover {
 					clauses.$plus$eq(clause.clause);
 
 				lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
-				final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
-						scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
-						Options.v().getSolverOptions().contains("abstract"),
-						Options.v().getSolverOptions().contains("debug"));
 
-				if (result.isLeft()) {
-					if (Options.v().solution) {
-						StringBuffer sol = new StringBuffer();
-						sol.append("Solution:\n");
-						List<Tuple2<Predicate, IFormula>> ar = result.left().get().toList();
+                                if (Options.v().solution) {
+                                    final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
+                                                                                                                                    scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
+                                                                                                                                    Options.v().getSolverOptions().contains("abstract"),
+                                                                                                                                    Options.v().getSolverOptions().contains("debug"),
+                                                                                                                                    true);
+                                    
+                                    if (result.isLeft()) {
+                                        StringBuffer sol = new StringBuffer();
+                                        sol.append("Solution:\n");
+                                        List<Tuple2<Predicate, IFormula>> ar = result.left().get().toList();
+                                        
+                                        while (!ar.isEmpty()) {
+                                            Tuple2<Predicate, IFormula> p = ar.head();
+                                            ar = (List<Tuple2<Predicate, IFormula>>) ar.tail();
+                                            sol.append("" + p._1() + ": " + api.pp(p._2()) + "\n");
+                                        }
 
-						while (!ar.isEmpty()) {
-							Tuple2<Predicate, IFormula> p = ar.head();
-							ar = (List<Tuple2<Predicate, IFormula>>) ar.tail();
-							sol.append("" + p._1() + ": " + api.pp(p._2()) + "\n");
-						}
+                                        Log.info(sol.toString());
+                                        return ProverResult.Sat;
+                                    } else {
+                                        Log.info("Counterexample:\n"
+                                                 + DialogUtil$.MODULE$.asString(new scala.runtime.AbstractFunction0<Integer>() {
+                                                         public Integer apply() {
+                                                             Dag<IAtom> simpDag = result.right().get()
+                                                                 .map(new scala.runtime.AbstractFunction1<Tuple2<IAtom, Clause>, IAtom>() {
+                                                                         public IAtom apply(Tuple2<IAtom, Clause> p) {
+                                                                             return p._1();
+                                                                         }
+                                                                     });
+                                                             simpDag.prettyPrint();
+                                                             return 0;
+                                                         }
+                                                     }));
+                                        return ProverResult.Unsat;
+                                    }
+                                } else {
+                                    if (SimpleWrapper.isSat(clauses,
+                                                            scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
+                                                            Options.v().getSolverOptions().contains("abstract"),
+                                                            Options.v().getSolverOptions().contains("debug")))
+                                        return ProverResult.Sat;
+                                    else
+                                        return ProverResult.Unsat;
+                                }
 
-						Log.info(sol.toString());
-					}
-					return ProverResult.Sat;
-
-				} else {
-					if (Options.v().solution) {
-						Log.info("Counterexample:\n"
-								+ DialogUtil$.MODULE$.asString(new scala.runtime.AbstractFunction0<Integer>() {
-									public Integer apply() {
-										Dag<IAtom> simpDag = result.right().get()
-												.map(new scala.runtime.AbstractFunction1<Tuple2<IAtom, Clause>, IAtom>() {
-													public IAtom apply(Tuple2<IAtom, Clause> p) {
-														return p._1();
-													}
-												});
-										simpDag.prettyPrint();
-										return 0;
-									}
-								}));
-					}
-					return ProverResult.Unsat;
-				}
 			} else {
 				this.executor = Executors.newSingleThreadExecutor();
 				this.thread = new PrincessSolverThread(assertedClauses);
@@ -407,11 +415,11 @@ public class PrincessProver implements Prover {
 			for (HornExpr clause : hornClauses)
 				clauses.$plus$eq(clause.clause);
 			lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
-			final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
+			final boolean res = SimpleWrapper.isSat(clauses,
 					scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
 					Options.v().getSolverOptions().contains("abstract"),
 					Options.v().getSolverOptions().contains("debug"));
-			if (result.isLeft())
+			if (res)
 				this.status = ProverResult.Sat;
 			else
 				this.status = ProverResult.Unsat;

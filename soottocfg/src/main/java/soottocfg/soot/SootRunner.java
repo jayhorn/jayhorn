@@ -213,7 +213,7 @@ public class SootRunner {
 						VoidType.v());
 				
 				mainClass = c;
-				System.err.println(mainMethod.getSignature());
+//				System.err.println(mainMethod.getSignature());
 				sb.append(mainMethod.getSignature());
 				sb.append("\n");
 			}
@@ -300,7 +300,7 @@ public class SootRunner {
 			// }
 			PackManager.v().runPacks();
 			createAssertionClass();
-
+			
 			/*
 			 * TODO: apply some preprocessing stuff like:
 			 * soot.jimple.toolkits.base or maybe the optimize option from soot.

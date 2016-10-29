@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
@@ -23,11 +22,8 @@ import jayhorn.hornify.encoder.S2H;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFactory;
-import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
-import jayhorn.solver.ProverType;
-import jayhorn.utils.CfgCallInliner;
 import jayhorn.utils.Stats;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.method.CfgBlock;
@@ -54,13 +50,8 @@ public class SpacerChecker implements Checker{
 	
 	public boolean checkProgram(Program program) {
 		Preconditions.checkNotNull(program.getEntryPoint(),
-				"The program has no entry points and thus is trivially verified.");
+				"The program has no entry points and thus is trivially verified.");	
 
-		Log.info("Inlining");
-		CfgCallInliner inliner = new CfgCallInliner(program);
-		inliner.inlineFromMain(Options.v().getInlineMaxSize(), Options.v().getInlineCount());
-		Log.info("Remove unreachable methods");
-		removeUnreachableMethods(program);		
 		Log.info("Hornify  ... ");
 		Hornify hf = new Hornify(factory);
 		Stopwatch toHornTimer = Stopwatch.createStarted();

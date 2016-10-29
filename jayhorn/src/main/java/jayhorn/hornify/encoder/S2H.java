@@ -28,8 +28,7 @@ public class S2H {
 		return sh;
 	}
 
-	private S2H() {
-	}
+	private S2H() {}
 	
 	public void addClause(Statement s, List<ProverHornClause> h){
 		statToClause.put(s,h);

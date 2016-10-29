@@ -1,7 +1,7 @@
 package soottocfg.soot.memory_model;
 
 import java.util.HashSet;
-import java.util.LinkedList;
+//import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -46,8 +46,8 @@ public class PushPullSimplifier {
 				
 				// inter-block simplifications
 				simplifications = 0;
-				simplifications += movePullsUpInCFG(blocks);
-				simplifications += movePushesDownInCFG(blocks);
+				simplifications += movePullsUpInCFG(m);
+				simplifications += movePushesDownInCFG(m);
 //				simplifications += removeEmptyBlocks(m);
 				
 				// does not seem sound, need to think more about it...
@@ -95,7 +95,7 @@ public class PushPullSimplifier {
 					assert (pull1vars.size()==pull2vars.size());
 					for (int j = 0; j < pull1vars.size(); j++) {
 						if (!pull1vars.get(j).toString().equals(pull2vars.get(j).toString())) {
-							System.out.println("Add assignment (TODO: test)");
+//							System.out.println("Add assignment (TODO: test)");
 							AssignStatement assign = new AssignStatement(SourceLocation.ANALYSIS,pull2vars.get(j),pull1vars.get(j));
 							b.addStatement(i+1, assign);
 						}
@@ -351,9 +351,9 @@ public class PushPullSimplifier {
 		return true;
 	}
 	
-	private int movePullsUpInCFG(Set<CfgBlock> blocks) {
+	private int movePullsUpInCFG(Method m) {
 		int moves = 0;
-		for (CfgBlock b : blocks) {
+		for (CfgBlock b : m.vertexSet()) {
 			List<Statement> stmts = b.getStatements();
 			int s = 0;
 			Set<Statement> toRemove = new HashSet<Statement>();
@@ -361,8 +361,9 @@ public class PushPullSimplifier {
 				Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
 				for (CfgEdge in : incoming) {
 					CfgBlock prev = b.getMethod().getEdgeSource(in);
+					
 					// only move up in CFG
-					if (isUp(prev,b)) {
+					if (m.distanceToSource(prev) < m.distanceToSource(b)) {
 						Statement stmt = stmts.get(s);
 						//don't create references to the same statement in multiple blocks
 						if (toRemove.contains(stmt))
@@ -383,9 +384,9 @@ public class PushPullSimplifier {
 		return moves;
 	}
 	
-	private int movePushesDownInCFG(Set<CfgBlock> blocks) {
+	private int movePushesDownInCFG(Method m) {
 		int moves = 0;
-		for (CfgBlock b : blocks) {
+		for (CfgBlock b : m.vertexSet()) {
 			List<Statement> stmts = b.getStatements();
 			int s = stmts.size()-1;
 			Set<Statement> toRemove = new HashSet<Statement>();
@@ -393,9 +394,9 @@ public class PushPullSimplifier {
 				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
 				for (CfgEdge out : outgoing) {
 					CfgBlock next = b.getMethod().getEdgeTarget(out);
+					
 					// only move down in source
-					if (isDown(next,b)) {
-						
+					if (m.distanceToSink(next) < m.distanceToSink(b)) {
 						Statement stmt = stmts.get(s);
 						//don't create references to the same statement in multiple blocks
 						if (toRemove.contains(stmt))
@@ -473,7 +474,7 @@ public class PushPullSimplifier {
 //			}
 //		}
 //		// this one breaks everything...
-////		m.removeAllVertices(toRemove);
+//		m.removeAllVertices(toRemove);
 //		return removed;
 //	}
 	
@@ -489,44 +490,6 @@ public class PushPullSimplifier {
 				return false;
 		}
 		
-		return true;
-	}
-	
-	// check if cur occurs in the CFG before prev, in that case,
-	//  there is a cycle and we are not moving up 
-	private boolean isUp(CfgBlock prev, CfgBlock cur) {
-		List<CfgBlock> todo = new LinkedList<CfgBlock>();
-		Set<CfgBlock> done = new HashSet<CfgBlock>();
-		todo.add(prev);
-		while (!todo.isEmpty()) {
-			CfgBlock b = todo.remove(0);
-			if (!done.contains(b)) {
-				if (b.equals(cur))
-					return false;
-				done.add(b);
-				Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
-				for (CfgEdge in : incoming)
-					todo.add(b.getMethod().getEdgeSource(in));
-			}
-		}
-		return true;
-	}
-
-	private boolean isDown(CfgBlock next, CfgBlock cur) {
-		List<CfgBlock> todo = new LinkedList<CfgBlock>();
-		Set<CfgBlock> done = new HashSet<CfgBlock>();
-		todo.add(next);
-		while (!todo.isEmpty()) {
-			CfgBlock b = todo.remove(0);
-			if (!done.contains(b)) {
-				if (b.equals(cur))
-					return false;
-				done.add(b);
-				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
-				for (CfgEdge out : outgoing)
-					todo.add(b.getMethod().getEdgeTarget(out));
-			}
-		}
 		return true;
 	}
 }
