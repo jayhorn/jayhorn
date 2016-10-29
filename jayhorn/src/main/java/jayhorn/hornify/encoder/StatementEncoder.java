@@ -88,24 +88,24 @@ public class StatementEncoder {
 		
 		if (s instanceof AssertStatement) {
 			List<ProverHornClause> clause = assertToClause((AssertStatement) s, postPred, preAtom, varMap);
-			System.out.println("Assert " + clause);
+			//System.out.println("Assert " + clause);
 			S2H.sh().addClause(s, clause);
 			return clause;
 		} else if (s instanceof AssumeStatement) {
 			List<ProverHornClause> clause = assumeToClause((AssumeStatement) s, postPred, preAtom, varMap);
-			System.out.println("Assume " + clause);
+			//System.out.println("Assume " + clause);
 			S2H.sh().addClause(s, clause);
 			return clause;
 		} else if (s instanceof AssignStatement) {
 			List<ProverHornClause> clause = assignToClause((AssignStatement) s, postPred, preAtom, varMap);
 			S2H.sh().addClause(s, clause);
-			System.out.println("Assign " + clause);
+			//System.out.println("Assign " + clause);
 			return clause;
 		} else if (s instanceof CallStatement) {
 
 			List<ProverHornClause> clause = callToClause((CallStatement) s, postPred, preAtom, varMap);
 			S2H.sh().addClause(s, clause);
-			System.out.println("Call " + clause);
+			//System.out.println("Call " + clause);
 			return clause;
 		} else if (s instanceof PullStatement) {
 			if (assumedPushIds == null) {
@@ -119,7 +119,7 @@ public class StatementEncoder {
 		} else if (s instanceof PushStatement) {
 			List<ProverHornClause> clause = pushToClause((PushStatement) s, postPred, preAtom, varMap);
 			S2H.sh().addClause(s, clause);
-			System.out.println("Push " + clause);
+			//System.out.println("Push " + clause);
 			return clause;
 		}
 

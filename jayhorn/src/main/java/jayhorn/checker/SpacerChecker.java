@@ -92,10 +92,10 @@ public class SpacerChecker implements Checker{
 			
 			Log.info("Add Transition Relation to the solver");
 			for (ProverHornClause clause : tsClauses){
-				System.out.println(clause);
+				//System.out.println(clause);
 				prover.addRule(clause);
-				prover.printRules();
-				System.out.println("-=======");
+				//prover.printRules();
+				//System.out.println("-=======");
 			}
 			Log.info("Add Properties");
 			for (ProverHornClause clause : propertyClauses){
