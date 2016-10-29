@@ -23,6 +23,8 @@ public class SpacerHornExpr implements ProverHornClause {
 	private final List<ProverExpr> body;
 	private final ProverExpr constraint;
 	
+	
+	
 	public SpacerHornExpr(ProverExpr head, ProverExpr[] body,
 			ProverExpr constraint) {
 		this.head = head;

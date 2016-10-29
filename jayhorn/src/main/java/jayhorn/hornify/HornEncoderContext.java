@@ -48,13 +48,16 @@ public class HornEncoderContext {
 	
 	public HornEncoderContext(Prover p, Program prog) {
 		this.program = prog;
+		Log.info("Interprocedural Push/Pull Ordering");
 		ppOrdering = new InterProceduralPullPushOrdering(program.getEntryPoint());
 		this.p = p;		
+		Log.info("Building type hierarchy ... ");
 		for (ClassVariable var : program.getTypeGraph().vertexSet()) {
 			//add +1 to make sure that no type is the
 			//same number as the null constant
 			typeIds.put(var, typeIds.size()+1);
 		}
+		Log.info("Generating Method Contract ... ");
 		mkMethodContract(program, p);
 	}
 

@@ -11,6 +11,7 @@ import java.util.Set;
 
 import jayhorn.Log;
 import jayhorn.hornify.encoder.MethodEncoder;
+import jayhorn.hornify.encoder.S2H;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverFun;
@@ -44,10 +45,7 @@ public class Hornify {
 	public HornEncoderContext toHorn(Program program){
 		prover = factory.spawn();
 		prover.setHornLogic(true);
-
-		Log.info("Interprocedural Push/Pull Ordering");
-		Log.info("Building type hierarchy ... ");
-		Log.info("Generating Method Contract ... ");
+		
 		HornEncoderContext hornContext = new HornEncoderContext(prover, program);
 
 		Log.info("Transform Program Methods into Horn Clauses ... ");
@@ -56,6 +54,7 @@ public class Hornify {
 			final MethodEncoder encoder = new MethodEncoder(prover, method, hornContext);
 			clauses.addAll(encoder.encode());		
 		}
+		
 		return hornContext;
 	}
 

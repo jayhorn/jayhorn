@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import jayhorn.checker.Checker;
+import jayhorn.checker.EldaricaChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.test.Util;
@@ -87,7 +87,7 @@ public class FailingTests {
 			
 			jayhorn.Options.v().setTimeout(5);
 			jayhorn.Options.v().setPrintHorn(false);	
-	  		Checker hornChecker = new Checker(factory);
+	  		EldaricaChecker hornChecker = new EldaricaChecker(factory);
 	  		boolean result = hornChecker.checkProgram(program);
 	  		
 			boolean expected = this.sourceFile.getName().startsWith("Sat");

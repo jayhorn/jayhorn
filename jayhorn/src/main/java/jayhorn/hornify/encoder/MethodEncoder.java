@@ -17,13 +17,13 @@ import jayhorn.hornify.MethodContract;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverHornClause;
+//import soottocfg.Options;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.variable.Variable;
-
 public class MethodEncoder {
 
 	private final Method method;
@@ -33,13 +33,13 @@ public class MethodEncoder {
 
 	private final Map<CfgBlock, HornPredicate> blockPredicates = new LinkedHashMap<CfgBlock, HornPredicate>();
 	private final List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
-
+	
 	private final ExpressionEncoder expEnc;
 
 	public MethodEncoder(Prover p, Method method, HornEncoderContext hornContext) {
 		this.p = p;
 		this.method = method;
-
+		
 		MethodContract mc = hornContext.getMethodContract(method);
 		this.precondition = mc.precondition;
 		this.postcondition = mc.postcondition;		
@@ -75,6 +75,7 @@ public class MethodEncoder {
 		final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
 		final ProverExpr entryAtom = precondition.instPredicate(varMap);
 		final ProverExpr exitAtom = postcondition.instPredicate(varMap);
+		
 		clauses.add(p.mkHornClause(exitAtom, new ProverExpr[] { entryAtom }, p.mkLiteral(true)));	
 	}
 	
@@ -226,7 +227,6 @@ public class MethodEncoder {
 			final String postName = initName + "_" + (++counter);
 			final List<Variable> interVarList = HornHelper.hh().setToSortedList(liveAfter.get(s));
 			final HornPredicate postPred = freshHornPredicate(postName, interVarList);
-
 			StatementEncoder senc = new StatementEncoder(p, this.expEnc);
 			this.clauses.addAll(senc.statementToClause(s, prePred, postPred));
 
@@ -236,6 +236,7 @@ public class MethodEncoder {
 		return prePred;
 	}
 
+	
 	/**
 	 * Compute for each statement the set of variables
 	 * that are live after the statement.

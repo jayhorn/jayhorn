@@ -635,7 +635,7 @@ public class PrincessProver implements Prover {
 
 		final HornClauses.Clause clause = SimpleWrapper.clause((IAtom) rawHead, rawBody.toList(),
 				((FormulaExpr) constraint).formula);
-
+		
 		return new HornExpr(clause);
 	}
 
@@ -649,7 +649,15 @@ public class PrincessProver implements Prover {
 	public String toString() {
 		return "Princess";
 	}
+	
+    public ProverResult query(ProverExpr relation) {
+    	throw new UnsupportedOperationException();
+    }
 
+    public void addFact(ProverFun relation) {
+    	throw new UnsupportedOperationException();
+    }
+    
 	////////////////////////////////////////////////////////////////////////////
 	// Some functions for outputing SMT-LIB
 

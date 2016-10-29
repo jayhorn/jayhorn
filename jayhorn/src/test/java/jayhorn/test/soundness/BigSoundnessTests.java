@@ -15,7 +15,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import jayhorn.checker.Checker;
+import jayhorn.checker.EldaricaChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.test.Util;
@@ -109,7 +109,7 @@ public class BigSoundnessTests {
 			boolean result = false;
 			try {
 				Program program = soot2cfg.getProgram();
-				Checker hornChecker = new Checker(factory);
+				EldaricaChecker hornChecker = new EldaricaChecker(factory);
 				result = hornChecker.checkProgram(program);
 
 				if (expected == result) {

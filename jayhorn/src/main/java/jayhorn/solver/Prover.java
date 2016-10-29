@@ -127,7 +127,12 @@ public interface Prover {
 	 * argument is true, otherwise return immediately.
 	 */
 	ProverResult getResult(boolean block);
-
+	
+	/**
+	 * Query the rechability of the relation
+	 */
+	ProverResult query(ProverExpr relation);
+	
         /**
          * Query result of the last <code>checkSat</code> or <code>nextModel</code>
 	 * call. Will block until a result is available, or until <code>timeout</code>
@@ -222,6 +227,7 @@ public interface Prover {
     
     
     void addRule(ProverExpr hornRule);
+    
     
     void printRules();
 

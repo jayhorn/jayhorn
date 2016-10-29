@@ -8,7 +8,8 @@ import org.kohsuke.args4j.CmdLineParser;
 
 import com.google.common.base.Stopwatch;
 
-import jayhorn.checker.Checker;
+import jayhorn.checker.EldaricaChecker;
+import jayhorn.checker.SpacerChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 
@@ -55,10 +56,16 @@ public class Main {
   	    Stats.stats().add("SootToCFG", String.valueOf(sootTocfgTimer.stop()));
   		
   		Log.info("Safety Verification ... ");
-  		Checker hornChecker = new Checker(factory);
-  		
-  		boolean result = hornChecker.checkProgram(program);
-  		
+
+  		boolean result;
+  		if ("spacer".equals(Options.v().getSolver())){
+  			SpacerChecker spacer = new SpacerChecker(factory);
+  			result = spacer.checkProgram(program);
+  		} else{
+  			EldaricaChecker hornChecker = new EldaricaChecker(factory);
+  			result = hornChecker.checkProgram(program);
+  		}
+  	
   		String prettyResult = parseResult(Options.v().getSolver(), result);
   		
   		Stats.stats().add("Result", prettyResult);

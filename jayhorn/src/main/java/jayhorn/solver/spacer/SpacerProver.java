@@ -34,6 +34,7 @@ import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.Fixedpoint;
+import com.microsoft.z3.FuncDecl;
 import com.microsoft.z3.Global;
 import com.microsoft.z3.IntExpr;
 import com.microsoft.z3.InterpolationContext;
@@ -47,7 +48,7 @@ import com.microsoft.z3.Symbol;
 import com.microsoft.z3.Z3Exception;
 
 /**
- * @author schaef
+ * @author teme
  *
  */
 public class SpacerProver implements Prover {
@@ -267,11 +268,6 @@ public class SpacerProver implements Prover {
 	@Override
 	public ProverFun mkDefinedFunction(String name, ProverType[] argTypes,
 			ProverExpr body){
-//		try {
-//			Sort[] argSorts = new Sort[argTypes.length];
-//			for (int i = 0; i < argTypes.length; i++) {
-//				argSorts[i] = unpack(argTypes[i]);
-//			}
 			final ProverExpr b = body;
 			return new ProverFun() {
 				public ProverExpr mkExpr(ProverExpr[] args){
@@ -298,9 +294,6 @@ public class SpacerProver implements Prover {
 				}
 				
 			};
-//		} catch (Z3Exception e) {
-//			throw new RuntimeException(e.getMessage());
-//		}
 	}
 
 	@Override
@@ -879,13 +872,16 @@ public class SpacerProver implements Prover {
 		try {
 			List<Expr> result = new LinkedList<Expr>();
 			if (e.isConst() && !e.equals(ctx.mkTrue()) && !e.equals(ctx.mkFalse())) {
+
 				result.add(e);
 			} else if (e.isQuantifier()) {
 				Quantifier q = (Quantifier) e;
+				
 				q.getBoundVariableNames();
 				freeVariables(((Quantifier) e).getBody());
 				throw new RuntimeException("not implemented");
 			} else if (e.isApp()) {
+				
 				for (Expr child : e.getArgs()) {
 					result.addAll(freeVariables(child));
 				}
@@ -902,6 +898,38 @@ public class SpacerProver implements Prover {
 		}
 	}
 
+	private List<Expr> freeVariablesHead(Expr e) {
+		try {
+			List<Expr> result = new LinkedList<Expr>();
+//			if (e.isConst() && !e.equals(ctx.mkTrue()) && !e.equals(ctx.mkFalse())) {
+//
+//				result.add(e);
+//			} else 
+				
+				if (e.isQuantifier()) {
+				Quantifier q = (Quantifier) e;
+				
+				q.getBoundVariableNames();
+				freeVariables(((Quantifier) e).getBody());
+				throw new RuntimeException("not implemented");
+			} else if (e.isApp()) {
+				
+				for (Expr child : e.getArgs()) {
+					result.addAll(freeVariables(child));
+				}
+			} else if (e.isNumeral()) {
+				// ignore
+			} else {
+				throw new RuntimeException("not implemented "
+						+ e.getClass().toString());
+			}
+
+			return result;
+		} catch (Exception ex) {
+			throw new RuntimeException(ex.getMessage());
+		}
+	}
+	
 	@Override
 	public ProverExpr substitute(ProverExpr target, ProverExpr[] from,
 			ProverExpr[] to) {
@@ -954,13 +982,20 @@ public class SpacerProver implements Prover {
 		return mkVariable(name, type);
 	}
 	
+	private String replaceName(String name){
+		String new_name = name;
+		new_name = new_name.replaceAll(" ", "_");
+		new_name = new_name.replaceAll("\\(|\\)|<|>|:", "");
+		 return new_name;
+	}
 	/**
 	 * Make Horn Predicate
 	 */
 	public SpacerFun mkHornPredicate(String name, ProverType[] argTypes) {
 	
 		try {
-			SpacerFun fun = this.mkUnintFunction(name, argTypes, this.getBooleanType());
+			
+			SpacerFun fun = this.mkUnintFunction(this.replaceName(name), argTypes, this.getBooleanType());
 			this.fx.registerRelation(fun.getFun());
 			return fun;
 		} catch (Z3Exception e) {
@@ -983,21 +1018,35 @@ public class SpacerProver implements Prover {
 		createSolver();		
 	}
 	
-
+	/**
+	 * Add Fact
+	 **/
+	
+	public void addFact(SpacerFun fact){
+		try {
+			this.fx.addFact(fact.getFun());
+		} catch (Exception e) {
+			throw new RuntimeException(e.getMessage());
+		}
+		
+	}
 	/**
 	 * Add a Horn rule
 	 * @param relation
 	 */
 	public void addRule(ProverExpr relation){
 		try {
+			BoolExpr asrt = null;
 			if (relation instanceof SpacerHornExpr) {
 				SpacerHornExpr hc = (SpacerHornExpr) relation;
 				
 				BoolExpr head = (BoolExpr) unpack(hc.getHead());
 				BoolExpr body = (BoolExpr) unpack(hc.getConstraint());
-				
+//				System.out.println("Head -> " + head);
+//				System.out.println("Body -> " + body);
 				Set<Expr> freeVars = new HashSet<Expr>();
-				freeVars.addAll(freeVariables(head));
+				
+				freeVars.addAll(freeVariablesHead(head));
 				
 				if (hc.getBody().length>0) {
 					BoolExpr[] conj = new BoolExpr[hc.getBody().length];
@@ -1015,21 +1064,21 @@ public class SpacerProver implements Prover {
 					}
 				} 
 				//from Nikolajs example 			
-				BoolExpr asrt;
-				if (freeVars.size()>0) {				
-					asrt =  ctx.mkForall(freeVars.toArray(new Expr[freeVars.size()]), ctx.mkImplies(body, head), 1, null, null, null, null);				
-					this.solver.add(asrt);
+				
+				if (freeVars.size()>0) {
+					asrt =  ctx.mkForall(freeVars.toArray(new Expr[freeVars.size()]), 
+							ctx.mkImplies(body, head), 1, null, null, null, null);	
+					//System.out.println("ASRT -> " + asrt);
+
 				} else {
 					asrt =  ctx.mkImplies(body, head);
 				}
-				//TODO Fix me the null should be a name
-	
-				this.fx.addRule(asrt,null);
 			} else if (relation instanceof SpacerBoolExpr) {
-				BoolExpr asrt = (BoolExpr) unpack(relation);
-				//TODO Fix me the null should be a name
-				this.fx.addRule(asrt, null);
+				asrt = (BoolExpr) unpack(relation);	
+
 			}
+
+			this.fx.addRule(asrt, null);
 		} catch (Exception e) {
 			throw new RuntimeException(e.getMessage());
 		}
@@ -1038,55 +1087,65 @@ public class SpacerProver implements Prover {
 	
 	
 	/**
-	 * Query
+	 * Query Rechability
 	 */
-	
-	public ProverResult query(ProverExpr relation){
-		try {
+	public ProverResult query(ProverExpr tgt){
+		try{
 			Status status = null;
-			if (relation instanceof SpacerHornExpr) {
-				SpacerHornExpr hc = (SpacerHornExpr) relation;
-
-				BoolExpr head = (BoolExpr) unpack(hc.getHead());
-				BoolExpr body = (BoolExpr) unpack(hc.getConstraint());
-
-				Set<Expr> freeVars = new HashSet<Expr>();
-				freeVars.addAll(freeVariables(head));
-
-				if (hc.getBody().length>0) {
-					BoolExpr[] conj = new BoolExpr[hc.getBody().length];
-					int i=0;
-					for (Expr e : unpack(hc.getBody())) {
-						freeVars.addAll(freeVariables(e));
-						conj[i]=(BoolExpr)e;
-						i++;
-					}
-					BoolExpr b = (conj.length==1) ? conj[0] : ctx.mkAnd(conj); 
-					if (body.equals(ctx.mkTrue())) {
-						body = b;
-					} else {
-						body = ctx.mkAnd(b, body);
-					}
-				} 
-				//from Nikolajs example 			
-				BoolExpr asrt;
-				if (freeVars.size()>0) {				
-					asrt =  ctx.mkForall(freeVars.toArray(new Expr[freeVars.size()]), ctx.mkImplies(body, head), 1, null, null, null, null);				
-					this.solver.add(asrt);
-				} else {
-					asrt =  ctx.mkImplies(body, head);
-				}
-				status = this.fx.query(asrt);
-			} else if (relation instanceof SpacerBoolExpr) {
-				BoolExpr asrt = (BoolExpr) unpack(relation);
-				status = this.fx.query(asrt);
-					
-			}
+			BoolExpr asrt = (BoolExpr) unpack(tgt);
+			status = this.fx.query(asrt);
 			return this.translateResult(status);
 		} catch (Z3Exception e) {
 			throw new RuntimeException(e.getMessage());
 		}
 	}
+	
+//	public ProverResult query(ProverExpr relation){
+//		try {
+//			Status status = null;
+//			if (relation instanceof SpacerHornExpr) {
+//				SpacerHornExpr hc = (SpacerHornExpr) relation;
+//
+//				BoolExpr head = (BoolExpr) unpack(hc.getHead());
+//				BoolExpr body = (BoolExpr) unpack(hc.getConstraint());
+//
+//				Set<Expr> freeVars = new HashSet<Expr>();
+//				freeVars.addAll(freeVariables(head));
+//
+//				if (hc.getBody().length>0) {
+//					BoolExpr[] conj = new BoolExpr[hc.getBody().length];
+//					int i=0;
+//					for (Expr e : unpack(hc.getBody())) {
+//						freeVars.addAll(freeVariables(e));
+//						conj[i]=(BoolExpr)e;
+//						i++;
+//					}
+//					BoolExpr b = (conj.length==1) ? conj[0] : ctx.mkAnd(conj); 
+//					if (body.equals(ctx.mkTrue())) {
+//						body = b;
+//					} else {
+//						body = ctx.mkAnd(b, body);
+//					}
+//				} 
+//				//from Nikolajs example 			
+//				BoolExpr asrt;
+//				if (freeVars.size()>0) {				
+//					asrt =  ctx.mkForall(freeVars.toArray(new Expr[freeVars.size()]), ctx.mkImplies(body, head), 1, null, null, null, null);				
+//					this.solver.add(asrt);
+//				} else {
+//					asrt =  ctx.mkImplies(body, head);
+//				}
+//				status = this.fx.query(asrt);
+//			} else if (relation instanceof SpacerBoolExpr) {
+//				BoolExpr asrt = (BoolExpr) unpack(relation);
+//				status = this.fx.query(asrt);
+//					
+//			}
+//			return this.translateResult(status);
+//		} catch (Z3Exception e) {
+//			throw new RuntimeException(e.getMessage());
+//		}
+//	}
 
 	  /**
      * Retrieve satisfying instance or instances of solver, or definitions for
@@ -1216,7 +1275,6 @@ public class SpacerProver implements Prover {
     }
     
     public void printRules() {
-    	System.out.println("Printing Rules");
     	try{
     	BoolExpr[] rules = this.fx.getRules();
     	
