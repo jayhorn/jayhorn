@@ -1,5 +1,6 @@
 package jayhorn.checker;
 
+
 import soottocfg.cfg.Program;
 
 /**
@@ -10,3 +11,6 @@ public interface Checker {
 	
 	public boolean checkProgram(Program program);
 }
+
+
+
