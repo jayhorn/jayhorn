@@ -10,6 +10,7 @@ import java.util.Stack;
 
 import com.google.common.base.Verify;
 
+import jayhorn.Options;
 import jayhorn.hornify.HornEncoderContext;
 import jayhorn.hornify.HornHelper;
 import jayhorn.hornify.HornPredicate;
@@ -19,6 +20,7 @@ import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverType;
+
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.BinaryExpression;
@@ -34,7 +36,6 @@ import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
-
 public class StatementEncoder {
 
 	private final Prover p;
@@ -182,12 +183,15 @@ public class StatementEncoder {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 		final ProverExpr cond = expEncoder.exprToProverExpr(as.getExpression(), varMap); 
 
-		//List<Variable> vars = new LinkedList<Variable>();
+		final ProverExpr errorState; // For now depending on the solver we use false or a predicate
 		String tag = "errorState@line" + as.getJavaSourceLine();
-		final ProverFun errorPredicate = p.mkHornPredicate(tag, new ProverType[] {p.getBooleanType()});
-		//clauses.add(p.mkHornClause(p.mkLiteral(false), new ProverExpr[] { preAtom }, p.mkNot(cond)));
-		final ProverExpr errorState = errorPredicate.mkExpr(new ProverExpr[]{p.mkLiteral(true)});
-		S2H.sh().setErrorState(errorState);
+		final ProverFun errorPredicate = p.mkHornPredicate(tag, new ProverType[] {p.getBooleanType()});	
+		if (Options.v().getSolver().equals("spacer")){
+			errorState = errorPredicate.mkExpr(new ProverExpr[]{p.mkLiteral(true)});
+			S2H.sh().setErrorState(errorState);
+		}else{
+			errorState = p.mkLiteral(false);
+		}
 		clauses.add(p.mkHornClause(errorState, new ProverExpr[] { preAtom }, p.mkNot(cond)));
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
