@@ -223,7 +223,7 @@ public class SootToCfg {
 			Body body = null;
 			try {
 				body = sm.retrieveActiveBody();
-				performSootOptimizations(body);
+			//	performSootOptimizations(body);
 			} catch (RuntimeException e) {
 				// TODO: print warning that body couldn't be retrieved.
 				return;

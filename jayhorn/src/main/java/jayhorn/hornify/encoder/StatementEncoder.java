@@ -109,14 +109,20 @@ public class StatementEncoder {
 			//System.out.println("Call " + clause);
 			return clause;
 		} else if (s instanceof PullStatement) {
+			
 			if (assumedPushIds == null) {
-	  			  return pullToClause((PullStatement) s, postPred, preAtom, varMap, -1);
-	                        } else {
-	                          List<ProverHornClause> res = new ArrayList<ProverHornClause>();
-	                          for (Long id : assumedPushIds)
-	                            res.addAll(pullToClause((PullStatement) s, postPred, preAtom, varMap, id));
-	                          return res;
-	                        }
+				List<ProverHornClause> clause = pullToClause((PullStatement) s, postPred, preAtom, varMap, -1);
+				S2H.sh().addClause(s, clause);
+				//System.out.println("Pull " + clause);
+				return  clause;
+			} else {
+				List<ProverHornClause> clause = new ArrayList<ProverHornClause>();
+				for (Long id : assumedPushIds)
+					clause.addAll(pullToClause((PullStatement) s, postPred, preAtom, varMap, id));
+				S2H.sh().addClause(s, clause);
+				//System.out.println("Pull " + clause);
+				return clause;
+			}
 		} else if (s instanceof PushStatement) {
 			List<ProverHornClause> clause = pushToClause((PushStatement) s, postPred, preAtom, varMap);
 			S2H.sh().addClause(s, clause);
@@ -168,7 +174,7 @@ public class StatementEncoder {
 	/**
 	 * for "assert(cond)"
 	 * create two Horn clauses
-	 * pre(...) && !cond -> errorState(false)
+	 * pre(...) && !cond -> false
 	 * pre(...) -> post(...)
 	 * where the first Horn clause represents the transition
 	 * into the error state if the assertion doesn't hold.
@@ -184,10 +190,10 @@ public class StatementEncoder {
 		final ProverExpr cond = expEncoder.exprToProverExpr(as.getExpression(), varMap); 
 
 		final ProverExpr errorState; // For now depending on the solver we use false or a predicate
-		String tag = "errorState@line" + as.getJavaSourceLine();
-		final ProverFun errorPredicate = p.mkHornPredicate(tag, new ProverType[] {p.getBooleanType()});	
+		String tag = "ErrorState@line" + as.getJavaSourceLine();
+		final ProverFun errorPredicate = p.mkHornPredicate(tag, new ProverType[] {});	
 		if (Options.v().getSolver().equals("spacer")){
-			errorState = errorPredicate.mkExpr(new ProverExpr[]{p.mkLiteral(true)});
+			errorState = errorPredicate.mkExpr(new ProverExpr[]{});
 			S2H.sh().setErrorState(errorState);
 		}else{
 			errorState = p.mkLiteral(false);

@@ -69,14 +69,19 @@ public class HornEncoderContext {
 	 */
 	private void mkMethodContract(Program program, Prover p) {
 		for (Method method : program.getMethods()) {
+			System.out.println("method: " + method.getMethodName());
 			final List<Variable> inParams = new ArrayList<Variable>(method.getInParams());
 			final List<Variable> postParams = new ArrayList<Variable>();
 			postParams.addAll(method.getInParams());
 			if (!method.getOutParams().isEmpty()) {
+				//System.out.println("Here");
 				postParams.addAll(method.getOutParams());
-			} else if (!method.getReturnType().isEmpty()) {
+			} 
+			else 
+				if (!method.getReturnType().isEmpty()) {
 				int ctr = 0;
 				for (Type tp : method.getReturnType()) {
+					//System.out.println(tp);
 					postParams.add(new Variable("resultVar" + (ctr++), tp));
 				}
 			}
@@ -84,6 +89,13 @@ public class HornEncoderContext {
 			Log.debug("method: " + method.getMethodName());
 			Log.debug("pre: " + inParams);
 			Log.debug("post: " + postParams);
+			
+			
+//			System.out.println("out params: " + method.getOutParams());
+//			System.out.println("returnType List: " + method.getReturnType());
+//			System.out.println("pre: " + inParams);
+//			System.out.println("post: " + postParams);
+//			System.out.println("--------------------");
 
 			final HornPredicate pre = new HornPredicate(p, method.getMethodName() + "_pre", inParams);
 			final HornPredicate post = new HornPredicate(p, method.getMethodName() + "_post", postParams);

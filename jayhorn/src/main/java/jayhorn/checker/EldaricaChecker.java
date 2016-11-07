@@ -70,10 +70,13 @@ public class EldaricaChecker {
 
 			Hornify.hornToSMTLIBFile(allClauses, 0, prover);
 			Hornify.hornToFile(allClauses, 0);
-
-			for (ProverHornClause clause : allClauses)
+			System.out.println("Total Horn Clauses " + allClauses.size());
+			int i = 0;
+			for (ProverHornClause clause : allClauses){
+				System.out.println(i +  " "+ clause);
 				prover.addAssertion(clause);
-
+				i++;
+			}
 			Stopwatch satTimer = Stopwatch.createStarted();
 			if (jayhorn.Options.v().getTimeout() > 0) {
 				int timeoutInMsec = (int) TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());

@@ -44,9 +44,10 @@ public class SpacerChecker implements Checker{
 		this.factory = factory;
 	}
 
-	private List<ProverHornClause> tsClauses = new LinkedList<ProverHornClause>();
-	private List<ProverHornClause> propertyClauses = new LinkedList<ProverHornClause>();
+	//private List<ProverHornClause> tsClauses = new LinkedList<ProverHornClause>();
+	//private List<ProverHornClause> propertyClauses = new LinkedList<ProverHornClause>();
 	private Map<ProverExpr, ProverResult> results = new HashMap<ProverExpr, ProverResult>();
+	private List<ProverHornClause> allClauses = new LinkedList<ProverHornClause>();
 	
 	public boolean checkProgram(Program program) {
 		Preconditions.checkNotNull(program.getEntryPoint(),
@@ -58,8 +59,9 @@ public class SpacerChecker implements Checker{
 		HornEncoderContext hornContext = hf.toHorn(program);
 		Stats.stats().add("ToHorn", String.valueOf(toHornTimer.stop()));
 		prover = hf.getProver();
-		tsClauses = S2H.sh().getTransitionRelationClause();
-		propertyClauses = S2H.sh().getPropertyClause();
+		//tsClauses = S2H.sh().getTransitionRelationClause();
+		//propertyClauses = S2H.sh().getPropertyClause();
+		allClauses.addAll(hf.clauses);
 				
 		if (Options.v().getPrintHorn()) {
 			System.out.println(hf.writeHorn());
@@ -76,45 +78,50 @@ public class SpacerChecker implements Checker{
 			final ProverHornClause entryClause = prover.mkHornClause(entryAtom, new ProverExpr[0],
 					prover.mkLiteral(true));
 
-			tsClauses.add(entryClause);
+			//tsClauses.add(entryClause);
+			allClauses.add(entryClause);
 			
-			Hornify.hornToSMTLIBFile(tsClauses, 0, prover);
-			Hornify.hornToFile(tsClauses, 0);
-			
+			//int i = 0;
 			Log.info("Add Transition Relation to the solver");
-			for (ProverHornClause clause : tsClauses){
-				//System.out.println(clause);
+			for (ProverHornClause clause : allClauses){
+				//System.out.println(i + " " + clause);
 				prover.addRule(clause);
+				//i++;
 				//prover.printRules();
 				//System.out.println("-=======");
 			}
-			Log.info("Add Properties");
-			for (ProverHornClause clause : propertyClauses){
-				prover.addRule(clause);
-			}
-			prover.printRules();
+			
+			//System.out.println("Total Horn Clauses " + (tsClauses.size() + propertyClauses.size()));
+			//Hornify.hornToSMTLIBFile(tsClauses, 0, prover);
+			//Hornify.hornToFile(tsClauses, 0);
+//			int i = 0;
+//			Log.info("Add Transition Relation to the solver");
+//			for (ProverHornClause clause : tsClauses){
+//				System.out.println(i + " " + clause);
+//				prover.addRule(clause);
+//				i++;
+//				//prover.printRules();
+//				//System.out.println("-=======");
+//			}
+//			Log.info("Add Properties");
+//			for (ProverHornClause clause : propertyClauses){
+//				System.out.println(i + " " + clause);
+//				prover.addRule(clause);
+//				i++;
+//			}
+		//	prover.printRules();
 			Log.info("Checking properties");
 			Stopwatch satTimer = Stopwatch.createStarted();
+			if (S2H.sh().getErrorState().isEmpty()){
+				Stats.stats().add("Warning", "No assertions found.");
+				return true;
+			}
 			for (ProverExpr prop: S2H.sh().getErrorState()){
-			//	System.out.println(prop);
 				result = prover.query(prop);	
 				results.put(prop, result);
-//     			System.out.println("Result " + result);
 		}
 			Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));
-			
-			
-			//prover.printRules();
-			
-//			if (jayhorn.Options.v().getTimeout() > 0) {
-//				int timeoutInMsec = (int) TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());
-//
-//				prover.checkSat(false);
-//				result = prover.getResult(timeoutInMsec);
-//			} else {
-//				result = prover.checkSat(true);
-//			}
-			
+		
 		} catch (Throwable t) {
 			t.printStackTrace();
 			throw new RuntimeException(t);
