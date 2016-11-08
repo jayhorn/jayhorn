@@ -15,8 +15,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import jayhorn.checker.EldaricaChecker;
+import jayhorn.checker.SpacerChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
+import jayhorn.solver.spacer.SpacerProverFactory;
 import jayhorn.test.Util;
 import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
@@ -64,8 +66,8 @@ public class FailingTests {
 	}
 
 	@Test
-	public void testWithPrincess() {
-		verifyAssertions(new PrincessProverFactory());
+	public void testWithSpacer() {
+		verifyAssertions(new SpacerProverFactory());
 	}
 
 //	@Test
@@ -86,8 +88,9 @@ public class FailingTests {
 			Program program = soot2cfg.getProgram();
 			
 			jayhorn.Options.v().setTimeout(5);
-			jayhorn.Options.v().setPrintHorn(false);	
-	  		EldaricaChecker hornChecker = new EldaricaChecker(factory);
+			jayhorn.Options.v().setPrintHorn(true);
+//	  		EldaricaChecker hornChecker = new EldaricaChecker(factory);
+			SpacerChecker hornChecker = new SpacerChecker(factory);
 	  		boolean result = hornChecker.checkProgram(program);
 	  		
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
