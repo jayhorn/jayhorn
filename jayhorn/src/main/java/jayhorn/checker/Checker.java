@@ -94,37 +94,7 @@ public class Checker {
 			} else {
 				result = prover.checkSat(true);
 			}
-			
-			if (prover.getLastSolution()!=null) {
-				StringBuilder sb = new StringBuilder();
-				for (Entry<String, String> entry : prover.getLastSolution().entrySet()) {
-					boolean found = false;
-					for (Entry<ClassVariable, Map<Long, HornPredicate>> pentry : hornContext.getInvariantPredicates().entrySet()) {
-						for (Entry<Long, HornPredicate> predEntry : pentry.getValue().entrySet()) {
-							HornPredicate hp = predEntry.getValue(); 
-							if (hp.predicate.toString().contains(entry.getKey())) {
-								//we found one.
-								sb.append(pentry.getKey().getName());
-								sb.append(":\n\t");
-								int i=0;
-								String readable = entry.getValue();
-								for (Variable v : hp.variables) {
-									readable = readable.replace("_"+(i++), v.getName());
-								}
-								sb.append(readable);
-								sb.append("\n");
-								found = true;
-								break;
-							}
-						}
-						if (found) {
-							break;
-						}
-					}
-				}
-				System.err.println(sb.toString());
-			}
-			
+			printHeapInvariants(hornContext);
 			Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));
 			
 			
@@ -155,5 +125,39 @@ public class Checker {
 			return false;
 		}
 		throw new RuntimeException("Verification failed with prover code " + result);
+	}
+	
+	private void printHeapInvariants(HornEncoderContext hornContext) {
+		if (prover.getLastSolution()!=null) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("No assertion can fail using the following heap invarians:\n");
+			for (Entry<String, String> entry : prover.getLastSolution().entrySet()) {
+				boolean found = false;
+				for (Entry<ClassVariable, Map<Long, HornPredicate>> pentry : hornContext.getInvariantPredicates().entrySet()) {
+					for (Entry<Long, HornPredicate> predEntry : pentry.getValue().entrySet()) {
+						HornPredicate hp = predEntry.getValue(); 
+						if (hp.predicate.toString().contains(entry.getKey())) {
+							//we found one.
+							sb.append(pentry.getKey().getName());
+							sb.append(":\n\t");
+							int i=0;
+							String readable = entry.getValue();
+							for (Variable v : hp.variables) {
+								readable = readable.replace("_"+(i++), v.getName());
+							}
+							sb.append(readable);
+							sb.append("\n");
+							found = true;
+							break;
+						}
+					}
+					if (found) {
+						break;
+					}
+				}
+			}
+			sb.append("----\n");
+			System.err.println(sb.toString());
+		}
 	}
 }
