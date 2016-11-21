@@ -26,7 +26,7 @@ public class GraphUtil {
 		V source = null;
 		for (V b : g.vertexSet()) {
 			if (g.inDegreeOf(b)==0) {
-				Verify.verify(source==null, String.format("More than one source: \n\t%s\n\t%s", source, b));
+				Verify.verify(source==null, String.format("More than one source: %n\t%s%n\t%s", source, b));
 				source = b;
 			}
 		}

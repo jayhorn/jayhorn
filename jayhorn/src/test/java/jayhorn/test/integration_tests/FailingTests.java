@@ -5,6 +5,7 @@ package jayhorn.test.integration_tests;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,6 +48,7 @@ public class FailingTests {
 	private static void collectFileNamesRecursively(File file, List<Object[]> filenames) {
 		File[] directoryListing = file.listFiles();
 		if (directoryListing != null) {
+			Arrays.sort(directoryListing);
 			for (File child : directoryListing) {
 				if (child.isFile() && child.getName().endsWith(".java")) {
 					filenames.add(new Object[] { child, child.getName() });
