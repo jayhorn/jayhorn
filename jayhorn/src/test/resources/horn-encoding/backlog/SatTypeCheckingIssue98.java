@@ -1,6 +1,6 @@
 import java.util.Random;
 
-public class TypeCheckingIssue98 {
+public class SatTypeCheckingIssue98 {
 
     static Random rand = new Random();
 
@@ -28,6 +28,7 @@ public class TypeCheckingIssue98 {
             if (rand.nextBoolean()) 
                 return; //false
         }
-        //assert (count <= n*KEY_SIZE + 1);
+        assert (count <= n*KEY_SIZE + 1);
+        
     }
 }

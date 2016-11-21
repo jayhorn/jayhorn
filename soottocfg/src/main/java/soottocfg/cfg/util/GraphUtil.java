@@ -26,7 +26,7 @@ public class GraphUtil {
 		V source = null;
 		for (V b : g.vertexSet()) {
 			if (g.inDegreeOf(b)==0) {
-				Verify.verify(source==null);
+				Verify.verify(source==null, String.format("More than one source: \n\t%s\n\t%s", source, b));
 				source = b;
 			}
 		}
@@ -62,6 +62,21 @@ public class GraphUtil {
 			}
 		}
 		return sinks;
+	}
+	
+	/**
+	 * Returns the set of all sinks in 'g'
+	 * @param g Directed graph.
+	 * @return Set of all sinks in 'g'.
+	 */
+	public static <V> Set<V> getSources(DirectedGraph<V, ?> g) {
+		Set<V> sources = new HashSet<V>();
+		for (V b : g.vertexSet()) {
+			if (g.inDegreeOf(b)==0) {
+				sources.add(b);
+			}
+		}
+		return sources;
 	}
 	
 	/**

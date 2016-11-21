@@ -86,7 +86,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		methodName = uniqueName;
 		returnTypes = outTypes;
 		locals = new LinkedHashSet<Variable>();
-		this.parameterList = Collections.unmodifiableList(params);
+		this.parameterList = new LinkedList<Variable>(params);
 	}
 
 	public Method createMethodFromSubgraph(DirectedGraph<CfgBlock, CfgEdge> subgraph, String newMethodName) {
@@ -271,12 +271,12 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	}
 
 	/**
-	 * Returns immutable view of the list of parameters.
+	 * Returns list of parameters.
 	 * 
-	 * @return immutable view of the list of parameters.
+	 * @return list of parameters.
 	 */
 	public List<Variable> getInParams() {
-		return Collections.unmodifiableList(this.parameterList);
+		return this.parameterList;
 	}
 
 	/**

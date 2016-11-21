@@ -29,15 +29,26 @@ public class PullStatement extends Statement {
 	private IdentifierExpression object;
 	private final List<IdentifierExpression> left;
 
+	private final List<Expression> ghostExpressions;
+
+	
+	public PullStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj,
+			List<IdentifierExpression> lhs) {
+		this(loc, c, obj, lhs, null);
+	}
 	/**
 	 * @param loc
 	 */
 	public PullStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj,
-			List<IdentifierExpression> lhs) {
+			List<IdentifierExpression> lhs, List<Expression> ghostExp) {
 		super(loc);
 		classConstant = c;
 		object = obj;
 		left = new LinkedList<IdentifierExpression>(lhs);
+		this.ghostExpressions = new LinkedList<Expression>();
+		if (ghostExp!=null) {
+			this.ghostExpressions.addAll(ghostExp);
+		}
 		assert (c.getAssociatedFields().length == left.size());
 	}
 
@@ -45,9 +56,21 @@ public class PullStatement extends Statement {
 		return left;
 	}
 	
-    public void addGhostField(IdentifierExpression e) {
-    	left.add(e);
+    public List<Expression> getGhostExpressions() {
+    	return this.ghostExpressions;
     }
+	
+	
+	
+	
+    public void addGhostField(IdentifierExpression e) {
+    	addGhostField(left.size(), e);
+    }
+    
+    public void addGhostField(int pos, IdentifierExpression e) {
+    	left.add(pos, e);
+    }
+    
 	
     public ClassVariable getClassSignature() {
         return classConstant;
@@ -61,6 +84,9 @@ public class PullStatement extends Statement {
 	public Set<IdentifierExpression> getUseIdentifierExpressions() {
 		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
 		used.add(object);
+		for (Expression e: ghostExpressions) {
+			used.addAll(e.getUseIdentifierExpressions());
+		}
 		return used;
 	}
 
@@ -85,6 +111,10 @@ public class PullStatement extends Statement {
 		sb.append(classConstant.getName());
 		sb.append(", ");
 		sb.append(object);
+		for (Expression e : this.ghostExpressions) {
+			sb.append(", ");
+			sb.append(e);
+		}
 		sb.append(")");
 		return sb.toString();
 	}
@@ -95,7 +125,11 @@ public class PullStatement extends Statement {
 		for (IdentifierExpression e : left) {
 			leftCopy.add(e.deepCopy());
 		}
-		return new PullStatement(getSourceLocation(), classConstant, object.deepCopy(), leftCopy);
+		List<Expression> ghostCopy = new LinkedList<Expression>();
+		for (Expression e : ghostExpressions) {
+			ghostCopy.add(e.deepCopy());
+		}
+		return new PullStatement(getSourceLocation(), classConstant, object.deepCopy(), leftCopy, ghostCopy);
 	}
 
 	@Override
@@ -104,7 +138,12 @@ public class PullStatement extends Statement {
 		for (IdentifierExpression e : left) {
 			leftCopy.add(e.substitute(subs));
 		}
-		return new PullStatement(getSourceLocation(), classConstant, object.substitute(subs), leftCopy);
+		List<Expression> ghostCopy = new LinkedList<Expression>();
+		for (Expression e : ghostExpressions) {
+			ghostCopy.add(e.substitute(subs));
+		}
+		
+		return new PullStatement(getSourceLocation(), classConstant, object.substitute(subs), leftCopy, ghostCopy);
 	}
 
 }

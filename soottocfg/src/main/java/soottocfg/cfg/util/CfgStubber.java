@@ -75,7 +75,7 @@ public class CfgStubber {
 //							System.out.println("Adding ID: " + rt.getClassVariable());
 							rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
 						} else {
-							Variable undefLocal = new Variable("undef_field" + (i++), IntType.instance());
+							Variable undefLocal = new Variable("undef_field" + (i++), v.getType());
 							rhs.add(new IdentifierExpression(loc, undefLocal));
 						}
 					}
@@ -110,7 +110,7 @@ public class CfgStubber {
 									// type.
 									rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
 								} else {
-									Variable undefLocal = new Variable("undef_field" + (f++), IntType.instance());
+									Variable undefLocal = new Variable("undef_field" + (f++), v.getType());
 									rhs.add(new IdentifierExpression(loc, undefLocal));
 								}
 							}
@@ -121,7 +121,7 @@ public class CfgStubber {
 							PushStatement push = new PushStatement(loc, rt.getClassVariable(), ret, rhs);
 							block.addStatement(push);
 						} else {
-							Variable outVar = new Variable(MethodInfo.returnVariableName, IntType.instance());
+							Variable outVar = new Variable(MethodInfo.returnVariableName, t);
 							rets.add(outVar);
 						}
 					}
@@ -151,7 +151,7 @@ public class CfgStubber {
 					// TODO:
 					int i = 0;
 					while (rhs.size() < c.getAssociatedFields().length) {
-						Variable undefLocal = new Variable("undef_field" + (i++), IntType.instance());
+						Variable undefLocal = new Variable("undef_field" + (i++), c.getAssociatedFields()[i].getType() /*IntType.instance()*/);
 						rhs.add(new IdentifierExpression(loc, undefLocal));
 					}
 					PushStatement push = new PushStatement(loc, c, new IdentifierExpression(loc, argsParam), rhs);

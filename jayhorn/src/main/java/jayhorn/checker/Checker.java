@@ -1,10 +1,10 @@
 package jayhorn.checker;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
@@ -20,12 +20,12 @@ import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
+import jayhorn.utils.CallingContextTransformer;
+import jayhorn.utils.GhostRegister;
 import jayhorn.utils.Stats;
 import soottocfg.cfg.Program;
-import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.statement.CallStatement;
-import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 
 /**
@@ -46,6 +46,13 @@ public class Checker {
 		Preconditions.checkNotNull(program.getEntryPoint(),
 				"The program has no entry points and thus is trivially verified.");	
 
+		GhostRegister.reset();
+		if (Options.v().useCallIDs) {
+			Log.info("Inserting call IDs  ... ");
+			CallingContextTransformer cct = new CallingContextTransformer();
+			cct.transform(program);
+		}
+		
 		Log.info("Hornify  ... ");
 		Hornify hf = new Hornify(factory);
 		Stopwatch toHornTimer = Stopwatch.createStarted();
@@ -82,13 +89,57 @@ public class Checker {
 			Stopwatch satTimer = Stopwatch.createStarted();
 			if (jayhorn.Options.v().getTimeout() > 0) {
 				int timeoutInMsec = (int) TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());
-
 				prover.checkSat(false);
 				result = prover.getResult(timeoutInMsec);
 			} else {
 				result = prover.checkSat(true);
 			}
+			
+			if (prover.getLastSolution()!=null) {
+				StringBuilder sb = new StringBuilder();
+				for (Entry<String, String> entry : prover.getLastSolution().entrySet()) {
+					boolean found = false;
+					for (Entry<ClassVariable, Map<Long, HornPredicate>> pentry : hornContext.getInvariantPredicates().entrySet()) {
+						for (Entry<Long, HornPredicate> predEntry : pentry.getValue().entrySet()) {
+							HornPredicate hp = predEntry.getValue(); 
+							if (hp.predicate.toString().contains(entry.getKey())) {
+								//we found one.
+								sb.append(pentry.getKey().getName());
+								sb.append(":\n\t");
+								int i=0;
+								String readable = entry.getValue();
+								for (Variable v : hp.variables) {
+									readable = readable.replace("_"+(i++), v.getName());
+								}
+								sb.append(readable);
+								sb.append("\n");
+								found = true;
+								break;
+							}
+						}
+						if (found) {
+							break;
+						}
+					}
+				}
+				System.err.println(sb.toString());
+			}
+			
 			Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));
+			
+			
+//			for (Entry<ClassVariable, Map<Long, HornPredicate>> entry : hornContext.getInvariantPredicates().entrySet()) {
+//				
+//				for (Entry<Long, HornPredicate> entry2 : entry.getValue().entrySet()) {
+//					ProverExpr pe = prover.evaluate(entry2.getValue().instPredicate(new HashMap<Variable, ProverExpr>()));
+//					System.err.println(pe);
+//				}
+//				
+//				
+//			}
+			
+			
+			
 			allClauses.remove(allClauses.size() - 1);
 			prover.pop();
 		} catch (Throwable t) {

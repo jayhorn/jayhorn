@@ -10,8 +10,8 @@ class SatArrayInit
     A[] array = new A[size];
 
     for (int i = 0; i < size; i++) {
-      array[i] = new A();
-      assert array[i] != null;
+      array[i] = new A();      
     }
+    assert array[3] != null;
   }
 }

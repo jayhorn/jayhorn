@@ -412,7 +412,8 @@ public class SootStmtSwitch implements StmtSwitch {
 		receiver.add(methodInfo.getExceptionVariable());
 		if (optionalLhs != null) {
 			optionalLhs.apply(valueSwitch);
-			receiver.add(valueSwitch.popExpression());
+			Expression lhs = valueSwitch.popExpression();
+			receiver.add(lhs);
 		}
 		// System.err.println(call);
 		if (call.getMethod().isConstructor() && call instanceof SpecialInvokeExpr) {
@@ -423,6 +424,23 @@ public class SootStmtSwitch implements StmtSwitch {
 			SootTranslationHelpers.v().getMemoryModel().mkConstructorCall(u, call.getMethod(), args);
 		} else {
 			Method method = SootTranslationHelpers.v().lookupOrCreateMethod(call.getMethod());
+			
+//			if (optionalLhs!=null) {
+//				System.err.println("Method " +method.getMethodName());
+//				List<Type> rtypes = new LinkedList<Type>();
+//				for (Expression e : receiver) 
+//					rtypes.add(e.getType());
+//				System.err.println("Receiver " +rtypes.toString());
+//				System.err.println("Out " +method.getReturnType().toString());
+//				Type receiverType = receiver.get(receiver.size()-1).getType();
+//				Type returnType = method.getReturnType().get(method.getReturnType().size()-1);
+//				if (!receiverType.equals(returnType)) {
+//					System.err.println(receiverType);
+//					System.err.println(returnType);
+//					throw new RuntimeException("");
+//				}
+//			}
+			
 			CallStatement stmt = new CallStatement(SootTranslationHelpers.v().getSourceLocation(u), method, args,
 					receiver);
 			this.currentBlock.addStatement(stmt);
