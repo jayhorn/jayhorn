@@ -341,7 +341,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 						}
 					}
 				}
-				cv.setAssociatedFields(fields);
+				cv.addFields(fields);
 			} else {
 				// System.err.println("Class not in scene: "+sootClassName);
 				this.constantDictionary.put(cc, new ClassVariable(name, new HashSet<ClassVariable>()));

@@ -70,7 +70,7 @@ public class CfgStubber {
 					List<Expression> rhs = new LinkedList<Expression>();
 					int i = 0;
 					for (Variable v : rt.getClassVariable().getAssociatedFields()) {
-						if (v.getName().contains(SootTranslationHelpers.typeFieldName)) {
+						if (SootTranslationHelpers.v().isDynamicTypeVar(v)) {
 							// Make sure that we set the correct dynamic type.
 //							System.out.println("Adding ID: " + rt.getClassVariable());
 							rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
@@ -105,7 +105,7 @@ public class CfgStubber {
 							List<Expression> rhs = new LinkedList<Expression>();
 
 							for (Variable v : rt.getClassVariable().getAssociatedFields()) {
-								if (v.getName().contains(SootTranslationHelpers.typeFieldName)) {
+								if (SootTranslationHelpers.isDynamicTypeVar(v)) {
 									// Make sure that we set the correct dynamic
 									// type.
 									rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));

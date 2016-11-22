@@ -406,7 +406,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 		SootField typeField = null;
 		if (t instanceof RefType) {			
 			//first make a heap-read of the type filed.
-			typeField = ((RefType)t).getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
+			typeField = SootTranslationHelpers.getTypeField(((RefType)t).getSootClass());
 		} else if (t instanceof ArrayType) {
 			throw new RuntimeException("Remove arrays first");			
 		} else if (t instanceof NullType) {

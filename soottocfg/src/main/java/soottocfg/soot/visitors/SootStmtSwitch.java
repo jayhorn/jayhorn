@@ -529,10 +529,9 @@ public class SootStmtSwitch implements StmtSwitch {
 				SootField typeField = null;
 				if (t instanceof RefType) {
 					// first make a heap-read of the type filed.
-					typeField = ((RefType) t).getSootClass().getFieldByName(SootTranslationHelpers.typeFieldName);
+					typeField = SootTranslationHelpers.getTypeField(((RefType)t).getSootClass());
 				} else if (t instanceof ArrayType) {
-					typeField = Scene.v().getSootClass("java.lang.Object")
-							.getFieldByName(SootTranslationHelpers.typeFieldName);
+					typeField = SootTranslationHelpers.getTypeField(Scene.v().getSootClass("java.lang.Object"));
 				} else {
 					throw new RuntimeException("Not implemented. " + t + ", " + t.getClass());
 				}

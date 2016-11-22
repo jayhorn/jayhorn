@@ -165,6 +165,16 @@ public class NewMemoryModel extends BasicMemoryModel {
 		return true;
 	}
 	
+	
+	private List<SootField> findFieldsRecursively(SootClass sc) {
+		List<SootField> res = new LinkedList<SootField>();
+		if (sc.hasSuperclass() && sc.getSuperclass().resolvingLevel()>SootClass.DANGLING) {
+			res.addAll(findFieldsRecursively(sc.getSuperclass()));
+		}
+		res.addAll(sc.getFields());
+		return res;
+	}
+	
 	@Override
 	public void mkHeapWriteStatement(Unit u, FieldRef fieldRef, Value rhs) {
 		SourceLocation loc = SootTranslationHelpers.v().getSourceLocation(u);
@@ -183,7 +193,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			classVar = lookupClassVariable(
 					SootTranslationHelpers.v().getClassConstant(fieldRef.getField().getDeclaringClass().getType()));
 
-			for (SootField sf : fieldRef.getField().getDeclaringClass().getFields()) {
+			for (SootField sf : findFieldsRecursively(fieldRef.getField().getDeclaringClass())) {
 				if (!sf.isStatic()) {
 					fieldLocals.add(lookupFieldLocal(base.getVariable(), sf));
 				}
@@ -333,7 +343,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 
 			List<Variable> fieldList = new LinkedList<Variable>();
 			fieldList.addAll(fields);
-			classVar.setAssociatedFields(fieldList);
+			classVar.addFields(fieldList);
 			SootTranslationHelpers.v().getProgram().addClassVariable(classVar);
 			staticFieldContainerVariable = new Variable(globalsClassName, new ReferenceType(classVar), true, true);
 		}

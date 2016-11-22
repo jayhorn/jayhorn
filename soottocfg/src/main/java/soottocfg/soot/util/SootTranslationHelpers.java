@@ -54,11 +54,12 @@ public enum SootTranslationHelpers {
 		return INSTANCE;
 	}
 
-	
 	public static final String HavocClassName = "Havoc_Class";
 	public static final String HavocMethodName = "havoc_";
+
 	/**
 	 * Get a method that returns an unknown value of type t.
+	 * 
 	 * @param t
 	 * @return
 	 */
@@ -67,7 +68,7 @@ public enum SootTranslationHelpers {
 			SootClass sClass = new SootClass(HavocClassName, Modifier.PUBLIC | Modifier.PUBLIC);
 			sClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
 			sClass.setResolvingLevel(SootClass.SIGNATURES);
-			Scene.v().addClass(sClass);			
+			Scene.v().addClass(sClass);
 		}
 		SootClass cls = Scene.v().getSootClass(HavocClassName);
 		final String havocMethodName = HavocMethodName + t.toString();
@@ -77,8 +78,8 @@ public enum SootTranslationHelpers {
 		}
 		return cls.getMethodByName("havoc_" + t.toString());
 	}
-	
-	public static SootTranslationHelpers v(Program program){
+
+	public static SootTranslationHelpers v(Program program) {
 		final SootTranslationHelpers instance = INSTANCE;
 		instance.setMemoryModelKind(Options.v().memModel());
 		instance.setProgram(program);
@@ -90,10 +91,10 @@ public enum SootTranslationHelpers {
 
 	public static final String arrayElementTypeFieldName = "$elType";
 	public static final String lengthFieldName = "$length";
-//	public static final String indexFieldNamePrefix = "$idx_";
+	// public static final String indexFieldNamePrefix = "$idx_";
 
 	private transient SootMethod currentMethod;
-//	private transient SootClass currentClass;
+	// private transient SootClass currentClass;
 	private transient String currentSourceFileName;
 
 	private transient MemoryModel memoryModel;
@@ -108,7 +109,43 @@ public enum SootTranslationHelpers {
 		program = null;
 	}
 
+	public static boolean isDynamicTypeVar(Variable v) {
+		return v.getName().contains(SootTranslationHelpers.typeFieldName);
+	}
 
+	public static boolean isDynamicTypeVar(SootField f) {
+		return f.getName().contains(SootTranslationHelpers.typeFieldName);
+	}
+
+	public static SootField getTypeField(SootClass sc) {
+
+		return Scene.v().getSootClass("java.lang.Object").getFieldByName(SootTranslationHelpers.typeFieldName);
+
+		// return sc.getFieldByName(SootTranslationHelpers.typeFieldName);
+	}
+
+	public static void createTypeFields() {
+		SootClass sc = Scene.v().getSootClass("java.lang.Object");
+		if (!sc.declaresField(SootTranslationHelpers.typeFieldName)) {
+			SootField sf = new SootField(SootTranslationHelpers.typeFieldName,
+					RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC );
+			sc.addField(sf);
+		}
+		// List<SootClass> classes = new
+		// LinkedList<SootClass>(Scene.v().getClasses());
+		// for (SootClass sc : classes) {
+		// createTypeField(sc);
+		// }
+	}
+
+	public static SootField createTypeField(SootClass sc) {
+		return getTypeField(sc);
+		// SootField sf = new SootField(SootTranslationHelpers.typeFieldName,
+		// RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC
+		// | Modifier.FINAL);
+		// sc.addField(sf);
+		// return sf;
+	}
 
 	public Value getDefaultValue(soot.Type t) {
 		Value rhs = null;
@@ -138,15 +175,15 @@ public enum SootTranslationHelpers {
 		return rhs;
 	}
 
-	
 	public ClassConstant getClassConstant(Type t) {
 		if (t instanceof RefType) {
 			final String className = ((RefType) t).getClassName().replace(".", "/");
 			return ClassConstant.v(className);
 		} else if (t instanceof ArrayType) {
-//			final String className = getFakeArrayClass((ArrayType)t).getName().replace(".", "/");
-//			return ClassConstant.v(className);
-			throw new RuntimeException("Remove Arrays first! "+t);
+			// final String className =
+			// getFakeArrayClass((ArrayType)t).getName().replace(".", "/");
+			// return ClassConstant.v(className);
+			throw new RuntimeException("Remove Arrays first! " + t);
 		} else if (t instanceof PrimType) {
 			final String className = ((PrimType) t).toString();
 			return ClassConstant.v(className);
@@ -164,41 +201,44 @@ public enum SootTranslationHelpers {
 			parameterList.add(new Variable(parameterPrefix + (parameterCount++),
 					getMemoryModel().lookupType(m.getDeclaringClass().getType())));
 		}
-		
-//		if (Options.v().passCallerIdIntoMethods()) {
-//			parameterList.add(new Variable(parameterPrefix + (parameterCount++), IntType.instance()));
-//		}
-		
+
+		// if (Options.v().passCallerIdIntoMethods()) {
+		// parameterList.add(new Variable(parameterPrefix + (parameterCount++),
+		// IntType.instance()));
+		// }
+
 		for (int i = 0; i < m.getParameterCount(); i++) {
 			parameterList.add(new Variable(parameterPrefix + (parameterCount++),
 					getMemoryModel().lookupType(m.getParameterType(i))));
 		}
-		
+
 		List<soottocfg.cfg.type.Type> outVarTypes = new LinkedList<soottocfg.cfg.type.Type>();
 		if (!m.getReturnType().equals(VoidType.v())) {
 			outVarTypes.add(memoryModel.lookupType(m.getReturnType()));
-//		} else if (m.isConstructor()) {
-//			/* For constructors, we assume that they return all final fields
-//			 * that are assigned in this constructor and the parent constructors.
-//			 */
-//			SootClass cl = m.getDeclaringClass();
-////			while (cl != null) {
-//			//TODO: what do we do about fields from supertypes?
-//				for (SootField sf : cl.getFields()) {
-//					if (sf.isFinal()) {
-//						outVarTypes.add(memoryModel.lookupType(sf.getType()));
-//					}
-//				}
-////				if (cl.hasSuperclass()) {
-////					cl = cl.getSuperclass();
-////				} else {
-////					cl = null;
-////				}
-////			}			
+			// } else if (m.isConstructor()) {
+			// /* For constructors, we assume that they return all final fields
+			// * that are assigned in this constructor and the parent
+			// constructors.
+			// */
+			// SootClass cl = m.getDeclaringClass();
+			//// while (cl != null) {
+			// //TODO: what do we do about fields from supertypes?
+			// for (SootField sf : cl.getFields()) {
+			// if (sf.isFinal()) {
+			// outVarTypes.add(memoryModel.lookupType(sf.getType()));
+			// }
+			// }
+			//// if (cl.hasSuperclass()) {
+			//// cl = cl.getSuperclass();
+			//// } else {
+			//// cl = null;
+			//// }
+			//// }
 		}
-		return Method.createMethodInProgram(program, m.getSignature(), parameterList, outVarTypes, SootTranslationHelpers.v().getSourceLocation(m));
+		return Method.createMethodInProgram(program, m.getSignature(), parameterList, outVarTypes,
+				SootTranslationHelpers.v().getSourceLocation(m));
 	}
-	
+
 	public Stmt getDefaultReturnStatement(Type returnType, Host createdFrom) {
 		Stmt stmt;
 		if (returnType instanceof VoidType) {
@@ -279,13 +319,13 @@ public enum SootTranslationHelpers {
 		return this.memoryModel;
 	}
 
-  public void setCurrentClass(SootClass currentClass) {
+	public void setCurrentClass(SootClass currentClass) {
 		String fn = findFileName(currentClass.getTags());
 		if (fn != null) {
 			this.currentSourceFileName = fn;
 		}
 
-//		this.currentClass = currentClass;
+		// this.currentClass = currentClass;
 	}
 
 	private String findFileName(List<Tag> tags) {
@@ -327,7 +367,7 @@ public enum SootTranslationHelpers {
 	public int getJavaSourceLine(AbstractHost ah) {
 		return ah.getJavaSourceStartLineNumber();
 	}
-	
+
 	public int getUniqueNumberForUnit(Unit u) {
 		return u.hashCode();
 	}

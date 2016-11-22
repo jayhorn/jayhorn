@@ -27,6 +27,14 @@ public class ClassVariable extends Variable  {
 		parentConstants = new HashSet<ClassVariable>();
 		parentConstants.addAll(parents);
 		associatedFields = new LinkedList<Variable>();
+		//add all fields from the super class
+		for (ClassVariable parent : parents) {
+			for (Variable pfield : parent.getAssociatedFields()) {
+				if (!hasField(pfield.getName())) {
+					associatedFields.add(new Variable(pfield.getName(), pfield.getType()));
+				}
+			}
+		}
 	}
 
 	public String getName() {
@@ -37,9 +45,14 @@ public class ClassVariable extends Variable  {
 		return Collections.unmodifiableCollection(parentConstants);
 	}
 
-	public void setAssociatedFields(List<Variable> fields) {
-		associatedFields = new LinkedList<Variable>();
-		associatedFields.addAll(fields);
+	public void addFields(List<Variable> fields) {
+		for (Variable f : fields) {
+			if (!hasField(f.getName())) {
+				associatedFields.add(new Variable(f.getName(), f.getType()));
+			} else {
+				//warn about that.
+			}
+		}
 	}
 
 	public Variable[] getAssociatedFields() {
