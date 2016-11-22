@@ -101,14 +101,6 @@ public class PushStatement extends Statement {
     	return id;
     }
     
-    public void addGhostField(Expression e) {
-    	addGhostField(right.size(), e);
-    }
-
-    public void addGhostField(int pos, Expression e) {
-    	right.add(pos, e);
-    }
-
     
 	@Override
 	public Set<IdentifierExpression> getUseIdentifierExpressions() {

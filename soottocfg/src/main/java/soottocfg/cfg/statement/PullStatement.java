@@ -59,19 +59,7 @@ public class PullStatement extends Statement {
     public List<Expression> getGhostExpressions() {
     	return this.ghostExpressions;
     }
-	
-	
-	
-	
-    public void addGhostField(IdentifierExpression e) {
-    	addGhostField(left.size(), e);
-    }
-    
-    public void addGhostField(int pos, IdentifierExpression e) {
-    	left.add(pos, e);
-    }
-    
-	
+		
     public ClassVariable getClassSignature() {
         return classConstant;
     }
@@ -84,9 +72,9 @@ public class PullStatement extends Statement {
 	public Set<IdentifierExpression> getUseIdentifierExpressions() {
 		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
 		used.add(object);
-		for (Expression e: ghostExpressions) {
-			used.addAll(e.getUseIdentifierExpressions());
-		}
+//		for (Expression e: ghostExpressions) {
+//			used.addAll(e.getUseIdentifierExpressions());
+//		}
 		return used;
 	}
 
@@ -94,6 +82,10 @@ public class PullStatement extends Statement {
 	public Set<IdentifierExpression> getDefIdentifierExpressions() {
 		Set<IdentifierExpression> res = new HashSet<IdentifierExpression>();
 		res.addAll(left);
+		for (Expression e: ghostExpressions) {
+			res.addAll(e.getUseIdentifierExpressions());
+		}
+
 		return res;
 	}
 

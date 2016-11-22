@@ -101,7 +101,7 @@ public class Options {
 	// * Print CFG
 	// */
 	@Option(name = "-cfg", usage = "Print CFG", required = false)
-	private boolean printCFG = false;
+	public boolean printCFG = false;
 
 	
 	@Option(name = "-specs", usage = "Use built-in specs", required = false)
@@ -246,7 +246,7 @@ public class Options {
 //		soottocfg.Options.v().passCallerIdIntoMethods(passCallerID);
 		soottocfg.Options.v().setExcAsAssert(insertRuntimeAssertions);
 		soottocfg.Options.v().setMemPrecision(memPrecision);
-		soottocfg.Options.v().setPrintCFG(printCFG);
+//		soottocfg.Options.v().setPrintCFG(printCFG);
 		soottocfg.Options.v().setInlineMaxSize(inlineMaxSize);
 		soottocfg.Options.v().setInlineCount(inlineCount);
 	}

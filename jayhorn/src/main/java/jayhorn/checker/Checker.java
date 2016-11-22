@@ -27,6 +27,7 @@ import jayhorn.utils.GhostRegister;
 import jayhorn.utils.Stats;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 
@@ -49,10 +50,19 @@ public class Checker {
 				"The program has no entry points and thus is trivially verified.");	
 
 		GhostRegister.reset();
+		
+		if (soottocfg.Options.v().memPrecision() >= 2) {
+			GhostRegister.v().ghostVariableMap.put("pushID", IntType.instance());
+		}
+		
 		if (Options.v().useCallIDs) {
 			Log.info("Inserting call IDs  ... ");
 			CallingContextTransformer cct = new CallingContextTransformer();
 			cct.transform(program);
+		}
+		
+		if (Options.v().printCFG) {
+			System.out.println(program);
 		}
 		
 		Log.info("Hornify  ... ");

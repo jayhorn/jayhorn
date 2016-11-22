@@ -13,6 +13,7 @@ import java.util.Set;
 import com.google.common.base.Verify;
 
 import soot.Local;
+import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
@@ -165,6 +166,9 @@ public class NewMemoryModel extends BasicMemoryModel {
 		return true;
 	}
 	
+	private List<SootField> findFieldsRecursivelyForRef(Value v) {
+		return findFieldsRecursively(((RefType)v.getType()).getSootClass());
+	}
 	
 	private List<SootField> findFieldsRecursively(SootClass sc) {
 		List<SootField> res = new LinkedList<SootField>();
@@ -190,11 +194,16 @@ public class NewMemoryModel extends BasicMemoryModel {
 			InstanceFieldRef ifr = (InstanceFieldRef) fieldRef;
 			ifr.getBase().apply(valueSwitch);
 			base = (IdentifierExpression) valueSwitch.popExpression();
-			classVar = lookupClassVariable(
-					SootTranslationHelpers.v().getClassConstant(fieldRef.getField().getDeclaringClass().getType()));
-
-			for (SootField sf : findFieldsRecursively(fieldRef.getField().getDeclaringClass())) {
-				if (!sf.isStatic()) {
+//			classVar = lookupClassVariable(
+//					SootTranslationHelpers.v().getClassConstant(fieldRef.getField().getDeclaringClass().getType()));
+			classVar = ((ReferenceType)base.getType()).getClassVariable();
+			
+			System.err.println(classVar);
+			
+//			for (SootField sf : findFieldsRecursively(fieldRef.getField().getDeclaringClass())) {
+			for (SootField sf : findFieldsRecursivelyForRef(ifr.getBase())) {
+				System.err.println("\t"+sf);
+				if (!sf.isStatic()) {					
 					fieldLocals.add(lookupFieldLocal(base.getVariable(), sf));
 				}
 			}
@@ -259,9 +268,13 @@ public class NewMemoryModel extends BasicMemoryModel {
 			InstanceFieldRef ifr = (InstanceFieldRef) fieldRef;
 			ifr.getBase().apply(valueSwitch);
 			base = (IdentifierExpression) valueSwitch.popExpression();
-			classVar = lookupClassVariable(
-					SootTranslationHelpers.v().getClassConstant(fieldRef.getField().getDeclaringClass().getType()));
-			for (SootField sf : fieldRef.getField().getDeclaringClass().getFields()) {
+//			classVar = lookupClassVariable(
+//					SootTranslationHelpers.v().getClassConstant(fieldRef.getField().getDeclaringClass().getType()));			
+			classVar = ((ReferenceType)base.getType()).getClassVariable();
+
+			for (SootField sf : findFieldsRecursivelyForRef(ifr.getBase())) {
+//			for (SootField sf : findFieldsRecursively(fieldRef.getField().getDeclaringClass())) {			
+//			for (SootField sf : fieldRef.getField().getDeclaringClass().getFields()) {
 				if (!sf.isStatic()) {
 					fieldLocals.add(lookupFieldLocal(base.getVariable(), sf));
 				}

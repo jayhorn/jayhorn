@@ -6,7 +6,6 @@ package soottocfg.cfg;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,7 +13,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jgrapht.DirectedGraph;
-import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
@@ -26,7 +24,6 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.Type;
-import soottocfg.cfg.util.GraphUtil;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 
@@ -88,51 +85,6 @@ public class Program {
 
 	public DirectedGraph<ClassVariable, DefaultEdge> getTypeGraph() {
 		return this.typeGraph;
-	}
-
-	/**
-	 * Adds a field v to class cv and then traverses
-	 * the class hierarchy and adds v to all children
-	 * of cv at the same position where v was inserted
-	 * in the super class ... this ensures that subtyping
-	 * still works.
-	 * @param cv
-	 * @param v
-	 * @return
-	 */
-	public int safelyInsertField(ClassVariable cv, Variable v) {		
-		Verify.verify(!cv.hasField(v.getName()),
-				String.format("%s already contains field named %s", cv.getName(), v.getName()));
-
-		int pos = cv.getAssociatedFields().length;
-		cv.addGhostField(v);
-		
-		List<ClassVariable> todo = new LinkedList<ClassVariable>();
-		Set<ClassVariable> done = new HashSet<ClassVariable>();
-		todo.addAll(Graphs.successorListOf(typeGraph, cv));
-		while (!todo.isEmpty()) {
-			cv = todo.remove(0);
-			cv.addGhostFieldAtPos(v, pos);
-			done.add(cv);
-			for (ClassVariable suc : Graphs.successorListOf(typeGraph, cv)) {
-				if (!todo.contains(suc) && !done.contains(suc)) {
-					todo.add(suc);
-				}
-			}
-		}
-		return pos;
-	}
-
-	public int safelyInsertFieldIntoRootClass(Variable v) {
-		int pos = -1;
-		for (ClassVariable cv : GraphUtil.getSources(this.getTypeGraph())) {
-			//TODO: hacky.
-			int tmp = safelyInsertField(cv, v);
-			if (cv.getName().endsWith("java/lang/Object")) {
-				pos = tmp;
-			}
-		}
-		return pos;
 	}
 
 	public Variable lookupGlobalVariable(String varName, Type t) {
