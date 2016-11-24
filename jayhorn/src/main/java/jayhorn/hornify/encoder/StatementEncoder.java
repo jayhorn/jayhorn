@@ -274,7 +274,18 @@ public class StatementEncoder {
 		clauses.add(p.mkHornClause(preCondAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 
 		
-		Verify.verify(actualPostParams.length==contract.postcondition.variables.size());
+		if (actualPostParams.length!=contract.postcondition.variables.size()) {
+			StringBuilder sb = new StringBuilder();			
+			sb.append(cs.toString());
+			sb.append("  [");
+			for (Type t : cs.getCallTarget().getReturnType()) {
+				sb.append(", ");
+				sb.append(t);
+			}
+			sb.append("]");
+			Verify.verify(false, sb.toString());
+		}
+		
 		for (int i=0;i<contract.postcondition.variables.size();i++) {
 			ProverType t_ = actualPostParams[i].getType();
 			ProverType vt = HornHelper.hh().getProverType(p, contract.postcondition.variables.get(i).getType());

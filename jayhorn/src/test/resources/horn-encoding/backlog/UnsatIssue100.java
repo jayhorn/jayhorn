@@ -1,5 +1,5 @@
 class A {
-	public int x;
+//	public int x;
 }
 
 class B extends A {
@@ -10,7 +10,7 @@ public class UnsatIssue100 {
 
 	public static void main(String args[]) {
 		B b = new B(); 
-		b.x = 40;
+//		b.x = 40;
 		b.y = 42;
 		assert false;
 	}

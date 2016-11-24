@@ -37,6 +37,8 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.SootRunner;
 import soottocfg.soot.SootToCfg.MemModel;
@@ -128,7 +130,7 @@ public enum SootTranslationHelpers {
 		SootClass sc = Scene.v().getSootClass("java.lang.Object");
 		if (!sc.declaresField(SootTranslationHelpers.typeFieldName)) {
 			SootField sf = new SootField(SootTranslationHelpers.typeFieldName,
-					RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC );
+					RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC);
 			sc.addField(sf);
 		}
 		// List<SootClass> classes = new
@@ -147,6 +149,21 @@ public enum SootTranslationHelpers {
 		// return sf;
 	}
 
+	public static List<SootField> findFieldsRecursivelyForRef(Value v) {
+		return findFieldsRecursively(((RefType) v.getType()).getSootClass());
+	}
+
+	public static List<SootField> findFieldsRecursively(SootClass sc) {
+		List<SootField> res = new LinkedList<SootField>();
+		if (sc.hasSuperclass() && sc.getSuperclass().resolvingLevel() > SootClass.DANGLING) {
+			res.addAll(findFieldsRecursively(sc.getSuperclass()));
+		}
+		res.addAll(sc.getFields());
+		return res;
+	}
+
+	
+	
 	public Value getDefaultValue(soot.Type t) {
 		Value rhs = null;
 		if (t instanceof PrimType) {
@@ -215,25 +232,20 @@ public enum SootTranslationHelpers {
 		List<soottocfg.cfg.type.Type> outVarTypes = new LinkedList<soottocfg.cfg.type.Type>();
 		if (!m.getReturnType().equals(VoidType.v())) {
 			outVarTypes.add(memoryModel.lookupType(m.getReturnType()));
-			// } else if (m.isConstructor()) {
-			// /* For constructors, we assume that they return all final fields
-			// * that are assigned in this constructor and the parent
-			// constructors.
-			// */
-			// SootClass cl = m.getDeclaringClass();
-			//// while (cl != null) {
-			// //TODO: what do we do about fields from supertypes?
-			// for (SootField sf : cl.getFields()) {
-			// if (sf.isFinal()) {
-			// outVarTypes.add(memoryModel.lookupType(sf.getType()));
-			// }
-			// }
-			//// if (cl.hasSuperclass()) {
-			//// cl = cl.getSuperclass();
-			//// } else {
-			//// cl = null;
-			//// }
-			//// }
+		} else if (m.isConstructor()) {
+			/*
+			 * For constructors, we assume that they return all fields
+			 * that are assigned in this constructor
+			 */			
+			for (SootField sf : SootTranslationHelpers.findFieldsRecursively(m.getDeclaringClass())) {
+				outVarTypes.add(memoryModel.lookupType(sf.getType()));
+			}
+			
+//			ClassVariable cv = ((ReferenceType) memoryModel.lookupType(m.getDeclaringClass().getType()))
+//					.getClassVariable();
+//			for (Variable fieldVar : cv.getAssociatedFields()) {
+//				outVarTypes.add(fieldVar.getType());
+//			}
 		}
 		return Method.createMethodInProgram(program, m.getSignature(), parameterList, outVarTypes,
 				SootTranslationHelpers.v().getSourceLocation(m));

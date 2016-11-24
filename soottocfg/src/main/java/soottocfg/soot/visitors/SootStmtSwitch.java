@@ -343,7 +343,23 @@ public class SootStmtSwitch implements StmtSwitch {
 
 	@Override
 	public void caseReturnVoidStmt(ReturnVoidStmt arg0) {
-		precheck(arg0);
+		precheck(arg0);		
+//		if (sootMethod.isConstructor()) {
+//			SourceLocation loc = getCurrentLoc();
+//			SootClass currentClass = SootTranslationHelpers.v().getCurrentMethod().getDeclaringClass();			
+//			List<SootField> fields = SootTranslationHelpers.findFieldsRecursively(currentClass);
+//			JimpleBody jb = (JimpleBody)this.sootMethod.getActiveBody();
+//			
+//			for (int i=1; i<methodInfo.getOutVariables().size();i++) {
+//				Variable outVar = methodInfo.getOutVariables().get(i);
+//				Variable tmp = methodInfo.createFreshLocal("afdafd", outVar.getType(), false, false);
+//				
+//				AssignStatement as = new AssignStatement(loc, 
+//						new IdentifierExpression(loc, outVar), 
+//						new IdentifierExpression(loc, tmp));
+//				currentBlock.addStatement(as);
+//			}
+//		}
 		connectBlocks(currentBlock, methodInfo.getSink());
 		currentBlock = null;
 	}
@@ -424,23 +440,24 @@ public class SootStmtSwitch implements StmtSwitch {
 			SootTranslationHelpers.v().getMemoryModel().mkConstructorCall(u, call.getMethod(), args);
 		} else {
 			Method method = SootTranslationHelpers.v().lookupOrCreateMethod(call.getMethod());
-			
-//			if (optionalLhs!=null) {
-//				System.err.println("Method " +method.getMethodName());
-//				List<Type> rtypes = new LinkedList<Type>();
-//				for (Expression e : receiver) 
-//					rtypes.add(e.getType());
-//				System.err.println("Receiver " +rtypes.toString());
-//				System.err.println("Out " +method.getReturnType().toString());
-//				Type receiverType = receiver.get(receiver.size()-1).getType();
-//				Type returnType = method.getReturnType().get(method.getReturnType().size()-1);
-//				if (!receiverType.equals(returnType)) {
-//					System.err.println(receiverType);
-//					System.err.println(returnType);
-//					throw new RuntimeException("");
-//				}
-//			}
-			
+
+			// if (optionalLhs!=null) {
+			// System.err.println("Method " +method.getMethodName());
+			// List<Type> rtypes = new LinkedList<Type>();
+			// for (Expression e : receiver)
+			// rtypes.add(e.getType());
+			// System.err.println("Receiver " +rtypes.toString());
+			// System.err.println("Out " +method.getReturnType().toString());
+			// Type receiverType = receiver.get(receiver.size()-1).getType();
+			// Type returnType =
+			// method.getReturnType().get(method.getReturnType().size()-1);
+			// if (!receiverType.equals(returnType)) {
+			// System.err.println(receiverType);
+			// System.err.println(returnType);
+			// throw new RuntimeException("");
+			// }
+			// }
+
 			CallStatement stmt = new CallStatement(SootTranslationHelpers.v().getSourceLocation(u), method, args,
 					receiver);
 			this.currentBlock.addStatement(stmt);
@@ -529,7 +546,7 @@ public class SootStmtSwitch implements StmtSwitch {
 				SootField typeField = null;
 				if (t instanceof RefType) {
 					// first make a heap-read of the type filed.
-					typeField = SootTranslationHelpers.getTypeField(((RefType)t).getSootClass());
+					typeField = SootTranslationHelpers.getTypeField(((RefType) t).getSootClass());
 				} else if (t instanceof ArrayType) {
 					typeField = SootTranslationHelpers.getTypeField(Scene.v().getSootClass("java.lang.Object"));
 				} else {

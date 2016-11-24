@@ -16,6 +16,7 @@ import com.google.common.base.Verify;
 
 import soot.Local;
 import soot.RefType;
+import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.VoidType;
@@ -40,6 +41,7 @@ public class MethodInfo {
 	public static final String returnVariableName = "$ret_";
 	public static final String exceptionVariableName = "$ex_";
 	private static final String thisVariableName = "$this_";
+	private static final String constructorOutVarName = "$co_";
 
 	private final SootMethod sootMethod;
 	private final Method cfgMethod;
@@ -76,6 +78,13 @@ public class MethodInfo {
 					SootTranslationHelpers.v().getMemoryModel().lookupType(sm.getReturnType())));
 		} 
 
+		if (sm.isConstructor()) {
+			int i=0;
+			for (SootField sf : SootTranslationHelpers.findFieldsRecursively(sm.getDeclaringClass())) {
+				this.returnVariables.add(new Variable(constructorOutVarName+(++i), SootTranslationHelpers.v().getMemoryModel().lookupType(sf.getType())));
+			}
+		}
+		
 		// If the method is not static, create a this-variable which is
 		// passed as the first parameter to the method.
 		if (!sm.isStatic()) {
@@ -137,6 +146,14 @@ public class MethodInfo {
 		return new IdentifierExpression(methodLoc, this.returnVariables.get(0));
 	}
 
+	public Variable getOutVariable(int i) {
+		Verify.verify(this.returnVariables.size() >= 2 && i>=0 && i<this.returnVariables.size());
+		return this.returnVariables.get(i);
+	}
+
+	public List<Variable> getOutVariables() {
+		return this.returnVariables;
+	}
 	
 	// public Expression getExceptionVariable() {
 	// return new IdentifierExpression(this.exceptionalReturnVariable);

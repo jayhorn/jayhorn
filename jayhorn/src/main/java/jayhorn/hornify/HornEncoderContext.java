@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.google.common.base.Verify;
+
 import jayhorn.Log;
 import jayhorn.solver.Prover;
 import jayhorn.utils.GhostRegister;
@@ -81,6 +83,8 @@ public class HornEncoderContext {
 			postParams.addAll(method.getInParams());
 			
 			if (!method.getOutParams().isEmpty()) {
+				Verify.verify(method.getOutParams().size()==method.getReturnType().size(), 
+						method.getOutParams().size()+"!="+method.getReturnType().size());
 				postParams.addAll(method.getOutParams());
 			} else if (!method.getReturnType().isEmpty()) {
 				int ctr = 0;

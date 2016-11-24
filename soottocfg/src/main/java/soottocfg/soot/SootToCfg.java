@@ -27,6 +27,7 @@ import soot.ValueBox;
 import soot.jimple.IdentityStmt;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.Jimple;
+import soot.jimple.JimpleBody;
 import soot.jimple.toolkits.scalar.UnreachableCodeEliminator;
 import soottocfg.Options;
 import soottocfg.cfg.Program;
@@ -351,13 +352,18 @@ public class SootToCfg {
 	private void addDefaultInitializers(SootMethod constructor, SootClass containingClass) {
 		if (constructor.isConstructor()) {
 			Preconditions.checkArgument(constructor.getDeclaringClass().equals(containingClass));
+			JimpleBody jbody = (JimpleBody)constructor.retrieveActiveBody();
+			
+			//TODO: use this guy in instead.
+//			jbody.insertIdentityStmts();
+			
 			Set<SootField> instanceFields = new LinkedHashSet<SootField>();
 			for (SootField f : containingClass.getFields()) {
 				if (!f.isStatic()) {
 					instanceFields.add(f);
 				}
 			}
-			for (ValueBox vb : constructor.retrieveActiveBody().getDefBoxes()) {
+			for (ValueBox vb : jbody.getDefBoxes()) {
 				if (vb.getValue() instanceof InstanceFieldRef) {
 					Value base = ((InstanceFieldRef) vb.getValue()).getBase();
 					soot.Type baseType = base.getType();
@@ -370,7 +376,8 @@ public class SootToCfg {
 			}
 
 			Unit insertPos = null;
-			for (Unit u : constructor.getActiveBody().getUnits()) {
+			
+			for (Unit u : jbody.getUnits()) {
 				if (u instanceof IdentityStmt) {
 					insertPos = u;
 				} else {
@@ -381,17 +388,17 @@ public class SootToCfg {
 				Unit init;
 				if (SootTranslationHelpers.isDynamicTypeVar(f)) {
 					init = Jimple.v().newAssignStmt(
-							Jimple.v().newInstanceFieldRef(constructor.getActiveBody().getThisLocal(), f.makeRef()),
+							Jimple.v().newInstanceFieldRef(jbody.getThisLocal(), f.makeRef()),
 							SootTranslationHelpers.v().getClassConstant(RefType.v(containingClass)));
 				} else {
 					init = Jimple.v().newAssignStmt(
-							Jimple.v().newInstanceFieldRef(constructor.getActiveBody().getThisLocal(), f.makeRef()),
+							Jimple.v().newInstanceFieldRef(jbody.getThisLocal(), f.makeRef()),
 							SootTranslationHelpers.v().getDefaultValue(f.getType()));
 				}
 				if (insertPos==null) {
-					constructor.getActiveBody().getUnits().addFirst(init);	
+					jbody.getUnits().addFirst(init);	
 				} else {
-					constructor.getActiveBody().getUnits().insertAfter(init, insertPos);
+					jbody.getUnits().insertAfter(init, insertPos);
 				}
 			}
 

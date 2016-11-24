@@ -13,7 +13,6 @@ import java.util.Set;
 import com.google.common.base.Verify;
 
 import soot.Local;
-import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
@@ -22,6 +21,7 @@ import soot.Unit;
 import soot.Value;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
+import soot.jimple.JimpleBody;
 import soot.jimple.StaticFieldRef;
 import soot.jimple.Stmt;
 //import soot.jimple.spark.geom.geomPA.GeomPointsTo;
@@ -37,6 +37,7 @@ import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.MethodInfo;
@@ -58,17 +59,17 @@ public class NewMemoryModel extends BasicMemoryModel {
 	private static List<SootField> usedStaticFields;
 	public static final String globalsClassName = "JayhornGlobals";
 	private static final String globalsClassVarName = "JayhornGlobalsClassVar";
-	
+
 	protected static void resetGlobalState() {
 		NewMemoryModel.staticFieldContainerVariable = null;
-		NewMemoryModel.usedStaticFields = null;		
+		NewMemoryModel.usedStaticFields = null;
 	}
-	
+
 	public NewMemoryModel() {
 		NewMemoryModel.resetGlobalState();
-		
+
 		// load points to analysis
-//		setGeomPointsToAnalysis();
+		// setGeomPointsToAnalysis();
 	}
 
 	public void clearFieldToLocalMap() {
@@ -76,44 +77,46 @@ public class NewMemoryModel extends BasicMemoryModel {
 		// method:
 		fieldToLocalMap.clear();
 	}
-	
+
 	private boolean pullAt(Unit u, FieldRef fr) {
 		SootMethod m = SootTranslationHelpers.v().getCurrentMethod();
-		
+
 		if (fr instanceof InstanceFieldRef) {
 			InstanceFieldRef ifr = (InstanceFieldRef) fr;
-			
+
 			// in constructor never pull 'this'
 			if (m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal()))
 				return false;
-		} else if (fr instanceof StaticFieldRef) {	
-			
+		} else if (fr instanceof StaticFieldRef) {
+
 			// in static initializer never pull static field
 			if (m.isStaticInitializer())
 				return false;
 		}
 		return true;
 	}
-	
+
 	private boolean pushAt(Unit u, FieldRef fr) {
 		SootMethod m = SootTranslationHelpers.v().getCurrentMethod();
 		UnitGraph graph = new CompleteUnitGraph(m.getActiveBody());
-		
+
 		if (fr instanceof InstanceFieldRef) {
 			InstanceFieldRef ifr = (InstanceFieldRef) fr;
 
 			// in constructor only push 'this' after the last access
 			if (m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal())) {
-				
-				//check if there is any path from 'u' to the tail(s) that does not contain an write to 'this'
+
+				// check if there is any path from 'u' to the tail(s) that does
+				// not contain an write to 'this'
 				List<Unit> tails = graph.getTails();
 				List<Unit> todo = new LinkedList<Unit>();
 				todo.add(u);
 				boolean foundPathWithoutAccess = false;
 				while (!todo.isEmpty()) {
 					Unit unit = todo.remove(0);
-					
-					// if it contains another write to 'this', stop exploring this path
+
+					// if it contains another write to 'this', stop exploring
+					// this path
 					Stmt s = (Stmt) unit;
 					if (s.containsFieldRef()) {
 						FieldRef fr2 = s.getFieldRef();
@@ -124,12 +127,13 @@ public class NewMemoryModel extends BasicMemoryModel {
 							}
 						}
 					}
-					
+
 					if (tails.contains(unit)) {
 						if (!s.containsInvokeExpr()) {
-							foundPathWithoutAccess = true; // at the end of this path
+							foundPathWithoutAccess = true; // at the end of this
+															// path
 						}
-					} else { 
+					} else {
 						todo.addAll(graph.getSuccsOf(unit));
 					}
 				}
@@ -138,47 +142,37 @@ public class NewMemoryModel extends BasicMemoryModel {
 		} else if (fr instanceof StaticFieldRef) {
 			// in static initializer only push at the end
 			if (m.isStaticInitializer()) {
-				
-				//check if there is any path from 'u' to the tail(s) that does not contain an access to 'this'
+
+				// check if there is any path from 'u' to the tail(s) that does
+				// not contain an access to 'this'
 				List<Unit> tails = graph.getTails();
 				List<Unit> todo = new LinkedList<Unit>();
 				todo.add(u);
 				boolean foundPathWithoutAccess = false;
 				while (!todo.isEmpty()) {
 					Unit unit = todo.remove(0);
-					
-					// if it contains another access to a static field, stop exploring this path
+
+					// if it contains another access to a static field, stop
+					// exploring this path
 					Stmt s = (Stmt) unit;
 					if (s.containsFieldRef()) {
 						FieldRef fr2 = s.getFieldRef();
 						if (fr2 instanceof StaticFieldRef && !u.equals(unit))
-								continue;
+							continue;
 					}
-					
+
 					if (tails.contains(unit))
-						foundPathWithoutAccess = true; // at the end of this path
+						foundPathWithoutAccess = true; // at the end of this
+														// path
 					else
 						todo.addAll(graph.getSuccsOf(unit));
 				}
 				return foundPathWithoutAccess;
 			}
-		}	
+		}
 		return true;
 	}
-	
-	private List<SootField> findFieldsRecursivelyForRef(Value v) {
-		return findFieldsRecursively(((RefType)v.getType()).getSootClass());
-	}
-	
-	private List<SootField> findFieldsRecursively(SootClass sc) {
-		List<SootField> res = new LinkedList<SootField>();
-		if (sc.hasSuperclass() && sc.getSuperclass().resolvingLevel()>SootClass.DANGLING) {
-			res.addAll(findFieldsRecursively(sc.getSuperclass()));
-		}
-		res.addAll(sc.getFields());
-		return res;
-	}
-	
+
 	@Override
 	public void mkHeapWriteStatement(Unit u, FieldRef fieldRef, Value rhs) {
 		SourceLocation loc = SootTranslationHelpers.v().getSourceLocation(u);
@@ -194,16 +188,13 @@ public class NewMemoryModel extends BasicMemoryModel {
 			InstanceFieldRef ifr = (InstanceFieldRef) fieldRef;
 			ifr.getBase().apply(valueSwitch);
 			base = (IdentifierExpression) valueSwitch.popExpression();
-//			classVar = lookupClassVariable(
-//					SootTranslationHelpers.v().getClassConstant(fieldRef.getField().getDeclaringClass().getType()));
-			classVar = ((ReferenceType)base.getType()).getClassVariable();
-			
-			System.err.println(classVar);
-			
-//			for (SootField sf : findFieldsRecursively(fieldRef.getField().getDeclaringClass())) {
-			for (SootField sf : findFieldsRecursivelyForRef(ifr.getBase())) {
-				System.err.println("\t"+sf);
-				if (!sf.isStatic()) {					
+			// classVar = lookupClassVariable(
+			// SootTranslationHelpers.v().getClassConstant(fieldRef.getField().getDeclaringClass().getType()));
+			classVar = ((ReferenceType) base.getType()).getClassVariable();
+			// for (SootField sf :
+			// findFieldsRecursively(fieldRef.getField().getDeclaringClass())) {
+			for (SootField sf : SootTranslationHelpers.findFieldsRecursivelyForRef(ifr.getBase())) {
+				if (!sf.isStatic()) {
 					fieldLocals.add(lookupFieldLocal(base.getVariable(), sf));
 				}
 			}
@@ -268,13 +259,16 @@ public class NewMemoryModel extends BasicMemoryModel {
 			InstanceFieldRef ifr = (InstanceFieldRef) fieldRef;
 			ifr.getBase().apply(valueSwitch);
 			base = (IdentifierExpression) valueSwitch.popExpression();
-//			classVar = lookupClassVariable(
-//					SootTranslationHelpers.v().getClassConstant(fieldRef.getField().getDeclaringClass().getType()));			
-			classVar = ((ReferenceType)base.getType()).getClassVariable();
+			// classVar = lookupClassVariable(
+			// SootTranslationHelpers.v().getClassConstant(fieldRef.getField().getDeclaringClass().getType()));
+			classVar = ((ReferenceType) base.getType()).getClassVariable();
 
-			for (SootField sf : findFieldsRecursivelyForRef(ifr.getBase())) {
-//			for (SootField sf : findFieldsRecursively(fieldRef.getField().getDeclaringClass())) {			
-//			for (SootField sf : fieldRef.getField().getDeclaringClass().getFields()) {
+			for (SootField sf : SootTranslationHelpers.findFieldsRecursivelyForRef(ifr.getBase())) {
+				// for (SootField sf :
+				// findFieldsRecursively(fieldRef.getField().getDeclaringClass()))
+				// {
+				// for (SootField sf :
+				// fieldRef.getField().getDeclaringClass().getFields()) {
 				if (!sf.isStatic()) {
 					fieldLocals.add(lookupFieldLocal(base.getVariable(), sf));
 				}
@@ -313,13 +307,15 @@ public class NewMemoryModel extends BasicMemoryModel {
 		this.statementSwitch.push(new AssignStatement(loc, left,
 				new IdentifierExpression(this.statementSwitch.getCurrentLoc(), fieldVar)));
 		// ------------- push -----------------
-//		if (pushAt(u, fieldRef)) {
-//			List<Expression> packedVars = new LinkedList<Expression>();
-//			for (int i = 0; i < vars.length; i++) {
-//				packedVars.add(new IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
-//			}
-//			this.statementSwitch.push(new PushStatement(loc, classVar, base, packedVars));
-//		}
+		// if (pushAt(u, fieldRef)) {
+		// List<Expression> packedVars = new LinkedList<Expression>();
+		// for (int i = 0; i < vars.length; i++) {
+		// packedVars.add(new
+		// IdentifierExpression(this.statementSwitch.getCurrentLoc(), vars[i]));
+		// }
+		// this.statementSwitch.push(new PushStatement(loc, classVar, base,
+		// packedVars));
+		// }
 		// ------------------------------------
 	}
 
@@ -337,12 +333,13 @@ public class NewMemoryModel extends BasicMemoryModel {
 								if (st.containsFieldRef()) {
 									SootField sf = st.getFieldRef().getField();
 									if (sf.isStatic() && !usedStaticFields.contains(sf)) {
-										
+
 										if (!sf.equals(SootTranslationHelpers.v().getExceptionGlobal())) {
-										//TODO hack to exclude the exception field.
-										fields.add(this.lookupField(sf));
-										usedStaticFields.add(sf);
-										
+											// TODO hack to exclude the
+											// exception field.
+											fields.add(this.lookupField(sf));
+											usedStaticFields.add(sf);
+
 										}
 									}
 								}
@@ -375,10 +372,10 @@ public class NewMemoryModel extends BasicMemoryModel {
 	// return getClassVariableFromVar(getVarFromExpression(e));
 	// }
 
-//	private Variable getVarFromExpression(Expression e) {
-//		IdentifierExpression base = (IdentifierExpression) e;
-//		return base.getVariable();
-//	}
+	// private Variable getVarFromExpression(Expression e) {
+	// IdentifierExpression base = (IdentifierExpression) e;
+	// return base.getVariable();
+	// }
 
 	// private ClassVariable getClassVariableFromVar(Variable v) {
 	// ReferenceType baseType =(ReferenceType)v.getType();
@@ -392,34 +389,73 @@ public class NewMemoryModel extends BasicMemoryModel {
 
 		List<Expression> receiver = new LinkedList<Expression>();
 		receiver.add(this.statementSwitch.getMethodInfo().getExceptionVariable());
-		
-//		for (SootField sf : constructor.getDeclaringClass().getFields()) {
-//			if (sf.isFinal()) {
-//				Variable v = lookupFieldLocal(getVarFromExpression(args.get(0)), sf);
-//				receiver.add(new IdentifierExpression(loc, v));
-//			}
-//		}
 
-		Verify.verify(method.getReturnType().size() == receiver.size(),
-				method.getMethodName() + " -> " + method.getReturnType().size() + "!=" + receiver.size());
+		SootClass declClass = constructor.getDeclaringClass();
+		SootClass currentClass = SootTranslationHelpers.v().getCurrentMethod().getDeclaringClass();
 
-		// MethodInfo currentMethodInfo = this.statementSwitch.getMethodInfo();
-		// for (soottocfg.cfg.type.Type tp : method.getReturnType()) {
-		// Variable lhs = currentMethodInfo.createFreshLocal("foo", tp, true,
-		// false);
-		// receiver.add(new IdentifierExpression(loc, lhs));
-		// }
-		// TODO: keep a map between the locals and the fields of this class.
+		if (currentClass.hasSuperclass() && declClass.equals(currentClass.getSuperclass())) {
+			/*
+			 * If this is a call to the super class constructor, use the return
+			 * values to assign all field locals.
+			 */
+			JimpleBody jb = (JimpleBody) SootTranslationHelpers.v().getCurrentMethod().getActiveBody();
+			Variable thisLocal = this.statementSwitch.getMethodInfo().lookupLocalVariable(jb.getThisLocal());
+
+			for (SootField sf : SootTranslationHelpers.findFieldsRecursively(declClass)) {
+				receiver.add(new IdentifierExpression(loc, lookupFieldLocal(thisLocal, sf)));
+			}
+			// ClassVariable cv = ((ReferenceType)
+			// lookupType(declClass.getType())).getClassVariable();
+			// for (Variable fieldVar : cv.getAssociatedFields()) {
+			// System.err.println(fieldVar);
+			// }
+		} else {
+			/*
+			 * If this is not a superclass constructor, just fill the args up
+			 * with dummy variables.
+			 */
+			// ignore the first outparam (for the exception) because we added
+			// that already.
+			for (int i = 1; i < method.getReturnType().size(); i++) {
+				Variable freshLocal = this.statementSwitch.getMethodInfo().createFreshLocal("cret_",
+						method.getReturnType().get(i), false, false);
+				receiver.add(new IdentifierExpression(loc, freshLocal));
+			}
+		}
+		verifyArgLength(u, method, receiver);
+
 		CallStatement stmt = new CallStatement(loc, method, args, receiver);
 		this.statementSwitch.push(stmt);
 	}
-	
+
+	private void verifyArgLength(Unit u, Method method, List<Expression> receiver) {
+		if (method.getReturnType().size() != receiver.size()) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("[");
+			for (Type t : method.getReturnType()) {
+				sb.append(", ");
+				sb.append(t.toString());
+			}
+			sb.append("]");
+			sb.append(" != ");
+			sb.append("[");
+			for (Expression e : receiver) {
+				sb.append(", ");
+				sb.append(e.toString());
+			}
+			sb.append("]");
+
+			Verify.verify(false, method.getMethodName() + " -> " + sb.toString());
+
+		}
+	}
+
 	@Override
 	public void mkCopy(Local lhs, Local rhs) {
-//		System.out.println("Copying " + rhs + " into " + lhs);
+		// System.out.println("Copying " + rhs + " into " + lhs);
 		lhs.apply(valueSwitch);
 		IdentifierExpression base = (IdentifierExpression) valueSwitch.popExpression();
-		for (Map.Entry<Variable,Map<String,Variable>> e : fieldToLocalMap.entrySet()) {
+		for (Map.Entry<Variable, Map<String, Variable>> e : fieldToLocalMap.entrySet()) {
 			if (e.getKey().getName().equals(rhs.getName())) {
 				fieldToLocalMap.put(base.getVariable(), e.getValue());
 				return;
@@ -433,17 +469,44 @@ public class NewMemoryModel extends BasicMemoryModel {
 		}
 		Map<String, Variable> f2l = fieldToLocalMap.get(baseVar);
 		if (!f2l.containsKey(sf.getDeclaration())) {
-			MethodInfo currentMethodInfo = this.statementSwitch.getMethodInfo();
-			soottocfg.cfg.type.Type tp = this.lookupType(sf.getType());
-			String name = baseVar.getName() + "_" + sf.getName() + "_" + sf.getNumber();
-			if (sf.isStatic()) {
-				name = sf.getDeclaringClass().getName() + "_" + sf.getName();
+
+			/*
+			 * for this references in constructors
+			 * we return the out params as field locals.
+			 */
+			if (this.statementSwitch.getMethod().isConstructor()) {
+				JimpleBody jb = (JimpleBody) this.statementSwitch.getMethod().getActiveBody();
+				Variable thisVar = statementSwitch.getMethodInfo().lookupLocalVariable(jb.getThisLocal());
+				if (baseVar.equals(thisVar)) {
+					int i = 1;
+					for (SootField cfield : SootTranslationHelpers.findFieldsRecursively(sf.getDeclaringClass())) {
+						if (cfield.equals(sf)) {
+							System.err.println("jwgsljslgjs " + baseVar);
+							Variable outVar = statementSwitch.getMethodInfo().getOutVariable(i);
+
+							if (!f2l.containsKey(sf.getDeclaration())) {
+								f2l.put(sf.getDeclaration(), outVar);
+							}
+							localToFieldMap.put(outVar, sf);
+							break;
+						}
+						i++;
+					}
+				}
+			} else {
+
+				MethodInfo currentMethodInfo = this.statementSwitch.getMethodInfo();
+				soottocfg.cfg.type.Type tp = this.lookupType(sf.getType());
+				String name = baseVar.getName() + "_" + sf.getName() + "_" + sf.getNumber();
+				if (sf.isStatic()) {
+					name = sf.getDeclaringClass().getName() + "_" + sf.getName();
+				}
+				Variable l = currentMethodInfo.createFreshLocal(name, tp, sf.isFinal(), false);
+				f2l.put(sf.getDeclaration(), l);
+
+				// also add it to the localToFieldMap
+				localToFieldMap.put(l, sf);
 			}
-			Variable l = currentMethodInfo.createFreshLocal(name, tp, sf.isFinal(), false);
-			f2l.put(sf.getDeclaration(), l);
-			
-			// also add it to the localToFieldMap
-			localToFieldMap.put(l, sf);
 		}
 		return f2l.get(sf.getDeclaration());
 	}
@@ -462,47 +525,47 @@ public class NewMemoryModel extends BasicMemoryModel {
 		}
 		return lookupFieldLocal(baseVar, fieldRef.getField());
 	}
-	
+
 	public SootField lookupField(Variable local) {
 		return localToFieldMap.get(local);
 	}
 
-//	private void setGeomPointsToAnalysis() {
-//		HashMap<String, String> opt = new HashMap<String, String>();
-//		opt.put("enabled", "true");
-//		opt.put("verbose", "true");
-//		opt.put("ignore-types", "false");
-//		opt.put("force-gc", "false");
-//		// opt.put("pre-jimplify","false");
-//		// opt.put("vta","false");
-//		// opt.put("rta","false");
-//		// opt.put("field-based","false");
-//		// opt.put("types-for-sites","false");
-//		// opt.put("merge-stringbuffer","true");
-//		// opt.put("string-constants","false");
-//		// opt.put("simulate-natives","true");
-//		// opt.put("simple-edges-bidirectional","false");
-//		// opt.put("on-fly-cg","true");
-//		// opt.put("simplify-offline","false");
-//		// opt.put("simplify-sccs","false");
-//		// opt.put("ignore-types-for-sccs","false");
-//		// opt.put("propagator","worklist");
-//		opt.put("set-impl", "double");
-//		opt.put("double-set-old", "hybrid");
-//		opt.put("double-set-new", "hybrid");
-//		// opt.put("dump-html","false");
-//		// opt.put("dump-pag","false");
-//		// opt.put("dump-solution","false");
-//		// opt.put("topo-sort","false");
-//		// opt.put("dump-types","true");
-//		// opt.put("class-method-var","true");
-//		// opt.put("dump-answer","false");
-//		// opt.put("add-tags","false");
-//		// opt.put("set-mass","false");
-//
-//		// SparkTransformer.v().transform("",opt);
-//		SparkOptions so = new SparkOptions(opt);
-//		GeomPointsTo gpt = new GeomPointsTo(so);
-//		Scene.v().setPointsToAnalysis(gpt);
-//	}
+	// private void setGeomPointsToAnalysis() {
+	// HashMap<String, String> opt = new HashMap<String, String>();
+	// opt.put("enabled", "true");
+	// opt.put("verbose", "true");
+	// opt.put("ignore-types", "false");
+	// opt.put("force-gc", "false");
+	// // opt.put("pre-jimplify","false");
+	// // opt.put("vta","false");
+	// // opt.put("rta","false");
+	// // opt.put("field-based","false");
+	// // opt.put("types-for-sites","false");
+	// // opt.put("merge-stringbuffer","true");
+	// // opt.put("string-constants","false");
+	// // opt.put("simulate-natives","true");
+	// // opt.put("simple-edges-bidirectional","false");
+	// // opt.put("on-fly-cg","true");
+	// // opt.put("simplify-offline","false");
+	// // opt.put("simplify-sccs","false");
+	// // opt.put("ignore-types-for-sccs","false");
+	// // opt.put("propagator","worklist");
+	// opt.put("set-impl", "double");
+	// opt.put("double-set-old", "hybrid");
+	// opt.put("double-set-new", "hybrid");
+	// // opt.put("dump-html","false");
+	// // opt.put("dump-pag","false");
+	// // opt.put("dump-solution","false");
+	// // opt.put("topo-sort","false");
+	// // opt.put("dump-types","true");
+	// // opt.put("class-method-var","true");
+	// // opt.put("dump-answer","false");
+	// // opt.put("add-tags","false");
+	// // opt.put("set-mass","false");
+	//
+	// // SparkTransformer.v().transform("",opt);
+	// SparkOptions so = new SparkOptions(opt);
+	// GeomPointsTo gpt = new GeomPointsTo(so);
+	// Scene.v().setPointsToAnalysis(gpt);
+	// }
 }
