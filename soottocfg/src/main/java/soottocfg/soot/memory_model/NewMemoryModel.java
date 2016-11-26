@@ -404,11 +404,16 @@ public class NewMemoryModel extends BasicMemoryModel {
 			for (SootField sf : SootTranslationHelpers.findFieldsRecursively(declClass)) {
 				receiver.add(new IdentifierExpression(loc, lookupFieldLocal(thisLocal, sf)));
 			}
-			// ClassVariable cv = ((ReferenceType)
-			// lookupType(declClass.getType())).getClassVariable();
-			// for (Variable fieldVar : cv.getAssociatedFields()) {
-			// System.err.println(fieldVar);
-			// }
+			verifyArgLength(u, method, receiver);
+
+			CallStatement stmt = new CallStatement(loc, method, args, receiver);
+			this.statementSwitch.push(stmt);
+			// for superclass constructor calls, we need to update the dynamic
+			// type
+			// after the call.
+			Variable typeVar = lookupFieldLocal(thisLocal, SootTranslationHelpers.getTypeField(currentClass));
+			this.statementSwitch.push(new AssignStatement(loc, new IdentifierExpression(loc, typeVar), new IdentifierExpression(loc,
+					((ReferenceType) lookupType(currentClass.getType())).getClassVariable())));
 		} else {
 			/*
 			 * If this is not a superclass constructor, just fill the args up
@@ -421,11 +426,12 @@ public class NewMemoryModel extends BasicMemoryModel {
 						method.getReturnType().get(i), false, false);
 				receiver.add(new IdentifierExpression(loc, freshLocal));
 			}
-		}
-		verifyArgLength(u, method, receiver);
+			verifyArgLength(u, method, receiver);
 
-		CallStatement stmt = new CallStatement(loc, method, args, receiver);
-		this.statementSwitch.push(stmt);
+			CallStatement stmt = new CallStatement(loc, method, args, receiver);
+			this.statementSwitch.push(stmt);
+
+		}
 	}
 
 	private void verifyArgLength(Unit u, Method method, List<Expression> receiver) {
@@ -481,9 +487,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 					int i = 1;
 					for (SootField cfield : SootTranslationHelpers.findFieldsRecursively(sf.getDeclaringClass())) {
 						if (cfield.equals(sf)) {
-							System.err.println("jwgsljslgjs " + baseVar);
 							Variable outVar = statementSwitch.getMethodInfo().getOutVariable(i);
-
 							if (!f2l.containsKey(sf.getDeclaration())) {
 								f2l.put(sf.getDeclaration(), outVar);
 							}

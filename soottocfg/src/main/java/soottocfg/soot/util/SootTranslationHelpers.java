@@ -37,8 +37,6 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.type.ReferenceType;
-import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.SootRunner;
 import soottocfg.soot.SootToCfg.MemModel;
