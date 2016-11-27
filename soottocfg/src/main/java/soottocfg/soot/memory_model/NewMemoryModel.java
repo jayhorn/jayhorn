@@ -22,6 +22,7 @@ import soot.Value;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.JimpleBody;
+import soot.jimple.SpecialInvokeExpr;
 import soot.jimple.StaticFieldRef;
 import soot.jimple.Stmt;
 //import soot.jimple.spark.geom.geomPA.GeomPointsTo;
@@ -96,6 +97,36 @@ public class NewMemoryModel extends BasicMemoryModel {
 		return true;
 	}
 
+	/**
+	 * Helper method to create a push of all field locals.
+	 * This method should only be used at the very end of a constructor.
+	 */
+	private void pushAllFields() {
+		SootMethod m = SootTranslationHelpers.v().getCurrentMethod();
+		if (!m.isConstructor() || m.isStatic() || !m.isConcrete()) {
+			return;
+		}
+		SourceLocation loc = this.statementSwitch.getCurrentLoc();
+
+		Variable thisLocal = this.statementSwitch.getMethodInfo().lookupLocalVariable(m.getActiveBody().getThisLocal());
+		ClassVariable classVar = ((ReferenceType) thisLocal.getType()).getClassVariable();
+		
+		List<Variable> vars = new LinkedList<Variable>();
+		for (SootField sf : SootTranslationHelpers.findFieldsRecursively(m.getDeclaringClass())) {
+			if (sf.isStatic()) {
+				continue;
+			}
+			vars.add(lookupFieldLocal(thisLocal, sf));
+		}
+
+		List<Expression> packedVars = new LinkedList<Expression>();
+		for (int i = 0; i < vars.size(); i++) {
+			packedVars.add(new IdentifierExpression(loc, vars.get(i)));
+		}
+
+		this.statementSwitch.push(new PushStatement(loc, classVar, new IdentifierExpression(loc, thisLocal), packedVars));
+	}
+
 	private boolean pushAt(Unit u, FieldRef fr) {
 		SootMethod m = SootTranslationHelpers.v().getCurrentMethod();
 		UnitGraph graph = new CompleteUnitGraph(m.getActiveBody());
@@ -125,6 +156,15 @@ public class NewMemoryModel extends BasicMemoryModel {
 							if (ifr2.getBase().equals(m.getActiveBody().getThisLocal()) && !u.equals(unit)) {
 								continue;
 							}
+						}
+					} else if (s.containsInvokeExpr() && s.getInvokeExpr() instanceof SpecialInvokeExpr) {
+						// also stop exploring if there is a call to the
+						// super class constructor.
+						SpecialInvokeExpr ivk = (SpecialInvokeExpr) s.getInvokeExpr();
+
+						if (ivk.getMethod().isConstructor() && ivk.getBase().equals(m.getActiveBody().getThisLocal())) {
+							// super class constructor.
+							continue;
 						}
 					}
 
@@ -264,11 +304,6 @@ public class NewMemoryModel extends BasicMemoryModel {
 			classVar = ((ReferenceType) base.getType()).getClassVariable();
 
 			for (SootField sf : SootTranslationHelpers.findFieldsRecursivelyForRef(ifr.getBase())) {
-				// for (SootField sf :
-				// findFieldsRecursively(fieldRef.getField().getDeclaringClass()))
-				// {
-				// for (SootField sf :
-				// fieldRef.getField().getDeclaringClass().getFields()) {
 				if (!sf.isStatic()) {
 					fieldLocals.add(lookupFieldLocal(base.getVariable(), sf));
 				}
@@ -402,6 +437,9 @@ public class NewMemoryModel extends BasicMemoryModel {
 			Variable thisLocal = this.statementSwitch.getMethodInfo().lookupLocalVariable(jb.getThisLocal());
 
 			for (SootField sf : SootTranslationHelpers.findFieldsRecursively(declClass)) {
+				if (sf.isStatic()) {
+					continue;
+				}
 				receiver.add(new IdentifierExpression(loc, lookupFieldLocal(thisLocal, sf)));
 			}
 			verifyArgLength(u, method, receiver);
@@ -412,8 +450,13 @@ public class NewMemoryModel extends BasicMemoryModel {
 			// type
 			// after the call.
 			Variable typeVar = lookupFieldLocal(thisLocal, SootTranslationHelpers.getTypeField(currentClass));
-			this.statementSwitch.push(new AssignStatement(loc, new IdentifierExpression(loc, typeVar), new IdentifierExpression(loc,
-					((ReferenceType) lookupType(currentClass.getType())).getClassVariable())));
+			this.statementSwitch
+					.push(new AssignStatement(loc, new IdentifierExpression(loc, typeVar), new IdentifierExpression(loc,
+							((ReferenceType) lookupType(currentClass.getType())).getClassVariable())));
+			
+			//TODO: this is a hack at should be handeled properly.
+			pushAllFields();
+
 		} else {
 			/*
 			 * If this is not a superclass constructor, just fill the args up

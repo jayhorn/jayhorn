@@ -305,7 +305,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 
 			if (Scene.v().containsClass(sootClassName)) {
 				SootClass c = Scene.v().getSootClass(sootClassName);
-				Collection<ClassVariable> parents = new HashSet<ClassVariable>();
+				Collection<ClassVariable> parents = new HashSet<ClassVariable>();				
 				if (c.resolvingLevel() >= SootClass.HIERARCHY) {
 					if (c.hasSuperclass()) {
 						/**
@@ -334,8 +334,8 @@ public abstract class BasicMemoryModel extends MemoryModel {
 				this.constantDictionary.put(cc, cv);
 
 				List<Variable> fields = new LinkedList<Variable>();
-				if (c.resolvingLevel() > SootClass.DANGLING) {
-					for (SootField f : c.getFields()) {
+				if (c.resolvingLevel() > SootClass.DANGLING) {					
+					for (SootField f : SootTranslationHelpers.findFieldsRecursively(c)) {
 						if (!f.isStatic()) {
 							fields.add(lookupField(f));
 						}

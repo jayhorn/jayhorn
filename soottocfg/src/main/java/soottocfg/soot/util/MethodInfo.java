@@ -81,6 +81,9 @@ public class MethodInfo {
 		if (sm.isConstructor()) {
 			int i=0;
 			for (SootField sf : SootTranslationHelpers.findFieldsRecursively(sm.getDeclaringClass())) {
+				if (sf.isStatic()) {
+					continue;
+				}
 				this.returnVariables.add(new Variable(constructorOutVarName+(++i), SootTranslationHelpers.v().getMemoryModel().lookupType(sf.getType())));
 			}
 		}

@@ -236,6 +236,9 @@ public enum SootTranslationHelpers {
 			 * that are assigned in this constructor
 			 */			
 			for (SootField sf : SootTranslationHelpers.findFieldsRecursively(m.getDeclaringClass())) {
+				if (sf.isStatic()) {
+					continue;
+				}
 				outVarTypes.add(memoryModel.lookupType(sf.getType()));
 			}
 			

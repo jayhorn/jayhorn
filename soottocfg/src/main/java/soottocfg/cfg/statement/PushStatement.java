@@ -63,10 +63,17 @@ public class PushStatement extends Statement {
 			for (Variable cv : classConstant.getAssociatedFields()) {
 				err.append(comma);
 				comma = ", ";
-				err.append(cv.getName());
+				err.append(cv.getName()+":"+cv.getType());
 			}
 			err.append("] but is assigned to ");
-			err.append(right);
+			err.append("[");
+			comma = "";
+			for (Expression e : right) {
+				err.append(comma);
+				comma = ", ";
+				err.append(e+":"+e.getType());				
+			}
+			err.append("]");
 			Verify.verify(false, err.toString());
 		}
 	}

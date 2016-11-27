@@ -58,20 +58,6 @@ public class ClassVariable extends Variable  {
 	public Variable[] getAssociatedFields() {
 		return associatedFields.toArray(new Variable[associatedFields.size()]);
 	}
-
-	public void addGhostField(Variable gf) {
-		associatedFields.add(associatedFields.size(), gf);
-	}
-	
-	public void addGhostFieldAtPos(Variable gf, int pos) {
-		// TODO handle this nicely
-		//@Rody, is that what you had in mind?
-		if (this.hasField(gf.getName())) {
-			throw new RuntimeException("Cannot add ghostfield, already exists: " + gf.getName());
-		}
-		associatedFields.add(pos, gf);		
-	}
-	
 	
 	public boolean hasField(String fname) {
 		for (Variable v : associatedFields) {			
