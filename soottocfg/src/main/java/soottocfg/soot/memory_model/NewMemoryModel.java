@@ -112,10 +112,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 		ClassVariable classVar = ((ReferenceType) thisLocal.getType()).getClassVariable();
 		
 		List<Variable> vars = new LinkedList<Variable>();
-		for (SootField sf : SootTranslationHelpers.findFieldsRecursively(m.getDeclaringClass())) {
-			if (sf.isStatic()) {
-				continue;
-			}
+		for (SootField sf : SootTranslationHelpers.findNonStaticFieldsRecursively(m.getDeclaringClass())) {
 			vars.add(lookupFieldLocal(thisLocal, sf));
 		}
 
@@ -436,10 +433,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			JimpleBody jb = (JimpleBody) SootTranslationHelpers.v().getCurrentMethod().getActiveBody();
 			Variable thisLocal = this.statementSwitch.getMethodInfo().lookupLocalVariable(jb.getThisLocal());
 
-			for (SootField sf : SootTranslationHelpers.findFieldsRecursively(declClass)) {
-				if (sf.isStatic()) {
-					continue;
-				}
+			for (SootField sf : SootTranslationHelpers.findNonStaticFieldsRecursively(declClass)) {
 				receiver.add(new IdentifierExpression(loc, lookupFieldLocal(thisLocal, sf)));
 			}
 			verifyArgLength(u, method, receiver);
@@ -528,7 +522,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 				Variable thisVar = statementSwitch.getMethodInfo().lookupLocalVariable(jb.getThisLocal());
 				if (baseVar.equals(thisVar)) {
 					int i = 1;
-					for (SootField cfield : SootTranslationHelpers.findFieldsRecursively(sf.getDeclaringClass())) {
+					for (SootField cfield : SootTranslationHelpers.findNonStaticFieldsRecursively(sf.getDeclaringClass())) {
 						if (cfield.equals(sf)) {
 							Variable outVar = statementSwitch.getMethodInfo().getOutVariable(i);
 							if (!f2l.containsKey(sf.getDeclaration())) {

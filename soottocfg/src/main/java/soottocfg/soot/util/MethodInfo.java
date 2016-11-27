@@ -80,10 +80,7 @@ public class MethodInfo {
 
 		if (sm.isConstructor()) {
 			int i=0;
-			for (SootField sf : SootTranslationHelpers.findFieldsRecursively(sm.getDeclaringClass())) {
-				if (sf.isStatic()) {
-					continue;
-				}
+			for (SootField sf : SootTranslationHelpers.findNonStaticFieldsRecursively(sm.getDeclaringClass())) {
 				this.returnVariables.add(new Variable(constructorOutVarName+(++i), SootTranslationHelpers.v().getMemoryModel().lookupType(sf.getType())));
 			}
 		}
@@ -150,7 +147,7 @@ public class MethodInfo {
 	}
 
 	public Variable getOutVariable(int i) {
-		Verify.verify(this.returnVariables.size() >= 2 && i>=0 && i<this.returnVariables.size());
+		Verify.verify(this.returnVariables.size() >= 2 && i>=0 && i<this.returnVariables.size(), "Index bound 0<="+i+"<"+this.returnVariables.size());
 		return this.returnVariables.get(i);
 	}
 

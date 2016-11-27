@@ -150,7 +150,7 @@ public enum SootTranslationHelpers {
 	public static List<SootField> findFieldsRecursivelyForRef(Value v) {
 		return findFieldsRecursively(((RefType) v.getType()).getSootClass());
 	}
-
+	
 	public static List<SootField> findFieldsRecursively(SootClass sc) {
 		List<SootField> res = new LinkedList<SootField>();
 		if (sc.hasSuperclass() && sc.getSuperclass().resolvingLevel() > SootClass.DANGLING) {
@@ -160,6 +160,19 @@ public enum SootTranslationHelpers {
 		return res;
 	}
 
+	public static List<SootField> findNonStaticFieldsRecursivelyForRef(Value v) {
+		return findNonStaticFieldsRecursively(((RefType) v.getType()).getSootClass());
+	}
+	
+	public static List<SootField> findNonStaticFieldsRecursively(SootClass sc) {
+		List<SootField> res = new LinkedList<SootField>();
+		for (SootField sf : findFieldsRecursively(sc)) {
+			if (!sf.isStatic()) {
+				res.add(sf);
+			}
+		}
+		return res;
+ 	}
 	
 	
 	public Value getDefaultValue(soot.Type t) {
@@ -235,10 +248,7 @@ public enum SootTranslationHelpers {
 			 * For constructors, we assume that they return all fields
 			 * that are assigned in this constructor
 			 */			
-			for (SootField sf : SootTranslationHelpers.findFieldsRecursively(m.getDeclaringClass())) {
-				if (sf.isStatic()) {
-					continue;
-				}
+			for (SootField sf : SootTranslationHelpers.findNonStaticFieldsRecursively(m.getDeclaringClass())) {
 				outVarTypes.add(memoryModel.lookupType(sf.getType()));
 			}
 			
