@@ -368,7 +368,7 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		body.getUnits().add(Jimple.v().newReturnStmt(SootTranslationHelpers.v().getDefaultValue(elementType)));
 		getElement.setActiveBody(body);
 
-		SootMethod setElement = new SootMethod(arraySetName, Arrays.asList(new Type[] { elementType, IntType.v() }),
+		SootMethod setElement = new SootMethod(arraySetName, Arrays.asList(new Type[] { IntType.v(), elementType }),
 				VoidType.v(), Modifier.PUBLIC);
 		arrayClass.addMethod(setElement);
 		body = Jimple.v().newBody(setElement);
@@ -378,10 +378,10 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		for (int i = 0; i < ArrayTransformer.NumberOfModeledElements; i++) {
 			Unit asn = Jimple.v().newAssignStmt(
 					Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[i].makeRef()),
-					body.getParameterLocal(0));
+					body.getParameterLocal(1));
 			updates.add(asn);
 			updates.add(Jimple.v().newReturnVoidStmt());
-			Value cond = Jimple.v().newEqExpr(body.getParameterLocal(1), IntConstant.v(i));
+			Value cond = Jimple.v().newEqExpr(body.getParameterLocal(0), IntConstant.v(i));
 			body.getUnits().add(Jimple.v().newIfStmt(cond, asn));
 		}
 		/*

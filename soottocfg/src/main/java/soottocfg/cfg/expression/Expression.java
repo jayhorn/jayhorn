@@ -89,7 +89,6 @@ public abstract class Expression implements Node, Serializable {
 		}
 		return true;
 	}
-
 	
 	public abstract Expression deepCopy();
 	

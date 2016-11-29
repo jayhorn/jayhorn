@@ -14,6 +14,7 @@ import com.google.common.base.Preconditions;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;
@@ -42,7 +43,7 @@ public class CallStatement extends Statement {
 			Expression arg = arguments.get(i);
 			Type parType = method.getInParam(i).getType();
 			
-			if (!arg.canBeAssignedToType(parType)) {
+			if (!(arg instanceof NullLiteral) && !arg.canBeAssignedToType(parType)) {
 				StringBuilder sb = new StringBuilder();
 				sb.append("Type mismatch:\n");
 				sb.append(this.toString());
