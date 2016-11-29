@@ -147,9 +147,14 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		SourceLocation loc = null; // TODO
 		// return var 0 is the exceptional return variable.
 		// first statement has to assign the exception local to null
-		this.source.addStatement(0, new AssignStatement(loc, new IdentifierExpression(loc, this.returnVariables.get(0)),
-				SootTranslationHelpers.v().getMemoryModel().mkNullConstant()));
-
+		if (this.returnVariables != null) {
+			this.source.addStatement(0,
+					new AssignStatement(loc, new IdentifierExpression(loc, this.returnVariables.get(0)),
+							SootTranslationHelpers.v().getMemoryModel().mkNullConstant()));
+		} else {
+			Verify.verify(false, "didn't expect that.");
+		}
+		
 		if (this.thisVariable != null) {
 			// then the first parameter must be the reference to the current
 			// instance
@@ -295,8 +300,8 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	}
 
 	public void setOutParam(List<Variable> returnVariables) {
-		//TODO verify that the types actually match.
-		Verify.verify(returnVariables.size()==this.returnTypes.size(), "Wrong number of vars.");
+		// TODO verify that the types actually match.
+		Verify.verify(returnVariables.size() == this.returnTypes.size(), "Wrong number of vars.");
 		this.returnVariables = returnVariables;
 	}
 

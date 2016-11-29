@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Verify;
 
 import jayhorn.Log;
 import jayhorn.Options;
@@ -57,6 +58,7 @@ public class Checker {
 		
 		if (Options.v().useCallIDs) {
 			Log.info("Inserting call IDs  ... ");
+			Verify.verify(false, "Don't run this for now!");
 			CallingContextTransformer cct = new CallingContextTransformer();
 			cct.transform(program);
 		}

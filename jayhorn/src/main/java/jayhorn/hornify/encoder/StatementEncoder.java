@@ -94,14 +94,14 @@ public class StatementEncoder {
 		} else if (s instanceof CallStatement) {
 			return callToClause((CallStatement) s, postPred, preAtom, varMap);
 		} else if (s instanceof PullStatement) {
-			if (assumedPushIds == null) {
+//			if (assumedPushIds == null) {
 				return pullToClause((PullStatement) s, postPred, preAtom, varMap, -1);
-			} else {
-				List<ProverHornClause> res = new ArrayList<ProverHornClause>();
-				for (Long id : assumedPushIds)
-					res.addAll(pullToClause((PullStatement) s, postPred, preAtom, varMap, id));
-				return res;
-			}
+//			} else {
+//				List<ProverHornClause> res = new ArrayList<ProverHornClause>();
+//				for (Long id : assumedPushIds)
+//					res.addAll(pullToClause((PullStatement) s, postPred, preAtom, varMap, id));
+//				return res;
+//			}
 		} else if (s instanceof PushStatement) {
 			return pushToClause((PushStatement) s, postPred, preAtom, varMap);
 		}
@@ -190,7 +190,7 @@ public class StatementEncoder {
 		return clauses;
 	}
 
-	private long lastpushId = -1;
+//	private long lastpushId = -1;
 
 	public List<ProverHornClause> assignToClause(AssignStatement as, HornPredicate postPred, ProverExpr preAtom,
 			Map<Variable, ProverExpr> varMap) {
@@ -204,8 +204,8 @@ public class StatementEncoder {
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 
-		if (idLhs.getVariable().getName().contains("lastpush") && (as.getRight() instanceof IntegerLiteral))
-			lastpushId = ((IntegerLiteral) as.getRight()).getValue();
+//		if (idLhs.getVariable().getName().contains("lastpush") && (as.getRight() instanceof IntegerLiteral))
+//			lastpushId = ((IntegerLiteral) as.getRight()).getValue();
 
 		return clauses;
 	}
@@ -408,7 +408,7 @@ public class StatementEncoder {
 		Verify.verify(sig.getAssociatedFields().length == ps.getRight().size(),
 				"Unequal lengths: " + sig + " and " + ps.getRight() + " in " + ps);
 		// get the invariant for the ClassVariable
-		final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, lastpushId);
+		final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, -1);
 		final List<Expression> invariantArgs = new LinkedList<Expression>();
 		//TODO: unpack once we have tuples
 		invariantArgs.add(ps.getObject());		
