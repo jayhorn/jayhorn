@@ -90,7 +90,7 @@ public class BigSoundnessTests {
 		File classDir = null;
 		try {
 //			soottocfg.Options.v().passCallerIdIntoMethods(true);
-//			 soottocfg.Options.v().setPrintCFG(true);
+			 soottocfg.Options.v().setPrintCFG(true);
 			// soottocfg.Options.v().setExcAsAssert(true);
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
@@ -101,7 +101,7 @@ public class BigSoundnessTests {
 			boolean result = false;
 			try {
 				soot2cfg.run(classDir.getAbsolutePath(), null);
-				jayhorn.Options.v().setTimeout(80);
+				jayhorn.Options.v().setTimeout(300);
 				//			jayhorn.Options.v().setPrintHorn(true);
 				jayhorn.Options.v().setSolverOptions("abstract");
 

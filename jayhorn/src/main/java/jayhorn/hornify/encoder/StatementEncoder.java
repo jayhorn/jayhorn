@@ -183,8 +183,8 @@ public class StatementEncoder {
 	public List<ProverHornClause> assumeToClause(AssumeStatement as, HornPredicate postPred, ProverExpr preAtom,
 			Map<Variable, ProverExpr> varMap) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
-		final ProverExpr cond = isLashpushAssumption(as) ? p.mkLiteral(true)
-				: expEncoder.exprToProverExpr(as.getExpression(), varMap);
+		final ProverExpr cond = /*isLashpushAssumption(as) ? p.mkLiteral(true)
+				:*/ expEncoder.exprToProverExpr(as.getExpression(), varMap);
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, cond));
 		return clauses;
