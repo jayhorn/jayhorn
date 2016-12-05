@@ -56,11 +56,7 @@ public class NewStatement extends Statement {
 	@Override
 	public Set<IdentifierExpression> getDefIdentifierExpressions() {
 		Set<IdentifierExpression> res = new HashSet<IdentifierExpression>();
-		if (left instanceof IdentifierExpression) {
-			res.add((IdentifierExpression)left);	
-		} else {
-			throw new RuntimeException("Did not consider the case where lhs is not an IdentifierExpression.");
-		}
+		res.add(left);	
 		return res;
 	}
 

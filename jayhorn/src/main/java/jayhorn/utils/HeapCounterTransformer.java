@@ -27,7 +27,7 @@ import soottocfg.cfg.variable.Variable;
  */
 public class HeapCounterTransformer {
 
-	public final String outHeapCounterName = "outHeapCounter";
+	public static final String outHeapCounterName = "outHeapCounter";
 	
 	public HeapCounterTransformer() {
 	}
