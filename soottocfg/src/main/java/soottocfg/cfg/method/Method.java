@@ -57,13 +57,13 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	private final String methodName;
 	private final List<Type> returnTypes;
 	private Variable thisVariable;
-	private List<Variable> returnVariable;
+	private List<Variable> returnVariables;
 	private final List<Variable> parameterList;
 	private Set<Variable> locals;
 	private CfgBlock source, sink;
 	private boolean isProgramEntry = false;
 	private transient BellmanFordShortestPath<CfgBlock, CfgEdge> sourceBF;
-	private transient Map<CfgBlock,BellmanFordShortestPath<CfgBlock, CfgEdge>> sinkBF;
+	private transient Map<CfgBlock, BellmanFordShortestPath<CfgBlock, CfgEdge>> sinkBF;
 
 	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, List<Type> outTypes,
 			SourceLocation sourceLocation) {
@@ -72,7 +72,6 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		// add the exceptional return type to all methods that are generated.
 		List<Type> returnTypes = new LinkedList<Type>();
 		RefType reftype = RefType.v("java.lang.Throwable");
-		Verify.verifyNotNull(reftype);
 		returnTypes.add(SootTranslationHelpers.v().getMemoryModel().lookupType(reftype));
 		returnTypes.addAll(outTypes);
 		Method m = new Method(sourceLocation, uniqueName, params, returnTypes);
@@ -86,7 +85,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		methodName = uniqueName;
 		returnTypes = outTypes;
 		locals = new LinkedHashSet<Variable>();
-		this.parameterList = Collections.unmodifiableList(params);
+		this.parameterList = new LinkedList<Variable>(params);
 	}
 
 	public Method createMethodFromSubgraph(DirectedGraph<CfgBlock, CfgEdge> subgraph, String newMethodName) {
@@ -100,7 +99,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		for (CfgEdge e : subgraph.edgeSet()) {
 			subgraphMethod.addEdge(subgraph.getEdgeSource(e), subgraph.getEdgeTarget(e));
 		}
-		subgraphMethod.initialize(thisVariable, returnVariable, locals, source, isProgramEntry);
+		subgraphMethod.initialize(thisVariable, returnVariables, locals, source, isProgramEntry);
 		return subgraphMethod;
 	}
 
@@ -135,8 +134,12 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		Preconditions.checkNotNull(parameterList, "Parameter list must not be null");
 		Preconditions.checkNotNull(source);
 
+		if (returnVariables != null) {
+			Verify.verify(returnVariables.size() == this.returnTypes.size());
+		}
+
 		this.thisVariable = thisVariable;
-		this.returnVariable = returnVariables;
+		this.returnVariables = returnVariables;
 		this.locals = new LinkedHashSet<Variable>(locals);
 		this.source = source;
 		this.isProgramEntry = isEntryPoint;
@@ -144,9 +147,14 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		SourceLocation loc = null; // TODO
 		// return var 0 is the exceptional return variable.
 		// first statement has to assign the exception local to null
-		this.source.addStatement(0, new AssignStatement(loc, new IdentifierExpression(loc, this.returnVariable.get(0)),
-				SootTranslationHelpers.v().getMemoryModel().mkNullConstant()));
-
+		if (this.returnVariables != null) {
+			this.source.addStatement(0,
+					new AssignStatement(loc, new IdentifierExpression(loc, this.returnVariables.get(0)),
+							SootTranslationHelpers.v().getMemoryModel().mkNullConstant()));
+		} else {
+			Verify.verify(false, "didn't expect that.");
+		}
+		
 		if (this.thisVariable != null) {
 			// then the first parameter must be the reference to the current
 			// instance
@@ -181,17 +189,16 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 
 	public void setSource(CfgBlock b) {
 		Preconditions.checkArgument(this.vertexSet().contains(b));
-		Preconditions.checkArgument(this.inDegreeOf(b)==0);
-		this.source=b;
+		Preconditions.checkArgument(this.inDegreeOf(b) == 0);
+		this.source = b;
 	}
 
 	public void setSink(CfgBlock b) {
 		Preconditions.checkArgument(this.vertexSet().contains(b));
-		Preconditions.checkArgument(this.outDegreeOf(b)==0);
-		this.sink=b;
+		Preconditions.checkArgument(this.outDegreeOf(b) == 0);
+		this.sink = b;
 	}
-	
-	
+
 	public CfgBlock getSource() {
 		if (source == null) {
 			for (CfgBlock b : vertexSet()) {
@@ -201,7 +208,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 				}
 			}
 		}
-//		Verify.verify(source != null, "No source in graph!");
+		// Verify.verify(source != null, "No source in graph!");
 		return source;
 	}
 
@@ -214,7 +221,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 				}
 			}
 		}
-//		Verify.verify(sink != null, "No sink in graph!");
+		// Verify.verify(sink != null, "No sink in graph!");
 		return sink;
 	}
 
@@ -271,29 +278,31 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	}
 
 	/**
-	 * Returns immutable view of the list of parameters.
+	 * Returns list of parameters.
 	 * 
-	 * @return immutable view of the list of parameters.
+	 * @return list of parameters.
 	 */
 	public List<Variable> getInParams() {
-		return Collections.unmodifiableList(this.parameterList);
+		return this.parameterList;
 	}
 
 	/**
-	 * Returns an {@link Optional} Variable of the return variable of the
+	 * Returns an {@link Optional} Variable of the return variables of the
 	 * current Method.
 	 * 
 	 * @return Optional return variable.
 	 */
 	public List<Variable> getOutParams() {
-		if (this.returnVariable == null) {
+		if (this.returnVariables == null) {
 			return new LinkedList<Variable>();
 		}
-		return new LinkedList<Variable>(this.returnVariable);
+		return this.returnVariables;
 	}
 
 	public void setOutParam(List<Variable> returnVariables) {
-		this.returnVariable = returnVariables;
+		// TODO verify that the types actually match.
+		Verify.verify(returnVariables.size() == this.returnTypes.size(), "Wrong number of vars.");
+		this.returnVariables = returnVariables;
 	}
 
 	/**
@@ -381,10 +390,10 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 			}
 			sb.append("\n");
 		}
-		if (this.returnVariable != null) {
+		if (this.returnVariables != null) {
 			sb.append("  Returns: ");
 			comma = "";
-			for (Variable v : this.returnVariable) {
+			for (Variable v : this.returnVariables) {
 				sb.append(comma);
 				sb.append(v.toString());
 				comma = ", ";
@@ -477,22 +486,23 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 
 		return new LiveVars<CfgBlock>(in, out);
 	}
-	
+
 	public int distanceToSource(CfgBlock b) {
-		if (sourceBF==null)
+		if (sourceBF == null)
 			sourceBF = new BellmanFordShortestPath<CfgBlock, CfgEdge>(this, getSource());
 		if (b.equals(getSource()))
 			return 0;
-		else return (int) sourceBF.getCost(b);
+		else
+			return (int) sourceBF.getCost(b);
 	}
-	
+
 	public int distanceToSink(CfgBlock b) {
 		if (b.equals(getSink()))
 			return 0;
-		if (sinkBF==null)
+		if (sinkBF == null)
 			sinkBF = new HashMap<CfgBlock, BellmanFordShortestPath<CfgBlock, CfgEdge>>();
 		BellmanFordShortestPath<CfgBlock, CfgEdge> toSink = sinkBF.get(b);
-		if (toSink==null) {
+		if (toSink == null) {
 			toSink = new BellmanFordShortestPath<CfgBlock, CfgEdge>(this, b);
 			sinkBF.put(b, toSink);
 		}

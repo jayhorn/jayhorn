@@ -63,7 +63,7 @@ public class MissingPushAdder {
 							List<Expression> rhs = new LinkedList<Expression>();
 							int n = 0;
 							for (Variable v : rt.getClassVariable().getAssociatedFields()) {
-								if (v.getName().contains(SootTranslationHelpers.typeFieldName)) {
+								if (SootTranslationHelpers.isDynamicTypeVar(v)) {
 									//Make sure that we set the correct dynamic type.
 									rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
 								} else {

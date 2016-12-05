@@ -6,10 +6,14 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+
+import com.google.common.base.Verify;
 
 import jayhorn.Log;
 import jayhorn.solver.Prover;
+import jayhorn.utils.GhostRegister;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.type.ReferenceType;
@@ -60,6 +64,14 @@ public class HornEncoderContext {
 	}
 
 	/**
+	 * Get the invariant predicates for each class. This is for debugging only.
+	 * @return
+	 */
+	public Map<ClassVariable, Map<Long, HornPredicate>> getInvariantPredicates() {
+		return this.invariantPredicates;
+	}
+	
+	/**
 	 * Creates method contracts for all methods in the current scene.
 	 * @param program
 	 * @param p
@@ -68,8 +80,12 @@ public class HornEncoderContext {
 		for (Method method : program.getMethods()) {
 			final List<Variable> inParams = new ArrayList<Variable>(method.getInParams());
 			final List<Variable> postParams = new ArrayList<Variable>();
-			postParams.addAll(method.getInParams());
+
+			postParams.addAll(inParams);
+			
 			if (!method.getOutParams().isEmpty()) {
+				Verify.verify(method.getOutParams().size()==method.getReturnType().size(), 
+						method.getOutParams().size()+"!="+method.getReturnType().size());
 				postParams.addAll(method.getOutParams());
 			} else if (!method.getReturnType().isEmpty()) {
 				int ctr = 0;
@@ -116,6 +132,13 @@ public class HornEncoderContext {
                 if (!subMap.containsKey(pushId)) {
 			List<Variable> args = new ArrayList<Variable>();
 			args.add(new Variable("ref", new ReferenceType(sig)));
+			
+			//add variables for the ghost fields
+			//used by pull and push.
+			for (Entry<String, Type> entry : GhostRegister.v().ghostVariableMap.entrySet()) {
+				args.add(new Variable(entry.getKey(), entry.getValue()));
+			}
+			
 			for (Variable v : sig.getAssociatedFields()) {
 				args.add(v);
 			}

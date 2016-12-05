@@ -20,7 +20,7 @@ import soottocfg.cfg.variable.Variable;
 public class HornHelper {
 
 	private static HornHelper hh;
-
+	
 	public static void resetInstance() {
 		hh = null;
 	}

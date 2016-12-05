@@ -5,6 +5,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import com.google.common.base.Verify;
+
 import soot.SootMethod;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
@@ -54,36 +56,49 @@ public class CfgStubber {
 
 				if (method.getMethodName().contains(SootMethod.constructorName)) {
 					//ensure that no exception is thrown
-					LinkedList<Variable> rets = new LinkedList<Variable>();
+					LinkedList<Variable> outParams = new LinkedList<Variable>();
 					//when stubbing, set the exceptional return to null.
 					Variable exceptionalRetVar = new Variable("exc", method.getReturnType().get(0));
-					rets.add(exceptionalRetVar);
+					outParams.add(exceptionalRetVar);
+
 					AssignStatement noException = new AssignStatement(loc,
 							new IdentifierExpression(loc, exceptionalRetVar),
 							SootTranslationHelpers.v().getMemoryModel().mkNullConstant());
 					block.addStatement(noException);
-					method.setOutParam(rets);
-					
+							
 					Variable thisPointer = method.getInParams().get(0);
 					ReferenceType rt = getRefTypeFrom(thisPointer);
 
 					List<Expression> rhs = new LinkedList<Expression>();
 					int i = 0;
 					for (Variable v : rt.getClassVariable().getAssociatedFields()) {
-						if (v.getName().contains(SootTranslationHelpers.typeFieldName)) {
+						++i;
+						Variable outVar = new Variable("$out"+i, v.getType());
+						outParams.add(outVar);
+						Variable other;
+						if (SootTranslationHelpers.isDynamicTypeVar(v)) {	
 							// Make sure that we set the correct dynamic type.
-//							System.out.println("Adding ID: " + rt.getClassVariable());
-							rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
+							other = rt.getClassVariable();							
 						} else {
-							Variable undefLocal = new Variable("undef_field" + (i++), IntType.instance());
-							rhs.add(new IdentifierExpression(loc, undefLocal));
+							other = new Variable("undef_field" + i, v.getType());							
 						}
+						//assign the outParams to fresh values.
+						block.addStatement(new AssignStatement(loc, 
+								new IdentifierExpression(loc, outVar), 
+								new IdentifierExpression(loc, other)));
+						//add an element to the push.
+						rhs.add(new IdentifierExpression(loc, other));
 					}
 
 					PushStatement push = new PushStatement(loc, rt.getClassVariable(),
 							new IdentifierExpression(loc, thisPointer), rhs);
 					block.addStatement(push);
 
+					//verify that the size is correct.
+					Verify.verify(outParams.size()==method.getReturnType().size(),
+							outParams.size()+"!="+method.getReturnType().size());
+
+					method.setOutParam(outParams);
 				} else if (method.getReturnType().size() > 0) {
 					LinkedList<Variable> rets = new LinkedList<Variable>();
 					//when stubbing, set the exceptional return to null.
@@ -105,12 +120,12 @@ public class CfgStubber {
 							List<Expression> rhs = new LinkedList<Expression>();
 
 							for (Variable v : rt.getClassVariable().getAssociatedFields()) {
-								if (v.getName().contains(SootTranslationHelpers.typeFieldName)) {
+								if (SootTranslationHelpers.isDynamicTypeVar(v)) {
 									// Make sure that we set the correct dynamic
 									// type.
 									rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
 								} else {
-									Variable undefLocal = new Variable("undef_field" + (f++), IntType.instance());
+									Variable undefLocal = new Variable("undef_field" + (f++), v.getType());
 									rhs.add(new IdentifierExpression(loc, undefLocal));
 								}
 							}
@@ -121,7 +136,7 @@ public class CfgStubber {
 							PushStatement push = new PushStatement(loc, rt.getClassVariable(), ret, rhs);
 							block.addStatement(push);
 						} else {
-							Variable outVar = new Variable(MethodInfo.returnVariableName, IntType.instance());
+							Variable outVar = new Variable(MethodInfo.returnVariableName, t);
 							rets.add(outVar);
 						}
 					}
@@ -151,7 +166,7 @@ public class CfgStubber {
 					// TODO:
 					int i = 0;
 					while (rhs.size() < c.getAssociatedFields().length) {
-						Variable undefLocal = new Variable("undef_field" + (i++), IntType.instance());
+						Variable undefLocal = new Variable("undef_field" + (i++), c.getAssociatedFields()[i].getType() /*IntType.instance()*/);
 						rhs.add(new IdentifierExpression(loc, undefLocal));
 					}
 					PushStatement push = new PushStatement(loc, c, new IdentifierExpression(loc, argsParam), rhs);

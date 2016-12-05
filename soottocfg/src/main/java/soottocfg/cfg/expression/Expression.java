@@ -17,6 +17,7 @@ import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
  * @author schaef
@@ -68,6 +69,27 @@ public abstract class Expression implements Node, Serializable {
 		}
 	}
 
+	/**
+	 * Returns true, if this can be assigned to other. That is, if either
+	 * the types match or this is a sub-type of other.
+	 * @param other
+	 * @return true if this is sub- or equal-type to other.
+	 */
+	public boolean canBeAssignedTo(Expression other) {
+		if (other.getType().getClass() != this.getType().getClass()
+				&& !SootTranslationHelpers.v().getMemoryModel().isNullReference(this)) {
+			return false;
+		}
+		return true;
+	}
+
+	public boolean canBeAssignedToType(Type t) {
+		if (t.getClass() != this.getType().getClass()) {
+			return false;
+		}
+		return true;
+	}
+	
 	public abstract Expression deepCopy();
 	
 	/**
