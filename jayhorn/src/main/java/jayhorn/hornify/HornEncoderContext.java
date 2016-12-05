@@ -80,7 +80,8 @@ public class HornEncoderContext {
 		for (Method method : program.getMethods()) {
 			final List<Variable> inParams = new ArrayList<Variable>(method.getInParams());
 			final List<Variable> postParams = new ArrayList<Variable>();
-			postParams.addAll(method.getInParams());
+
+			postParams.addAll(inParams);
 			
 			if (!method.getOutParams().isEmpty()) {
 				Verify.verify(method.getOutParams().size()==method.getReturnType().size(), 

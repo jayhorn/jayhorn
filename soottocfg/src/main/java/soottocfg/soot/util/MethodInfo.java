@@ -132,14 +132,14 @@ public class MethodInfo {
 		return this.sourceFileName;
 	}
 
-	public Expression getReturnVariable() {
+	public IdentifierExpression getReturnVariable() {
 		// TODO this is a hack that assumes that we only use that if there
 		// is a single return variable.
 		Verify.verify(this.returnVariables.size() >= 2);
 		return new IdentifierExpression(methodLoc, this.returnVariables.get(1));
 	}
 
-	public Expression getExceptionVariable() {
+	public IdentifierExpression getExceptionVariable() {
 		// TODO this is a hack that assumes that we only use that if there
 		// is a single return variable.
 		Verify.verify(this.returnVariables.size() >= 1);

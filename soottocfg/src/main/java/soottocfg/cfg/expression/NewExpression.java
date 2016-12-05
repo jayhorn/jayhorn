@@ -28,7 +28,7 @@ public class NewExpression extends Expression {
 	 * @param loc
 	 */
 	public NewExpression(SourceLocation loc, ClassVariable cvar, int id) {
-		super(loc);
+		super(loc);		
 		this.statementId=id;
 		this.referenceType = new ReferenceType(cvar);
 	}

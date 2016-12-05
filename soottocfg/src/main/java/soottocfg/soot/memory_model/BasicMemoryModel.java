@@ -33,13 +33,12 @@ import soot.jimple.NewExpr;
 import soot.jimple.NewMultiArrayExpr;
 import soot.jimple.StringConstant;
 import soottocfg.cfg.Program;
-import soottocfg.cfg.expression.BinaryExpression;
-import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.NewExpression;
 import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
@@ -48,7 +47,6 @@ import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
-import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
@@ -91,25 +89,26 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkNewExpr(NewExpr arg0) {
-		Type newType = this.lookupType(arg0.getBaseType());
+		SootClass sc = arg0.getBaseType().getSootClass();
+		SourceLocation loc = this.statementSwitch.getCurrentLoc();
 		// make this an application class to make sure that we analyze the
 		// constructor
-		arg0.getBaseType().getSootClass().setApplicationClass();
-		MethodInfo mi = this.statementSwitch.getMethodInfo();
-
-		Variable newLocal = mi.createFreshLocal("$new", newType, true, true);
-		// add: assume newLocal!=null
+		sc.setApplicationClass();
+		ClassVariable cvar = SootTranslationHelpers.v().getClassVariable(sc);
+		NewExpression nexp = new NewExpression(loc, cvar, 0);
+		return nexp;
+		
+//		Type newType = this.lookupType(arg0.getBaseType());
+//		MethodInfo mi = this.statementSwitch.getMethodInfo();
+//		Variable newLocal = mi.createFreshLocal("$new", newType, true, true);
+//		// add: assume newLocal!=null
 //		this.statementSwitch.push(new AssumeStatement(statementSwitch.getCurrentLoc(),
 //				new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
 //						new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
 //						this.mkNullConstant())));
-
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
+//		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
 	}
 
-	// new InstanceOfExpression(, new
-	// IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
-	// lookupRefLikeType(arg0.getBaseType()));
 
 	/*
 	 * (non-Javadoc)
@@ -119,29 +118,6 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkNewArrayExpr(NewArrayExpr arg0) {
-		Type newType = this.lookupType(arg0.getType());
-		MethodInfo mi = this.statementSwitch.getMethodInfo();
-		Variable newLocal = mi.createFreshLocal("$newArr", newType, true, true);
-
-		this.statementSwitch.push(new AssumeStatement(statementSwitch.getCurrentLoc(),
-				new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
-						new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
-						this.mkNullConstant())));
-
-		// TODO
-		// arg0.getSize().apply(valueSwitch);
-		// Expression sizeExpression = valueSwitch.popExpression();
-		// this.statementSwitch.push(
-		// new AssumeStatement(statementSwitch.getCurrentLoc(),
-		// new BinaryExpression(this.statementSwitch.getCurrentLoc(),
-		// BinaryOperator.Eq,
-		// new ArrayLengthExpression(this.statementSwitch.getCurrentLoc(),
-		// new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
-		// newLocal)),
-		// sizeExpression)));
-
-		// return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
-		// newLocal);
 		throw new RuntimeException("This should have been removed by the array abstraction.");
 	}
 
@@ -154,11 +130,6 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkNewMultiArrayExpr(NewMultiArrayExpr arg0) {
-		// TODO Auto-generated method stub
-		// System.err.println("New Multi-Array still not implemented");
-		// return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
-		// SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO",
-		// lookupType(arg0.getType())));
 		throw new RuntimeException("This should have been removed by the array abstraction.");
 	}
 
@@ -169,6 +140,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkStringLengthExpr(Value arg0) {
+		//TODO
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
 				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));
 	}
@@ -286,7 +258,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	protected ReferenceLikeType lookupRefLikeType(RefLikeType t) {
 		if (t instanceof ArrayType) {
 			throw new RuntimeException("Remove Arrays first. " + t);
-		} else if (t instanceof RefType) {
+		} else if (t instanceof RefType) {			
 			return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)));
 		} else if (t instanceof NullType) {
 			return (ReferenceType) (new NullLiteral(null)).getType();

@@ -434,7 +434,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 		memoryModel.mkHeapReadStatement(this.statementSwitch.getCurrentStmt(), fieldRef, freshLocal);			
 		
 		//now make the bla <: blub expression			
-		ClassVariable cv = this.memoryModel.lookupClassVariable(SootTranslationHelpers.v().getClassConstant(arg0.getCheckType()));
+		ClassVariable cv = SootTranslationHelpers.v().getClassVariable(arg0.getCheckType()); 
 		BinaryExpression instof = new BinaryExpression(loc, BinaryOperator.PoLeq, instofLocal, new IdentifierExpression(loc, cv));
 		this.expressionStack.add(instof);
 	}

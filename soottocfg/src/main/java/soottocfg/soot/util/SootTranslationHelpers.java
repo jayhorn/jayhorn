@@ -37,6 +37,7 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.SootRunner;
 import soottocfg.soot.SootToCfg.MemModel;
@@ -203,6 +204,14 @@ public enum SootTranslationHelpers {
 		return rhs;
 	}
 
+	public ClassVariable getClassVariable(SootClass sc) {
+		return memoryModel.lookupClassVariable(getClassConstant(sc.getType()));
+	}
+
+	public ClassVariable getClassVariable(Type t) {
+		return getClassVariable(((RefType)t).getSootClass());
+	}
+	
 	public ClassConstant getClassConstant(Type t) {
 		if (t instanceof RefType) {
 			final String className = ((RefType) t).getClassName().replace(".", "/");

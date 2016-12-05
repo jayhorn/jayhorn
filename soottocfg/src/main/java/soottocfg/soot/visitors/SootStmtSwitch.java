@@ -32,6 +32,7 @@ import soot.Local;
 import soot.PatchingChain;
 import soot.RefType;
 import soot.Scene;
+import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
@@ -68,14 +69,15 @@ import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
-import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -343,23 +345,26 @@ public class SootStmtSwitch implements StmtSwitch {
 
 	@Override
 	public void caseReturnVoidStmt(ReturnVoidStmt arg0) {
-		precheck(arg0);		
-//		if (sootMethod.isConstructor()) {
-//			SourceLocation loc = getCurrentLoc();
-//			SootClass currentClass = SootTranslationHelpers.v().getCurrentMethod().getDeclaringClass();			
-//			List<SootField> fields = SootTranslationHelpers.findFieldsRecursively(currentClass);
-//			JimpleBody jb = (JimpleBody)this.sootMethod.getActiveBody();
-//			
-//			for (int i=1; i<methodInfo.getOutVariables().size();i++) {
-//				Variable outVar = methodInfo.getOutVariables().get(i);
-//				Variable tmp = methodInfo.createFreshLocal("afdafd", outVar.getType(), false, false);
-//				
-//				AssignStatement as = new AssignStatement(loc, 
-//						new IdentifierExpression(loc, outVar), 
-//						new IdentifierExpression(loc, tmp));
-//				currentBlock.addStatement(as);
-//			}
-//		}
+		precheck(arg0);
+		// if (sootMethod.isConstructor()) {
+		// SourceLocation loc = getCurrentLoc();
+		// SootClass currentClass =
+		// SootTranslationHelpers.v().getCurrentMethod().getDeclaringClass();
+		// List<SootField> fields =
+		// SootTranslationHelpers.findFieldsRecursively(currentClass);
+		// JimpleBody jb = (JimpleBody)this.sootMethod.getActiveBody();
+		//
+		// for (int i=1; i<methodInfo.getOutVariables().size();i++) {
+		// Variable outVar = methodInfo.getOutVariables().get(i);
+		// Variable tmp = methodInfo.createFreshLocal("afdafd",
+		// outVar.getType(), false, false);
+		//
+		// AssignStatement as = new AssignStatement(loc,
+		// new IdentifierExpression(loc, outVar),
+		// new IdentifierExpression(loc, tmp));
+		// currentBlock.addStatement(as);
+		// }
+		// }
 		connectBlocks(currentBlock, methodInfo.getSink());
 		currentBlock = null;
 	}
@@ -632,11 +637,17 @@ public class SootStmtSwitch implements StmtSwitch {
 			if (def.getFieldRef().getField().equals(SootTranslationHelpers.v().getExceptionGlobal())) {
 				// Special treatment of the exception global.
 				if (lhs instanceof FieldRef) {
-					Expression left = methodInfo.getExceptionVariable();
-					rhs.apply(valueSwitch);
-					Expression right = valueSwitch.popExpression();
-					currentBlock.addStatement(
-							new AssignStatement(SootTranslationHelpers.v().getSourceLocation(def), left, right));
+					IdentifierExpression left = methodInfo.getExceptionVariable();
+					if (rhs instanceof AnyNewExpr) {
+						SootClass sc = ((RefType) ((AnyNewExpr) rhs).getType()).getSootClass();
+						currentBlock.addStatement(
+								new NewStatement(loc, left, SootTranslationHelpers.v().getClassVariable(sc)));
+					} else {
+						rhs.apply(valueSwitch);
+						Expression right = valueSwitch.popExpression();
+						currentBlock.addStatement(
+								new AssignStatement(SootTranslationHelpers.v().getSourceLocation(def), left, right));
+					}
 				} else /* if (rhs instanceof FieldRef) */ {
 					lhs.apply(valueSwitch);
 					Expression left = valueSwitch.popExpression();
@@ -646,6 +657,7 @@ public class SootStmtSwitch implements StmtSwitch {
 				}
 			} else {
 				if (lhs instanceof FieldRef) {
+					Verify.verify(!(rhs instanceof AnyNewExpr));
 					SootTranslationHelpers.v().getMemoryModel().mkHeapWriteStatement(def, def.getFieldRef(), rhs);
 				} else /* if (rhs instanceof FieldRef) */ {
 					SootTranslationHelpers.v().getMemoryModel().mkHeapReadStatement(def, def.getFieldRef(), lhs);
@@ -653,13 +665,6 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 		} else if (def.containsArrayRef()) {
 			throw new RuntimeException("Remove Arrays first.");
-			// if (lhs instanceof ArrayRef) {
-			// SootTranslationHelpers.v().getMemoryModel().mkArrayWriteStatement(def,
-			// (ArrayRef) lhs, rhs);
-			// } else {
-			// SootTranslationHelpers.v().getMemoryModel().mkArrayReadStatement(def,
-			// (ArrayRef) rhs, lhs);
-			// }
 		} else if (rhs instanceof LengthExpr) {
 			throw new RuntimeException("Remove Arrays first.");
 		} else {
@@ -671,20 +676,27 @@ public class SootStmtSwitch implements StmtSwitch {
 			// local to local assignment.
 			lhs.apply(valueSwitch);
 			Expression left = valueSwitch.popExpression();
-			rhs.apply(valueSwitch);
-			Expression right = valueSwitch.popExpression();
 
-			currentBlock
-					.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(def), left, right));
-		}
+			if (rhs instanceof AnyNewExpr) {
+				SootClass sc = ((RefType) ((AnyNewExpr) rhs).getType()).getSootClass();
+				currentBlock.addStatement(new NewStatement(loc, (IdentifierExpression) left,
+						SootTranslationHelpers.v().getClassVariable(sc)));
+			} else {
+				rhs.apply(valueSwitch);
+				Expression right = valueSwitch.popExpression();
 
-		if (rhs instanceof AnyNewExpr) {
-			// add an assume that lhs is not null.
-			lhs.apply(valueSwitch);
-			Expression left = valueSwitch.popExpression();
-			currentBlock.addStatement(new AssumeStatement(getCurrentLoc(), new BinaryExpression(getCurrentLoc(),
-					BinaryOperator.Ne, left, SootTranslationHelpers.v().getMemoryModel().mkNullConstant())));
+				currentBlock.addStatement(
+						new AssignStatement(SootTranslationHelpers.v().getSourceLocation(def), left, right));
+			}
 		}
+//TODO: assume non-null is not needed because we have a NewStatement now.
+//		if (rhs instanceof AnyNewExpr) {
+//			// add an assume that lhs is not null.
+//			lhs.apply(valueSwitch);
+//			Expression left = valueSwitch.popExpression();
+//			currentBlock.addStatement(new AssumeStatement(getCurrentLoc(), new BinaryExpression(getCurrentLoc(),
+//					BinaryOperator.Ne, left, SootTranslationHelpers.v().getMemoryModel().mkNullConstant())));
+//		}
 	}
 
 }

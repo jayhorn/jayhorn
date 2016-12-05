@@ -23,8 +23,8 @@ import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
-import jayhorn.utils.CallingContextTransformer;
 import jayhorn.utils.GhostRegister;
+import jayhorn.utils.HeapCounterTransformer;
 import jayhorn.utils.Stats;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.method.Method;
@@ -59,9 +59,12 @@ public class Checker {
 		if (Options.v().useCallIDs) {
 			Log.info("Inserting call IDs  ... ");
 			Verify.verify(false, "Don't run this for now!");
-			CallingContextTransformer cct = new CallingContextTransformer();
-			cct.transform(program);
+//			CallingContextTransformer cct = new CallingContextTransformer();
+//			cct.transform(program);
 		}
+		
+		HeapCounterTransformer hct = new HeapCounterTransformer();
+		hct.transform(program);
 		
 		if (Options.v().printCFG) {
 			System.out.println(program);
@@ -87,7 +90,10 @@ public class Checker {
 			prover.push();
 			// add an entry clause from the preconditions
 			final HornPredicate entryPred = hornContext.getMethodContract(entryPoint).precondition;
-			final ProverExpr entryAtom = entryPred.instPredicate(new HashMap<Variable, ProverExpr>());
+			Map<Variable, ProverExpr> initialState = new HashMap<Variable, ProverExpr>();
+			//Set the heap counter initially to one (because 0 is reserved for null)
+
+			final ProverExpr entryAtom = entryPred.instPredicate(initialState);
 
 			final ProverHornClause entryClause = prover.mkHornClause(entryAtom, new ProverExpr[0],
 					prover.mkLiteral(true));
