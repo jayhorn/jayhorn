@@ -315,63 +315,76 @@ public class StatementEncoder {
 		// TODO: find a more precise implementation.
 		final Set<ClassVariable> possibleTypes = this.hornContext.ppOrdering
 				.getBrutalOverapproximationOfPossibleType(pull);
-
+		Set<PushStatement> affecting = pull.getAffectingPushes();
+		
 		for (ClassVariable sig : possibleTypes) {
-			for (PushStatement push : pull.getAffectingPushes()) {
-				// get the invariant for this subtype and this push
-				final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, push.getID());
-
-				// the first argument is always the reference
-				// to the object
-
-				int i = 0;
-				// PR: once the reference becomes a vector, we
-				// have to properly map between the elements
-				// of the vector and the fields of the object
-				varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(pull.getObject(), varMap));
-				
-				// RK: we should probably elimate these ghostExpressions altogether
-				// MS: add all global ghosts
-				for (Expression e : pull.getGhostExpressions()) {
-//					 System.err.println(invariant.variables.get(i)+" = "+e);
-					varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
+			if (affecting != null/* && !affecting.isEmpty()*/) {
+				for (PushStatement push : pull.getAffectingPushes()) {
+					clauses.addAll(pullToIndividualClause(pull, postPred, preAtom, varMap, sig, push.getID()));
 				}
-
-				// RK: add last push variable
-				Variable freshLp = new Variable(LP+nextLP, IntType.instance());
-				Expression e = new IdentifierExpression(pull.getSourceLocation(), freshLp);
-				varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
-
-				// introduce fresh prover variables for all
-				// the other invariant parameters, and map
-				// them to the post-state
-				int j = 0;
-				for (; i < invariant.variables.size(); i++) {
-					final ProverExpr var = HornHelper.hh().createVariable(p, "pullVar_",
-							invariant.variables.get(i).getType());
-					varMap.put(invariant.variables.get(i), var);
-					if (j < pull.getLeft().size()) {
-						varMap.put(pull.getLeft().get(j++).getVariable(), var);
-					}
-					/*
-					 * If our current invariant is a subtype
-					 * of what the orginial pull used, it
-					 * might have more fields (that were added
-					 * in the subtype). For this case, we have
-					 * to fill up our args with fresh, unbound
-					 * variables to match the number of
-					 * arguments.
-					 */
-				}
-
-				// now we can instantiate the invariant.
-				final ProverExpr invAtom = invariant.instPredicate(varMap);
-				final ProverExpr postAtom = postPred.instPredicate(varMap);
-				final ProverHornClause clause = p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom },
-						p.mkLiteral(true));
-				clauses.add(clause);
+			} else {
+				clauses.addAll(pullToIndividualClause(pull, postPred, preAtom, varMap, sig, -1));
 			}
 		}
+		return clauses;
+	}
+		
+	private List<ProverHornClause> pullToIndividualClause(PullStatement pull, HornPredicate postPred,
+			 ProverExpr preAtom, Map<Variable, ProverExpr> varMap, ClassVariable sig, int pushid) {
+		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
+		
+		// get the invariant for this subtype and this push
+		final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, pushid);
+
+		// the first argument is always the reference
+		// to the object
+
+		int i = 0;
+		// PR: once the reference becomes a vector, we
+		// have to properly map between the elements
+		// of the vector and the fields of the object
+		varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(pull.getObject(), varMap));
+		
+		// RK: we should probably elimate these ghostExpressions altogether
+		// MS: add all global ghosts
+		for (Expression e : pull.getGhostExpressions()) {
+//			 System.err.println(invariant.variables.get(i)+" = "+e);
+			varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
+		}
+
+		// RK: add last push variable
+		Variable freshLp = new Variable(LP+nextLP, IntType.instance());
+		Expression e = new IdentifierExpression(pull.getSourceLocation(), freshLp);
+		varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
+
+		// introduce fresh prover variables for all
+		// the other invariant parameters, and map
+		// them to the post-state
+		int j = 0;
+		for (; i < invariant.variables.size(); i++) {
+			final ProverExpr var = HornHelper.hh().createVariable(p, "pullVar_",
+					invariant.variables.get(i).getType());
+			varMap.put(invariant.variables.get(i), var);
+			if (j < pull.getLeft().size()) {
+				varMap.put(pull.getLeft().get(j++).getVariable(), var);
+			}
+			/*
+			 * If our current invariant is a subtype
+			 * of what the orginial pull used, it
+			 * might have more fields (that were added
+			 * in the subtype). For this case, we have
+			 * to fill up our args with fresh, unbound
+			 * variables to match the number of
+			 * arguments.
+			 */
+		}
+
+		// now we can instantiate the invariant.
+		final ProverExpr invAtom = invariant.instPredicate(varMap);
+		final ProverExpr postAtom = postPred.instPredicate(varMap);
+		final ProverHornClause clause = p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom },
+				p.mkLiteral(true));
+		clauses.add(clause);
 		return clauses;
 	}
 
@@ -397,8 +410,8 @@ public class StatementEncoder {
 		final ClassVariable sig = ps.getClassSignature();
 		Verify.verify(sig.getAssociatedFields().length == ps.getRight().size(),
 				"Unequal lengths: " + sig + " and " + ps.getRight() + " in " + ps);
-		// get the invariant for the ClassVariable
-		final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, ps.getID());
+		int pushid = -1;
+
 		final List<Expression> invariantArgs = new LinkedList<Expression>();
 		// TODO: unpack once we have tuples
 		invariantArgs.add(ps.getObject());
@@ -407,11 +420,18 @@ public class StatementEncoder {
 		// MS: add all global ghosts
 		invariantArgs.addAll(ps.getGhostExpressions());
 		
-		Variable lp = new Variable(LP + nextLP++, IntType.instance());
-		Expression lastpush = new IdentifierExpression(ps.getSourceLocation(), lp);
-		invariantArgs.add(lastpush);
-		
+		if (soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH) {
+			Variable lp = new Variable(LP + nextLP++, IntType.instance());
+			Expression lastpush = new IdentifierExpression(ps.getSourceLocation(), lp);
+			invariantArgs.add(lastpush);
+			pushid = ps.getID();
+		}
+
 		invariantArgs.addAll(ps.getRight());
+		
+		// get the invariant for the ClassVariable
+		final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, pushid);
+		
 		// assign the variables of the invariant pred to the respective value.
 		for (int i = 0; i < invariantArgs.size(); i++) {
 			varMap.put(invariant.variables.get(i), expEncoder.exprToProverExpr(invariantArgs.get(i), varMap));
