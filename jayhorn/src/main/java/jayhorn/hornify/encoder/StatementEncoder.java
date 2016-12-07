@@ -311,30 +311,33 @@ public class StatementEncoder {
 	public List<ProverHornClause> pullToClause(PullStatement pull, HornPredicate postPred, ProverExpr preAtom,
 			Map<Variable, ProverExpr> varMap) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
-		// get the possible (sub)types of the object used in pull.
-		// TODO: find a more precise implementation.
-		final Set<ClassVariable> possibleTypes = this.hornContext.ppOrdering
-				.getBrutalOverapproximationOfPossibleType(pull);
-		Set<PushStatement> affecting = pull.getAffectingPushes();
 		
-		for (ClassVariable sig : possibleTypes) {
-			if (affecting != null/* && !affecting.isEmpty()*/) {
-				for (PushStatement push : pull.getAffectingPushes()) {
-					clauses.addAll(pullToIndividualClause(pull, postPred, preAtom, varMap, sig, push.getID()));
+		Set<PushStatement> affecting = pull.getAffectingPushes();
+		if (affecting == null) {
+			// don't have last push info
+			final Set<ClassVariable> possibleTypes = this.hornContext.ppOrdering
+					.getBrutalOverapproximationOfPossibleType(pull);
+			for (ClassVariable sig : possibleTypes) {
+				HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, -1);
+				clauses.addAll(pullToIndividualClause(pull, postPred, preAtom, varMap, invariant));
+			}
+		} else {
+			Verify.verify(!affecting.isEmpty(), 
+					"The set of pushes affecting this pull is empty, this would create an assume false");			
+			for (PushStatement push : pull.getAffectingPushes()) {
+				ClassVariable sig = push.getClassSignature();
+				if (sig.subclassOf(pull.getClassSignature())) {
+					HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, push.getID());
+					clauses.addAll(pullToIndividualClause(pull, postPred, preAtom, varMap, invariant));
 				}
-			} else {
-				clauses.addAll(pullToIndividualClause(pull, postPred, preAtom, varMap, sig, -1));
 			}
 		}
 		return clauses;
 	}
 		
 	private List<ProverHornClause> pullToIndividualClause(PullStatement pull, HornPredicate postPred,
-			 ProverExpr preAtom, Map<Variable, ProverExpr> varMap, ClassVariable sig, int pushid) {
+			 ProverExpr preAtom, Map<Variable, ProverExpr> varMap, HornPredicate invariant) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
-		
-		// get the invariant for this subtype and this push
-		final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, pushid);
 
 		// the first argument is always the reference
 		// to the object
