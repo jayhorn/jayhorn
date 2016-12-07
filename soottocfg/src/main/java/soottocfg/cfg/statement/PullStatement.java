@@ -1,6 +1,3 @@
-/**
- * 
- */
 package soottocfg.cfg.statement;
 
 import java.util.HashSet;
@@ -8,6 +5,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.google.common.base.Verify;
 
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
@@ -17,20 +16,19 @@ import soottocfg.cfg.variable.Variable;
 
 /**
  * @author schaef
+ * @author rodykers
  *
  */
 public class PullStatement extends Statement {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 9221818898828469398L;
 	private final ClassVariable classConstant;
 	private IdentifierExpression object;
 	private final List<IdentifierExpression> left;
 
 	private final List<Expression> ghostExpressions;
-
+	
+	private Set<PushStatement> canAffect;
 	
 	public PullStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj,
 			List<IdentifierExpression> lhs) {
@@ -50,6 +48,8 @@ public class PullStatement extends Statement {
 			this.ghostExpressions.addAll(ghostExp);
 		}
 		assert (c.getAssociatedFields().length == left.size());
+		if (soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH)
+			this.canAffect = new HashSet<PushStatement>();
 	}
 
 	public List<IdentifierExpression> getLeft() {
@@ -89,7 +89,22 @@ public class PullStatement extends Statement {
 		return res;
 	}
 
+	public Set<PushStatement> getAffectingPushes() {
+		return canAffect;
+	}
+	
+	public void canAffect(PushStatement push) {
+		Verify.verify(soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH,
+				"Don't use PullStatement.canAffect for mem-prec < LASTPUSH");
+		canAffect.add(push);
+	}
 
+	public void canAffect(Set<PushStatement> pushes) {
+		Verify.verify(soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH,
+				"Don't use PullStatement.canAffect for mem-prec < LASTPUSH");
+		canAffect.addAll(pushes);
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

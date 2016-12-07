@@ -11,6 +11,11 @@ import soottocfg.soot.SootToCfg.MemModel;
  */
 public class Options {
 
+	public final static int MEMPREC_LOW = 0;
+	public final static int MEMPREC_SIMPLIFY = 1;
+	public final static int MEMPREC_LASTPUSH = 2;
+	public final static int MEMPREC_PTA = 3;
+	
 	/*
 	 * Built in specs.
 	 */

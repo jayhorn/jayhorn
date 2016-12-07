@@ -147,7 +147,7 @@ public class SootToCfg {
 
 		// alias analysis
 		setPointsToAnalysis(new FlowBasedPointsToAnalysis());
-		if (Options.v().memPrecision() >= 3) {
+		if (Options.v().memPrecision() >= Options.MEMPREC_PTA) {
 			getPointsToAnalysis().run(program);
 		}
 
@@ -155,7 +155,7 @@ public class SootToCfg {
 		MissingPushAdder.addMissingPushes(program);
 		
 		// simplify push-pull
-		if (Options.v().memPrecision() >= 1) {
+		if (Options.v().memPrecision() >= Options.MEMPREC_SIMPLIFY) {
 			PushPullSimplifier pps = new PushPullSimplifier();
 			pps.simplify(program);
 			if (Options.v().outDir() != null)
@@ -163,7 +163,7 @@ public class SootToCfg {
 		}
 		
 		// add push IDs
-		if (Options.v().memPrecision() >= 2) {
+		if (Options.v().memPrecision() >= Options.MEMPREC_LASTPUSH) {
 			PushIdentifierAdder pia = new PushIdentifierAdder();
 			pia.addIDs(program);
 			if (Options.v().outDir() != null)

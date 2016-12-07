@@ -102,7 +102,7 @@ public class BigSoundnessTests {
 			try {
 				soot2cfg.run(classDir.getAbsolutePath(), null);
 				jayhorn.Options.v().setTimeout(300);
-				//			jayhorn.Options.v().setPrintHorn(true);
+//				jayhorn.Options.v().setPrintHorn(true);
 				jayhorn.Options.v().setSolverOptions("abstract");
 
 				Program program = soot2cfg.getProgram();
