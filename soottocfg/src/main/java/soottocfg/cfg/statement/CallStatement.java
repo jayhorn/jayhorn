@@ -18,6 +18,7 @@ import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
  * @author schaef
@@ -44,6 +45,10 @@ public class CallStatement extends Statement {
 			Type parType = method.getInParam(i).getType();
 			
 			if (!(arg instanceof NullLiteral) && !arg.canBeAssignedToType(parType)) {
+				
+				System.err.println(SootTranslationHelpers.v().getCurrentMethod().getActiveBody());
+				
+				
 				StringBuilder sb = new StringBuilder();
 				sb.append("Type mismatch:\n");
 				sb.append(this.toString());

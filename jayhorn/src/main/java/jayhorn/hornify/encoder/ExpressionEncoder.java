@@ -52,7 +52,9 @@ public class ExpressionEncoder {
 				return HornHelper.hh().findOrCreateProverVar(p, var, varMap);
 			}
 		} else if (e instanceof TupleAccessExpression) {
-			throw new RuntimeException("Not implemented");
+			TupleAccessExpression tae = (TupleAccessExpression)e;			
+//			throw new RuntimeException("Not implemented");
+			return p.mkVariable("HACK_FreeVar" + HornHelper.hh().newVarNum(), HornHelper.hh().getProverType(p, tae.getType()));
 		} else if (e instanceof IntegerLiteral) {
 			return p.mkLiteral(BigInteger.valueOf(((IntegerLiteral) e).getValue()));
 		} else if (e instanceof NullLiteral) {
