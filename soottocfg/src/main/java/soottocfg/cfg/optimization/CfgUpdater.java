@@ -3,6 +3,8 @@ package soottocfg.cfg.optimization;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.google.common.base.Verify;
+
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
@@ -19,6 +21,7 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
@@ -109,6 +112,7 @@ public class CfgUpdater extends CfgVisitor {
 		return new AssumeStatement(s.getSourceLocation(), e);
 	}
 
+	@Override
 	protected Statement processStatement(CallStatement s) {
 		List<Expression> args = processExpressionList(s.getArguments());
 		List<Expression> rec = new LinkedList<Expression>();
@@ -116,6 +120,13 @@ public class CfgUpdater extends CfgVisitor {
 			rec.add(processExpression(e));
 		}
 		return new CallStatement(s.getSourceLocation(), s.getCallTarget(), args, rec);
+	}
+	
+	@Override
+	protected Statement processStatement(NewStatement s) {
+		Expression e = processExpression(s.getLeft());
+		Verify.verify(e instanceof IdentifierExpression);
+		return new NewStatement(s.getSourceLocation(), (IdentifierExpression) e, s.getClassVariable());
 	}
 
 	/// Expressions

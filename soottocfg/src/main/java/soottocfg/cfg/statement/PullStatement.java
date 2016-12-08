@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Verify;
-
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
@@ -48,8 +46,7 @@ public class PullStatement extends Statement {
 			this.ghostExpressions.addAll(ghostExp);
 		}
 		assert (c.getAssociatedFields().length == left.size());
-		if (soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH)
-			this.canAffect = new HashSet<PushStatement>();
+		this.canAffect = new HashSet<PushStatement>();
 	}
 
 	public List<IdentifierExpression> getLeft() {
@@ -94,14 +91,10 @@ public class PullStatement extends Statement {
 	}
 	
 	public void canAffect(PushStatement push) {
-		Verify.verify(soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH,
-				"Don't use PullStatement.canAffect for mem-prec < LASTPUSH");
 		canAffect.add(push);
 	}
 
 	public void canAffect(Set<PushStatement> pushes) {
-		Verify.verify(soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH,
-				"Don't use PullStatement.canAffect for mem-prec < LASTPUSH");
 		canAffect.addAll(pushes);
 	}
 	

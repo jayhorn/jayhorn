@@ -313,23 +313,16 @@ public class StatementEncoder {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 		
 		Set<PushStatement> affecting = pull.getAffectingPushes();
-		if (affecting == null) {
-			// don't have last push info
-			final Set<ClassVariable> possibleTypes = this.hornContext.ppOrdering
-					.getBrutalOverapproximationOfPossibleType(pull);
-			for (ClassVariable sig : possibleTypes) {
-				HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, -1);
+		Verify.verify(!affecting.isEmpty(), 
+				"The set of pushes affecting this pull is empty, this would create an assume false");			
+		for (PushStatement push : pull.getAffectingPushes()) {
+			ClassVariable sig = push.getClassSignature();
+			if (sig.subclassOf(pull.getClassSignature())) {
+				long pushid = -1;
+				if (soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH)
+					pushid = push.getID();
+				HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, pushid);
 				clauses.addAll(pullToIndividualClause(pull, postPred, preAtom, varMap, invariant));
-			}
-		} else {
-			Verify.verify(!affecting.isEmpty(), 
-					"The set of pushes affecting this pull is empty, this would create an assume false");			
-			for (PushStatement push : pull.getAffectingPushes()) {
-				ClassVariable sig = push.getClassSignature();
-				if (sig.subclassOf(pull.getClassSignature())) {
-					HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, push.getID());
-					clauses.addAll(pullToIndividualClause(pull, postPred, preAtom, varMap, invariant));
-				}
 			}
 		}
 		return clauses;
@@ -356,9 +349,11 @@ public class StatementEncoder {
 		}
 
 		// RK: add last push variable
-		Variable freshLp = new Variable(LP+nextLP, IntType.instance());
-		Expression e = new IdentifierExpression(pull.getSourceLocation(), freshLp);
-		varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
+		if (soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH) {
+			Variable freshLp = new Variable(LP+nextLP, IntType.instance());
+			Expression e = new IdentifierExpression(pull.getSourceLocation(), freshLp);
+			varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
+		}
 
 		// introduce fresh prover variables for all
 		// the other invariant parameters, and map

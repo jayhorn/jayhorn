@@ -39,7 +39,6 @@ import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.util.CfgStubber;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.memory_model.MemoryModel;
-import soottocfg.soot.memory_model.MissingPushAdder;
 import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.memory_model.PushIdentifierAdder;
 import soottocfg.soot.memory_model.PushPullSimplifier;
@@ -150,9 +149,6 @@ public class SootToCfg {
 		if (Options.v().memPrecision() >= Options.MEMPREC_PTA) {
 			getPointsToAnalysis().run(program);
 		}
-
-		// add missing pushes
-		MissingPushAdder.addMissingPushes(program);
 		
 		// simplify push-pull
 		if (Options.v().memPrecision() >= Options.MEMPREC_SIMPLIFY) {
@@ -163,12 +159,8 @@ public class SootToCfg {
 		}
 		
 		// add push IDs
-		if (Options.v().memPrecision() >= Options.MEMPREC_LASTPUSH) {
-			PushIdentifierAdder pia = new PushIdentifierAdder();
-			pia.addIDs(program);
-			if (Options.v().outDir() != null)
-				writeFile("precise.cfg", program.toString());
-		}
+		PushIdentifierAdder pia = new PushIdentifierAdder();
+		pia.addIDs(program);
 
 		// print CFG
 		if (Options.v().printCFG()) {

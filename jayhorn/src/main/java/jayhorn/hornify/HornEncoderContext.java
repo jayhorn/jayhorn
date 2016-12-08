@@ -49,11 +49,9 @@ public class HornEncoderContext {
 	private Map<ClassVariable, Map<Long, HornPredicate>> invariantPredicates =
           new HashMap<ClassVariable, Map<Long, HornPredicate>>(); 
 	private Map<Method, MethodContract> methodContracts = new LinkedHashMap<Method, MethodContract>();
-	public InterProceduralPullPushOrdering ppOrdering;
 	
 	public HornEncoderContext(Prover p, Program prog) {
 		this.program = prog;
-		ppOrdering = new InterProceduralPullPushOrdering(program.getEntryPoint());
 		this.p = p;		
 		for (ClassVariable var : program.getTypeGraph().vertexSet()) {
 			//add +1 to make sure that no type is the

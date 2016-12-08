@@ -17,6 +17,7 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
@@ -70,6 +71,8 @@ public abstract class CfgVisitor {
 			return processStatement((PullStatement) s);
 		} else if (s instanceof PushStatement) {
 			return processStatement((PushStatement) s);
+		} else if (s instanceof NewStatement) {
+			return processStatement((NewStatement) s);
 		} else {
 			throw new RuntimeException("unexpected statement type: " + s);
 		}
@@ -88,6 +91,8 @@ public abstract class CfgVisitor {
 	protected abstract Statement processStatement(PullStatement s);
 
 	protected abstract Statement processStatement(PushStatement s);
+	
+	protected abstract Statement processStatement(NewStatement s);
 	
 	protected Expression processExpression(Expression e) {
 		if (e instanceof BinaryExpression) {
