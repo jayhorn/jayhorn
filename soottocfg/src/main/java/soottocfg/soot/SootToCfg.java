@@ -273,7 +273,7 @@ public class SootToCfg {
 	 */
 	private void performBehaviorPreservingTransformations() {
 		// add a field for the dynamic type of an object to each class.
-		SootTranslationHelpers.createTypeFields();
+//		SootTranslationHelpers.createTypeFields();
 		
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
@@ -378,15 +378,15 @@ public class SootToCfg {
 			}
 			for (SootField f : instanceFields) {
 				Unit init;
-				if (SootTranslationHelpers.isDynamicTypeVar(f)) {
-					init = Jimple.v().newAssignStmt(
-							Jimple.v().newInstanceFieldRef(jbody.getThisLocal(), f.makeRef()),
-							SootTranslationHelpers.v().getClassConstant(RefType.v(containingClass)));
-				} else {
+//				if (SootTranslationHelpers.isDynamicTypeVar(f)) {
+//					init = Jimple.v().newAssignStmt(
+//							Jimple.v().newInstanceFieldRef(jbody.getThisLocal(), f.makeRef()),
+//							SootTranslationHelpers.v().getClassConstant(RefType.v(containingClass)));
+//				} else {
 					init = Jimple.v().newAssignStmt(
 							Jimple.v().newInstanceFieldRef(jbody.getThisLocal(), f.makeRef()),
 							SootTranslationHelpers.v().getDefaultValue(f.getType()));
-				}
+//				}
 				if (insertPos==null) {
 					jbody.getUnits().addFirst(init);	
 				} else {

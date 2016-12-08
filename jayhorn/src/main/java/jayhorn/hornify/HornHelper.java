@@ -53,6 +53,7 @@ public class HornHelper {
 		if (t instanceof ReferenceType) {
 			return p.getIntType();
 		}
+
 		throw new IllegalArgumentException("don't know what to do with " + t);
 	}
 

@@ -76,12 +76,12 @@ public class CfgStubber {
 						Variable outVar = new Variable("$out"+i, v.getType());
 						outParams.add(outVar);
 						Variable other;
-						if (SootTranslationHelpers.isDynamicTypeVar(v)) {	
-							// Make sure that we set the correct dynamic type.
-							other = rt.getClassVariable();							
-						} else {
+//						if (SootTranslationHelpers.isDynamicTypeVar(v)) {	
+//							// Make sure that we set the correct dynamic type.
+//							other = rt.getClassVariable();							
+//						} else {
 							other = new Variable("undef_field" + i, v.getType());							
-						}
+//						}
 						//assign the outParams to fresh values.
 						block.addStatement(new AssignStatement(loc, 
 								new IdentifierExpression(loc, outVar), 
@@ -120,14 +120,14 @@ public class CfgStubber {
 							List<Expression> rhs = new LinkedList<Expression>();
 
 							for (Variable v : rt.getClassVariable().getAssociatedFields()) {
-								if (SootTranslationHelpers.isDynamicTypeVar(v)) {
-									// Make sure that we set the correct dynamic
-									// type.
-									rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
-								} else {
+//								if (SootTranslationHelpers.isDynamicTypeVar(v)) {
+//									// Make sure that we set the correct dynamic
+//									// type.
+//									rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
+//								} else {
 									Variable undefLocal = new Variable("undef_field" + (f++), v.getType());
 									rhs.add(new IdentifierExpression(loc, undefLocal));
-								}
+//								}
 							}
 							Variable outVar = new Variable(MethodInfo.returnVariableName, rt);
 							

@@ -20,18 +20,23 @@ public class ClassVariable extends Variable  {
 
 	private static final long serialVersionUID = -1647842783828780974L;	
 	private final Set<ClassVariable> parentConstants;
-	private List<Variable> associatedFields;
+	private List<Variable> associatedFields, finalFields;
 
 	public ClassVariable(String name, Collection<ClassVariable> parents) {
 		super(name, new ReferenceType(null), true, true); //TODO, its actually not reference type.	
 		parentConstants = new HashSet<ClassVariable>();
 		parentConstants.addAll(parents);
 		associatedFields = new LinkedList<Variable>();
+		finalFields = new LinkedList<Variable>(); 
 		//add all fields from the super class
 		for (ClassVariable parent : parents) {
 			for (Variable pfield : parent.getAssociatedFields()) {
 				if (!hasField(pfield.getName())) {
-					associatedFields.add(new Variable(pfield.getName(), pfield.getType()));
+					Variable v = new Variable(pfield.getName(), pfield.getType());
+					associatedFields.add(v);
+					if (v.isConstant()) {
+						finalFields.add(v);
+					}
 				}
 			}
 		}
@@ -48,7 +53,11 @@ public class ClassVariable extends Variable  {
 	public void addFields(List<Variable> fields) {
 		for (Variable f : fields) {
 			if (!hasField(f.getName())) {
-				associatedFields.add(new Variable(f.getName(), f.getType()));
+				Variable v = new Variable(f.getName(), f.getType());
+				associatedFields.add(v);
+				if (v.isConstant()) {
+					finalFields.add(v);
+				}
 			} else {
 				//warn about that.
 			}
@@ -58,6 +67,16 @@ public class ClassVariable extends Variable  {
 	public Variable[] getAssociatedFields() {
 		return associatedFields.toArray(new Variable[associatedFields.size()]);
 	}
+	
+	/**
+	 * Returns the subset of fields that are final. Note that these
+	 * fields are also part of getAssociatedFields().
+	 * @return
+	 */
+	public Variable[] getFinalFields() {
+		return finalFields.toArray(new Variable[finalFields.size()]);
+	}
+
 	
 	public boolean hasField(String fname) {
 		for (Variable v : associatedFields) {			

@@ -62,13 +62,13 @@ public class PushIdentifierAdder {
 							List<Expression> rhs = new LinkedList<Expression>();
 							int n = 0;
 							for (Variable v : rt.getClassVariable().getAssociatedFields()) {
-								if (SootTranslationHelpers.isDynamicTypeVar(v)) {
-									//Make sure that we set the correct dynamic type.
-									rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
-								} else {
+//								if (SootTranslationHelpers.isDynamicTypeVar(v)) {
+//									//Make sure that we set the correct dynamic type.
+//									rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
+//								} else {
 									Variable undefLocal = new Variable("undef_" + id + "_" + (n++), IntType.instance());
 									rhs.add(new IdentifierExpression(loc, undefLocal));
-								}					
+//								}					
 							}
 							PushStatement push = new PushStatement(loc, rt.getClassVariable(), id, rhs);
 							b.addStatement(i++,push);

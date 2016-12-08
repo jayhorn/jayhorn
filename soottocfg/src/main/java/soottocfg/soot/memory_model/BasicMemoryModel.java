@@ -42,7 +42,6 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
-import soottocfg.cfg.type.ReferenceLikeType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.ClassVariable;
@@ -255,7 +254,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		this.statementSwitch.push(stmt);
 	}
 
-	protected ReferenceLikeType lookupRefLikeType(RefLikeType t) {
+	protected ReferenceType lookupRefLikeType(RefLikeType t) {
 		if (t instanceof ArrayType) {
 			throw new RuntimeException("Remove Arrays first. " + t);
 		} else if (t instanceof RefType) {			

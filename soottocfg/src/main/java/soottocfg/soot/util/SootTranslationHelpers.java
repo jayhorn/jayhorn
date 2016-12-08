@@ -35,8 +35,14 @@ import soot.tagkit.Tag;
 import soottocfg.Options;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
+import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.TupleAccessExpression;
+import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.SootRunner;
@@ -88,7 +94,7 @@ public enum SootTranslationHelpers {
 	}
 
 	private static final String parameterPrefix = "$in_";
-	public static final String typeFieldName = "$dynamicType";
+//	public static final String typeFieldName = "$dynamicType";
 
 	public static final String arrayElementTypeFieldName = "$elType";
 	public static final String lengthFieldName = "$length";
@@ -110,43 +116,30 @@ public enum SootTranslationHelpers {
 		program = null;
 	}
 
-	public static boolean isDynamicTypeVar(Variable v) {
-		return v.getName().contains(SootTranslationHelpers.typeFieldName);
-	}
-
-	public static boolean isDynamicTypeVar(SootField f) {
-		return f.getName().contains(SootTranslationHelpers.typeFieldName);
-	}
-
-	public static SootField getTypeField(SootClass sc) {
-
-		return Scene.v().getSootClass("java.lang.Object").getFieldByName(SootTranslationHelpers.typeFieldName);
-
-		// return sc.getFieldByName(SootTranslationHelpers.typeFieldName);
-	}
-
-	public static void createTypeFields() {
-		SootClass sc = Scene.v().getSootClass("java.lang.Object");
-		if (!sc.declaresField(SootTranslationHelpers.typeFieldName)) {
-			SootField sf = new SootField(SootTranslationHelpers.typeFieldName,
-					RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC);
-			sc.addField(sf);
-		}
-		// List<SootClass> classes = new
-		// LinkedList<SootClass>(Scene.v().getClasses());
-		// for (SootClass sc : classes) {
-		// createTypeField(sc);
-		// }
-	}
-
-	public static SootField createTypeField(SootClass sc) {
-		return getTypeField(sc);
-		// SootField sf = new SootField(SootTranslationHelpers.typeFieldName,
-		// RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC
-		// | Modifier.FINAL);
-		// sc.addField(sf);
-		// return sf;
-	}
+//	public static boolean isDynamicTypeVar(Variable v) {
+//		return v.getName().contains(SootTranslationHelpers.typeFieldName);
+//	}
+//
+//	public static boolean isDynamicTypeVar(SootField f) {
+//		return f.getName().contains(SootTranslationHelpers.typeFieldName);
+//	}
+//
+//	public static SootField getTypeField(SootClass sc) {
+//		return Scene.v().getSootClass("java.lang.Object").getFieldByName(SootTranslationHelpers.typeFieldName);
+//	}
+//
+//	public static void createTypeFields() {
+//		SootClass sc = Scene.v().getSootClass("java.lang.Object");
+//		if (!sc.declaresField(SootTranslationHelpers.typeFieldName)) {
+//			SootField sf = new SootField(SootTranslationHelpers.typeFieldName,
+//					RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC);
+//			sc.addField(sf);
+//		}
+//	}
+//
+//	public static SootField createTypeField(SootClass sc) {
+//		return getTypeField(sc);
+//	}
 
 	public static List<SootField> findFieldsRecursivelyForRef(Value v) {
 		return findFieldsRecursively(((RefType) v.getType()).getSootClass());
@@ -175,6 +168,15 @@ public enum SootTranslationHelpers {
 		return res;
  	}
 	
+	public static BinaryExpression createInstanceOfExpression(SourceLocation loc, Variable v, ClassVariable typ) { 
+		Expression lhs = new TupleAccessExpression(loc, v, ReferenceType.TypeFieldName);
+		return createInstanceOfExpression(lhs, typ);
+	}
+	
+	public static BinaryExpression createInstanceOfExpression(Expression lhs, ClassVariable typ) {
+		SourceLocation loc = lhs.getSourceLocation();
+		return new BinaryExpression(loc, BinaryOperator.PoLeq, lhs, new IdentifierExpression(loc, typ));
+	}
 	
 	public Value getDefaultValue(soot.Type t) {
 		Value rhs = null;

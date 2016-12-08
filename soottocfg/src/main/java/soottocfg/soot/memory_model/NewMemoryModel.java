@@ -443,10 +443,11 @@ public class NewMemoryModel extends BasicMemoryModel {
 			// for superclass constructor calls, we need to update the dynamic
 			// type
 			// after the call.
-			Variable typeVar = lookupFieldLocal(thisLocal, SootTranslationHelpers.getTypeField(currentClass));
-			this.statementSwitch
-					.push(new AssignStatement(loc, new IdentifierExpression(loc, typeVar), new IdentifierExpression(loc,
-							((ReferenceType) lookupType(currentClass.getType())).getClassVariable())));
+//TODO: not needed with Tuple Types
+//			Variable typeVar = lookupFieldLocal(thisLocal, SootTranslationHelpers.getTypeField(currentClass));
+//			this.statementSwitch
+//					.push(new AssignStatement(loc, new IdentifierExpression(loc, typeVar), new IdentifierExpression(loc,
+//							((ReferenceType) lookupType(currentClass.getType())).getClassVariable())));
 			
 			//TODO: this is a hack at should be handeled properly.
 			pushAllFields();

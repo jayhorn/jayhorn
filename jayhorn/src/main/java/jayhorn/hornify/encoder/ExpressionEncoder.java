@@ -14,6 +14,7 @@ import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.IteExpression;
+import soottocfg.cfg.expression.TupleAccessExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
@@ -50,6 +51,8 @@ public class ExpressionEncoder {
 			} else {
 				return HornHelper.hh().findOrCreateProverVar(p, var, varMap);
 			}
+		} else if (e instanceof TupleAccessExpression) {
+			throw new RuntimeException("Not implemented");
 		} else if (e instanceof IntegerLiteral) {
 			return p.mkLiteral(BigInteger.valueOf(((IntegerLiteral) e).getValue()));
 		} else if (e instanceof NullLiteral) {

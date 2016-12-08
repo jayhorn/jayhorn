@@ -34,7 +34,6 @@ import soot.NullType;
 import soot.PrimType;
 import soot.RefType;
 import soot.ShortType;
-import soot.SootField;
 import soot.SootMethodRef;
 import soot.Type;
 import soot.Value;
@@ -52,7 +51,6 @@ import soot.jimple.DivExpr;
 import soot.jimple.DoubleConstant;
 import soot.jimple.DynamicInvokeExpr;
 import soot.jimple.EqExpr;
-import soot.jimple.FieldRef;
 import soot.jimple.FloatConstant;
 import soot.jimple.GeExpr;
 import soot.jimple.GtExpr;
@@ -88,7 +86,6 @@ import soot.jimple.ThisRef;
 import soot.jimple.UshrExpr;
 import soot.jimple.VirtualInvokeExpr;
 import soot.jimple.XorExpr;
-import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
@@ -225,7 +222,8 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseClassConstant(ClassConstant arg0) {
-		this.expressionStack.add(new IdentifierExpression(statementSwitch.getCurrentLoc(),this.memoryModel.lookupClassVariable(arg0)));
+		this.expressionStack.add(
+				new IdentifierExpression(statementSwitch.getCurrentLoc(), this.memoryModel.lookupClassVariable(arg0)));
 	}
 
 	@Override
@@ -252,7 +250,8 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseMethodHandle(MethodHandle arg0) {
-		throw new RuntimeException("We currently do not handle MethodHandle instructions. Please file an issue with your example.\nhttps://github.com/jayhorn/jayhorn/issues");
+		throw new RuntimeException(
+				"We currently do not handle MethodHandle instructions. Please file an issue with your example.\nhttps://github.com/jayhorn/jayhorn/issues");
 
 	}
 
@@ -283,13 +282,13 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseCastExpr(CastExpr arg0) {
-		if(isPrimitiveNarrowing(arg0)) {
-			//if we down-cast a numeric type, translate a havoc instead of the
-			//actual cast.
-			//TODO: this should me implemented in a more flexible way.
+		if (isPrimitiveNarrowing(arg0)) {
+			// if we down-cast a numeric type, translate a havoc instead of the
+			// actual cast.
+			// TODO: this should me implemented in a more flexible way.
 			createHavocLocal(arg0.getCastType());
 		} else {
-			arg0.getOp().apply(this);	
+			arg0.getOp().apply(this);
 		}
 	}
 
@@ -297,67 +296,81 @@ public class SootValueSwitch implements JimpleValueSwitch {
 	 * Creates a fresh local of type t, adds a statement
 	 * that assigns a non-det value to this local, and puts
 	 * this local on the stack.
-	 * @param t Type of the local that should be generated
+	 * 
+	 * @param t
+	 *            Type of the local that should be generated
 	 */
 	private void createHavocLocal(Type t) {
-		//create a fresh local variable
-		final String localName = "$ndet"+this.statementSwitch.getMethod().getActiveBody().getLocals().size();
-		Local freshLocal = Jimple.v().newLocal(localName, t);		
+		// create a fresh local variable
+		final String localName = "$ndet" + this.statementSwitch.getMethod().getActiveBody().getLocals().size();
+		Local freshLocal = Jimple.v().newLocal(localName, t);
 		this.statementSwitch.getMethod().getActiveBody().getLocals().add(freshLocal);
-		//add a statement that assigns a non-det value to this variable.
-		SootMethodRef smr = SootTranslationHelpers.v().getHavocMethod(t).makeRef();			
+		// add a statement that assigns a non-det value to this variable.
+		SootMethodRef smr = SootTranslationHelpers.v().getHavocMethod(t).makeRef();
 		Jimple.v().newAssignStmt(freshLocal, Jimple.v().newStaticInvokeExpr(smr)).apply(this.statementSwitch);
-		//push this fresh local on the expression stack.
+		// push this fresh local on the expression stack.
 		freshLocal.apply(this);
 	}
-	
-	
+
 	/**
-	 * Check if the cast narrows a numeric type. 
+	 * Check if the cast narrows a numeric type.
 	 * E.g., down-casts a long into int.
-	 * @param ce Cast Expression
+	 * 
+	 * @param ce
+	 *            Cast Expression
 	 * @return true if the cast narrows a numeric type, false otherwise.
 	 */
 	protected boolean isPrimitiveNarrowing(CastExpr ce) {
 		int target = primitiveTypeToNumber(ce.getCastType());
 		int inner = primitiveTypeToNumber(ce.getOp().getType());
-		if (inner<0 || target<0) return false;		
-		return target<inner;
+		if (inner < 0 || target < 0)
+			return false;
+		return target < inner;
 	}
 
 	/**
-	 * Check if the cast widens a numeric type. 
+	 * Check if the cast widens a numeric type.
 	 * E.g., down-casts a int into long.
-	 * @param ce Cast Expression
+	 * 
+	 * @param ce
+	 *            Cast Expression
 	 * @return true if the cast widens a numeric type, false otherwise.
 	 */
 	protected boolean isPrimitiveWidening(CastExpr ce) {
 		int target = primitiveTypeToNumber(ce.getCastType());
 		int inner = primitiveTypeToNumber(ce.getOp().getType());
-		if (inner<0 || target<0) return false;		
-		return target>inner;
+		if (inner < 0 || target < 0)
+			return false;
+		return target > inner;
 	}
-	
+
 	/**
 	 * Map numeric types to a number indicating a partial order of
 	 * their size. With double being the largest and byte being the
 	 * smallest. Following the partial order defined here:
 	 * https://docs.oracle.com/javase/specs/jls/se7/html/jls-5.html
+	 * 
 	 * @param t
 	 * @return
 	 */
 	private int primitiveTypeToNumber(Type t) {
-		if (t instanceof ByteType) return 0;
-		if (t instanceof ShortType) return 1;
-		if (t instanceof CharType) return 1;
-		if (t instanceof IntType) return 2;
-		if (t instanceof LongType) return 3;
-		if (t instanceof FloatType) return 4;
-		if (t instanceof DoubleType) return 5;
+		if (t instanceof ByteType)
+			return 0;
+		if (t instanceof ShortType)
+			return 1;
+		if (t instanceof CharType)
+			return 1;
+		if (t instanceof IntType)
+			return 2;
+		if (t instanceof LongType)
+			return 3;
+		if (t instanceof FloatType)
+			return 4;
+		if (t instanceof DoubleType)
+			return 5;
 		return -1;
 	}
-	
-	
+
 	@Override
 	public void caseCmpExpr(CmpExpr arg0) {
 		translateBinOp(arg0);
@@ -399,14 +412,32 @@ public class SootValueSwitch implements JimpleValueSwitch {
 	}
 
 	@Override
-	public void caseInstanceOfExpr(InstanceOfExpr arg0) {
-		SourceLocation loc = this.statementSwitch.getCurrentLoc();		
+	public void caseInstanceOfExpr(InstanceOfExpr arg0) {		
 		Value left = arg0.getOp();
 		soot.Type t = left.getType();
-		SootField typeField = null;
+		
 		if (t instanceof RefType) {			
 			//first make a heap-read of the type filed.
-			typeField = SootTranslationHelpers.getTypeField(((RefType)t).getSootClass());
+//			SootField typeField = SootTranslationHelpers.getTypeField(((RefType)t).getSootClass());
+//			final String localName = "$instof"+this.statementSwitch.getMethod().getActiveBody().getLocals().size();
+//			Local freshLocal = Jimple.v().newLocal(localName, typeField.getType());		
+//			this.statementSwitch.getMethod().getActiveBody().getLocals().add(freshLocal);
+//			freshLocal.apply(this);
+//			Expression instofLocal = this.popExpression();
+//			
+//			FieldRef fieldRef = Jimple.v().newInstanceFieldRef(left, typeField.makeRef());
+//			memoryModel.mkHeapReadStatement(this.statementSwitch.getCurrentStmt(), fieldRef, freshLocal);			
+//			
+//			//now make the bla <: blub expression			
+//			ClassVariable cv = SootTranslationHelpers.v().getClassVariable(arg0.getCheckType()); 			
+//			BinaryExpression instof = SootTranslationHelpers.createInstanceOfExpression(instofLocal, cv);
+//			this.expressionStack.add(instof);
+			
+			left.apply(this);
+			IdentifierExpression leftId = (IdentifierExpression)this.popExpression();
+			ClassVariable cv = SootTranslationHelpers.v().getClassVariable(arg0.getCheckType());
+			Expression instof = SootTranslationHelpers.createInstanceOfExpression(this.statementSwitch.getCurrentLoc(), leftId.getVariable(), cv);
+			this.expressionStack.add(instof);
 		} else if (t instanceof ArrayType) {
 			throw new RuntimeException("Remove arrays first");			
 		} else if (t instanceof NullType) {
@@ -424,19 +455,6 @@ public class SootValueSwitch implements JimpleValueSwitch {
 		} else {			
 			throw new RuntimeException("Not implemented. "+ arg0 + ", "+t.getClass());
 		}
-		final String localName = "$instof"+this.statementSwitch.getMethod().getActiveBody().getLocals().size();
-		Local freshLocal = Jimple.v().newLocal(localName, typeField.getType());		
-		this.statementSwitch.getMethod().getActiveBody().getLocals().add(freshLocal);
-		freshLocal.apply(this);
-		Expression instofLocal = this.popExpression();
-		
-		FieldRef fieldRef = Jimple.v().newInstanceFieldRef(left, typeField.makeRef());
-		memoryModel.mkHeapReadStatement(this.statementSwitch.getCurrentStmt(), fieldRef, freshLocal);			
-		
-		//now make the bla <: blub expression			
-		ClassVariable cv = SootTranslationHelpers.v().getClassVariable(arg0.getCheckType()); 
-		BinaryExpression instof = new BinaryExpression(loc, BinaryOperator.PoLeq, instofLocal, new IdentifierExpression(loc, cv));
-		this.expressionStack.add(instof);
 	}
 
 	@Override
@@ -544,14 +562,15 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseArrayRef(ArrayRef arg0) {
-//		this.expressionStack.add(this.memoryModel.mkArrayRefExpr(arg0));
+		// this.expressionStack.add(this.memoryModel.mkArrayRefExpr(arg0));
 		throw new RuntimeException("Should be handled in statement switch.");
 	}
 
 	@Override
 	public void caseCaughtExceptionRef(CaughtExceptionRef arg0) {
 		// This should have been eliminated by the exception translation.
-		throw new UnsupportedOperationException("CaughtExceptionRef should have been eliminated earlier! This is a bug!");
+		throw new UnsupportedOperationException(
+				"CaughtExceptionRef should have been eliminated earlier! This is a bug!");
 	}
 
 	@Override

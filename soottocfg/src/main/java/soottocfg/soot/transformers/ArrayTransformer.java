@@ -330,7 +330,7 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		arrayClass.addField(elemTypeField);
 
 		// dynamic type of the array.
-		SootTranslationHelpers.createTypeField(arrayClass);
+//		SootTranslationHelpers.createTypeField(arrayClass);
 
 		// create one field for the first N elements of the array which we
 		// model precisely:
