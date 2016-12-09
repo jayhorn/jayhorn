@@ -6,7 +6,6 @@ import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.IteExpression;
-import soottocfg.cfg.expression.NewExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
@@ -38,8 +37,6 @@ public class ExpressionEvaluator {
 			return eval((UnaryExpression) e);
 		} else if (e instanceof NullLiteral) {
 			return eval((NullLiteral) e);
-		} else if (e instanceof NewExpression) {
-			return eval((NewExpression) e);
 		} else {
 			throw new RuntimeException("unexpected expression type: " + e);
 		}
@@ -119,9 +116,5 @@ public class ExpressionEvaluator {
 	public static Optional<Object> eval(NullLiteral e) {
 		// not sure what to put in the optional here... using the expression for now
 		return Optional.of((Object) e);
-	}
-	
-	public static Optional<Object> eval(NewExpression e) {
-		return Optional.absent();
 	}
 }

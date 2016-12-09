@@ -101,7 +101,7 @@ public class Options {
 	// * Print CFG
 	// */
 	@Option(name = "-cfg", usage = "Print CFG", required = false)
-	private boolean printCFG = false;
+	public boolean printCFG = false;
 
 	
 	@Option(name = "-specs", usage = "Use built-in specs", required = false)
@@ -114,6 +114,11 @@ public class Options {
 	@Option(name = "-solution", usage = "Output full solution or counter-example", required = false)
 	public boolean solution = false;
 
+	
+	@Option(name = "-cid", usage = "Insert call IDs variables to track calling context into pull and push statements", required = false)
+	public boolean useCallIDs = false;
+
+	
 	/*
 	 * Memory precision
 	 */
@@ -172,6 +177,7 @@ public class Options {
 	 */
 	public void setInlineMaxSize(int inlineMaxSize) {
 		this.inlineMaxSize = inlineMaxSize;
+		soottocfg.Options.v().setInlineMaxSize(inlineMaxSize);
 	}
 
 	/**
@@ -186,6 +192,7 @@ public class Options {
 	 */
 	public void setInlineCount(int inlineCount) {
 		this.inlineCount = inlineCount;
+		soottocfg.Options.v().setInlineCount(inlineCount);
 	}
 
 	@Option(name = "-inline_count", usage = "Inline everything that's called less than N times", required = false)
@@ -239,7 +246,7 @@ public class Options {
 //		soottocfg.Options.v().passCallerIdIntoMethods(passCallerID);
 		soottocfg.Options.v().setExcAsAssert(insertRuntimeAssertions);
 		soottocfg.Options.v().setMemPrecision(memPrecision);
-		soottocfg.Options.v().setPrintCFG(printCFG);
+//		soottocfg.Options.v().setPrintCFG(printCFG);
 		soottocfg.Options.v().setInlineMaxSize(inlineMaxSize);
 		soottocfg.Options.v().setInlineCount(inlineCount);
 	}

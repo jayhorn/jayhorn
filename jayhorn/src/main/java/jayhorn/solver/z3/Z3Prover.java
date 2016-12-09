@@ -113,6 +113,10 @@ public class Z3Prover implements Prover {
 		}
 	}
 
+	public java.util.Map<String, String> getLastSolution() {
+		return null;
+	}
+	
 	protected Expr unpack(ProverExpr exp) {
 		if (exp instanceof Z3TermExpr) {
 			return ((Z3TermExpr) exp).getExpr();
@@ -156,7 +160,7 @@ public class Z3Prover implements Prover {
 		}
 		throw new RuntimeException("not implemented");
 	}
-
+	
 	protected ProverType pack(Sort type) {
 		if (type.equals(ctx.getIntSort())) {
 			return this.getIntType();
