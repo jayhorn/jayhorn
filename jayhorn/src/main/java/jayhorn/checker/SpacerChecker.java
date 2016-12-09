@@ -12,6 +12,7 @@ import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Verify;
 
 import jayhorn.Log;
 import jayhorn.Options;
@@ -24,12 +25,15 @@ import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
+import jayhorn.utils.GhostRegister;
+import jayhorn.utils.HeapCounterTransformer;
 import jayhorn.utils.Stats;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.variable.Variable;
 
 /**
@@ -51,6 +55,26 @@ public class SpacerChecker implements Checker{
 		Preconditions.checkNotNull(program.getEntryPoint(),
 				"The program has no entry points and thus is trivially verified.");	
 
+		GhostRegister.reset();
+		
+		if (soottocfg.Options.v().memPrecision() >= 2) {
+			GhostRegister.v().ghostVariableMap.put("pushID", IntType.instance());
+		}
+		
+		if (Options.v().useCallIDs) {
+			Log.info("Inserting call IDs  ... ");
+			Verify.verify(false, "Don't run this for now!");
+//			CallingContextTransformer cct = new CallingContextTransformer();
+//			cct.transform(program);
+		}
+		
+		HeapCounterTransformer hct = new HeapCounterTransformer();
+		hct.transform(program);
+		
+		if (Options.v().printCFG) {
+			System.out.println(program);
+		}
+		
 		Log.info("Hornify  ... ");
 		Hornify hf = new Hornify(factory);
 		Stopwatch toHornTimer = Stopwatch.createStarted();
@@ -68,7 +92,6 @@ public class SpacerChecker implements Checker{
 		ProverResult result = ProverResult.Unknown;
 		try {			
 			final Method entryPoint = program.getEntryPoint();
-
 			Log.info("Running from entry point: " + entryPoint.getMethodName());
 			final HornPredicate entryPred = hornContext.getMethodContract(entryPoint).precondition;
 			final ProverExpr entryAtom = entryPred.instPredicate(new HashMap<Variable, ProverExpr>());
@@ -78,36 +101,11 @@ public class SpacerChecker implements Checker{
 
 			//tsClauses.add(entryClause);
 			allClauses.add(entryClause);
-			
-			//int i = 0;
-			Log.info("Add Transition Relation to the solver");
+
 			for (ProverHornClause clause : allClauses){
-				//System.out.println(i + " " + clause);
 				prover.addRule(clause);
-				//i++;
-				//prover.printRules();
-				//System.out.println("-=======");
 			}
 			
-			//System.out.println("Total Horn Clauses " + (tsClauses.size() + propertyClauses.size()));
-			//Hornify.hornToSMTLIBFile(tsClauses, 0, prover);
-			//Hornify.hornToFile(tsClauses, 0);
-//			int i = 0;
-//			Log.info("Add Transition Relation to the solver");
-//			for (ProverHornClause clause : tsClauses){
-//				System.out.println(i + " " + clause);
-//				prover.addRule(clause);
-//				i++;
-//				//prover.printRules();
-//				//System.out.println("-=======");
-//			}
-//			Log.info("Add Properties");
-//			for (ProverHornClause clause : propertyClauses){
-//				System.out.println(i + " " + clause);
-//				prover.addRule(clause);
-//				i++;
-//			}
-		//	prover.printRules();
 			Log.info("Checking properties");
 			Stopwatch satTimer = Stopwatch.createStarted();
 			if (S2H.sh().getErrorState().isEmpty()){
