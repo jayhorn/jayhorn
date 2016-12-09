@@ -1,9 +1,18 @@
 package jayhorn.solver;
 
 import java.math.BigInteger;
+import java.util.Map;
 
 public interface Prover {
 
+	/**
+	 * Returns a map from predicate name to formula.
+	 * This is only textual stuff produced by the solver.
+	 * Mostly for debugging.
+	 * @return
+	 */
+	Map<String, String> getLastSolution();  
+	
 	// Types
 	ProverType getBooleanType();
 

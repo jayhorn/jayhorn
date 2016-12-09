@@ -28,4 +28,7 @@ public class ReferenceType extends ReferenceLikeType {
 		}
 	}
 
+	public boolean isNull() {
+		return (classVariable == null);
+	}
 }

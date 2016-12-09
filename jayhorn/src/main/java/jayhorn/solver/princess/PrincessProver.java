@@ -5,6 +5,7 @@ import java.io.PrintStream;
 import java.io.StringReader;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Stack;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -333,36 +334,44 @@ public class PrincessProver implements Prover {
 	private Future<?> future = null;
 	private PrincessSolverThread thread = null;
 
+	
+	private java.util.Map<String, String> lastSolution;
+	public java.util.Map<String, String> getLastSolution() {
+		return lastSolution;
+	}
+	
 	public ProverResult checkSat(boolean block) {
 		if (assertedClauses.isEmpty()) {
 			return translateRes(api.checkSat(block));
 		} else {
-			if (block) {
-
+			if (block) {				
 				final ArrayBuffer<HornClauses.Clause> clauses = new ArrayBuffer<HornClauses.Clause>();
 				for (HornExpr clause : assertedClauses)
 					clauses.$plus$eq(clause.clause);
 
 				lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
-
+				
                                 if (Options.v().solution) {
+                                	               	
                                     final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
                                                                                                                                     scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
                                                                                                                                     Options.v().getSolverOptions().contains("abstract"),
                                                                                                                                     Options.v().getSolverOptions().contains("debug"),
-                                                                                                                                    true);
+                                                                                                                                    false);
                                     
                                     if (result.isLeft()) {
+                                    	
                                         StringBuffer sol = new StringBuffer();
                                         sol.append("Solution:\n");
                                         List<Tuple2<Predicate, IFormula>> ar = result.left().get().toList();
                                         
+                                        lastSolution = new HashMap<String, String>();
                                         while (!ar.isEmpty()) {
                                             Tuple2<Predicate, IFormula> p = ar.head();
                                             ar = (List<Tuple2<Predicate, IFormula>>) ar.tail();
                                             sol.append("" + p._1() + ": " + api.pp(p._2()) + "\n");
+                                            lastSolution.put(p._1().toString(), api.pp(p._2()));
                                         }
-
                                         Log.info(sol.toString());
                                         return ProverResult.Sat;
                                     } else {

@@ -46,7 +46,7 @@ public class FlowBasedPointsToAnalysis {
 							List<Expression> args = cs.getArguments();
 							Verify.verify(args.size()>=1 && args.get(0) instanceof IdentifierExpression,
 									"Constructor should have 'this' as first argument");
-							Set<Integer> pt = getPointsToSet(variableFromExpression(args.get(0)));
+							Set<Integer> pt = getPointsToSet(args.get(0));
 							pt.add(nextAliasClass++);
 //							System.out.println("Added alias class for " + args.get(0) + " -> " + pt);
 						}
@@ -146,8 +146,8 @@ public class FlowBasedPointsToAnalysis {
 				&& !rt1.getClassVariable().superclassOf(rt2.getClassVariable()))
 			return false;
 		
-		Set<Integer> pt1 = getPointsToSet(variableFromExpression(ref1));
-		Set<Integer> pt2 = getPointsToSet(variableFromExpression(ref2));
+		Set<Integer> pt1 = getPointsToSet(ref1);
+		Set<Integer> pt2 = getPointsToSet(ref2);
 		return pt1.size()==1 && pt2.size()==1 && pt1.containsAll(pt2);
 	}
 	
@@ -167,8 +167,8 @@ public class FlowBasedPointsToAnalysis {
 				&& !rt1.getClassVariable().superclassOf(rt2.getClassVariable()))
 			return false;
 		
-		Set<Integer> pt1 = getPointsToSet(variableFromExpression(ref1));
-		Set<Integer> pt2 = getPointsToSet(variableFromExpression(ref2));
+		Set<Integer> pt1 = getPointsToSet(ref1);
+		Set<Integer> pt2 = getPointsToSet(ref2);
 		
 		// If we did not collect points to info, err on the safe side
 		if (pt1.isEmpty() || pt2.isEmpty()) return true;
@@ -190,6 +190,13 @@ public class FlowBasedPointsToAnalysis {
 		}
 		
 		return this.pointsTo.get(v);
+	}
+	
+	private Set<Integer> getPointsToSet(Expression e) {
+		if (e instanceof NullLiteral) {
+			return new HashSet<Integer>();
+		}
+		return getPointsToSet(variableFromExpression(e));
 	}
 	
 	private Variable variableFromExpression(Expression e) {

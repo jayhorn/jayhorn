@@ -67,22 +67,7 @@ public class Options {
 		this.resolveVirtualCalls = r;
 	}
 	
-	
-	/*
-	 * Pass the id of the call site as
-	 * method parameter to allow disjunctive
-	 * invariants
-	 */
-//	private boolean passCallerIdIntoMethods = false;
-//	
-//	public boolean passCallerIdIntoMethods() {
-//		return passCallerIdIntoMethods;
-//	}
-//	
-//	public void passCallerIdIntoMethods(boolean val) {
-//		this.passCallerIdIntoMethods = val;
-//	}
-	
+
 	/* 
 	 * Create Assertions For Uncaught Exceptions
 	 */

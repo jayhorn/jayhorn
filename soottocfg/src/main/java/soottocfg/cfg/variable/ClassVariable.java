@@ -27,6 +27,14 @@ public class ClassVariable extends Variable  {
 		parentConstants = new HashSet<ClassVariable>();
 		parentConstants.addAll(parents);
 		associatedFields = new LinkedList<Variable>();
+		//add all fields from the super class
+		for (ClassVariable parent : parents) {
+			for (Variable pfield : parent.getAssociatedFields()) {
+				if (!hasField(pfield.getName())) {
+					associatedFields.add(new Variable(pfield.getName(), pfield.getType()));
+				}
+			}
+		}
 	}
 
 	public String getName() {
@@ -37,29 +45,36 @@ public class ClassVariable extends Variable  {
 		return Collections.unmodifiableCollection(parentConstants);
 	}
 
-	public void setAssociatedFields(List<Variable> fields) {
-		associatedFields = new LinkedList<Variable>();
-		associatedFields.addAll(fields);
+	public void addFields(List<Variable> fields) {
+		for (Variable f : fields) {
+			if (!hasField(f.getName())) {
+				associatedFields.add(new Variable(f.getName(), f.getType()));
+			} else {
+				//warn about that.
+			}
+		}
 	}
 
 	public Variable[] getAssociatedFields() {
 		return associatedFields.toArray(new Variable[associatedFields.size()]);
 	}
-
-	public void addGhostField(Variable gf) {
-		// TODO handle this nicely
-		if (this.hasField(gf.getName())) {
-			throw new RuntimeException("Cannot add ghostfield, already exists: " + gf.getName());
-		}
-		associatedFields.add(gf);
-	}
 	
 	public boolean hasField(String fname) {
-		for (Variable v : associatedFields) {
-			if (v.getName().equals(fname))
+		for (Variable v : associatedFields) {			
+			if (v.getName().equals(fname)) {
 				return true;
+			}
 		}
 		return false;
+	}
+	
+	public int findField(String fname) {
+		for (int i=0; i<this.associatedFields.size();i++) {
+			if (associatedFields.get(i).getName().equals(fname)) {
+				return i;
+			}			
+		}
+		throw new RuntimeException("Field not found "+fname);
 	}
 	
 	@Override

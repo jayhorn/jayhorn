@@ -128,6 +128,8 @@ public class CfgCallInliner {
 			}
 		}
 		program.removeMethods(toRemove);
+		
+		System.err.println(program);
 	}
 
 	private void inlineCalls(Method method, int maxSize, int maxOccurences) {

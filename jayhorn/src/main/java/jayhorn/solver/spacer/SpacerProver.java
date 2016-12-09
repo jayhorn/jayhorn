@@ -1284,6 +1284,10 @@ public class SpacerProver implements Prover {
     		throw new RuntimeException(e.getMessage());
     	}
     }
+    
+    public java.util.Map<String, String> getLastSolution() {
+    	throw new UnsupportedOperationException();
+	}
 }
 
 

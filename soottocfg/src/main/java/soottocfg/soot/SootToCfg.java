@@ -16,7 +16,6 @@ import java.util.Set;
 import com.google.common.base.Preconditions;
 
 import soot.Body;
-import soot.Modifier;
 import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
@@ -28,6 +27,7 @@ import soot.ValueBox;
 import soot.jimple.IdentityStmt;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.Jimple;
+import soot.jimple.JimpleBody;
 import soot.jimple.toolkits.scalar.UnreachableCodeEliminator;
 import soottocfg.Options;
 import soottocfg.cfg.Program;
@@ -45,11 +45,11 @@ import soottocfg.soot.memory_model.PushIdentifierAdder;
 import soottocfg.soot.memory_model.PushPullSimplifier;
 import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.transformers.AssertionReconstruction;
+import soottocfg.soot.transformers.CfgCallInliner;
 import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.SpecClassTransformer;
 import soottocfg.soot.transformers.StaticInitializerTransformer;
 import soottocfg.soot.transformers.SwitchStatementRemover;
-import soottocfg.soot.transformers.CfgCallInliner;
 import soottocfg.soot.transformers.VirtualCallResolver;
 import soottocfg.soot.util.DuplicatedCatchDetection;
 import soottocfg.soot.util.FlowBasedPointsToAnalysis;
@@ -112,8 +112,7 @@ public class SootToCfg {
 		 * reference before applying the array transformation because
 		 * this changes this signature of main.
 		 */
-		final SootMethod mainMethod = Scene.v().getMainMethod();
-
+		final SootMethod mainMethod = Scene.v().getMainMethod();		
 		performBehaviorPreservingTransformations();
 		performAbstractionTransformations();
 		Variable exceptionGlobal = this.program
@@ -282,12 +281,9 @@ public class SootToCfg {
 	 */
 	private void performBehaviorPreservingTransformations() {
 		// add a field for the dynamic type of an object to each class.
+		SootTranslationHelpers.createTypeFields();
+		
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
-		for (SootClass sc : classes) {
-			sc.addField(new SootField(SootTranslationHelpers.typeFieldName,
-					RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC | Modifier.FINAL));
-		}
-
 		for (SootClass sc : classes) {
 			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
 				continue; // no need to process this guy.
@@ -356,13 +352,18 @@ public class SootToCfg {
 	private void addDefaultInitializers(SootMethod constructor, SootClass containingClass) {
 		if (constructor.isConstructor()) {
 			Preconditions.checkArgument(constructor.getDeclaringClass().equals(containingClass));
+			JimpleBody jbody = (JimpleBody)constructor.retrieveActiveBody();
+			
+			//TODO: use this guy in instead.
+//			jbody.insertIdentityStmts();
+			
 			Set<SootField> instanceFields = new LinkedHashSet<SootField>();
 			for (SootField f : containingClass.getFields()) {
 				if (!f.isStatic()) {
 					instanceFields.add(f);
 				}
 			}
-			for (ValueBox vb : constructor.retrieveActiveBody().getDefBoxes()) {
+			for (ValueBox vb : jbody.getDefBoxes()) {
 				if (vb.getValue() instanceof InstanceFieldRef) {
 					Value base = ((InstanceFieldRef) vb.getValue()).getBase();
 					soot.Type baseType = base.getType();
@@ -375,7 +376,8 @@ public class SootToCfg {
 			}
 
 			Unit insertPos = null;
-			for (Unit u : constructor.getActiveBody().getUnits()) {
+			
+			for (Unit u : jbody.getUnits()) {
 				if (u instanceof IdentityStmt) {
 					insertPos = u;
 				} else {
@@ -384,19 +386,19 @@ public class SootToCfg {
 			}
 			for (SootField f : instanceFields) {
 				Unit init;
-				if (f.getName().contains(SootTranslationHelpers.typeFieldName)) {
+				if (SootTranslationHelpers.isDynamicTypeVar(f)) {
 					init = Jimple.v().newAssignStmt(
-							Jimple.v().newInstanceFieldRef(constructor.getActiveBody().getThisLocal(), f.makeRef()),
+							Jimple.v().newInstanceFieldRef(jbody.getThisLocal(), f.makeRef()),
 							SootTranslationHelpers.v().getClassConstant(RefType.v(containingClass)));
 				} else {
 					init = Jimple.v().newAssignStmt(
-							Jimple.v().newInstanceFieldRef(constructor.getActiveBody().getThisLocal(), f.makeRef()),
+							Jimple.v().newInstanceFieldRef(jbody.getThisLocal(), f.makeRef()),
 							SootTranslationHelpers.v().getDefaultValue(f.getType()));
 				}
 				if (insertPos==null) {
-					constructor.getActiveBody().getUnits().addFirst(init);	
+					jbody.getUnits().addFirst(init);	
 				} else {
-					constructor.getActiveBody().getUnits().insertAfter(init, insertPos);
+					jbody.getUnits().insertAfter(init, insertPos);
 				}
 			}
 

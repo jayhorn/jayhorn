@@ -14,7 +14,9 @@ import com.google.common.base.Preconditions;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;
 
 /**
@@ -28,13 +30,31 @@ public class CallStatement extends Statement {
 	private final List<Expression> arguments;
 	private final List<Expression> returnReceiver;
 
-
-	public CallStatement(SourceLocation loc, Method method, List<Expression> arguments, List<Expression> returnReceiver) {
+	public CallStatement(SourceLocation loc, Method method, List<Expression> arguments,
+			List<Expression> returnReceiver) {
 		super(loc);
-		Preconditions.checkArgument(method.getInParams().size()==arguments.size());
+		Preconditions.checkArgument(method.getInParams().size() == arguments.size());
+		
 		this.method = method;
 		this.arguments = arguments;
 		this.returnReceiver = returnReceiver;
+
+		for (int i = 0; i < arguments.size(); i++) {
+			Expression arg = arguments.get(i);
+			Type parType = method.getInParam(i).getType();
+			
+			if (!(arg instanceof NullLiteral) && !arg.canBeAssignedToType(parType)) {
+				StringBuilder sb = new StringBuilder();
+				sb.append("Type mismatch:\n");
+				sb.append(this.toString());
+				sb.append("\nAt position "+i);
+				sb.append(":\nArg "+ arg);
+				sb.append(" of type "+ arg.getType());
+				sb.append(" cannot be assigned to type "+parType);
+				throw new RuntimeException(sb.toString());
+			}			
+		}
+
 	}
 
 	public Method getCallTarget() {
@@ -52,14 +72,14 @@ public class CallStatement extends Statement {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		
+
 		if (!returnReceiver.isEmpty()) {
 			String delim = "";
 			for (Expression e : returnReceiver) {
 				sb.append(delim);
 				sb.append(e);
 				delim = ", ";
-			}			
+			}
 			sb.append(" := ");
 		}
 		sb.append("call ");
@@ -89,7 +109,7 @@ public class CallStatement extends Statement {
 		Set<IdentifierExpression> res = new HashSet<IdentifierExpression>();
 		for (Expression e : returnReceiver) {
 			if (e instanceof IdentifierExpression) {
-				res.add((IdentifierExpression)e);
+				res.add((IdentifierExpression) e);
 			}
 		}
 		return res;
@@ -107,7 +127,7 @@ public class CallStatement extends Statement {
 		}
 		return new CallStatement(getSourceLocation(), method, argCopy, rec);
 	}
-	
+
 	@Override
 	public CallStatement substitute(Map<Variable, Variable> subs) {
 		List<Expression> argCopy = new LinkedList<Expression>();

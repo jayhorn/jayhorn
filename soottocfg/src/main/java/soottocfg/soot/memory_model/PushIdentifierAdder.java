@@ -10,9 +10,9 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
-import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
@@ -22,7 +22,6 @@ import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.util.InterProceduralPullPushOrdering;
-import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 
 /**
@@ -36,19 +35,19 @@ public class PushIdentifierAdder {
 	public final static String LP = "lastpush";
 
 	public void addIDs(Program p) {
-		addGhostFieldToClasses(p);
+		// addGhostFieldToClasses(p);
 		addToPushesAndPulls(p);
 	}
 
-	private void addGhostFieldToClasses(Program p) {
-		Set<ClassVariable> cvs = p.getClassVariables();
-		for (ClassVariable cv : cvs) {
-			Variable lastpush = new Variable(LP, IntType.instance());
-			cv.addGhostField(lastpush);
-			if (debug) 
-				System.out.println("Added 'lastpush' field to " + cv.getName());
-		}
-	}
+	// private void addGhostFieldToClasses(Program p) {
+	// Set<ClassVariable> cvs = p.getClassVariables();
+	// for (ClassVariable cv : cvs) {
+	// Variable lastpush = new Variable(LP, IntType.instance());
+	// cv.addGhostField(lastpush);
+	// if (debug)
+	// System.out.println("Added 'lastpush' field to " + cv.getName());
+	// }
+	// }
 
 	private void addToPushesAndPulls(Program p) {
 		InterProceduralPullPushOrdering ordering = new InterProceduralPullPushOrdering(p.getEntryPoint());
@@ -88,18 +87,18 @@ public class PushIdentifierAdder {
 								System.out.println(push);
 						}
 
-						List<Expression> disj = new ArrayList<Expression>();
-						for (PushStatement push : pushes) {
-							Expression exp = new BinaryExpression(pull.getSourceLocation(), BinaryOperator.Eq,
-									new IdentifierExpression(pull.getSourceLocation(), lp),
-									new IntegerLiteral(pull.getSourceLocation(), push.getID()));
-							disj.add(exp);
-						}
+						if (!pushes.isEmpty()) {
+							int uniqueLocalNumber = m.getLocals().size();
+							Variable freshLp = new Variable(LP + "__" + uniqueLocalNumber, IntType.instance());
+							m.addLocalVariable(freshLp);
 
-						if (!disj.isEmpty()) {
-
-							IdentifierExpression lpid = new IdentifierExpression(pull.getSourceLocation(), lp);
 							SourceLocation loc = pull.getSourceLocation();
+							List<Expression> disj = new ArrayList<Expression>();
+							for (PushStatement push : pushes) {
+								Expression exp = new BinaryExpression(loc, BinaryOperator.Eq,
+										new IdentifierExpression(loc, lp), new IntegerLiteral(loc, push.getID()));
+								disj.add(exp);
+							}
 
 							Iterator<Expression> it = disj.iterator();
 							Expression toAssume = it.next();
@@ -107,18 +106,23 @@ public class PushIdentifierAdder {
 								Expression toAdd = it.next();
 								toAssume = new BinaryExpression(loc, BinaryOperator.Or, toAssume, toAdd);
 							}
+							pull.getGhostExpressions().add(new IdentifierExpression(loc, freshLp));
+
+							b.addStatement(++i, new AssignStatement(loc, new IdentifierExpression(loc, lp),
+									new IdentifierExpression(loc, freshLp)));
 							Statement assume = new AssumeStatement(loc, toAssume);
 							b.addStatement(++i, assume);
-							pull.addGhostField(lpid);
+
 						}
 					} else if (s instanceof PushStatement) {
 						PushStatement push = (PushStatement) s;
+
+						push.getGhostExpressions().add(new IdentifierExpression(push.getSourceLocation(), lp));
+
 						IntegerLiteral pushID = new IntegerLiteral(SourceLocation.ANALYSIS, push.getID());
-						Expression lastpush = new IdentifierExpression(push.getSourceLocation(), lp);
-						push.addGhostField(lastpush);
-						Statement assign = new AssignStatement(push.getSourceLocation(), lastpush, pushID);
-						b.addStatement(i, assign);
-						i++;
+						Statement assign = new AssignStatement(push.getSourceLocation(),
+								new IdentifierExpression(push.getSourceLocation(), lp), pushID);
+						b.addStatement(i++, assign);
 					}
 				}
 			}
