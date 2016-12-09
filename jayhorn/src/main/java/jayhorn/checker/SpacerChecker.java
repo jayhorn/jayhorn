@@ -43,9 +43,7 @@ public class SpacerChecker implements Checker{
 	public SpacerChecker(ProverFactory factory) {
 		this.factory = factory;
 	}
-
-	//private List<ProverHornClause> tsClauses = new LinkedList<ProverHornClause>();
-	//private List<ProverHornClause> propertyClauses = new LinkedList<ProverHornClause>();
+	
 	private Map<ProverExpr, ProverResult> results = new HashMap<ProverExpr, ProverResult>();
 	private List<ProverHornClause> allClauses = new LinkedList<ProverHornClause>();
 	
