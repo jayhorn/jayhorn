@@ -6,7 +6,6 @@ import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.IteExpression;
-import soottocfg.cfg.expression.NewExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
@@ -17,6 +16,7 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
@@ -76,6 +76,12 @@ public class CfgScanner extends CfgVisitor {
 		return s;
 	}
 
+	@Override
+	protected Statement processStatement(NewStatement s) {
+		processExpression(s.getLeft());
+		return s;
+	}
+	
 	/// Expressions
 	@Override
 	protected List<Expression> processExpressionList(List<Expression> el) {
@@ -128,11 +134,6 @@ public class CfgScanner extends CfgVisitor {
 
 	@Override
 	protected Expression processExpression(NullLiteral e) {
-		return e;
-	}
-
-	@Override
-	protected Expression processExpression(NewExpression e) {
 		return e;
 	}
 	
