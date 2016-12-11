@@ -11,6 +11,7 @@ import jayhorn.solver.BoolType;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverType;
+import jayhorn.solver.ProverTupleExpr;
 import scala.collection.mutable.ArrayBuffer;
 
 class PrincessFun implements ProverFun {
@@ -24,24 +25,26 @@ class PrincessFun implements ProverFun {
 	}
 
 	public ProverExpr mkExpr(ProverExpr[] args) {
-		final ArrayBuffer<ITerm> argsBuf = new ArrayBuffer<ITerm>();
-		for (int i = 0; i < args.length; ++i) {
-			ITerm termArg;
-			if (args[i].getType() == BoolType.INSTANCE)
-				termArg = new ITermITE(((FormulaExpr) args[i]).formula,
-						new IIntLit(IdealInt$.MODULE$.apply(0)), new IIntLit(
-								IdealInt$.MODULE$.apply(1)));
-			else
-				termArg = ((TermExpr) args[i]).term;
-			argsBuf.$plus$eq(termArg);
-		}
-
-		final ITerm t = new IFunApp(fun, argsBuf.toSeq());
-
-		if (resType instanceof BoolType)
-			return new FormulaExpr(IExpression$.MODULE$.eqZero(t));
-		else
-			return new TermExpr(t, resType);
+            ProverExpr[] flatArgs = ProverTupleExpr.flatten(args);
+            
+            final ArrayBuffer<ITerm> argsBuf = new ArrayBuffer<ITerm>();
+            for (int i = 0; i < flatArgs.length; ++i) {
+                ITerm termArg;
+                if (flatArgs[i].getType() == BoolType.INSTANCE)
+                    termArg = new ITermITE(((FormulaExpr) flatArgs[i]).formula,
+                                           new IIntLit(IdealInt$.MODULE$.apply(0)),
+                                           new IIntLit(IdealInt$.MODULE$.apply(1)));
+                else
+                    termArg = ((TermExpr) flatArgs[i]).term;
+                argsBuf.$plus$eq(termArg);
+            }
+            
+            final ITerm t = new IFunApp(fun, argsBuf.toSeq());
+            
+            if (resType instanceof BoolType)
+                return new FormulaExpr(IExpression$.MODULE$.eqZero(t));
+            else
+                return new TermExpr(t, resType);
 	}
 
 	public String toString() {
