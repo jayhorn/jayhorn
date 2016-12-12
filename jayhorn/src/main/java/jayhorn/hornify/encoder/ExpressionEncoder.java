@@ -19,6 +19,7 @@ import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
+import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 
@@ -52,18 +53,30 @@ public class ExpressionEncoder {
 				return HornHelper.hh().findOrCreateProverVar(p, var, varMap);
 			}
 		} else if (e instanceof TupleAccessExpression) {
-			TupleAccessExpression tae = (TupleAccessExpression)e;			
-//			throw new RuntimeException("Not implemented");
-			return p.mkVariable("HACK_FreeVar" + HornHelper.hh().newVarNum(), HornHelper.hh().getProverType(p, tae.getType()));
+			TupleAccessExpression tae = (TupleAccessExpression)e;
+			ProverExpr tuple = varMap.get(tae.getVariable());
+			return p.mkTupleSelect(tuple, tae.getAccessPosition());
+//			return p.mkVariable("HACK_FreeVar" + HornHelper.hh().newVarNum(), HornHelper.hh().getProverType(p, tae.getType()));
 		} else if (e instanceof IntegerLiteral) {
 			return p.mkLiteral(BigInteger.valueOf(((IntegerLiteral) e).getValue()));
 		} else if (e instanceof NullLiteral) {
 			return p.mkLiteral(0);
 		} else if (e instanceof BinaryExpression) {
 			final BinaryExpression be = (BinaryExpression) e;
-			final ProverExpr left = exprToProverExpr(be.getLeft(), varMap);
-			final ProverExpr right = exprToProverExpr(be.getRight(), varMap);
+			ProverExpr left = exprToProverExpr(be.getLeft(), varMap);			
+			if (be.getLeft().getType() instanceof ReferenceType) {
+				//in that case only use the projection to the first element
+				//of the tuple.
+				left = p.mkTupleSelect(left, 0);
+			}
+			ProverExpr right = exprToProverExpr(be.getRight(), varMap);
+			if (be.getRight().getType() instanceof ReferenceType) {
+				//in that case only use the projection to the first element
+				//of the tuple.
+				right = p.mkTupleSelect(right, 0);
+			}
 
+			
 			// TODO: the following choices encode Java semantics
 			// of various operators; need a good schema to choose
 			// how precise the encoding should be (probably

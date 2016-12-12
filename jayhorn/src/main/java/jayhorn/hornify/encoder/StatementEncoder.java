@@ -271,7 +271,7 @@ public class StatementEncoder {
 		for (int i = 0; i < contract.postcondition.variables.size(); i++) {
 			ProverType t_ = actualPostParams[i].getType();
 			ProverType vt = HornHelper.hh().getProverType(p, contract.postcondition.variables.get(i).getType());
-			if (vt != t_) {
+			if (!vt.equals(t_)) {
 				System.err.println("***********");
 				System.err.println(cs);
 				System.err.println(t_ + "\t" + vt);

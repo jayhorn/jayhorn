@@ -19,7 +19,6 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.util.GraphUtil;
-import soottocfg.cfg.util.InterProceduralPullPushOrdering;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 

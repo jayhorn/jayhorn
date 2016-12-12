@@ -51,7 +51,13 @@ public class HornHelper {
 			return p.getBooleanType();
 		}
 		if (t instanceof ReferenceType) {
-			return p.getIntType();
+			ReferenceType rt = (ReferenceType)t;
+			
+			final ProverType[] subTypes = new ProverType[rt.getElementTypeList().size()];
+			for (int i=0; i<rt.getElementTypeList().size(); i++) {
+				subTypes[i] = getProverType(p, rt.getElementTypeList().get(i));
+			}
+			return p.getTupleType(subTypes);
 		}
 
 		throw new IllegalArgumentException("don't know what to do with " + t);

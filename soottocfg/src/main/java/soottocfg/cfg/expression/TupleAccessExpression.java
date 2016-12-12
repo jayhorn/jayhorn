@@ -5,6 +5,7 @@ package soottocfg.cfg.expression;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.google.common.base.Verify;
@@ -21,24 +22,38 @@ import soottocfg.cfg.variable.Variable;
 public class TupleAccessExpression extends Expression {
 
 	private static final long serialVersionUID = -7526110216710195228L;
-	
+
 	private final Variable tupleVariable;
 	private final Type projectionType;
 	private final String tupleKey;
 	private final Integer keyPos;
-	
+
 	public TupleAccessExpression(SourceLocation loc, Variable v, String posKey) {
 		super(loc);
 		this.tupleVariable = v;
 		this.tupleKey = posKey;
 		Verify.verify(this.tupleVariable.getType() instanceof ReferenceType);
-		ReferenceType rt = (ReferenceType)this.tupleVariable.getType();
-		projectionType = rt.getElementTypes().get(posKey);
-		keyPos = ((ReferenceType)this.tupleVariable.getType()).getElementTypeList().indexOf(tupleKey);
+		ReferenceType rt = (ReferenceType) this.tupleVariable.getType();
+		projectionType = rt.getElementTypes().get(this.tupleKey);
+		/*
+		 * we have to count the position manually instead of doing an indexOf
+		 * on the Values, because the values are not unique.
+		 */
+		int i = 0;
+		for (Entry<String, Type> entry : rt.getElementTypes().entrySet()) {
+			if (entry.getKey().equals(posKey)) {
+				break;
+			}
+			i++;
+		}
+		this.keyPos = i;
 		Verify.verifyNotNull(projectionType);
+		Verify.verify(keyPos < rt.getElementTypes().size());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see soottocfg.cfg.Node#getDefVariables()
 	 */
 	@Override
@@ -50,12 +65,14 @@ public class TupleAccessExpression extends Expression {
 	public Variable getVariable() {
 		return this.tupleVariable;
 	}
-	
+
 	public int getAccessPosition() {
 		return keyPos;
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see soottocfg.cfg.expression.Expression#getUseIdentifierExpressions()
 	 */
 	@Override
@@ -65,7 +82,9 @@ public class TupleAccessExpression extends Expression {
 		return res;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see soottocfg.cfg.expression.Expression#getType()
 	 */
 	@Override
@@ -77,12 +96,14 @@ public class TupleAccessExpression extends Expression {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(this.tupleVariable);
-		sb.append("#");				
+		sb.append("#");
 		sb.append(keyPos);
 		return sb.toString();
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see soottocfg.cfg.expression.Expression#deepCopy()
 	 */
 	@Override
@@ -90,7 +111,9 @@ public class TupleAccessExpression extends Expression {
 		return new TupleAccessExpression(this.getSourceLocation(), tupleVariable, tupleKey);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see soottocfg.cfg.expression.Expression#substitute(java.util.Map)
 	 */
 	@Override
