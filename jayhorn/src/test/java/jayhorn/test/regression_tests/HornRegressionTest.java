@@ -83,7 +83,7 @@ public class HornRegressionTest {
 		try {
 //			jayhorn.Options.v().setInlineCount(15);
 //			jayhorn.Options.v().setInlineMaxSize(50);			
-//			soottocfg.Options.v().setMemPrecision(1);
+			soottocfg.Options.v().setMemPrecision(1);
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
 //			soottocfg.Options.v().setPrintCFG(true);

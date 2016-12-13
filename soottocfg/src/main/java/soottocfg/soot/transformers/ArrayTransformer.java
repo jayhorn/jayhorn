@@ -320,8 +320,12 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		// add the new class to the scene
 		Scene.v().addClass(arrayClass);
 		// add a field for array.length
+				
 		SootField lengthField = new SootField(SootTranslationHelpers.lengthFieldName,
-				RefType.v(Scene.v().getSootClass("java.lang.Integer")), Modifier.PUBLIC | Modifier.FINAL);
+				IntType.v(), Modifier.PUBLIC | Modifier.FINAL);
+		
+//		SootField lengthField = new SootField(SootTranslationHelpers.lengthFieldName,
+//				RefType.v(Scene.v().getSootClass("java.lang.Integer")), Modifier.PUBLIC | Modifier.FINAL);
 		arrayClass.addField(lengthField);
 
 		// type of the array elements (e.g., float for float[])

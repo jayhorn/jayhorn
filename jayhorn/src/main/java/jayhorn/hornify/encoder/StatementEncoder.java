@@ -16,6 +16,7 @@ import jayhorn.hornify.MethodContract;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverHornClause;
+import jayhorn.solver.ProverTupleExpr;
 import jayhorn.solver.ProverTupleType;
 import jayhorn.solver.ProverType;
 import soottocfg.cfg.expression.Expression;
@@ -164,8 +165,16 @@ public class StatementEncoder {
 		if (as.getRight() instanceof NullLiteral) {						 
 			ProverTupleType pttLeft = (ProverTupleType)HornHelper.hh().getProverType(p, idLhs.getType());
 			right = HornHelper.hh().mkNullExpression(p, pttLeft.getSubTypes());
-		} else {
-			
+		} else if (right instanceof ProverTupleExpr) {
+			if (!(idLhs.getType() instanceof ReferenceType)) {
+				Verify.verify(false, "Chances are that this is a cast from java.lang.Integer to int");
+			}
+			ProverTupleType pttLeft = (ProverTupleType)HornHelper.hh().getProverType(p, idLhs.getType());
+			if (pttLeft.getArity() > ((ProverTupleExpr)right).getArity()) {
+				throw new RuntimeException("Oops, not implemented");
+			} else if (pttLeft.getArity() > ((ProverTupleExpr)right).getArity()) {
+				throw new RuntimeException("Oops, not implemented");
+			}
 		}
 		
 		varMap.put(idLhs.getVariable(), right);
