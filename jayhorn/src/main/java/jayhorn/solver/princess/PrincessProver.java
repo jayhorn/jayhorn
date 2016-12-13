@@ -15,6 +15,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.google.common.base.Verify;
+
 import ap.DialogUtil$;
 import ap.SimpleAPI;
 import ap.SimpleAPI.ProverStatus$;
@@ -182,7 +184,7 @@ public class PrincessProver implements Prover {
         if (left instanceof ProverTupleExpr) {
             ProverTupleExpr tLeft = (ProverTupleExpr)left;
             ProverTupleExpr tRight = (ProverTupleExpr)right;
-            assert(tLeft.getArity() == tRight.getArity());
+            Verify.verify(tLeft.getArity() == tRight.getArity(), tLeft.getArity()+"!="+ tRight.getArity()+ " for " +left + " and " + right);
 
             ProverExpr[] conjuncts = new ProverExpr[tLeft.getArity()];
             for (int i = 0; i < tLeft.getArity(); ++i)

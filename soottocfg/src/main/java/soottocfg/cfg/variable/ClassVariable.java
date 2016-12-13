@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.type.TypeType;
 
 /**
  * @author schaef
@@ -23,7 +24,7 @@ public class ClassVariable extends Variable  {
 	private List<Variable> associatedFields, finalFields;
 
 	public ClassVariable(String name, Collection<ClassVariable> parents) {
-		super(name, new ReferenceType(null), true, true); //TODO, its actually not reference type.	
+		super(name, new TypeType(), true, true); //TODO, its actually not reference type.	
 		parentConstants = new HashSet<ClassVariable>();
 		parentConstants.addAll(parents);
 		associatedFields = new LinkedList<Variable>();
@@ -42,6 +43,10 @@ public class ClassVariable extends Variable  {
 		}
 	}
 
+	public void setType(ReferenceType rt) {
+		this.type = rt;
+	}
+	
 	public String getName() {
 		return this.variableName;
 	}

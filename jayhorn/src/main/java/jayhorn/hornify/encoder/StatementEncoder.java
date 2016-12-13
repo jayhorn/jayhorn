@@ -16,9 +16,11 @@ import jayhorn.hornify.MethodContract;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverHornClause;
+import jayhorn.solver.ProverTupleType;
 import jayhorn.solver.ProverType;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
@@ -29,6 +31,7 @@ import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.IntType;
+import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
@@ -156,7 +159,16 @@ public class StatementEncoder {
 		Verify.verify(as.getLeft() instanceof IdentifierExpression,
 				"only assignments to variables are supported, not to " + as.getLeft());
 		final IdentifierExpression idLhs = (IdentifierExpression) as.getLeft();
-		varMap.put(idLhs.getVariable(), expEncoder.exprToProverExpr(as.getRight(), varMap));
+		
+		ProverExpr right = expEncoder.exprToProverExpr(as.getRight(), varMap);
+		if (as.getRight() instanceof NullLiteral) {						 
+			ProverTupleType pttLeft = (ProverTupleType)HornHelper.hh().getProverType(p, idLhs.getType());
+			right = HornHelper.hh().mkNullExpression(p, pttLeft.getSubTypes());
+		} else {
+			
+		}
+		
+		varMap.put(idLhs.getVariable(), right);
 
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
@@ -171,9 +183,20 @@ public class StatementEncoder {
 		Verify.verify(ns.getLeft() instanceof IdentifierExpression,
 				"only assignments to variables are supported, not to " + ns.getLeft());
 		final IdentifierExpression idLhs = (IdentifierExpression) ns.getLeft();
-		final ProverExpr ctr = expEncoder.exprToProverExpr(new IdentifierExpression(ns.getSourceLocation(), ns.getCounterVar()), varMap);
-		// set the ref to the current heap counter.		
-		varMap.put(idLhs.getVariable(), ctr);
+		
+		ReferenceType rightType = new ReferenceType(ns.getClassVariable());
+		ProverExpr[] tupleElements = new ProverExpr[rightType.getElementTypeList().size()]; 
+		
+		tupleElements[0] = expEncoder.exprToProverExpr(new IdentifierExpression(ns.getSourceLocation(), ns.getCounterVar()), varMap);
+		tupleElements[1] = p.mkLiteral(hornContext.getTypeID(ns.getClassVariable()));
+		for (int i=2; i< tupleElements.length; i++) {
+			tupleElements[i] = p.mkVariable("$new"+i, HornHelper.hh().getProverType(p, rightType.getElementTypeList().get(i))); 
+		}
+		varMap.put(idLhs.getVariable(), p.mkTuple(tupleElements));
+		
+//		final ProverExpr ctr = expEncoder.exprToProverExpr(new IdentifierExpression(ns.getSourceLocation(), ns.getCounterVar()), varMap);
+//		// set the ref to the current heap counter.		
+//		varMap.put(idLhs.getVariable(), ctr);
 
 
 		final ProverExpr postAtom = postPred.instPredicate(varMap);

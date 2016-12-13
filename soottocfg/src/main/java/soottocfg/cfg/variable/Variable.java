@@ -23,7 +23,7 @@ public class Variable implements Serializable {
 	private static final long serialVersionUID = -2599846473306218710L;
 
 	protected final String variableName;
-	protected final Type type;
+	protected Type type; //don't make the type final because java.lang.Class is recursive
 	protected final boolean constant, unique;
 
 	public Variable(String name, Type t) {

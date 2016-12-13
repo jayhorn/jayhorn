@@ -44,6 +44,7 @@ import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.type.TypeType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -254,10 +255,13 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		this.statementSwitch.push(stmt);
 	}
 
-	protected ReferenceType lookupRefLikeType(RefLikeType t) {
+	protected Type lookupRefLikeType(RefLikeType t) {
 		if (t instanceof ArrayType) {
 			throw new RuntimeException("Remove Arrays first. " + t);
-		} else if (t instanceof RefType) {			
+		} else if (t instanceof RefType) {
+			if ( ((RefType)t).getSootClass().equals(Scene.v().getSootClass("java.lang.Class"))) {
+				return new TypeType();
+			}
 			return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)));
 		} else if (t instanceof NullType) {
 			return (ReferenceType) (new NullLiteral(null)).getType();
@@ -301,6 +305,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 						}
 					}
 				}
+
 				ClassVariable cv = new ClassVariable(name, parents);
 				this.constantDictionary.put(cc, cv);
 
@@ -314,14 +319,17 @@ public abstract class BasicMemoryModel extends MemoryModel {
 			} else {
 				// System.err.println("Class not in scene: "+sootClassName);
 				this.constantDictionary.put(cc, new ClassVariable(name, new HashSet<ClassVariable>()));
-
-				// sc.addField(new
-				// SootField(SootTranslationHelpers.typeFieldName,
-				// RefType.v(Scene.v().getSootClass("java.lang.Class"))));
-			}
+			}			
 			Variable v = this.constantDictionary.get(cc);
 			Verify.verifyNotNull(v);
 			this.program.addClassVariable((ClassVariable) v);
+			/*
+			 * After we added the type to the dictionary, update the ref
+			 * type to avoid going into an endless loop.
+			 */
+//			SootClass javaLangClass = Scene.v().getSootClass("java.lang.Class");
+//			ReferenceType rt = lookupRefLikeType(javaLangClass.getType());
+//			((ClassVariable)v).setType(rt);
 		}
 		return (ClassVariable) this.constantDictionary.get(cc);
 	}

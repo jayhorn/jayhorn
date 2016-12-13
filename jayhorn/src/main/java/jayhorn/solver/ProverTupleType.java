@@ -44,6 +44,11 @@ public class ProverTupleType implements ProverType {
         return subTypes[ind];
     }
 
+    public ProverType[] getSubTypes() {
+        return subTypes;
+    }
+
+    
     @Override
     public String toString() {
         StringBuffer res = new StringBuffer();

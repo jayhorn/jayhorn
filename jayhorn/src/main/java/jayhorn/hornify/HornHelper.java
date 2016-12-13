@@ -7,20 +7,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Verify;
+
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFun;
+import jayhorn.solver.ProverTupleExpr;
+import jayhorn.solver.ProverTupleType;
 import jayhorn.solver.ProverType;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.type.TypeType;
 import soottocfg.cfg.variable.Variable;
 
 public class HornHelper {
 
-	private static HornHelper hh;
+	public static final int NullValue = 0;
 	
+	private static HornHelper hh;
+
 	public static void resetInstance() {
 		hh = null;
 	}
@@ -51,18 +58,36 @@ public class HornHelper {
 			return p.getBooleanType();
 		}
 		if (t instanceof ReferenceType) {
-			ReferenceType rt = (ReferenceType)t;
-			
+			ReferenceType rt = (ReferenceType) t;
+
 			final ProverType[] subTypes = new ProverType[rt.getElementTypeList().size()];
-			for (int i=0; i<rt.getElementTypeList().size(); i++) {
+			for (int i = 0; i < rt.getElementTypeList().size(); i++) {
 				subTypes[i] = getProverType(p, rt.getElementTypeList().get(i));
 			}
 			return p.getTupleType(subTypes);
 		}
+		if (t instanceof TypeType) {
+			return p.getIntType();
+		}
 
 		throw new IllegalArgumentException("don't know what to do with " + t);
 	}
-
+	
+	public ProverTupleExpr mkNullExpression(Prover p, ProverType[] types) {
+		ProverExpr[] subExprs = new ProverExpr[types.length];
+		for (int i = 0; i < types.length; i++) {
+			if (types[i] instanceof jayhorn.solver.BoolType) {
+				subExprs[i] = p.mkLiteral(false);
+			} else if (types[i] instanceof jayhorn.solver.IntType) {
+				subExprs[i] = p.mkLiteral(NullValue);
+			} else if (types[i] instanceof ProverTupleType) {				
+				subExprs[i] = mkNullExpression(p, ((ProverTupleType)types[i]).getSubTypes());
+			} else {
+				throw new RuntimeException("Not implemented " + types[i].getClass());
+			}
+		}
+		return (ProverTupleExpr) p.mkTuple(subExprs);
+	}
 
 	public ProverFun genHornPredicate(Prover p, String name, List<Variable> sortedVars) {
 		final List<ProverType> types = new LinkedList<ProverType>();
@@ -92,13 +117,25 @@ public class HornHelper {
 		}
 		return varMap.get(v);
 	}
-	
+
 	public ProverExpr createVariable(Prover p, Variable v) {
-		return p.mkHornVariable(v.getName() + "_" + newVarNum(), getProverType(p, v.getType()));
+		ProverType pt = getProverType(p, v.getType());
+		if (pt instanceof ProverTupleType) {
+			ProverTupleType ptt = (ProverTupleType) pt;
+			ProverExpr[] subExprs = new ProverExpr[ptt.getArity()];
+			Verify.verify(v.getType() instanceof ReferenceType);
+			for (int i = 0; i < ptt.getArity(); i++) {
+				subExprs[i] = createVariable(p,
+						new Variable(v.getName() + "#" + i, ((ReferenceType) v.getType()).getElementTypeList().get(i)));
+			}
+			return p.mkTuple(subExprs);
+		} else {
+			return p.mkHornVariable(v.getName() + "_" + newVarNum(), pt);
+		}
 	}
 
 	public ProverExpr createVariable(Prover p, String prefix, Type tp) {
-		return p.mkHornVariable(prefix+ newVarNum(), getProverType(p, tp));
+		return p.mkHornVariable(prefix + newVarNum(), getProverType(p, tp));
 	}
 
 	public List<Variable> setToSortedList(Set<Variable> set) {

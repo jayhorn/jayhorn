@@ -27,8 +27,8 @@ public class ReferenceType extends Type {
 		classVariable = var;
 		elementTypes = new LinkedHashMap<String, Type>();
 		elementTypes.put(RefFieldName, IntType.instance() );
-		if (classVariable != null) {
-			elementTypes.put(TypeFieldName, new ReferenceType(null));
+		elementTypes.put(TypeFieldName, new TypeType());
+		if (classVariable != null) {			
 			for (Variable finalField : classVariable.getFinalFields()) {
 				// TODO: don't look for final - look for all fields that
 				// are only written to once, and the rhs is a constant.
@@ -37,6 +37,12 @@ public class ReferenceType extends Type {
 		}
 	}
 
+	private static ReferenceType instance = new ReferenceType(null);
+	public static Type instance() {
+		return instance;
+	}
+
+	
 	public ClassVariable getClassVariable() {
 		return classVariable;
 	}
