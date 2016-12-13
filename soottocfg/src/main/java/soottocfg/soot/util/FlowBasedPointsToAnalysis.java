@@ -67,7 +67,8 @@ public class FlowBasedPointsToAnalysis {
 					for (Statement s : b.getStatements()) {
 						if (s instanceof AssignStatement) {
 							AssignStatement as = (AssignStatement) s;
-							if (refType(as.getLeft()) && refType(as.getRight())) {
+							if (refType(as.getLeft()) && refType(as.getRight())
+									&& !(as.getRight() instanceof NullLiteral)) {
 								Variable left = variableFromExpression(as.getLeft());
 								Variable right = variableFromExpression(as.getRight());
 								changes += rightIntoLeft(right, left);
