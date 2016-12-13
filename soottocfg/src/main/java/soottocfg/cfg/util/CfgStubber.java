@@ -19,6 +19,7 @@ import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
+import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceType;
@@ -132,7 +133,10 @@ public class CfgStubber {
 							Variable outVar = new Variable(MethodInfo.returnVariableName, rt);
 							
 							rets.add(outVar);
+							//TODO: needs testing!
 							IdentifierExpression ret = new IdentifierExpression(loc, outVar);
+							block.addStatement(new NewStatement(loc, ret, rt.getClassVariable()));
+							
 							PushStatement push = new PushStatement(loc, rt.getClassVariable(), ret, rhs);
 							block.addStatement(push);
 						} else {
