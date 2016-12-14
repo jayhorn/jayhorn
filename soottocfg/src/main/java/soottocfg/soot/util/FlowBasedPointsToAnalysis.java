@@ -81,7 +81,8 @@ public class FlowBasedPointsToAnalysis {
 							Verify.verify(params.size()==args.size());
 							for (int i = 0; i < params.size(); i++) {
 								Variable left = params.get(i);
-								if (refType(left) && refType(args.get(i))) {
+								if (refType(left) && refType(args.get(i))
+										&& !(args.get(i) instanceof NullLiteral)) {
 									Variable right = variableFromExpression(args.get(i));
 									changes += rightIntoLeft(right, left);
 								}
