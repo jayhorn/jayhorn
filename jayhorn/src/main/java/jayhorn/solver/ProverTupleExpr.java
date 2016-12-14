@@ -35,7 +35,7 @@ public class ProverTupleExpr implements ProverExpr {
     private ProverTupleType type = null;
     
     public ProverTupleExpr(ProverExpr[] subExprs) {
-        this.subExprs = subExprs;
+        this.subExprs = subExprs.clone();
     }
     
     public int getArity() {

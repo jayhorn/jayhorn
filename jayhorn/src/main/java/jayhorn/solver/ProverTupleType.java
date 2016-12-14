@@ -33,7 +33,7 @@ public class ProverTupleType implements ProverType {
     private final ProverType[] subTypes;
 
     public ProverTupleType(ProverType[] subTypes) {
-        this.subTypes = subTypes;
+        this.subTypes = subTypes.clone();
     }
     
     public int getArity() {
@@ -45,7 +45,7 @@ public class ProverTupleType implements ProverType {
     }
 
     public ProverType[] getSubTypes() {
-        return subTypes;
+        return subTypes.clone();
     }
 
     
