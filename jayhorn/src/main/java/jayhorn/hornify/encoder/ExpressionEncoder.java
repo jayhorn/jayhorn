@@ -137,8 +137,6 @@ public class ExpressionEncoder {
 			case PoLeq:
 				if ((be.getRight() instanceof IdentifierExpression)
 						&& (((IdentifierExpression) be.getRight()).getVariable() instanceof ClassVariable)) {
-
-					System.err.println(be);
 					final ClassVariable var = (ClassVariable) ((IdentifierExpression) be.getRight()).getVariable();
 
 					ProverExpr disj = p.mkLiteral(false);

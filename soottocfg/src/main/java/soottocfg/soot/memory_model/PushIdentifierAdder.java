@@ -17,7 +17,6 @@ import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.util.InterProceduralPullPushOrdering;
 import soottocfg.cfg.variable.Variable;
-import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
  * @author Rody Kersten
