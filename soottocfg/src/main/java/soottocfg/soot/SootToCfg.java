@@ -122,8 +122,9 @@ public class SootToCfg {
 		constructCfg();
 
 		// now set the entry points.
-		Method m = program.lookupMethod(mainMethod.getSignature());
+		Method m = program.lookupMethod(mainMethod.getSignature());		
 		program.setEntryPoint(m);
+		m.isProgramEntryPoint(true);
 		
 		if (Options.v().outDir() != null) {
 			writeFile(".cfg", program.toString());

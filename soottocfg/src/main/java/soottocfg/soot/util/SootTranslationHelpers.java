@@ -6,6 +6,7 @@ package soottocfg.soot.util;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import soot.ArrayType;
 import soot.Modifier;
@@ -36,10 +37,10 @@ import soottocfg.Options;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.TupleAccessExpression;
-import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.ReferenceType;
@@ -114,32 +115,18 @@ public enum SootTranslationHelpers {
 		currentSourceFileName = null;
 		memoryModel = null;
 		program = null;
+		writtenOnceFields = null;
 	}
 
-//	public static boolean isDynamicTypeVar(Variable v) {
-//		return v.getName().contains(SootTranslationHelpers.typeFieldName);
-//	}
-//
-//	public static boolean isDynamicTypeVar(SootField f) {
-//		return f.getName().contains(SootTranslationHelpers.typeFieldName);
-//	}
-//
-//	public static SootField getTypeField(SootClass sc) {
-//		return Scene.v().getSootClass("java.lang.Object").getFieldByName(SootTranslationHelpers.typeFieldName);
-//	}
-//
-//	public static void createTypeFields() {
-//		SootClass sc = Scene.v().getSootClass("java.lang.Object");
-//		if (!sc.declaresField(SootTranslationHelpers.typeFieldName)) {
-//			SootField sf = new SootField(SootTranslationHelpers.typeFieldName,
-//					RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC);
-//			sc.addField(sf);
-//		}
-//	}
-//
-//	public static SootField createTypeField(SootClass sc) {
-//		return getTypeField(sc);
-//	}
+
+	private Set<SootField> writtenOnceFields;
+	
+	public boolean isWrittenOnce(SootField f) {
+		if (writtenOnceFields==null) {
+			writtenOnceFields = WriteOnceFieldCollector.getWriteOnceInstanceFields();
+		}
+		return writtenOnceFields.contains(f);
+	}
 
 	public static List<SootField> findFieldsRecursivelyForRef(Value v) {
 		return findFieldsRecursively(((RefType) v.getType()).getSootClass());

@@ -59,7 +59,7 @@ public class HeapCounterTransformer {
 
 		for (Method m : p.getMethods()) {
 			Variable inCounter = new Variable("inHeapCounter", IntType.instance());
-			
+
 			m.getInParams().add(inCounter);
 			m.getReturnType().add(IntType.instance());
 			if (m.getOutParams().isEmpty()) {

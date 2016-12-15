@@ -107,7 +107,7 @@ public class MethodInfo {
 		Collection<Variable> locals = new LinkedHashSet<Variable>();
 		locals.addAll(this.localsMap.values());
 		locals.addAll(this.freshLocals);
-		m.initialize(this.thisVariable, this.returnVariables, locals, source, sootMethod.isEntryMethod());
+		m.initialize(this.thisVariable, this.returnVariables, locals, source, false);
 		// System.out.println("Initialized method " + m);
 		CfgBlock uniqueSink = m.findOrCreateUniqueSink();
 		if (sink != uniqueSink) {

@@ -272,7 +272,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	private String classNameToSootName(String className) {
 		return className.replace('/', '.');
 	}
-
+	
 	public ClassVariable lookupClassVariable(ClassConstant cc) {
 		if (!this.constantDictionary.containsKey(cc)) {
 			final String name = cc.getValue();

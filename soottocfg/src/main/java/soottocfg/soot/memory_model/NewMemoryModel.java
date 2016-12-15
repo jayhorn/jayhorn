@@ -3,6 +3,7 @@
  */
 package soottocfg.soot.memory_model;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -30,10 +31,14 @@ import soot.jimple.Stmt;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soot.toolkits.graph.UnitGraph;
 import soottocfg.cfg.SourceLocation;
+import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.TupleAccessExpression;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
+import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
@@ -440,36 +445,49 @@ public class NewMemoryModel extends BasicMemoryModel {
 
 			CallStatement stmt = new CallStatement(loc, method, args, receiver);
 			this.statementSwitch.push(stmt);
-			// for superclass constructor calls, we need to update the dynamic
-			// type
-			// after the call.
-//TODO: not needed with Tuple Types
-//			Variable typeVar = lookupFieldLocal(thisLocal, SootTranslationHelpers.getTypeField(currentClass));
-//			this.statementSwitch
-//					.push(new AssignStatement(loc, new IdentifierExpression(loc, typeVar), new IdentifierExpression(loc,
-//							((ReferenceType) lookupType(currentClass.getType())).getClassVariable())));
-			
 			//TODO: this is a hack at should be handeled properly.
+			//TODO: @Rody, instead of pushing after the consturctor call,
+			// we could just use the field locals and treat the constructor
+			// call as a pull.
 			pushAllFields();
-
 		} else {
 			/*
 			 * If this is not a superclass constructor, just fill the args up
 			 * with dummy variables.
 			 */
+		
+			ClassVariable cv = SootTranslationHelpers.v().getClassVariable(declClass);
+			IdentifierExpression baseExpr = (IdentifierExpression)args.get(0);
+						
+			List<Variable> finalFields = Arrays.asList(cv.getFinalFields());
+			
+			List<AssumeStatement> assumeTupleVals = new LinkedList<AssumeStatement>();
 			// ignore the first outparam (for the exception) because we added
 			// that already.
-			for (int i = 1; i < method.getReturnType().size(); i++) {
-				Variable freshLocal = this.statementSwitch.getMethodInfo().createFreshLocal("cret_",
-						method.getReturnType().get(i), false, false);
-				receiver.add(new IdentifierExpression(loc, freshLocal));
+			
+			int i=0;
+			for (SootField sf : SootTranslationHelpers.findNonStaticFieldsRecursively(declClass)) {
+				Variable fieldLocal = lookupFieldLocal(baseExpr.getVariable(), sf);
+				receiver.add(new IdentifierExpression(loc, fieldLocal));
+				Variable fieldVar = cv.getAssociatedFields()[i];
+				if (finalFields.contains(fieldVar)) {
+					TupleAccessExpression tae = new TupleAccessExpression(loc, baseExpr.getVariable(), fieldVar.getName());
+					Expression exp = new BinaryExpression(loc, BinaryOperator.Eq, tae, new IdentifierExpression(loc, fieldLocal));
+					assumeTupleVals.add(new AssumeStatement(loc, exp));
+				}
+				i++;
 			}
 			verifyArgLength(u, method, receiver);
 
 			CallStatement stmt = new CallStatement(loc, method, args, receiver);
 			this.statementSwitch.push(stmt);
-
+			for (AssumeStatement s : assumeTupleVals) {
+				System.err.println("sfgdfgd\t"+s);
+				this.statementSwitch.push(s);
+			}
 		}
+
+		
 	}
 
 	private void verifyArgLength(Unit u, Method method, List<Expression> receiver) {
@@ -507,11 +525,15 @@ public class NewMemoryModel extends BasicMemoryModel {
 		}
 	}
 
-	private Variable lookupFieldLocal(Variable baseVar, SootField sf) {
+	private Map<String, Variable> getMapForVar(Variable baseVar) {
 		if (!fieldToLocalMap.containsKey(baseVar)) {
 			fieldToLocalMap.put(baseVar, new HashMap<String, Variable>());
 		}
-		Map<String, Variable> f2l = fieldToLocalMap.get(baseVar);
+		return fieldToLocalMap.get(baseVar);
+	}
+	
+	private Variable lookupFieldLocal(Variable baseVar, SootField sf) {
+		Map<String, Variable> f2l = getMapForVar(baseVar);
 		if (!f2l.containsKey(sf.getDeclaration())) {
 
 			/*
@@ -543,7 +565,10 @@ public class NewMemoryModel extends BasicMemoryModel {
 				if (sf.isStatic()) {
 					name = sf.getDeclaringClass().getName() + "_" + sf.getName();
 				}
-				Variable l = currentMethodInfo.createFreshLocal(name, tp, sf.isFinal(), false);
+				
+				boolean makeConst = SootTranslationHelpers.v().isWrittenOnce(sf);
+//				boolean makeConst = sf.isFinal();
+				Variable l = currentMethodInfo.createFreshLocal(name, tp, makeConst, false);
 				f2l.put(sf.getDeclaration(), l);
 
 				// also add it to the localToFieldMap
