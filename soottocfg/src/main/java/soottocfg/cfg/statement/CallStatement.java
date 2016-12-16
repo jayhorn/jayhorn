@@ -14,8 +14,11 @@ import com.google.common.base.Preconditions;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;
 
@@ -34,29 +37,36 @@ public class CallStatement extends Statement {
 			List<Expression> returnReceiver) {
 		super(loc);
 		Preconditions.checkArgument(method.getInParams().size() == arguments.size());
-		
+
 		this.method = method;
-		this.arguments = arguments;
+		this.arguments = new LinkedList<Expression>();
 		this.returnReceiver = returnReceiver;
 
 		for (int i = 0; i < arguments.size(); i++) {
 			Expression arg = arguments.get(i);
 			Type parType = method.getInParam(i).getType();
-			
+
 			if (!(arg instanceof NullLiteral) && !arg.canBeAssignedToType(parType)) {
-				
-//				System.err.println(SootTranslationHelpers.v().getCurrentMethod().getActiveBody());
-				
-				
-				StringBuilder sb = new StringBuilder();
-				sb.append("Type mismatch:\n");
-				sb.append(this.toString());
-				sb.append("\nAt position "+i);
-				sb.append(":\nArg "+ arg);
-				sb.append(" of type "+ arg.getType());
-				sb.append(" cannot be assigned to type "+parType);
-				throw new RuntimeException(sb.toString());
-			}			
+
+				if (arg instanceof IntegerLiteral && parType == BoolType.instance()) {
+					if (((IntegerLiteral) arg).getValue() == 0L) {
+						this.arguments.add(BooleanLiteral.falseLiteral());
+					} else {
+						this.arguments.add(BooleanLiteral.trueLiteral());
+					}
+				} else {
+					StringBuilder sb = new StringBuilder();
+					sb.append("Type mismatch:\n");
+					sb.append(this.toString());
+					sb.append("\nAt position " + i);
+					sb.append(":\nArg " + arg);
+					sb.append(" of type " + arg.getType());
+					sb.append(" cannot be assigned to type " + parType);
+					throw new RuntimeException(sb.toString());
+				}
+			} else {
+				this.arguments.add(arg);
+			}
 		}
 
 	}
