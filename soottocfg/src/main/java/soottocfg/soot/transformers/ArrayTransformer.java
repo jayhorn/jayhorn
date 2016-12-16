@@ -84,6 +84,10 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 
 	private static final int NumberOfModeledElements = 5;
 
+	public static boolean isArrayClass(SootClass sc) {
+		return sc.getName().startsWith(arrayTypeName);
+	}
+	
 	public ArrayTransformer() {
 
 	}
@@ -319,8 +323,10 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		arrayClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
 		// add the new class to the scene
 		Scene.v().addClass(arrayClass);
-		// add a field for array.length
-				
+		arrayClass.setResolvingLevel(SootClass.BODIES);
+		arrayClass.setApplicationClass();
+		
+		// add a field for array.length				
 		SootField lengthField = new SootField(SootTranslationHelpers.lengthFieldName,
 				IntType.v(), Modifier.PUBLIC | Modifier.FINAL);
 		
