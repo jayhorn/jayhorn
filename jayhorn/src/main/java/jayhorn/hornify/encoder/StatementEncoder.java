@@ -314,7 +314,7 @@ public class StatementEncoder {
 			ProverType t_ = actualPostParams[i].getType();
 			ProverType vt = HornHelper.hh().getProverType(p, contract.postcondition.variables.get(i).getType());
 			if (!vt.equals(t_)) {
-				System.err.println("***********");
+				System.err.println("*********** at pos "+i+": ");
 				System.err.println(cs);
 				System.err.println(t_ + "\t" + vt);
 				throw new RuntimeException("Return type and receiver type don't match: " + vt + " and " + t_);

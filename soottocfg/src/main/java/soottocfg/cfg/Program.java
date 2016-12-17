@@ -16,9 +16,6 @@ import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Verify;
-
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.CallStatement;
@@ -38,27 +35,10 @@ public class Program {
 
 	private Method entryPoint;
 
-	private Variable exceptionGlobal;
-
 	private DirectedGraph<Method, DefaultEdge> callGraph;
 	private final DirectedGraph<ClassVariable, DefaultEdge> typeGraph = new DefaultDirectedGraph<ClassVariable, DefaultEdge>(
 			DefaultEdge.class);;
 
-	public Variable[] getGlobalVariables() {
-		return this.globalVariables.values().toArray(new Variable[this.globalVariables.size()]);
-	}
-
-	public Map<String, Variable> getGlobalsMap() {
-		return this.globalVariables;
-	}
-
-	public Variable createFreshGlobal(String prefix, Type t) {
-		final String vname = prefix + this.globalVariables.size();
-		Preconditions.checkArgument(!globalVariables.containsKey(vname));
-		Variable v = new Variable(vname, t);
-		this.globalVariables.put(vname, v);
-		return v;
-	}
 
 	public void addClassVariable(ClassVariable cv) {
 		if (!this.typeGraph.containsVertex(cv)) {
@@ -88,16 +68,21 @@ public class Program {
 	}
 
 	public Variable lookupGlobalVariable(String varName, Type t) {
-		return lookupGlobalVariable(varName, t, false, false);
-	}
-
-	public Variable lookupGlobalVariable(String varName, Type t, boolean constant, boolean unique) {
 		if (!this.globalVariables.containsKey(varName)) {
-			this.globalVariables.put(varName, new Variable(varName, t, constant, unique));
+			this.globalVariables.put(varName, new Variable(varName, t, true, true));
 		}
 		return this.globalVariables.get(varName);
+	}	
+
+
+	public List<Variable> getGlobalVariables() {
+		return new LinkedList<Variable>(this.globalVariables.values());
 	}
 
+	public Map<String, Variable> getGlobalsMap() {
+		return this.globalVariables;
+	}
+	
 	public Method lookupMethod(String methodSignature) {
 		return methods.get(methodSignature);
 	}
@@ -125,16 +110,6 @@ public class Program {
 
 	public Method[] getMethods() {
 		return methods.values().toArray(new Method[methods.size()]);
-	}
-
-	public Variable getExceptionGlobal() {
-		Verify.verify(exceptionGlobal != null, "Exception global never set");
-		return exceptionGlobal;
-	}
-
-	public void setExceptionGlobal(Variable exGlobal) {
-		Verify.verify(exceptionGlobal == null, "Do not set this variable twice");
-		exceptionGlobal = exGlobal;
 	}
 
 	public DirectedGraph<Method, DefaultEdge> getCallGraph() {

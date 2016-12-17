@@ -29,6 +29,8 @@ public class HeapCounterTransformer {
 
 	public static final String outHeapCounterName = "outHeapCounter";
 	
+	private int heapCounterOffset;
+	
 	public HeapCounterTransformer() {
 	}
 
@@ -42,6 +44,14 @@ public class HeapCounterTransformer {
 	 * @param p
 	 */
 	public void transform(Program p) {
+		/* The global counter works as follows:
+		 * 0 == null
+		 * 1 to p.getGlobalVariables()+1 == unique global vars referencing static objects
+		 * p.getGlobalVariables()+1 to infinity == objects that are allocated during the 
+		 * execution of the the program. 
+		 */
+		heapCounterOffset = p.getGlobalVariables().size()+2;
+		
 		insertGlobalHeapCounter(p);
 	}
 
@@ -71,7 +81,7 @@ public class HeapCounterTransformer {
 			loc = m.getLocation();
 			if (m.isProgramEntryPoint()) {
 				m.getSource().getStatements().add(0, new AssignStatement(m.getLocation(),
-						new IdentifierExpression(loc, outCounter), new IntegerLiteral(loc, 1)));
+						new IdentifierExpression(loc, outCounter), new IntegerLiteral(loc, heapCounterOffset)));
 			} else {
 				m.getSource().getStatements().add(0, new AssignStatement(m.getLocation(),
 						new IdentifierExpression(loc, outCounter), new IdentifierExpression(loc, inCounter)));

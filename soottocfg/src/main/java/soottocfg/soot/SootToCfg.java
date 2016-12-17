@@ -37,7 +37,6 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.util.CfgStubber;
-import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.memory_model.PushIdentifierAdder;
@@ -82,14 +81,14 @@ public class SootToCfg {
 
 	public SootToCfg() {
 		this(new ArrayList<String>());
+		SootTranslationHelpers.initialize(program);
 	}
 
 	public SootToCfg(List<String> resolvedClassNames) {
 		this.resolvedClassNames = resolvedClassNames;
 		// first reset everything:
 		soot.G.reset();
-		SootTranslationHelpers.v().reset();
-		SootTranslationHelpers.v(program);
+		SootTranslationHelpers.initialize(program);
 	}
 
 	/**
@@ -114,10 +113,10 @@ public class SootToCfg {
 		final SootMethod mainMethod = Scene.v().getMainMethod();		
 		performBehaviorPreservingTransformations();
 		performAbstractionTransformations();
-		Variable exceptionGlobal = this.program
-				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
-						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
-		program.setExceptionGlobal(exceptionGlobal);
+//		Variable exceptionGlobal = this.program
+//				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
+//						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
+//		program.setExceptionGlobal(exceptionGlobal);
 
 		constructCfg();
 

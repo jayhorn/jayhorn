@@ -5,11 +5,10 @@ package soottocfg.soot.memory_model;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.google.common.base.Verify;
 
@@ -61,14 +60,15 @@ public class NewMemoryModel extends BasicMemoryModel {
 	// This one sticks around between method calls...
 	private Map<Variable, SootField> localToFieldMap = new HashMap<Variable, SootField>();
 
-	private static Variable staticFieldContainerVariable;
-	private static List<SootField> usedStaticFields;
-	public static final String globalsClassName = "JayhornGlobals";
-	private static final String globalsClassVarName = "JayhornGlobalsClassVar";
+	// private static Variable staticFieldContainerVariable;
+	// private static List<SootField> usedStaticFields;
+	public static final String GlobalsClassName = "$Global_";
+	// private static final String globalsClassVarName =
+	// "JayhornGlobalsClassVar";
 
 	protected static void resetGlobalState() {
-		NewMemoryModel.staticFieldContainerVariable = null;
-		NewMemoryModel.usedStaticFields = null;
+		// NewMemoryModel.staticFieldContainerVariable = null;
+		// NewMemoryModel.usedStaticFields = null;
 	}
 
 	public NewMemoryModel() {
@@ -115,7 +115,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 
 		Variable thisLocal = this.statementSwitch.getMethodInfo().lookupLocalVariable(m.getActiveBody().getThisLocal());
 		ClassVariable classVar = ((ReferenceType) thisLocal.getType()).getClassVariable();
-		
+
 		List<Variable> vars = new LinkedList<Variable>();
 		for (SootField sf : SootTranslationHelpers.findNonStaticFieldsRecursively(m.getDeclaringClass())) {
 			vars.add(lookupFieldLocal(thisLocal, sf));
@@ -126,7 +126,8 @@ public class NewMemoryModel extends BasicMemoryModel {
 			packedVars.add(new IdentifierExpression(loc, vars.get(i)));
 		}
 
-		this.statementSwitch.push(new PushStatement(loc, classVar, new IdentifierExpression(loc, thisLocal), packedVars));
+		this.statementSwitch
+				.push(new PushStatement(loc, classVar, new IdentifierExpression(loc, thisLocal), packedVars));
 	}
 
 	private boolean pushAt(Unit u, FieldRef fr) {
@@ -245,11 +246,11 @@ public class NewMemoryModel extends BasicMemoryModel {
 			 * For static fields, we use the artificial global class
 			 * that holds all static fields as base.
 			 */
-			Variable glob = getStaticFieldContainerVariable();
+			Variable glob = getStaticFieldContainerVariable(fieldRef.getField().getDeclaringClass());
 			classVar = ((ReferenceType) glob.getType()).getClassVariable();
 			base = new IdentifierExpression(loc, glob);
 
-			for (SootField sf : usedStaticFields) {
+			for (SootField sf : staticFieldsPerClass.get(glob)) {
 				fieldLocals.add(lookupFieldLocal(glob, sf));
 			}
 
@@ -315,10 +316,10 @@ public class NewMemoryModel extends BasicMemoryModel {
 			 * For static fields, we use the artificial global class
 			 * that holds all static fields as base.
 			 */
-			Variable glob = getStaticFieldContainerVariable();
+			Variable glob = getStaticFieldContainerVariable(fieldRef.getField().getDeclaringClass());
 			classVar = ((ReferenceType) glob.getType()).getClassVariable();
 			base = new IdentifierExpression(loc, glob);
-			for (SootField sf : usedStaticFields) {
+			for (SootField sf : staticFieldsPerClass.get(glob)) {
 				fieldLocals.add(lookupFieldLocal(glob, sf));
 			}
 
@@ -356,11 +357,16 @@ public class NewMemoryModel extends BasicMemoryModel {
 		// ------------------------------------
 	}
 
-	protected Variable getStaticFieldContainerVariable() {
-		if (staticFieldContainerVariable == null) {
-			usedStaticFields = new LinkedList<SootField>();
-			ClassVariable classVar = new ClassVariable(globalsClassVarName, new LinkedList<ClassVariable>());
-			Set<Variable> fields = new LinkedHashSet<Variable>();
+	Map<SootClass, Variable> staticClassGlobals = new LinkedHashMap<SootClass, Variable>();
+	Map<Variable, List<SootField>> staticFieldsPerClass = new HashMap<Variable, List<SootField>>();
+
+	protected Variable getStaticFieldContainerVariable(SootClass sootClass) {
+		if (!staticClassGlobals.containsKey(sootClass)) {
+			ClassVariable classVar = new ClassVariable("$StaticFields_" + sootClass.getName(),
+					new LinkedList<ClassVariable>());
+			List<SootField> usedFields = new LinkedList<SootField>();
+			List<Variable> fieldVars = new LinkedList<Variable>();
+
 			for (SootClass sc : new LinkedList<SootClass>(Scene.v().getClasses())) {
 				if (sc.resolvingLevel() >= SootClass.BODIES) {
 					for (SootMethod sm : sc.getMethods()) {
@@ -369,14 +375,13 @@ public class NewMemoryModel extends BasicMemoryModel {
 								Stmt st = (Stmt) u;
 								if (st.containsFieldRef()) {
 									SootField sf = st.getFieldRef().getField();
-									if (sf.isStatic() && !usedStaticFields.contains(sf)) {
-
+									if (sf.isStatic() && !usedFields.contains(sf)
+											&& sf.getDeclaringClass().equals(sootClass)) {
 										if (!sf.equals(SootTranslationHelpers.v().getExceptionGlobal())) {
-											// TODO hack to exclude the
-											// exception field.
-											fields.add(this.lookupField(sf));
-											usedStaticFields.add(sf);
-
+											fieldVars.add(
+													new Variable(sf.getDeclaringClass().getName() + "." + sf.getName(),
+															this.lookupType(sf.getType())));
+											usedFields.add(sf);
 										}
 									}
 								}
@@ -387,37 +392,59 @@ public class NewMemoryModel extends BasicMemoryModel {
 					}
 				}
 			}
-
-			List<Variable> fieldList = new LinkedList<Variable>();
-			fieldList.addAll(fields);
-			classVar.addFields(fieldList);
+			classVar.addFields(fieldVars);
 			SootTranslationHelpers.v().getProgram().addClassVariable(classVar);
-			staticFieldContainerVariable = new Variable(globalsClassName, new ReferenceType(classVar), true, true);
+			Variable var = new Variable(GlobalsClassName + sootClass.getName(), new ReferenceType(classVar), true,
+					true);
+			staticClassGlobals.put(sootClass, var);
+			staticFieldsPerClass.put(var, usedFields);
+			this.program.getGlobalsMap().put(sootClass.getName(), var);
 		}
-		return staticFieldContainerVariable;
+		return staticClassGlobals.get(sootClass);
+
+		// if (staticFieldContainerVariable == null) {
+		// usedStaticFields = new LinkedList<SootField>();
+		// ClassVariable classVar = new ClassVariable(globalsClassVarName, new
+		// LinkedList<ClassVariable>());
+		// Set<Variable> fields = new LinkedHashSet<Variable>();
+		// for (SootClass sc : new
+		// LinkedList<SootClass>(Scene.v().getClasses())) {
+		// if (sc.resolvingLevel() >= SootClass.BODIES) {
+		// for (SootMethod sm : sc.getMethods()) {
+		// try {
+		// for (Unit u : sm.retrieveActiveBody().getUnits()) {
+		// Stmt st = (Stmt) u;
+		// if (st.containsFieldRef()) {
+		// SootField sf = st.getFieldRef().getField();
+		// if (sf.isStatic() && !usedStaticFields.contains(sf)) {
+		//
+		// if (!sf.equals(SootTranslationHelpers.v().getExceptionGlobal())) {
+		// // TODO hack to exclude the
+		// // exception field.
+		// fields.add(new Variable(sf.getDeclaringClass().getName() + "." +
+		// sf.getName(), this.lookupType(sf.getType())));
+		// usedStaticFields.add(sf);
+		//
+		// }
+		// }
+		// }
+		// }
+		// } catch (Exception e) {
+		//
+		// }
+		// }
+		// }
+		// }
+		//
+		// List<Variable> fieldList = new LinkedList<Variable>();
+		// fieldList.addAll(fields);
+		// classVar.addFields(fieldList);
+		// SootTranslationHelpers.v().getProgram().addClassVariable(classVar);
+		// staticFieldContainerVariable = new Variable(globalsClassName, new
+		// ReferenceType(classVar), true, true);
+		// }
+		// return staticFieldContainerVariable;
 	}
-
-	/**
-	 * If e is an identifier expression for a var of
-	 * ReferenceType, return the classvariable otherwise
-	 * throw an exception.
-	 * 
-	 * @param e
-	 * @return
-	 */
-	// private ClassVariable getClassVarFromExpression(Expression e) {
-	// return getClassVariableFromVar(getVarFromExpression(e));
-	// }
-
-	// private Variable getVarFromExpression(Expression e) {
-	// IdentifierExpression base = (IdentifierExpression) e;
-	// return base.getVariable();
-	// }
-
-	// private ClassVariable getClassVariableFromVar(Variable v) {
-	// ReferenceType baseType =(ReferenceType)v.getType();
-	// return baseType.getClassVariable();
-	// }
 
 	@Override
 	public void mkConstructorCall(Unit u, SootMethod constructor, List<Expression> args) {
@@ -445,8 +472,8 @@ public class NewMemoryModel extends BasicMemoryModel {
 
 			CallStatement stmt = new CallStatement(loc, method, args, receiver);
 			this.statementSwitch.push(stmt);
-			//TODO: this is a hack at should be handeled properly.
-			//TODO: @Rody, instead of pushing after the consturctor call,
+			// TODO: this is a hack at should be handeled properly.
+			// TODO: @Rody, instead of pushing after the consturctor call,
 			// we could just use the field locals and treat the constructor
 			// call as a pull.
 			pushAllFields();
@@ -455,24 +482,26 @@ public class NewMemoryModel extends BasicMemoryModel {
 			 * If this is not a superclass constructor, just fill the args up
 			 * with dummy variables.
 			 */
-		
+
 			ClassVariable cv = SootTranslationHelpers.v().getClassVariable(declClass);
-			IdentifierExpression baseExpr = (IdentifierExpression)args.get(0);
-						
+			IdentifierExpression baseExpr = (IdentifierExpression) args.get(0);
+
 			List<Variable> finalFields = Arrays.asList(cv.getFinalFields());
-			
+
 			List<AssumeStatement> assumeTupleVals = new LinkedList<AssumeStatement>();
 			// ignore the first outparam (for the exception) because we added
 			// that already.
-			
-			int i=0;
+
+			int i = 0;
 			for (SootField sf : SootTranslationHelpers.findNonStaticFieldsRecursively(declClass)) {
 				Variable fieldLocal = lookupFieldLocal(baseExpr.getVariable(), sf);
 				receiver.add(new IdentifierExpression(loc, fieldLocal));
 				Variable fieldVar = cv.getAssociatedFields()[i];
 				if (finalFields.contains(fieldVar)) {
-					TupleAccessExpression tae = new TupleAccessExpression(loc, baseExpr.getVariable(), fieldVar.getName());
-					Expression exp = new BinaryExpression(loc, BinaryOperator.Eq, tae, new IdentifierExpression(loc, fieldLocal));
+					TupleAccessExpression tae = new TupleAccessExpression(loc, baseExpr.getVariable(),
+							fieldVar.getName());
+					Expression exp = new BinaryExpression(loc, BinaryOperator.Eq, tae,
+							new IdentifierExpression(loc, fieldLocal));
 					assumeTupleVals.add(new AssumeStatement(loc, exp));
 				}
 				i++;
@@ -482,12 +511,12 @@ public class NewMemoryModel extends BasicMemoryModel {
 			CallStatement stmt = new CallStatement(loc, method, args, receiver);
 			this.statementSwitch.push(stmt);
 			for (AssumeStatement s : assumeTupleVals) {
-				System.err.println("sfgdfgd\t"+s);
+//				System.err.println("sfgdfgd\t" + s);
+				//TODO: debug if this is reachable
 				this.statementSwitch.push(s);
 			}
 		}
 
-		
 	}
 
 	private void verifyArgLength(Unit u, Method method, List<Expression> receiver) {
@@ -531,21 +560,23 @@ public class NewMemoryModel extends BasicMemoryModel {
 		}
 		return fieldToLocalMap.get(baseVar);
 	}
-	
+
 	private Variable lookupFieldLocal(Variable baseVar, SootField sf) {
 		Map<String, Variable> f2l = getMapForVar(baseVar);
 		if (!f2l.containsKey(sf.getDeclaration())) {
-
 			/*
 			 * for this references in constructors
 			 * we return the out params as field locals.
+			 * Unless it is a static field, then we treat it
+			 * like any other field.
 			 */
 			if (this.statementSwitch.getMethod().isConstructor()) {
 				JimpleBody jb = (JimpleBody) this.statementSwitch.getMethod().getActiveBody();
 				Variable thisVar = statementSwitch.getMethodInfo().lookupLocalVariable(jb.getThisLocal());
 				if (baseVar.equals(thisVar)) {
 					int i = 1;
-					for (SootField cfield : SootTranslationHelpers.findNonStaticFieldsRecursively(sf.getDeclaringClass())) {
+					for (SootField cfield : SootTranslationHelpers
+							.findNonStaticFieldsRecursively(sf.getDeclaringClass())) {
 						if (cfield.equals(sf)) {
 							Variable outVar = statementSwitch.getMethodInfo().getOutVariable(i);
 							if (!f2l.containsKey(sf.getDeclaration())) {
@@ -556,25 +587,27 @@ public class NewMemoryModel extends BasicMemoryModel {
 						}
 						i++;
 					}
+					Verify.verify(f2l.containsKey(sf.getDeclaration()));
+					return f2l.get(sf.getDeclaration());
 				}
-			} else {
-
-				MethodInfo currentMethodInfo = this.statementSwitch.getMethodInfo();
-				soottocfg.cfg.type.Type tp = this.lookupType(sf.getType());
-				String name = baseVar.getName() + "_" + sf.getName() + "_" + sf.getNumber();
-				if (sf.isStatic()) {
-					name = sf.getDeclaringClass().getName() + "_" + sf.getName();
-				}
-				
-				boolean makeConst = SootTranslationHelpers.v().isWrittenOnce(sf);
-//				boolean makeConst = sf.isFinal();
-				Variable l = currentMethodInfo.createFreshLocal(name, tp, makeConst, false);
-				f2l.put(sf.getDeclaration(), l);
-
-				// also add it to the localToFieldMap
-				localToFieldMap.put(l, sf);
 			}
+
+			MethodInfo currentMethodInfo = this.statementSwitch.getMethodInfo();
+			soottocfg.cfg.type.Type tp = this.lookupType(sf.getType());
+			String name = baseVar.getName() + "_" + sf.getName() + "_" + sf.getNumber();
+			if (sf.isStatic()) {
+				name = sf.getDeclaringClass().getName() + "_" + sf.getName();
+			}
+
+			boolean makeConst = SootTranslationHelpers.v().isWrittenOnce(sf);
+			// boolean makeConst = sf.isFinal();
+			Variable l = currentMethodInfo.createFreshLocal(name, tp, makeConst, false);
+			f2l.put(sf.getDeclaration(), l);
+
+			// also add it to the localToFieldMap
+			localToFieldMap.put(l, sf);
 		}
+
 		return f2l.get(sf.getDeclaration());
 	}
 
@@ -586,7 +619,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			IdentifierExpression base = (IdentifierExpression) valueSwitch.popExpression();
 			baseVar = base.getVariable();
 		} else if (fieldRef instanceof StaticFieldRef) {
-			baseVar = getStaticFieldContainerVariable();
+			baseVar = getStaticFieldContainerVariable(fieldRef.getField().getDeclaringClass());
 		} else {
 			throw new RuntimeException("not implemented");
 		}

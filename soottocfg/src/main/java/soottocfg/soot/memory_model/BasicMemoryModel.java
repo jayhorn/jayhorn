@@ -141,8 +141,9 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkStringLengthExpr(Value arg0) {
 		//TODO
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
-				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));
+		Variable v = SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
+				"TODO" + constantDictionary.size(), IntType.instance());
+		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),v);
 	}
 
 	/*
@@ -165,7 +166,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Expression mkStringConstant(StringConstant arg0) {
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
-					"$string" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
+					"$string" + constantDictionary.size(), lookupType(arg0.getType())));
 		}
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
 	}
@@ -180,7 +181,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Expression mkDoubleConstant(DoubleConstant arg0) {
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
-					"$double" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
+					"$double" + constantDictionary.size(), lookupType(arg0.getType())));
 		}
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
 	}
@@ -195,7 +196,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Expression mkFloatConstant(FloatConstant arg0) {
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
-					"$float" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
+					"$float" + constantDictionary.size(), lookupType(arg0.getType())));
 		}
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
 	}
@@ -312,7 +313,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 				List<Variable> fields = new LinkedList<Variable>();
 				if (c.resolvingLevel() > SootClass.DANGLING) {					
 					for (SootField f : SootTranslationHelpers.findNonStaticFieldsRecursively(c)) {
-						fields.add(lookupField(f));						
+						fields.add(new Variable(f.getDeclaringClass().getName() + "." + f.getName(), this.lookupType(f.getType())));						
 					}
 				}
 				cv.addFields(fields);
@@ -334,13 +335,4 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		return (ClassVariable) this.constantDictionary.get(cc);
 	}
 
-	protected Variable lookupField(SootField field) {
-		if (!this.fieldGlobals.containsKey(field)) {
-			final String fieldName = field.getDeclaringClass().getName() + "." + field.getName();
-			Variable fieldVar = this.program.lookupGlobalVariable(fieldName, this.lookupType(field.getType()),
-					field.isFinal(), field.isStatic());
-			this.fieldGlobals.put(field, fieldVar);
-		}
-		return this.fieldGlobals.get(field);
-	}
 }

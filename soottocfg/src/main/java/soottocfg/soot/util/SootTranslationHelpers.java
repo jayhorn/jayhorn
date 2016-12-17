@@ -8,6 +8,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Verify;
+
 import soot.ArrayType;
 import soot.Modifier;
 import soot.PrimType;
@@ -57,14 +60,17 @@ import soottocfg.soot.memory_model.NewMemoryModel;
  */
 public enum SootTranslationHelpers {
 	INSTANCE;
-
+	
 	public static SootTranslationHelpers v() {
+		Preconditions.checkArgument(initialized, "Call SootTranslationHelpers.initialize first!");
 		return INSTANCE;
 	}
 
 	public static final String HavocClassName = "Havoc_Class";
 	public static final String HavocMethodName = "havoc_";
 
+	private static boolean initialized = false;
+	
 	/**
 	 * Get a method that returns an unknown value of type t.
 	 * 
@@ -87,11 +93,12 @@ public enum SootTranslationHelpers {
 		return cls.getMethodByName("havoc_" + t.toString());
 	}
 
-	public static SootTranslationHelpers v(Program program) {
-		final SootTranslationHelpers instance = INSTANCE;
-		instance.setMemoryModelKind(Options.v().memModel());
-		instance.setProgram(program);
-		return instance;
+	public static void initialize(Program program) {
+		initialized = true;
+		INSTANCE.reset();
+		
+		INSTANCE.setProgram(program);
+		INSTANCE.setMemoryModelKind(Options.v().memModel());
 	}
 
 	private static final String parameterPrefix = "$in_";
@@ -240,6 +247,7 @@ public enum SootTranslationHelpers {
 
 		List<soottocfg.cfg.type.Type> outVarTypes = new LinkedList<soottocfg.cfg.type.Type>();
 		if (!m.getReturnType().equals(VoidType.v())) {
+			Verify.verifyNotNull(memoryModel);
 			outVarTypes.add(memoryModel.lookupType(m.getReturnType()));
 		} else if (m.isConstructor()) {
 			/*
@@ -326,6 +334,7 @@ public enum SootTranslationHelpers {
 
 	void setMemoryModelKind(MemModel kind) {
 		memoryModelKind = kind;
+		getMemoryModel();
 	}
 
 	public MemoryModel getMemoryModel() {

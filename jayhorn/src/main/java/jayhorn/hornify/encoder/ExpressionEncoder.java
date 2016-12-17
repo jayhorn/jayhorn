@@ -51,16 +51,11 @@ public class ExpressionEncoder {
 	 * @return
 	 */
 	private ProverExpr typeIdToProverExpr(int id) {
-		// ProverExpr[] subExprs = new ProverExpr[2];
-		// subExprs[0] = p.mkLiteral(id);
-		// //TODO: think about how to encode class vars!
-		// ProverExpr[] subSubExprs = new ProverExpr[1];
-		// subSubExprs[0] = p.mkLiteral(-1);
-		// subExprs[1] = p.mkTuple(subSubExprs);
-		// return p.mkTuple(subExprs);
 		return p.mkLiteral(id);
 	}
-
+	
+	
+	
 	public ProverExpr exprToProverExpr(Expression e, Map<Variable, ProverExpr> varMap) {
 		if (e instanceof IdentifierExpression) {
 			Variable var = ((IdentifierExpression) e).getVariable();
@@ -69,7 +64,19 @@ public class ExpressionEncoder {
 				// return p.mkLiteral(hornContext.getTypeID((ClassVariable)
 				// var));
 			} else {
-				return HornHelper.hh().findOrCreateProverVar(p, var, varMap);
+				if (hornContext.getProgram().getGlobalVariables().contains(var)) {
+					/*
+					 * For globals, we just use an integer number.
+					 * NOTE: The translation guarantees that this number is unique and different
+					 * from Null.
+					 */
+					int idx = hornContext.getProgram().getGlobalVariables().indexOf(var);
+					return HornHelper.hh().findOrCreateUniqueVariable(p, var, varMap, idx);
+
+//					return p.mkLiteral(hornContext.getProgram().getGlobalVariables().indexOf(var));
+				} else {
+					return HornHelper.hh().findOrCreateProverVar(p, var, varMap);
+				}
 			}
 		} else if (e instanceof TupleAccessExpression) {
 			TupleAccessExpression tae = (TupleAccessExpression) e;

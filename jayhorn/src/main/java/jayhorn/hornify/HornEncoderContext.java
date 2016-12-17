@@ -170,6 +170,10 @@ public class HornEncoderContext {
 		return result;
 	}
 
+	public Program getProgram() {
+		return this.program;
+	}
+	
 	/**
 	 * Gets a map from ClassVariable to unique ID.
 	 * @return

@@ -183,7 +183,7 @@ public class FlowBasedPointsToAnalysis {
 			this.pointsTo.put(v, new HashSet<Integer>());
 		
 		// bit of a hack to get this to work with the Jayhorn classes
-		if (v.getType().toString().startsWith(NewMemoryModel.globalsClassName)
+		if (v.getType().toString().startsWith(NewMemoryModel.GlobalsClassName)
 				|| v.getType().toString().startsWith(ArrayTransformer.arrayTypeName)) {
 			Set<Integer> pointsto = new HashSet<Integer>();
 			int ptid = -v.getType().hashCode();
