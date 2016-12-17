@@ -12,8 +12,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import com.sun.scenario.effect.impl.prism.PrCropPeer;
-
 import soot.SootMethod;
 import soottocfg.cfg.Program;
 import soottocfg.soot.transformers.ArrayTransformer;
