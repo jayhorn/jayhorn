@@ -123,4 +123,30 @@ public class ClassVariable extends Variable  {
 	public boolean superclassOf(ClassVariable cls) {
 		return cls.subclassOf(this);
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null)
+			return false;
+		if (this.getClass() == obj.getClass()) {
+			ClassVariable other = (ClassVariable) obj;
+			return this.variableName.equals(other.variableName)
+					&& this.type.equals(other.type)
+					&& this.associatedFields.containsAll(other.associatedFields)
+					&& this.finalFields.containsAll(other.finalFields)
+					&& this.parentConstants.containsAll(other.parentConstants);
+		}
+		return false;
+	}
+	
+	@Override
+	public int hashCode() {
+		int result = 42;
+		result = 37 * result + this.variableName.hashCode();
+		result = 37 * result + this.type.hashCode();
+		result = 37 * result + this.associatedFields.hashCode();
+		result = 37 * result + this.finalFields.hashCode();
+		result = 37 * result + this.parentConstants.hashCode();
+		return result;
+	}
 }

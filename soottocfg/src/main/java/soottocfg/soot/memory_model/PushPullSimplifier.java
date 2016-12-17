@@ -1,12 +1,12 @@
 package soottocfg.soot.memory_model;
 
 import java.util.HashSet;
-//import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Verify;
+
 import soottocfg.cfg.Program;
-import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
@@ -16,6 +16,7 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
+import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
@@ -26,9 +27,6 @@ import soottocfg.soot.SootToCfg;
 public class PushPullSimplifier {
 	
 	private static boolean debug = false;
-	
-	public PushPullSimplifier() {
-	}
 	
 	public void simplify(Program p) {
 		Method[] ms = p.getMethods();
@@ -81,25 +79,15 @@ public class PushPullSimplifier {
 		int removed = 0;
 		List<Statement> stmts = b.getStatements();
 		for (int i = 0; i+1 < stmts.size(); i++) {
-			if (stmts.get(i) instanceof PullStatement && stmts.get(i+1) instanceof PullStatement) {
-				PullStatement pull1 = (PullStatement) stmts.get(i);
-				PullStatement pull2 = (PullStatement) stmts.get(i+1);
-				// TODO not the nicest way to compare these...
-				if (pull1.getObject().toString().equals(pull2.getObject().toString())) {
+			if (	(stmts.get(i) instanceof PullStatement || isConstructorCall(stmts.get(i)))
+					&& stmts.get(i+1) instanceof PullStatement) {
+				Statement pull1 = stmts.get(i);
+				Statement pull2 = stmts.get(i+1);
+				if (getObject(pull1).sameVariable(getObject(pull2))) {
 					if (debug)
 						System.out.println("Applied rule (I); removed " + pull2);
 					b.removeStatement(pull2);
 					removed++;
-					List<IdentifierExpression> pull1vars = pull1.getLeft();
-					List<IdentifierExpression> pull2vars = pull2.getLeft();
-					assert (pull1vars.size()==pull2vars.size());
-					for (int j = 0; j < pull1vars.size(); j++) {
-						if (!pull1vars.get(j).toString().equals(pull2vars.get(j).toString())) {
-//							System.out.println("Add assignment (TODO: test)");
-							AssignStatement assign = new AssignStatement(SourceLocation.ANALYSIS,pull2vars.get(j),pull1vars.get(j));
-							b.addStatement(i+1, assign);
-						}
-					}
 				}
 			}
 		}
@@ -114,8 +102,7 @@ public class PushPullSimplifier {
 			if (stmts.get(i) instanceof PushStatement && stmts.get(i+1) instanceof PushStatement) {
 				PushStatement push1 = (PushStatement) stmts.get(i);
 				PushStatement push2 = (PushStatement) stmts.get(i+1);
-				// TODO not the nicest way to compare these...
-				if (push1.getObject().toString().equals(push2.getObject().toString())) {
+				if (getObject(push1).sameVariable(getObject(push2))) {
 					if (debug)
 						System.out.println("Applied rule (II); removed " + push1);
 					b.removeStatement(push1);
@@ -139,16 +126,6 @@ public class PushPullSimplifier {
 						System.out.println("Applied rule (III); removed " + pull);
 					b.removeStatement(pull);
 					removed++;
-					List<Expression> pushvars = push.getRight();
-					List<IdentifierExpression> pullvars = pull.getLeft();
-					assert (pushvars.size()==pullvars.size());
-					for (int j = 0; j < pushvars.size(); j++) {
-						if (!pushvars.get(j).toString().equals(pullvars.get(j).toString())) {
-							System.out.println("Add assignment (TODO: test)");
-							AssignStatement assign = new AssignStatement(SourceLocation.ANALYSIS,pullvars.get(j),pushvars.get(j));
-							b.addStatement(i+1, assign);
-						}
-					}
 				}
 			}
 		}
@@ -160,10 +137,11 @@ public class PushPullSimplifier {
 		int removed = 0;
 		List<Statement> stmts = b.getStatements();
 		for (int i = 0; i+1 < stmts.size(); i++) {
-			if (stmts.get(i) instanceof PullStatement && stmts.get(i+1) instanceof PushStatement) {
-				PullStatement pull = (PullStatement) stmts.get(i);
-				PushStatement push = (PushStatement) stmts.get(i+1);
-				if (sameVars(push,pull)) {
+			if (	(stmts.get(i) instanceof PullStatement || isConstructorCall(stmts.get(i)))
+					&& stmts.get(i+1) instanceof PushStatement) {
+				Statement pull = stmts.get(i);
+				Statement push = stmts.get(i+1);
+				if (sameVarsStatement(push,pull)) {
 					if (debug)
 						System.out.println("Applied rule (IV); removed " + push);
 					b.removeStatement(push);
@@ -179,8 +157,8 @@ public class PushPullSimplifier {
 		int moved = 0;
 		List<Statement> stmts = b.getStatements();
 		for (int i = 0; i+1 < stmts.size(); i++) {
-			if (stmts.get(i+1) instanceof PullStatement) {
-				PullStatement pull = (PullStatement) stmts.get(i+1);
+			if (stmts.get(i+1) instanceof PullStatement || isConstructorCall(stmts.get(i+1))) {
+				Statement pull = stmts.get(i+1);
 				Statement s = stmts.get(i);
 				if (s instanceof AssignStatement || s instanceof AssertStatement /*|| s instanceof AssumeStatement*/) {
 					//only swap if none of the vars in s point to the same location as any of the fields
@@ -232,14 +210,15 @@ public class PushPullSimplifier {
 		int swapped = 0;
 		List<Statement> stmts = b.getStatements();
 		for (int i = 0; i+1 < stmts.size(); i++) {
-			if (stmts.get(i) instanceof PushStatement && stmts.get(i+1) instanceof PullStatement) {
-				PushStatement push = (PushStatement) stmts.get(i);
-				PullStatement pull = (PullStatement) stmts.get(i+1);
+			if (	stmts.get(i) instanceof PushStatement && 
+					(stmts.get(i+1) instanceof PullStatement || isConstructorCall(stmts.get(i+1)))) {
+				Statement push = stmts.get(i);
+				Statement pull = stmts.get(i+1);
 				//only swap if none of the vars in the pull and push point to the same location
 //				Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
 //				Set<IdentifierExpression> pushvars = push.getIdentifierExpressions();
 //				if (distinct(pullvars,pushvars)) {
-				if (!SootToCfg.getPointsToAnalysis().mayAlias(pull.getObject(), push.getObject())) {
+				if (!SootToCfg.getPointsToAnalysis().mayAlias(getObject(pull), getObject(push))) {
 					b.swapStatements(i, i+1);
 					if (debug)
 						System.out.println("Applied rule (VII); swapped " + push + " and " + pull);
@@ -257,10 +236,11 @@ public class PushPullSimplifier {
 		int swapped = 0;
 		List<Statement> stmts = b.getStatements();
 		for (int i = 0; i+1 < stmts.size(); i++) {
-			if (stmts.get(i) instanceof PullStatement && stmts.get(i+1) instanceof PullStatement) {
-				PullStatement pull1 = (PullStatement) stmts.get(i);
-				PullStatement pull2 = (PullStatement) stmts.get(i+1);
-				if (pull1.getObject().toString().compareTo(pull2.getObject().toString()) < 0) {
+			if (	(stmts.get(i) instanceof PullStatement || isConstructorCall(stmts.get(i)))
+					&& (stmts.get(i+1) instanceof PullStatement || isConstructorCall(stmts.get(i+1)))) {
+				Statement pull1 = stmts.get(i);
+				Statement pull2 = stmts.get(i+1);
+				if (getObject(pull1).toString().compareTo(getObject(pull2).toString()) < 0) {
 					//only swap if none of the vars in the pull and push point to the same location
 					Set<IdentifierExpression> pull1vars = pull1.getIdentifierExpressions();
 					Set<IdentifierExpression> pull2vars = pull2.getIdentifierExpressions();
@@ -324,31 +304,6 @@ public class PushPullSimplifier {
 			}
 		}
 		return eaten;
-	}
-
-	private boolean distinct(Set<IdentifierExpression> vars1, Set<IdentifierExpression> vars2) {
-		for (IdentifierExpression exp1 : vars1) {
-			for (IdentifierExpression exp2 : vars2) {
-				if (debug)
-					System.out.println("Checking distinctness of " + exp1 + exp1.getType() + " and " + exp2 + exp2.getType());
-				if (exp1.getType() instanceof ReferenceType
-						&& exp2.getType() instanceof ReferenceType) {
-					if (soottocfg.Options.v().memPrecision() >= 3) {
-						if (SootToCfg.getPointsToAnalysis().mayAlias(exp1, exp2))
-							return false;
-					} else {
-						ReferenceType rt1 = (ReferenceType) exp1.getType();
-						ReferenceType rt2 = (ReferenceType) exp2.getType();
-						ClassVariable cv1 = rt1.getClassVariable();
-						ClassVariable cv2 = rt2.getClassVariable();
-						if (cv1!=null && cv2!=null 
-								&& (cv1.subclassOf(cv2) || !cv1.superclassOf(cv2)))
-							return false;
-					}
-				}
-			}
-		}
-		return true;
 	}
 	
 	private int movePullsUpInCFG(Method m) {
@@ -478,6 +433,36 @@ public class PushPullSimplifier {
 //		return removed;
 //	}
 	
+	private boolean distinct(Set<IdentifierExpression> vars1, Set<IdentifierExpression> vars2) {
+		for (IdentifierExpression exp1 : vars1) {
+			for (IdentifierExpression exp2 : vars2) {
+				if (debug)
+					System.out.println("Checking distinctness of " + exp1 + exp1.getType() + " and " + exp2 + exp2.getType());
+				
+				if (exp1.sameVariable(exp2)) {
+					if (debug)
+						System.out.println("Same var: " + exp1 + " and " + exp2);
+					return false;
+				} else if (exp1.getType() instanceof ReferenceType
+						&& exp2.getType() instanceof ReferenceType) {
+					if (soottocfg.Options.v().memPrecision() >= 3) {
+						if (SootToCfg.getPointsToAnalysis().mayAlias(exp1, exp2))
+							return false;
+					} else {
+						ReferenceType rt1 = (ReferenceType) exp1.getType();
+						ReferenceType rt2 = (ReferenceType) exp2.getType();
+						ClassVariable cv1 = rt1.getClassVariable();
+						ClassVariable cv2 = rt2.getClassVariable();
+						if (cv1!=null && cv2!=null 
+								&& (cv1.subclassOf(cv2) || !cv1.superclassOf(cv2)))
+							return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
+	
 	private boolean sameVars(PushStatement push, PullStatement pull) {
 		List<Expression> pushvars = push.getRight();
 		List<IdentifierExpression> pullvars = pull.getLeft();
@@ -485,11 +470,61 @@ public class PushPullSimplifier {
 			return false;
 		
 		for (int i = 0; i < pushvars.size(); i++) {
-			// TODO build equals methods
-			if (!pushvars.get(i).toString().equals(pullvars.get(i).toString()))
+			if (! (pushvars.get(i) instanceof IdentifierExpression))
+				return false;
+			IdentifierExpression ie1 = (IdentifierExpression) pullvars.get(i);
+			IdentifierExpression ie2 = (IdentifierExpression) pushvars.get(i);
+			if (!ie1.sameVariable(ie2))
 				return false;
 		}
 		
 		return true;
+	}
+	
+	private boolean sameVars(PushStatement push, CallStatement pull) {
+		List<Expression> pushvars = push.getRight();
+		List<Expression> pullvars = pull.getReceiver();
+		if (pushvars.size() != pullvars.size())
+			return false;
+		
+		for (int i = 0; i < pushvars.size(); i++) {
+			if (! (pullvars.get(i) instanceof IdentifierExpression))
+				return false;
+			if (! (pushvars.get(i) instanceof IdentifierExpression))
+				return false;
+			IdentifierExpression ie1 = (IdentifierExpression) pullvars.get(i);
+			IdentifierExpression ie2 = (IdentifierExpression) pushvars.get(i);
+			if (!ie1.sameVariable(ie2))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	private boolean sameVarsStatement(Statement push, Statement pull) {
+		Verify.verify(push instanceof PushStatement);
+		Verify.verify(pull instanceof PullStatement || isConstructorCall(pull));
+		if (pull instanceof PullStatement)
+			return sameVars((PushStatement) push, (PullStatement) pull);
+		else
+			return sameVars((PushStatement) push, (CallStatement) pull);
+	}
+	
+	private boolean isConstructorCall(Statement s) {
+		if (s instanceof CallStatement) {
+			CallStatement cs = (CallStatement) s;
+			return cs.getCallTarget().isConstructor();
+		}
+		return false;
+	}
+	
+	private IdentifierExpression getObject(Statement s) {
+		if (s instanceof PullStatement)
+			return (IdentifierExpression) ((PullStatement) s).getObject();
+		if (s instanceof PushStatement)
+			return (IdentifierExpression) ((PushStatement) s).getObject();
+		if (isConstructorCall(s))
+			return (IdentifierExpression) ((CallStatement) s).getArguments().get(0);
+		return null;
 	}
 }

@@ -73,5 +73,9 @@ public class IdentifierExpression extends Expression {
 			return new IdentifierExpression(getSourceLocation(), subs.get(variable));
 		}
 		return new IdentifierExpression(getSourceLocation(), variable);
-	}	
+	}
+
+	public boolean sameVariable(IdentifierExpression other) {
+		return this.variable.equals(other.variable);
+	}
 }
