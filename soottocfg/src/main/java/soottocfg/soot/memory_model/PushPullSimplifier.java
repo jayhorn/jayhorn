@@ -165,6 +165,12 @@ public class PushPullSimplifier {
 					//only swap if none of the vars in s point to the same location as any of the fields
 					Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
 					Set<IdentifierExpression> svars = s.getIdentifierExpressions();
+					
+					if (s instanceof AssignStatement) {
+						AssignStatement as = (AssignStatement) s;
+						svars = as.getLeft().getUseIdentifierExpressions();
+					}
+					
 					if (distinct(svars,pullvars)) {
 						b.swapStatements(i, i+1);
 						if (debug)
