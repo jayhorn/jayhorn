@@ -11,17 +11,14 @@ import com.google.common.base.Verify;
 
 import soottocfg.cfg.Program;
 import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
-//import soottocfg.cfg.statement.PullStatement;
-//import soottocfg.cfg.statement.PushStatement;
+import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.ReferenceType;
-//import soottocfg.cfg.util.InterProceduralPullPushOrdering;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.transformers.ArrayTransformer;
@@ -39,17 +36,10 @@ public class FlowBasedPointsToAnalysis {
 		for (Method m : program.getMethods()) {
 			for (CfgBlock b : m.vertexSet()) {
 				for (Statement s : b.getStatements()) {
-					if (s instanceof CallStatement) {
-						CallStatement cs = (CallStatement) s;
-						Method target = cs.getCallTarget();
-						if (target.isConstructor()) {
-							List<Expression> args = cs.getArguments();
-							Verify.verify(args.size()>=1 && args.get(0) instanceof IdentifierExpression,
-									"Constructor should have 'this' as first argument");
-							Set<Integer> pt = getPointsToSet(args.get(0));
-							pt.add(nextAliasClass++);
-//							System.out.println("Added alias class for " + args.get(0) + " -> " + pt);
-						}
+					if (s instanceof NewStatement) {
+						NewStatement ns = (NewStatement) s;
+						Set<Integer> pt = getPointsToSet(ns.getLeft());
+						pt.add(nextAliasClass++);
 					}
 				}
 			}
@@ -147,6 +137,13 @@ public class FlowBasedPointsToAnalysis {
 		if (!rt1.getClassVariable().subclassOf(rt2.getClassVariable()) 
 				&& !rt1.getClassVariable().superclassOf(rt2.getClassVariable()))
 			return false;
+		
+		if (!(ref1 instanceof NullLiteral || ref2 instanceof NullLiteral)) {
+			Variable v1 = variableFromExpression(ref1);
+			Variable v2 = variableFromExpression(ref2);
+			if (v1.equals(v2))
+				return true;
+		}
 		
 		Set<Integer> pt1 = getPointsToSet(ref1);
 		Set<Integer> pt2 = getPointsToSet(ref2);

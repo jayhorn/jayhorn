@@ -17,6 +17,7 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
@@ -160,7 +161,7 @@ public class PushPullSimplifier {
 			if (stmts.get(i+1) instanceof PullStatement || isConstructorCall(stmts.get(i+1))) {
 				Statement pull = stmts.get(i+1);
 				Statement s = stmts.get(i);
-				if (s instanceof AssignStatement || s instanceof AssertStatement /*|| s instanceof AssumeStatement*/) {
+				if (s instanceof AssignStatement || s instanceof AssertStatement || s instanceof NewStatement /*|| s instanceof AssumeStatement*/) {
 					//only swap if none of the vars in s point to the same location as any of the fields
 					Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
 					Set<IdentifierExpression> svars = s.getIdentifierExpressions();
@@ -184,7 +185,7 @@ public class PushPullSimplifier {
 			if (stmts.get(i) instanceof PushStatement) {
 				PushStatement push = (PushStatement) stmts.get(i);
 				Statement s = stmts.get(i+1);
-				if (s instanceof AssignStatement || s instanceof AssertStatement /*|| s instanceof AssumeStatement*/) {
+				if (s instanceof AssignStatement || s instanceof AssertStatement || s instanceof NewStatement /*|| s instanceof AssumeStatement*/) {
 
 					// I don't think this check is needed. In SatStatic2 example,
 					// it prevents a push to move past an assignment, while there is an identical
@@ -214,10 +215,7 @@ public class PushPullSimplifier {
 					(stmts.get(i+1) instanceof PullStatement || isConstructorCall(stmts.get(i+1)))) {
 				Statement push = stmts.get(i);
 				Statement pull = stmts.get(i+1);
-				//only swap if none of the vars in the pull and push point to the same location
-//				Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
-//				Set<IdentifierExpression> pushvars = push.getIdentifierExpressions();
-//				if (distinct(pullvars,pushvars)) {
+				//only swap if the objects in the pull and push do not point to the same location
 				if (!SootToCfg.getPointsToAnalysis().mayAlias(getObject(pull), getObject(push))) {
 					b.swapStatements(i, i+1);
 					if (debug)
@@ -312,7 +310,8 @@ public class PushPullSimplifier {
 			List<Statement> stmts = b.getStatements();
 			int s = 0;
 			Set<Statement> toRemove = new HashSet<Statement>();
-			while (s < stmts.size() && stmts.get(s) instanceof PullStatement) {
+			while (s < stmts.size() && 
+					(stmts.get(s) instanceof PullStatement || isConstructorCall(stmts.get(s)))) {
 				Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
 				for (CfgEdge in : incoming) {
 					CfgBlock prev = b.getMethod().getEdgeSource(in);
@@ -405,32 +404,6 @@ public class PushPullSimplifier {
 //			}
 //		}
 //		return moves;
-//	}
-	
-//	private int removeEmptyBlocks(Method m) {
-//		int removed = 0;
-//		Set<CfgBlock> toRemove = new HashSet<CfgBlock>();
-//		for (CfgBlock b : m.vertexSet()) {
-//			if (b.getStatements().isEmpty()) {
-//				//make all predecessors point to unique successor
-//				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
-//				if (outgoing.size()==1) {
-//					Set<CfgEdge> toRemoveEdges = new HashSet<CfgEdge>();
-//					CfgBlock next = b.getMethod().getEdgeTarget((CfgEdge)outgoing.toArray()[0]);
-//					Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
-//					for (CfgEdge in : incoming) {
-//						CfgBlock prev = b.getMethod().getEdgeSource(in);
-//						toRemoveEdges.add(in);
-//						b.getMethod().addEdge(prev, next);
-//					}
-//					toRemove.add(b);
-//					b.getMethod().removeAllEdges(toRemoveEdges);
-//				}
-//			}
-//		}
-//		// this one breaks everything...
-//		m.removeAllVertices(toRemove);
-//		return removed;
 //	}
 	
 	private boolean distinct(Set<IdentifierExpression> vars1, Set<IdentifierExpression> vars2) {
