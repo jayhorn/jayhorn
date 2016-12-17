@@ -12,8 +12,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import com.sun.scenario.effect.impl.prism.PrCropPeer;
+
 import soot.SootMethod;
+import soottocfg.cfg.Program;
 import soottocfg.soot.transformers.ArrayTransformer;
+import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
  * @author schaef
@@ -43,6 +47,8 @@ public class ArrayTransformerTest extends AbstractTransformerTest {
 		
 		@Test
 		public void test() {
+			Program p = new Program();
+			SootTranslationHelpers.initialize(p);
 			List<SootMethod> methods = loadSootMethods();
 //			SootTranslationHelpers.createTypeFields();
 			ArrayTransformer arr = new ArrayTransformer();
