@@ -6,7 +6,7 @@ import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.IteExpression;
-import soottocfg.cfg.expression.NewExpression;
+import soottocfg.cfg.expression.TupleAccessExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
@@ -38,8 +38,8 @@ public class ExpressionEvaluator {
 			return eval((UnaryExpression) e);
 		} else if (e instanceof NullLiteral) {
 			return eval((NullLiteral) e);
-		} else if (e instanceof NewExpression) {
-			return eval((NewExpression) e);
+		} else if (e instanceof TupleAccessExpression) {
+			return eval((TupleAccessExpression) e);
 		} else {
 			throw new RuntimeException("unexpected expression type: " + e);
 		}
@@ -121,7 +121,7 @@ public class ExpressionEvaluator {
 		return Optional.of((Object) e);
 	}
 	
-	public static Optional<Object> eval(NewExpression e) {
+	public static Optional<Object> eval(TupleAccessExpression e) {
 		return Optional.absent();
 	}
 }

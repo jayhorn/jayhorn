@@ -29,14 +29,11 @@ import soot.jimple.Constant;
 import soot.jimple.DoubleConstant;
 import soot.jimple.FloatConstant;
 import soot.jimple.NewArrayExpr;
-import soot.jimple.NewExpr;
 import soot.jimple.NewMultiArrayExpr;
 import soot.jimple.StringConstant;
 import soottocfg.cfg.Program;
-import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.NewExpression;
 import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.CallStatement;
@@ -80,33 +77,6 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public void mkArrayReadStatement(Unit u, ArrayRef arrayRef, Value lhs) {
 		throw new RuntimeException("This should have been removed by the array abstraction.");
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see jayhorn.soot.memory_model.MemoryModel#mkNewExpr(soot.jimple.NewExpr)
-	 */
-	@Override
-	public Expression mkNewExpr(NewExpr arg0) {
-		SootClass sc = arg0.getBaseType().getSootClass();
-		SourceLocation loc = this.statementSwitch.getCurrentLoc();
-		// make this an application class to make sure that we analyze the
-		// constructor
-		sc.setApplicationClass();
-		ClassVariable cvar = SootTranslationHelpers.v().getClassVariable(sc);
-		NewExpression nexp = new NewExpression(loc, cvar, 0);
-		return nexp;
-		
-//		Type newType = this.lookupType(arg0.getBaseType());
-//		MethodInfo mi = this.statementSwitch.getMethodInfo();
-//		Variable newLocal = mi.createFreshLocal("$new", newType, true, true);
-//		// add: assume newLocal!=null
-//		this.statementSwitch.push(new AssumeStatement(statementSwitch.getCurrentLoc(),
-//				new BinaryExpression(this.statementSwitch.getCurrentLoc(), BinaryOperator.Ne,
-//						new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal),
-//						this.mkNullConstant())));
-//		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), newLocal);
 	}
 
 

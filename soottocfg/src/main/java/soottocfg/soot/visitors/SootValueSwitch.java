@@ -502,7 +502,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseNewExpr(NewExpr arg0) {
-		this.expressionStack.add(this.memoryModel.mkNewExpr(arg0));
+		throw new RuntimeException("Should be handeled in SootStmtSwitch");
 	}
 
 	@Override

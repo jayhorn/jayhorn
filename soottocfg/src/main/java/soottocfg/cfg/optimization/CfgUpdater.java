@@ -9,7 +9,7 @@ import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.IteExpression;
-import soottocfg.cfg.expression.NewExpression;
+import soottocfg.cfg.expression.TupleAccessExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
@@ -148,28 +148,28 @@ public class CfgUpdater extends CfgVisitor {
 
 	@Override
 	protected Expression processExpression(BooleanLiteral e) {
-		return e;
+		return e.deepCopy();
 	}
 
 	@Override
 	protected Expression processExpression(NullLiteral e) {
-		return e;
+		return e.deepCopy();
 	}
 
 	
 	@Override
 	protected Expression processExpression(IdentifierExpression e) {
-		return e;
+		return e.deepCopy();
 	}
 
 	@Override
 	protected Expression processExpression(IntegerLiteral e) {
-		return e;
+		return e.deepCopy();
 	}
 
 	@Override
-	protected Expression processExpression(NewExpression e) {
-		return e;
+	protected Expression processExpression(TupleAccessExpression e) {
+		return e.deepCopy();
 	}
 
 	@Override
