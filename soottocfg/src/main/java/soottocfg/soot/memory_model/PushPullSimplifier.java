@@ -319,22 +319,32 @@ public class PushPullSimplifier {
 			while (s < stmts.size() && 
 					(stmts.get(s) instanceof PullStatement || isConstructorCall(stmts.get(s)))) {
 				Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
+				boolean canMoveOverLabel = true;
 				for (CfgEdge in : incoming) {
-					CfgBlock prev = b.getMethod().getEdgeSource(in);
-					
-					// only move up in CFG
-					if (m.distanceToSource(prev) < m.distanceToSource(b)) {
-						Statement stmt = stmts.get(s);
-						//don't create references to the same statement in multiple blocks
-						if (toRemove.contains(stmt))
-							stmt = stmt.deepCopy();
-						else
-							toRemove.add(stmt);
-						prev.addStatement(stmt);
-						moves++;
+					if (in.getLabel().isPresent() && 
+							!distinct(in.getLabel().get().getUseIdentifierExpressions(), stmts.get(s).getIdentifierExpressions())) {
+							canMoveOverLabel = false;
+							break;
+					}
+				}
+				if (canMoveOverLabel) {
+					for (CfgEdge in : incoming) {
+						CfgBlock prev = b.getMethod().getEdgeSource(in);
 
-						if (debug)
-							System.out.println("Moved " + stmts.get(s) + " up in CFG.");
+						// only move up in CFG
+						if (m.distanceToSource(prev) < m.distanceToSource(b)) {
+							Statement stmt = stmts.get(s);
+							//don't create references to the same statement in multiple blocks
+							if (toRemove.contains(stmt))
+								stmt = stmt.deepCopy();
+							else
+								toRemove.add(stmt);
+							prev.addStatement(stmt);
+							moves++;
+
+							if (debug)
+								System.out.println("Moved " + stmts.get(s) + " up in CFG.");
+						}
 					}
 				}
 				s++;
@@ -352,22 +362,32 @@ public class PushPullSimplifier {
 			Set<Statement> toRemove = new HashSet<Statement>();
 			while (s > 0 && stmts.get(s) instanceof PushStatement) {
 				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
+				boolean canMoveOverLabel = true;
 				for (CfgEdge out : outgoing) {
-					CfgBlock next = b.getMethod().getEdgeTarget(out);
-					
-					// only move down in source
-					if (m.distanceToSink(next) < m.distanceToSink(b)) {
-						Statement stmt = stmts.get(s);
-						//don't create references to the same statement in multiple blocks
-						if (toRemove.contains(stmt))
-							stmt = stmt.deepCopy();
-						else
-							toRemove.add(stmt);
-						next.addStatement(0, stmt);
-						moves++;
+					if (out.getLabel().isPresent() && 
+							!distinct(out.getLabel().get().getUseIdentifierExpressions(), stmts.get(s).getIdentifierExpressions())) {
+							canMoveOverLabel = false;
+							break;
+					}
+				}
+				if (canMoveOverLabel) {
+					for (CfgEdge out : outgoing) {
+						CfgBlock next = b.getMethod().getEdgeTarget(out);
 
-						if (debug)
-							System.out.println("Moved " + stmts.get(s) + " down in CFG.");
+						// only move down in source
+						if (m.distanceToSink(next) < m.distanceToSink(b)) {
+							Statement stmt = stmts.get(s);
+							//don't create references to the same statement in multiple blocks
+							if (toRemove.contains(stmt))
+								stmt = stmt.deepCopy();
+							else
+								toRemove.add(stmt);
+							next.addStatement(0, stmt);
+							moves++;
+
+							if (debug)
+								System.out.println("Moved " + stmts.get(s) + " down in CFG.");
+						}
 					}
 				}
 				s--;
