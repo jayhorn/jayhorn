@@ -60,14 +60,17 @@ public class CfgCallInliner {
 			if (!totalCallsTo.containsKey(m.getMethodName())) {
 				totalCallsTo.put(m.getMethodName(), 0);
 			}
-
-			int stmtCount = 0;
+			
 			for (Method callee : calledMethods(m)) {
 				if (!totalCallsTo.containsKey(callee.getMethodName())) {
 					totalCallsTo.put(callee.getMethodName(), 0);
 				}
 				totalCallsTo.put(callee.getMethodName(), totalCallsTo.get(callee.getMethodName()) + 1);
 			}
+			
+			int stmtCount = 0;
+			for (CfgBlock b : m.vertexSet())
+				stmtCount += b.getStatements().size();
 			totalStmts.put(m.getMethodName(), stmtCount);
 		}
 	}
