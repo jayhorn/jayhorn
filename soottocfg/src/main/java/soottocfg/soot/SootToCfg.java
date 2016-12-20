@@ -334,7 +334,7 @@ public class SootToCfg {
 	 // apply some standard Soot optimizations
 	private void performSootOptimizations(Body body) {
 		 soot.jimple.toolkits.scalar.CopyPropagator.v().transform(body);
-		 soot.jimple.toolkits.scalar.UnreachableCodeEliminator.v().transform(body);
+//		 soot.jimple.toolkits.scalar.UnreachableCodeEliminator.v().transform(body);
 		 soot.jimple.toolkits.scalar.ConstantCastEliminator.v().transform(body);
 		 soot.jimple.toolkits.scalar.ConstantPropagatorAndFolder.v().transform(body);
 		 soot.jimple.toolkits.scalar.DeadAssignmentEliminator.v().transform(body);

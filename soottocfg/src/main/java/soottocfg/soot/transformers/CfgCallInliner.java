@@ -148,11 +148,11 @@ public class CfgCallInliner {
 					CallStatement cs = (CallStatement) s;
 					Method callee = cs.getCallTarget();
 					
+					// first apply inlining to the callee
+					inlineCalls(callee, maxSize, maxOccurences);
+					
 					if (!callee.equals(method) && !callee.isConstructor() && !callee.isStaticInitializer()) {
-						
-						// first apply inlining to the callee
-						inlineCalls(callee, maxSize, maxOccurences);
-						
+
 						if (totalCallsTo.get(callee.getMethodName()) < maxOccurences
 								|| totalStmts.get(callee.getMethodName()) < maxSize) {
 
@@ -205,7 +205,7 @@ public class CfgCallInliner {
 			if (s instanceof CallStatement) {
 				CallStatement cs = (CallStatement) s;
 				Method callee = cs.getCallTarget();
-				if (!callee.equals(m)) {
+				if (!callee.equals(m) && !callee.isConstructor() && !callee.isStaticInitializer()) {
 					if (totalCallsTo.get(callee.getMethodName()) < maxOccurences
 							|| totalStmts.get(callee.getMethodName()) < maxSize) {
 						inlineableCalls++;
