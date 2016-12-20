@@ -132,7 +132,7 @@ public class CfgCallInliner {
 		}
 		program.removeMethods(toRemove);
 		
-		System.err.println(program);
+//		System.err.println(program);
 	}
 
 	private void inlineCalls(Method method, int maxSize, int maxOccurences) {
@@ -147,11 +147,15 @@ public class CfgCallInliner {
 				if (s instanceof CallStatement) {
 					CallStatement cs = (CallStatement) s;
 					Method callee = cs.getCallTarget();
+					
 					if (!callee.equals(method) && !callee.isConstructor() && !callee.isStaticInitializer()) {
+						
+						// first apply inlining to the callee
+						inlineCalls(callee, maxSize, maxOccurences);
+						
 						if (totalCallsTo.get(callee.getMethodName()) < maxOccurences
 								|| totalStmts.get(callee.getMethodName()) < maxSize) {
-							// first apply inlining to the callee
-							inlineCalls(callee, maxSize, maxOccurences);
+
 							// now copy the callee into the caller.
 							copyCalleeBody(method, b, cs);
 							toRemove.add(b);
@@ -162,7 +166,7 @@ public class CfgCallInliner {
 							 * we know from enforceSingleInlineableCallPerBlock
 							 * that there is only one call per block to inline.
 							 */
-							break;
+//							break;
 						}
 					}
 				}
