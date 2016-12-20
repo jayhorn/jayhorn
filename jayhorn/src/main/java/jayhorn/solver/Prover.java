@@ -239,6 +239,10 @@ public interface Prover {
     
     
     void printRules();
+    
+    String solverName();
+    
+    ProverExpr getCex();
 
     ////////////////////////////////////////////////////////////////////////////
     // Some functions for outputing SMT-LIB

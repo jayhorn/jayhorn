@@ -6,14 +6,18 @@ package jayhorn.utils;
 import java.util.HashSet;
 import java.util.Set;
 
+import jayhorn.Options;
+import jayhorn.hornify.encoder.S2H;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
+import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.NewStatement;
@@ -58,7 +62,9 @@ public class HeapCounterTransformer {
 		SourceLocation loc;
 
 		for (Method m : p.getMethods()) {
+			loc = m.getLocation();	
 			Variable inCounter = new Variable("inHeapCounter", IntType.instance());
+			//IdentifierExpression inExp = new IdentifierExpression(loc, inCounter);
 			
 			m.getInParams().add(inCounter);
 			m.getReturnType().add(IntType.instance());
@@ -67,12 +73,20 @@ public class HeapCounterTransformer {
 			}
 			Variable outCounter = new Variable(outHeapCounterName, IntType.instance());
 			m.getOutParams().add(outCounter);
-
-			loc = m.getLocation();
+			
 			if (m.isProgramEntryPoint()) {
+				IdentifierExpression outExp = new IdentifierExpression(loc, outCounter);
 				m.getSource().getStatements().add(0, new AssignStatement(m.getLocation(),
-						new IdentifierExpression(loc, outCounter), new IntegerLiteral(loc, 1)));
-			} else {
+						outExp, new IntegerLiteral(loc, 1)));
+				// Adding Heap Count bound checks
+				int bound = Options.v().getHeapLimit();
+				if (bound > -1) {
+					//Expression diff = new BinaryExpression(loc, BinaryExpression.BinaryOperator.Minus, outExp, inExp);
+					Expression assrt = new BinaryExpression(loc, BinaryExpression.BinaryOperator.Le, outExp, 
+						new IntegerLiteral(loc, bound));
+					m.getSink().getStatements().add(0, new AssertStatement(loc, assrt));
+				}
+			}else {
 				m.getSource().getStatements().add(0, new AssignStatement(m.getLocation(),
 						new IdentifierExpression(loc, outCounter), new IdentifierExpression(loc, inCounter)));
 			}
@@ -85,7 +99,13 @@ public class HeapCounterTransformer {
 					if (s instanceof CallStatement) {
 						CallStatement cs = (CallStatement) s;
 						cs.getArguments().add(new IdentifierExpression(loc, outCounter));
-						cs.getReceiver().add(new IdentifierExpression(loc, outCounter));
+						//
+						if (cs.getCallTarget().getSource()!=null) {
+							cs.getReceiver().add(new IdentifierExpression(loc, outCounter));
+						} else {
+							cs.getReceiver().add(new IdentifierExpression(loc, new Variable("noCounter", IntType.instance())));
+						}
+						//cs.getReceiver().add(new IdentifierExpression(loc, outCounter));
 					} else if (s instanceof NewStatement) {
 						NewStatement ns = (NewStatement) s;
 						ns.setCounterVar(outCounter);
@@ -103,7 +123,11 @@ public class HeapCounterTransformer {
 				}
 				
 			}
+			
+			// Track of in and out bound variable counters
+			S2H.sh().setHeapCounter(m, inCounter, outCounter);
 		}
-//		System.err.println(p);
+	//System.err.println(p);
+
 	}
 }

@@ -112,7 +112,7 @@ public class SootToCfg {
 		 * reference before applying the array transformation because
 		 * this changes this signature of main.
 		 */
-		final SootMethod mainMethod = Scene.v().getMainMethod();		
+		final SootMethod mainMethod = Scene.v().getMainMethod();
 		performBehaviorPreservingTransformations();
 		performAbstractionTransformations();
 		Variable exceptionGlobal = this.program
@@ -125,6 +125,7 @@ public class SootToCfg {
 		// now set the entry points.
 		Method m = program.lookupMethod(mainMethod.getSignature());
 		program.setEntryPoint(m);
+		m.isProgramEntryPoint(true);
 		
 		if (Options.v().outDir() != null) {
 			writeFile(".cfg", program.toString());

@@ -698,4 +698,12 @@ public class PrincessProver implements Prover {
 //		api.extractSMTLIBAssertionsSymbols(new StringReader(formula));
 		
 	}
+	
+	  public String solverName(){
+	    	return "eldarica";
+	    }
+	  
+	  public ProverExpr getCex(){
+		  throw new UnsupportedOperationException();
+		  }
 }

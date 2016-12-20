@@ -36,7 +36,7 @@ import soottocfg.cfg.variable.Variable;
 /**
  * @author teme
  */
-public class EldaricaChecker {
+public class EldaricaChecker implements Checker{
 
 	private ProverFactory factory;
 	private Prover prover;
@@ -106,7 +106,8 @@ public class EldaricaChecker {
 
 			for (ProverHornClause clause : allClauses)
 				prover.addAssertion(clause);
-
+	
+			
 			Stopwatch satTimer = Stopwatch.createStarted();
 			if (jayhorn.Options.v().getTimeout() > 0) {
 				int timeoutInMsec = (int) TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());

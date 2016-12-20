@@ -63,13 +63,13 @@ public class Main {
   			SpacerChecker spacer = new SpacerChecker(factory);
   			result = spacer.checkProgram(program);
   		} else{
-  			EldaricaChecker hornChecker = new EldaricaChecker(factory);
-  			result = hornChecker.checkProgram(program);
+  			EldaricaChecker eldarica = new EldaricaChecker(factory);
+  			result = eldarica.checkProgram(program);
   		}
   	
   		String prettyResult = parseResult(Options.v().getSolver(), result);
   		
-  		Stats.stats().add("Result", prettyResult);
+  		Stats.stats().add("FinalResult", prettyResult);
   		
   		Log.info("Safety Result ... " + prettyResult);
 		if (Options.v().stats){ Stats.stats().printStats(); }

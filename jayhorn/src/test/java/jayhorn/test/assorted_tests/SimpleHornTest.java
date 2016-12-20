@@ -14,9 +14,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import jayhorn.checker.Checker;
 import jayhorn.checker.EldaricaChecker;
+import jayhorn.checker.SpacerChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
+import jayhorn.solver.spacer.SpacerProverFactory;
 import jayhorn.test.Util;
 import scala.actors.threadpool.Arrays;
 import soottocfg.cfg.Program;
@@ -65,24 +68,24 @@ public class SimpleHornTest {
 		this.sourceFile = source;
 	}
 
-	@Test
-	public void testWithPrincess() {
-		verifyAssertions(new PrincessProverFactory());
-	}
-
 //	@Test
-//	public void testWithZ3() {
-//		verifyAssertions(new Z3ProverFactory());
+//	public void testWithPrincess() {
+//		verifyAssertions(new PrincessProverFactory(), false);
 //	}
 
+	@Test
+	public void testWithSpacer() {
+		verifyAssertions(new SpacerProverFactory(), true);
+	}
+
 	
-	protected void verifyAssertions(ProverFactory factory) {
+	protected void verifyAssertions(ProverFactory factory, boolean is_spacer) {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
-			soottocfg.Options.v().setPrintCFG(true);
+//			soottocfg.Options.v().setPrintCFG(true);
 			soottocfg.Options.v().setMemPrecision(3);
 //			soottocfg.Options.v().setInlineCount(3);
 //			soottocfg.Options.v().setInlineMaxSize(20);
@@ -91,9 +94,17 @@ public class SimpleHornTest {
 
 			jayhorn.Options.v().setTimeout(300);
 			Program program = soot2cfg.getProgram();
-	  		EldaricaChecker hornChecker = new EldaricaChecker(factory);
-	  		boolean result = hornChecker.checkProgram(program);
-
+			boolean result;
+			
+			if (is_spacer){
+				SpacerChecker spacer = new SpacerChecker(factory);
+				
+				result = spacer.checkProgram(program);
+			} else {
+				EldaricaChecker eldarica = new EldaricaChecker(factory);
+				result = eldarica.checkProgram(program);
+			}
+		 
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
 

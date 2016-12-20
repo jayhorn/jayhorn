@@ -16,8 +16,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import jayhorn.checker.EldaricaChecker;
+import jayhorn.checker.SpacerChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
+import jayhorn.solver.spacer.SpacerProverFactory;
 import jayhorn.test.Util;
 import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
@@ -84,7 +86,14 @@ public class BigSoundnessTests {
 	// public void testWithZ3() {
 	// verifyAssertions(new Z3ProverFactory());
 	// }
+	
+//	 @Test
+//	public void testWithSpacer() throws IOException {
+//		verifyAssertions(new SpacerProverFactory());
+//	 }
 
+
+					
 	protected void verifyAssertions(ProverFactory factory) throws IOException {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with " + factory.getClass() + "\n");
 		File classDir = null;
@@ -106,9 +115,11 @@ public class BigSoundnessTests {
 				jayhorn.Options.v().setSolverOptions("abstract");
 
 				Program program = soot2cfg.getProgram();
-				EldaricaChecker hornChecker = new EldaricaChecker(factory);
-				result = hornChecker.checkProgram(program);
-
+//				EldaricaChecker hornChecker = new EldaricaChecker(factory);
+//				result = hornChecker.checkProgram(program);
+				SpacerChecker spacer = new SpacerChecker(factory);
+				result = spacer.checkProgram(program);
+				
 				if (expected == result) {
 					resultCorrect++;
 				} else if (expected == true) {

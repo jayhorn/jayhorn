@@ -48,8 +48,13 @@ public class SpacerChecker implements Checker{
 		this.factory = factory;
 	}
 	
+	// Collect all the results
 	private Map<ProverExpr, ProverResult> results = new HashMap<ProverExpr, ProverResult>();
 	private List<ProverHornClause> allClauses = new LinkedList<ProverHornClause>();
+	
+	public Prover getProver(){
+		return prover;
+	}
 	
 	public boolean checkProgram(Program program) {
 		Preconditions.checkNotNull(program.getEntryPoint(),
@@ -85,9 +90,6 @@ public class SpacerChecker implements Checker{
 		//propertyClauses = S2H.sh().getPropertyClause();
 		allClauses.addAll(hf.clauses);
 				
-		if (Options.v().getPrintHorn()) {
-			System.out.println(hf.writeHorn());
-		}
 
 		ProverResult result = ProverResult.Unknown;
 		try {			
@@ -98,41 +100,83 @@ public class SpacerChecker implements Checker{
 
 			final ProverHornClause entryClause = prover.mkHornClause(entryAtom, new ProverExpr[0],
 					prover.mkLiteral(true));
-
-			//tsClauses.add(entryClause);
 			allClauses.add(entryClause);
 
 			for (ProverHornClause clause : allClauses){
 				prover.addRule(clause);
 			}
 			
+			// Bounds Check
+//			if (Options.v().getHeapLimit() > -1) {
+//				HeapBoundsCheck bc = new HeapBoundsCheck(prover);
+//				Log.info("Adding Heap Bounds Check");
+//				final ProverHornClause boundClause = bc.addMainHeapCheck(Options.v().getHeapLimit());
+//				prover.addRule(boundClause);
+//				result = prover.query(bc.mainHeapExpr());
+//				String propLine = "HeapBound";
+//				if (result == ProverResult.Unsat) {
+//					Stats.stats().add(propLine, "OK");
+//				} else if (result == ProverResult.Sat) {
+//					Stats.stats().add(propLine, "KO");
+//				} else {
+//					Stats.stats().add(propLine, "ERROR");
+//				}
+//			}
 			Log.info("Checking properties");
 			Stopwatch satTimer = Stopwatch.createStarted();
 			if (S2H.sh().getErrorState().isEmpty()){
 				Stats.stats().add("Warning", "No assertions found.");
 				return true;
 			}
-			for (ProverExpr prop: S2H.sh().getErrorState()){
-				result = prover.query(prop);	
+			
+			
+			for (Map.Entry<ProverExpr, Integer> props : S2H.sh().getErrorState().entrySet()) {
+			    ProverExpr prop = props.getKey();
+			    result = prover.query(prop);
+			    String propLine = "Property@Line"+props.getValue();
+			    if (result == ProverResult.Unsat) {
+			    	Stats.stats().add(propLine, "SAFE");
+			    } else if (result == ProverResult.Sat){
+			    	Stats.stats().add(propLine, "UNSAFE");
+			    	if (Options.v().cex){
+			    		cex();
+			    	}
+			    } else {
+			    	Stats.stats().add(propLine, "ERROR");
+			    }
 				results.put(prop, result);
-		}
+			}
+
+			if (Options.v().getPrintHorn()) {
+				//System.out.println(hf.writeHorn());
+				prover.printRules();
+			}
 			Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));
-		
+			
 		} catch (Throwable t) {
+			
 			t.printStackTrace();
 			throw new RuntimeException(t);
 		} finally {
 			prover.shutdown();
 		}
+		
 
-		if (result == ProverResult.Unsat) {
-			return true;
-		} else if (result == ProverResult.Sat) {
-			return false;
+		for (ProverResult res : results.values()) {
+			if (res == ProverResult.Sat){
+				return false;
+			}else if(res != ProverResult.Unsat){
+				throw new RuntimeException("Verification failed with prover code " + result);
+			}
 		}
-		throw new RuntimeException("Verification failed with prover code " + result);
+
+		return true;
 	}
 
+	private void cex(){
+		//System.out.println(prover.getGroundSatAnswer());
+	}
+	
 	private void removeUnreachableMethods(Program program) {
 		Set<Method> reachable = reachableMethod(program.getEntryPoint());
 		Set<Method> toRemove = new HashSet<Method>();

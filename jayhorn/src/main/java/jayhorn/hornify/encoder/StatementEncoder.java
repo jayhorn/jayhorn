@@ -20,7 +20,7 @@ import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverType;
-
+import jayhorn.solver.spacer.SpacerProver;
 import soottocfg.cfg.expression.BinaryExpression;
 
 import soottocfg.cfg.expression.Expression;
@@ -185,10 +185,11 @@ public class StatementEncoder {
 
 		final ProverExpr errorState; // For now depending on the solver we use false or a predicate
 		String tag = "ErrorState@line" + as.getJavaSourceLine();
-		final ProverFun errorPredicate = p.mkHornPredicate(tag, new ProverType[] {});	
-		if (Options.v().getSolver().equals("spacer")){
+		final ProverFun errorPredicate = p.mkHornPredicate(tag, new ProverType[] {});
+	
+		if (p.solverName().equals("spacer")){
 			errorState = errorPredicate.mkExpr(new ProverExpr[]{});
-			S2H.sh().setErrorState(errorState);
+			S2H.sh().setErrorState(errorState, as.getJavaSourceLine());
 		}else{
 			errorState = p.mkLiteral(false);
 		}

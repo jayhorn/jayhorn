@@ -61,6 +61,7 @@ public class Options {
 	public String getSolver() {
 		return solver;
 	}
+	
 
 	@Option(name = "-solverOptions", usage = "Options for the solver [eldarica: abstract, debug]", required = false)
 	private String solverOptions = "";
@@ -86,7 +87,7 @@ public class Options {
 	// /**
 	// * Print Horn clauses
 	// */
-	@Option(name = "-h", usage = "Print horn clauses", required = false)
+	@Option(name = "-print-horn", usage = "Print horn clauses", required = false)
 	private boolean printHorn = false;
 
 	public boolean getPrintHorn() {
@@ -110,6 +111,10 @@ public class Options {
 	
 	@Option(name = "-stats", usage = "Generate Stats", required = false)
 	public boolean stats = false;
+	
+	@Option(name = "-cex", usage = "Show CEX", required = false)
+	public boolean cex = false;
+	
 	
 	@Option(name = "-solution", usage = "Output full solution or counter-example", required = false)
 	public boolean solution = false;
@@ -223,6 +228,18 @@ public class Options {
 //	@Option(name = "-callid", usage = "Pass id of caller statement as argument to method")
 //	private boolean passCallerID = soottocfg.Options.v().passCallerIdIntoMethods();
 	
+	
+	/*
+	 * Check Heap Limit 
+	 */
+	@Option(name = "-heap-limit", usage = "Max Heap allocation", required = false)
+	private int heapLimit = -1;
+	
+	public int getHeapLimit(){
+		return heapLimit;
+	}
+	
+
 	
 	/**
 	 * Determines, whether Joogie has an additional classpath

@@ -1,19 +1,28 @@
 package jayhorn.hornify.encoder;
 
 import java.util.HashMap;
+import soottocfg.cfg.variable.Variable;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.AbstractMap.SimpleEntry;
 
 import jayhorn.hornify.HornHelper;
+import jayhorn.hornify.HornPredicate;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverHornClause;
+import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.method.Method;
 
 public class S2H {
 	
 	private final HashMap<Statement, List<ProverHornClause>> statToClause = new HashMap<Statement, List<ProverHornClause>>();
-	private final List<ProverExpr> errorStates = new LinkedList<ProverExpr>();
+	private final Map<ProverExpr, Integer> errorLineNumber = new LinkedHashMap<ProverExpr, Integer>();
+	private final Map<Method, Entry<Variable, Variable>> methodHeapBounds = new HashMap<Method, Entry<Variable, Variable>>();
 	
 	private static S2H sh;
 
@@ -59,11 +68,31 @@ public class S2H {
 		return clause;
 	}
 	
-	public void setErrorState(ProverExpr errorState){
-		this.errorStates.add(errorState);
+	public void setErrorState(ProverExpr errorState, int i){
+		this.errorLineNumber.put(errorState, i);
 	}
 	
-	public List<ProverExpr> getErrorState(){
-		return this.errorStates;
+	public Map<ProverExpr, Integer> getErrorState(){
+		return this.errorLineNumber;
 	}
+
+	
+	public void setHeapCounter(Method m, Variable inCounter, Variable outCounter){
+		Entry<Variable, Variable> in_out = new SimpleEntry<>(inCounter, outCounter);
+		methodHeapBounds.put(m, in_out);
+	}
+	
+	public Entry<Variable, Variable> getMethodHeapVar(Method m){
+		return methodHeapBounds.get(m);
+	}
+	
+	public Entry<Variable, Variable> getMainHeapCount(){
+		for (Entry<Method, Entry<Variable, Variable>> vars : methodHeapBounds.entrySet()) {
+			if(vars.getKey().isProgramEntryPoint()){
+				return vars.getValue();
+			}
+		}
+		throw new RuntimeException("No Main Heap Count Found ");
+	}
+	
 }
