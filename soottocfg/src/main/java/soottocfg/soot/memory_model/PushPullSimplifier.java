@@ -1,7 +1,9 @@
 package soottocfg.soot.memory_model;
 
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 
 import com.google.common.base.Verify;
@@ -47,10 +49,6 @@ public class PushPullSimplifier {
 				simplifications = 0;
 				simplifications += movePullsUpInCFG(m);
 				simplifications += movePushesDownInCFG(m);
-//				simplifications += removeEmptyBlocks(m);
-				
-				// does not seem sound, need to think more about it...
-//				simplifications += moveAssumeFalseUpInCFG(blocks);
 			} while (simplifications > 0);
 			
 			if (debug)
@@ -71,7 +69,7 @@ public class PushPullSimplifier {
 			simplifications += swapPushPull(b);
 			simplifications += orderPulls(b);
 			simplifications += orderPushes(b);
-			simplifications += assumeFalseEatPreceeding(b);
+//			simplifications += assumeFalseEatPreceeding(b);
 		} while (simplifications > 0);
 	}
 	
@@ -287,28 +285,28 @@ public class PushPullSimplifier {
 	}
 	
 	/* Rule X (new) */
-	private int assumeFalseEatPreceeding(CfgBlock b) {
-		int eaten = 0;
-		List<Statement> stmts = b.getStatements();
-		for (int i = 0; i < stmts.size(); i++) {
-			if (stmts.get(i) instanceof AssumeStatement) {
-				AssumeStatement as = (AssumeStatement) stmts.get(i);
-				if (as.getExpression() instanceof BooleanLiteral && 
-						((BooleanLiteral) as.getExpression()).equals(BooleanLiteral.falseLiteral())) {
-					//Found one! Now eat everything except asserts.
-					Set<Statement> toRemove = new HashSet<Statement>();
-					int j = i - 1;
-					while (j >= 0 && !(stmts.get(j) instanceof AssertStatement)) {
-						System.out.println("Assume(false) eating " + stmts.get(j));
-						toRemove.add(stmts.get(j));
-						j--;
-					}
-					b.removeStatements(toRemove);
-				}
-			}
-		}
-		return eaten;
-	}
+//	private int assumeFalseEatPreceeding(CfgBlock b) {
+//		int eaten = 0;
+//		List<Statement> stmts = b.getStatements();
+//		for (int i = 0; i < stmts.size(); i++) {
+//			if (stmts.get(i) instanceof AssumeStatement) {
+//				AssumeStatement as = (AssumeStatement) stmts.get(i);
+//				if (as.getExpression() instanceof BooleanLiteral && 
+//						((BooleanLiteral) as.getExpression()).equals(BooleanLiteral.falseLiteral())) {
+//					//Found one! Now eat everything except asserts.
+//					Set<Statement> toRemove = new HashSet<Statement>();
+//					int j = i - 1;
+//					while (j >= 0 && !(stmts.get(j) instanceof AssertStatement)) {
+//						System.out.println("Assume(false) eating " + stmts.get(j));
+//						toRemove.add(stmts.get(j));
+//						j--;
+//					}
+//					b.removeStatements(toRemove);
+//				}
+//			}
+//		}
+//		return eaten;
+//	}
 	
 	private int movePullsUpInCFG(Method m) {
 		int moves = 0;
@@ -318,35 +316,60 @@ public class PushPullSimplifier {
 			Set<Statement> toRemove = new HashSet<Statement>();
 			while (s < stmts.size() && 
 					(stmts.get(s) instanceof PullStatement || isConstructorCall(stmts.get(s)))) {
-				Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
-				boolean canMoveOverLabel = true;
+				
+				PullStatement pull = (PullStatement) stmts.get(s);
+				Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);				
+				Set<CfgBlock> moveTo = new HashSet<CfgBlock>();
+				boolean nothingMoves = false;
+				
 				for (CfgEdge in : incoming) {
-					if (in.getLabel().isPresent() && 
-							!distinct(in.getLabel().get().getUseIdentifierExpressions(), stmts.get(s).getIdentifierExpressions())) {
-							canMoveOverLabel = false;
-							break;
-					}
-				}
-				if (canMoveOverLabel) {
-					for (CfgEdge in : incoming) {
-						CfgBlock prev = b.getMethod().getEdgeSource(in);
-
-						// only move up in CFG
-						if (m.distanceToSource(prev) < m.distanceToSource(b)) {
-							Statement stmt = stmts.get(s);
-							//don't create references to the same statement in multiple blocks
-							if (toRemove.contains(stmt))
-								stmt = stmt.deepCopy();
-							else
-								toRemove.add(stmt);
-							prev.addStatement(stmt);
-							moves++;
-
-							if (debug)
-								System.out.println("Moved " + stmts.get(s) + " up in CFG.");
+					CfgBlock prev = b.getMethod().getEdgeSource(in);
+					
+					// only move up in CFG
+					if (m.distanceToSource(prev) < m.distanceToSource(b)) {
+						if (in.getLabel().isPresent() && 
+								!distinct(in.getLabel().get().getUseIdentifierExpressions(), pull.getIdentifierExpressions())) {
+								// edge label contains a ref to push object, do not move this push
+							 nothingMoves = true;
+							 break;
 						}
+						if (!willBePushedIn(pull, prev)) {
+							// object has not been pushed in successor block, do not move this push
+							nothingMoves = true;
+							break;
+						}
+						moveTo.add(prev);
+					} else if (!existsPath(b, prev)) {
+						/**
+						 * With the check that there does not exist a path, we accommodate the following case.
+						 * There is a loop and b is the header. We know this because the is a path from b
+						 * to prev, yet b is closer to the source.
+						 * In this case, we want to move the pull out of the loop into the other
+						 * predecessor nodes (note that these surely exist), yet not move it into
+						 * prev, as we would then be moving it around in circles.
+						 */
+						nothingMoves = true;
+						break;
+					} else {
+						System.out.println("Skipping the copy of " + pull + " from " + b + " to " + prev);
 					}
 				}
+				
+				if (!nothingMoves) {
+					for (CfgBlock prev : moveTo) {
+						//don't create references to the same statement in multiple blocks
+						if (toRemove.contains(pull))
+							pull = pull.deepCopy();
+						else
+							toRemove.add(pull);
+						prev.addStatement(pull);
+						moves++;
+
+						if (debug)
+							System.out.println("Moved " + pull + " up in CFG.");
+					}
+				}
+				
 				s++;
 			}
 			b.removeStatements(toRemove);
@@ -357,80 +380,74 @@ public class PushPullSimplifier {
 	private int movePushesDownInCFG(Method m) {
 		int moves = 0;
 		for (CfgBlock b : m.vertexSet()) {
+			if (debug)
+				System.out.println("Checking block " + b.getLabel() + " for pushes to move down");
 			List<Statement> stmts = b.getStatements();
 			int s = stmts.size()-1;
 			Set<Statement> toRemove = new HashSet<Statement>();
-			while (s > 0 && stmts.get(s) instanceof PushStatement) {
-				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
-				boolean canMoveOverLabel = true;
+			while (s >= 0 && stmts.get(s) instanceof PushStatement) {
+				
+				PushStatement push = (PushStatement) stmts.get(s);
+				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);				
+				Set<CfgBlock> moveTo = new HashSet<CfgBlock>();
+				boolean nothingMoves = false;
+
+				if (debug)
+					System.out.println("Let's see if we can move " + push + " down in the CFG...");
+				
 				for (CfgEdge out : outgoing) {
-					if (out.getLabel().isPresent() && 
-							!distinct(out.getLabel().get().getUseIdentifierExpressions(), stmts.get(s).getIdentifierExpressions())) {
-							canMoveOverLabel = false;
-							break;
-					}
-				}
-				if (canMoveOverLabel) {
-					for (CfgEdge out : outgoing) {
-						CfgBlock next = b.getMethod().getEdgeTarget(out);
-
-						// only move down in source
-						if (m.distanceToSink(next) < m.distanceToSink(b)) {
-							Statement stmt = stmts.get(s);
-							//don't create references to the same statement in multiple blocks
-							if (toRemove.contains(stmt))
-								stmt = stmt.deepCopy();
-							else
-								toRemove.add(stmt);
-							next.addStatement(0, stmt);
-							moves++;
-
+					CfgBlock next = b.getMethod().getEdgeTarget(out);
+					
+					// only move down in source
+					if (m.distanceToSink(next) < m.distanceToSink(b)) {
+						if (out.getLabel().isPresent() && 
+							!distinct(out.getLabel().get().getUseIdentifierExpressions(), push.getIdentifierExpressions())) {
+							// edge label contains a ref to push object, do not move this push
 							if (debug)
-								System.out.println("Moved " + stmts.get(s) + " down in CFG.");
+								System.out.println("Label not distinct: " + push);
+							nothingMoves = true;
+							break;
 						}
+						if (!hasBeenPulledIn(push, next)) {
+							// object has not been pulled in successor block, do not move this push
+							if (debug)
+								System.out.println("Not pulled in successor block " + next.getLabel() + ": " + push);
+							nothingMoves = true;
+							break;
+						}
+						moveTo.add(next);
+					} else if (!existsPath(next, b)) {
+						/**
+						 * Analogous to moving pulls up, we want to break pushes
+						 * from loops.
+						 */
+						nothingMoves = true;
+					} else {
+						System.out.println("Skipping the copy of " + push + " from " + b + " to " + next);
 					}
 				}
+				
+				if (!nothingMoves) {
+					for (CfgBlock next : moveTo) {
+						// don't create references to the same statement in multiple blocks
+						if (toRemove.contains(push))
+							push = (PushStatement) push.deepCopy();
+						else
+							toRemove.add(push);
+						next.addStatement(0, push);
+						moves++;
+
+						if (debug)
+							System.out.println("Moved " + push + " down in CFG.");
+					}
+				}
+				
 				s--;
 			}
 			b.removeStatements(toRemove);
 		}
 		return moves;
 	}
-	
-//	private int moveAssumeFalseUpInCFG(Set<CfgBlock> blocks) {
-//		int moves = 0;
-//		for (CfgBlock b : blocks) {
-//			if (!b.getStatements().isEmpty()) {
-//				Statement stmt = b.getStatements().get(0);
-//				if (stmt instanceof AssumeStatement) {
-//					AssumeStatement as = (AssumeStatement) stmt;
-//					if (as.getExpression() instanceof BooleanLiteral && 
-//							((BooleanLiteral) as.getExpression()).equals(BooleanLiteral.falseLiteral())) {
-//						System.out.println("Found assume(false)");
-//						// Found one! Now only move it up if all predecessors are actually up.
-//						boolean allUp = true;
-//						Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
-//						for (CfgEdge in : incoming) {
-//							CfgBlock prev = b.getMethod().getEdgeSource(in);
-//							if (!isUp(prev,b))
-//								allUp = false;
-//						}
-//						if (allUp && !incoming.isEmpty()) {
-//							for (CfgEdge in : incoming) {
-//								CfgBlock prev = b.getMethod().getEdgeSource(in);
-//								prev.addStatement(as);							
-//							}
-//							b.removeStatement(as);
-//							moves++;
-//							if (debug)
-//								System.out.println("Moved assume(false) up in CFG.");
-//						}
-//					}
-//				}
-//			}
-//		}
-//		return moves;
-//	}
 	
 	private boolean distinct(Set<IdentifierExpression> vars1, Set<IdentifierExpression> vars2) {
 		for (IdentifierExpression exp1 : vars1) {
@@ -525,5 +542,78 @@ public class PushPullSimplifier {
 		if (isConstructorCall(s))
 			return (IdentifierExpression) ((CallStatement) s).getArguments().get(0);
 		return null;
+	}
+	
+	// check if the object of a push has been pulled in or on the path to CfgBlock b
+	private boolean hasBeenPulledIn(PushStatement push, CfgBlock b) {
+		Set<CfgBlock> done = new HashSet<CfgBlock>();
+		Queue<CfgBlock> q = new LinkedList<CfgBlock>();
+		q.add(b);
+		while (!q.isEmpty()) {
+			CfgBlock cur = q.poll();
+			done.add(cur);
+			for (Statement s : cur.getStatements()) {
+				if (s instanceof PullStatement || isConstructorCall(s)) {
+					if (getObject(s).sameVariable(getObject(push))) {
+						return true;
+					}					
+				}
+			}
+			
+			Set<CfgEdge> incoming = cur.getMethod().incomingEdgesOf(cur);
+			for (CfgEdge in : incoming) {
+				CfgBlock prev = cur.getMethod().getEdgeSource(in);
+				if (!done.contains(prev) && !q.contains(prev))
+					q.add(prev);
+			}
+		}
+		return false;
+	}
+	
+	// check if the object of a push has been pulled in or on the path to CfgBlock b
+	private boolean willBePushedIn(PullStatement pull, CfgBlock b) {
+		Set<CfgBlock> done = new HashSet<CfgBlock>();
+		
+		Queue<CfgBlock> q = new LinkedList<CfgBlock>();
+		q.add(b);
+		while (!q.isEmpty()) {
+			CfgBlock cur = q.poll();
+			done.add(cur);
+			for (Statement s : cur.getStatements()) {
+				if (s instanceof PushStatement) {
+					if (getObject(s).sameVariable(getObject(pull))) {
+						return true;
+					}
+				}
+			}
+			
+			Set<CfgEdge> outgoing = cur.getMethod().outgoingEdgesOf(cur);
+			for (CfgEdge out : outgoing) {
+				CfgBlock next = cur.getMethod().getEdgeTarget(out);
+				if (!done.contains(next) && !q.contains(next))
+					q.add(next);
+			}
+		}
+		return false;
+	}
+	
+	private boolean existsPath(CfgBlock from, CfgBlock to) {
+		Set<CfgBlock> done = new HashSet<CfgBlock>();
+		Queue<CfgBlock> q = new LinkedList<CfgBlock>();
+		q.add(from);
+		while (!q.isEmpty()) {
+			CfgBlock cur = q.poll();
+			done.add(cur);
+			if (cur.equals(to))
+				return true;
+			
+			Set<CfgEdge> outgoing = cur.getMethod().outgoingEdgesOf(cur);
+			for (CfgEdge out : outgoing) {
+				CfgBlock next = cur.getMethod().getEdgeTarget(out);
+				if (!done.contains(next) && !q.contains(next))
+					q.add(next);
+			}
+		}
+		return false;
 	}
 }
