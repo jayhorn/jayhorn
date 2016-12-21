@@ -16,12 +16,13 @@ import jayhorn.solver.Prover;
 import jayhorn.utils.GhostRegister;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.util.GraphUtil;
-import soottocfg.cfg.util.InterProceduralPullPushOrdering;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.soot.transformers.ArrayTransformer;
 
 /**
  * Holds the context of the current Horn clause construction:
@@ -49,11 +50,9 @@ public class HornEncoderContext {
 	private Map<ClassVariable, Map<Long, HornPredicate>> invariantPredicates =
           new HashMap<ClassVariable, Map<Long, HornPredicate>>(); 
 	private Map<Method, MethodContract> methodContracts = new LinkedHashMap<Method, MethodContract>();
-	public InterProceduralPullPushOrdering ppOrdering;
 	
 	public HornEncoderContext(Prover p, Program prog) {
 		this.program = prog;
-		ppOrdering = new InterProceduralPullPushOrdering(program.getEntryPoint());
 		this.p = p;		
 		for (ClassVariable var : program.getTypeGraph().vertexSet()) {
 			//add +1 to make sure that no type is the
@@ -139,13 +138,29 @@ public class HornEncoderContext {
 				args.add(new Variable(entry.getKey(), entry.getValue()));
 			}
 			
-			for (Variable v : sig.getAssociatedFields()) {
-				args.add(v);
+			if (soottocfg.Options.v().arrayInv() && sig.getName().contains(ArrayTransformer.arrayTypeName)) {
+				args.add(new Variable("array_index", IntType.instance()));
 			}
-                        String name = "inv_" + sig.getName();
-                        if (pushId >= 0)
-                          name = name + "_" + pushId;
+			
+//			if (soottocfg.Options.v().arrayInv() && sig.getName().contains(ArrayTransformer.arrayTypeName)) {
+				// add variables for the array invariants
+//				args.add(new Variable("array_length", IntType.instance()));
+//				args.add(new Variable("array_index", IntType.instance()));
+//				// assumes element type is in field 1
+//				Type elemType = sig.getAssociatedFields()[1].getType();
+//				args.add(new Variable("array_element", elemType));
+//			} else {
+				for (Variable v : sig.getAssociatedFields()) {
+					args.add(v);
+				}
+//			}
+
+            String name = "inv_" + sig.getName();
+            if (pushId >= 0)
+            	name = name + "_" + pushId;
 			subMap.put(pushId, new HornPredicate(p, name, args));
+			
+
 		}
 		return subMap.get(pushId);
 	}
@@ -173,6 +188,10 @@ public class HornEncoderContext {
 		return result;
 	}
 
+	public Program getProgram() {
+		return this.program;
+	}
+	
 	/**
 	 * Gets a map from ClassVariable to unique ID.
 	 * @return

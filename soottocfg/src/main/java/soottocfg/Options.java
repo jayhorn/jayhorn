@@ -11,6 +11,11 @@ import soottocfg.soot.SootToCfg.MemModel;
  */
 public class Options {
 
+	public final static int MEMPREC_LOW = 0;
+	public final static int MEMPREC_SIMPLIFY = 1;
+	public final static int MEMPREC_LASTPUSH = 2;
+	public final static int MEMPREC_PTA = 3;
+	
 	/*
 	 * Built in specs.
 	 */
@@ -40,10 +45,38 @@ public class Options {
 	}
 	
 	/*
+	 * Use array invariants.
+	 */
+	
+	private boolean arrayInv = false;
+	
+	public boolean arrayInv() { 
+		return arrayInv;
+	}
+	
+	public void setArrayInv(boolean b) {		
+		this.arrayInv = b;
+	}
+	
+	/*
+	 * Number of array elements modeled exactly
+	 */
+	
+	private int exactArrayElements = 5;
+	
+	public int exactArrayElements() { 
+		return exactArrayElements;
+	}
+	
+	public void setExactArrayElements(int ar) {		
+		this.exactArrayElements = ar;
+	}
+
+	/*
 	 * Precision of push-pull memory model.
 	 */
 	
-	private int memPrecision = 3;
+	private int memPrecision = Options.MEMPREC_PTA;
 	
 	public int memPrecision() { 
 		return memPrecision;

@@ -94,15 +94,17 @@ public class BigSoundnessTests {
 			// soottocfg.Options.v().setExcAsAssert(true);
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
-			soottocfg.Options.v().setMemPrecision(3);
+//			soottocfg.Options.v().setMemPrecision(3);
 //			soottocfg.Options.v().setInlineCount(3);
 //			soottocfg.Options.v().setInlineMaxSize(20);
+//			soottocfg.Options.v().setArrayInv(true);
+			soottocfg.Options.v().setExactArrayElements(0);
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			boolean result = false;
 			try {
 				soot2cfg.run(classDir.getAbsolutePath(), null);
-				jayhorn.Options.v().setTimeout(300);
-				//			jayhorn.Options.v().setPrintHorn(true);
+				jayhorn.Options.v().setTimeout(30);
+//				jayhorn.Options.v().setPrintHorn(true);
 				jayhorn.Options.v().setSolverOptions("abstract");
 
 				Program program = soot2cfg.getProgram();
@@ -124,6 +126,7 @@ public class BigSoundnessTests {
 				}
 			} catch (Exception e) {
 				resultException++;
+				e.printStackTrace();
 				throw new RuntimeException(e.toString());
 			} finally {
 				StringBuilder sb = new StringBuilder();

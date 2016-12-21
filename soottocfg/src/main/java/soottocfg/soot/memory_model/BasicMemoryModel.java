@@ -29,7 +29,6 @@ import soot.jimple.Constant;
 import soot.jimple.DoubleConstant;
 import soot.jimple.FloatConstant;
 import soot.jimple.NewArrayExpr;
-import soot.jimple.NewExpr;
 import soot.jimple.NewMultiArrayExpr;
 import soot.jimple.StringConstant;
 import soottocfg.cfg.Program;
@@ -40,9 +39,9 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
-import soottocfg.cfg.type.ReferenceLikeType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.type.TypeType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -83,17 +82,6 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see jayhorn.soot.memory_model.MemoryModel#mkNewExpr(soot.jimple.NewExpr)
-	 */
-	@Override
-	public Expression mkNewExpr(NewExpr arg0) {
-		throw new RuntimeException("Implemented in Assign translation");
-	}
-
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see jayhorn.soot.memory_model.MemoryModel#mkNewArrayExpr(soot.jimple.
 	 * NewArrayExpr )
 	 */
@@ -122,8 +110,9 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	@Override
 	public Expression mkStringLengthExpr(Value arg0) {
 		//TODO
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),
-				SootTranslationHelpers.v().getProgram().createFreshGlobal("TODO", IntType.instance()));
+		Variable v = SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
+				"TODO" + constantDictionary.size(), IntType.instance());
+		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),v);
 	}
 
 	/*
@@ -146,7 +135,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Expression mkStringConstant(StringConstant arg0) {
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
-					"$string" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
+					"$string" + constantDictionary.size(), lookupType(arg0.getType())));
 		}
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
 	}
@@ -161,7 +150,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Expression mkDoubleConstant(DoubleConstant arg0) {
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
-					"$double" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
+					"$double" + constantDictionary.size(), lookupType(arg0.getType())));
 		}
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
 	}
@@ -176,7 +165,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	public Expression mkFloatConstant(FloatConstant arg0) {
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
-					"$float" + constantDictionary.size(), lookupType(arg0.getType()), true, true));
+					"$float" + constantDictionary.size(), lookupType(arg0.getType())));
 		}
 		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
 	}
@@ -236,10 +225,13 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		this.statementSwitch.push(stmt);
 	}
 
-	protected ReferenceLikeType lookupRefLikeType(RefLikeType t) {
+	protected Type lookupRefLikeType(RefLikeType t) {
 		if (t instanceof ArrayType) {
 			throw new RuntimeException("Remove Arrays first. " + t);
-		} else if (t instanceof RefType) {			
+		} else if (t instanceof RefType) {
+			if ( ((RefType)t).getSootClass().equals(Scene.v().getSootClass("java.lang.Class"))) {
+				return new TypeType();
+			}
 			return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)));
 		} else if (t instanceof NullType) {
 			return (ReferenceType) (new NullLiteral(null)).getType();
@@ -250,7 +242,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	private String classNameToSootName(String className) {
 		return className.replace('/', '.');
 	}
-
+	
 	public ClassVariable lookupClassVariable(ClassConstant cc) {
 		if (!this.constantDictionary.containsKey(cc)) {
 			final String name = cc.getValue();
@@ -283,38 +275,33 @@ public abstract class BasicMemoryModel extends MemoryModel {
 						}
 					}
 				}
+
 				ClassVariable cv = new ClassVariable(name, parents);
 				this.constantDictionary.put(cc, cv);
 
 				List<Variable> fields = new LinkedList<Variable>();
 				if (c.resolvingLevel() > SootClass.DANGLING) {					
 					for (SootField f : SootTranslationHelpers.findNonStaticFieldsRecursively(c)) {
-						fields.add(lookupField(f));						
+						fields.add(new Variable(f.getDeclaringClass().getName() + "." + f.getName(), this.lookupType(f.getType())));						
 					}
 				}
 				cv.addFields(fields);
 			} else {
 				// System.err.println("Class not in scene: "+sootClassName);
 				this.constantDictionary.put(cc, new ClassVariable(name, new HashSet<ClassVariable>()));
-
-				// sc.addField(new
-				// SootField(SootTranslationHelpers.typeFieldName,
-				// RefType.v(Scene.v().getSootClass("java.lang.Class"))));
-			}
+			}			
 			Variable v = this.constantDictionary.get(cc);
 			Verify.verifyNotNull(v);
 			this.program.addClassVariable((ClassVariable) v);
+			/*
+			 * After we added the type to the dictionary, update the ref
+			 * type to avoid going into an endless loop.
+			 */
+//			SootClass javaLangClass = Scene.v().getSootClass("java.lang.Class");
+//			ReferenceType rt = lookupRefLikeType(javaLangClass.getType());
+//			((ClassVariable)v).setType(rt);
 		}
 		return (ClassVariable) this.constantDictionary.get(cc);
 	}
 
-	protected Variable lookupField(SootField field) {
-		if (!this.fieldGlobals.containsKey(field)) {
-			final String fieldName = field.getDeclaringClass().getName() + "." + field.getName();
-			Variable fieldVar = this.program.lookupGlobalVariable(fieldName, this.lookupType(field.getType()),
-					field.isFinal(), field.isStatic());
-			this.fieldGlobals.put(field, fieldVar);
-		}
-		return this.fieldGlobals.get(field);
-	}
 }

@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import soot.SootMethod;
+import soottocfg.cfg.Program;
 import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.util.SootTranslationHelpers;
 
@@ -44,8 +45,10 @@ public class ArrayTransformerTest extends AbstractTransformerTest {
 		
 		@Test
 		public void test() {
+			Program p = new Program();
+			SootTranslationHelpers.initialize(p);
 			List<SootMethod> methods = loadSootMethods();
-			SootTranslationHelpers.createTypeFields();
+//			SootTranslationHelpers.createTypeFields();
 			ArrayTransformer arr = new ArrayTransformer();
 			arr.applyTransformation();
 			for (SootMethod sm : methods) {

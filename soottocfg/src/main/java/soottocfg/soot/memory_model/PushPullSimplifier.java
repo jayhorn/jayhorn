@@ -1,34 +1,37 @@
 package soottocfg.soot.memory_model;
 
 import java.util.HashSet;
-//import java.util.LinkedList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 
+import com.google.common.base.Verify;
+
 import soottocfg.cfg.Program;
-import soottocfg.cfg.SourceLocation;
+import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.literal.BooleanLiteral;
+import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
+import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.SootToCfg;
 
 public class PushPullSimplifier {
 	
 	private static boolean debug = false;
-	
-	public PushPullSimplifier() {
-	}
 	
 	public void simplify(Program p) {
 		Method[] ms = p.getMethods();
@@ -48,10 +51,6 @@ public class PushPullSimplifier {
 				simplifications = 0;
 				simplifications += movePullsUpInCFG(m);
 				simplifications += movePushesDownInCFG(m);
-//				simplifications += removeEmptyBlocks(m);
-				
-				// does not seem sound, need to think more about it...
-//				simplifications += moveAssumeFalseUpInCFG(blocks);
 			} while (simplifications > 0);
 			
 			if (debug)
@@ -72,7 +71,7 @@ public class PushPullSimplifier {
 			simplifications += swapPushPull(b);
 			simplifications += orderPulls(b);
 			simplifications += orderPushes(b);
-			simplifications += assumeFalseEatPreceeding(b);
+//			simplifications += assumeFalseEatPreceeding(b);
 		} while (simplifications > 0);
 	}
 	
@@ -81,25 +80,15 @@ public class PushPullSimplifier {
 		int removed = 0;
 		List<Statement> stmts = b.getStatements();
 		for (int i = 0; i+1 < stmts.size(); i++) {
-			if (stmts.get(i) instanceof PullStatement && stmts.get(i+1) instanceof PullStatement) {
-				PullStatement pull1 = (PullStatement) stmts.get(i);
-				PullStatement pull2 = (PullStatement) stmts.get(i+1);
-				// TODO not the nicest way to compare these...
-				if (pull1.getObject().toString().equals(pull2.getObject().toString())) {
+			if (	(stmts.get(i) instanceof PullStatement || isConstructorCall(stmts.get(i)))
+					&& stmts.get(i+1) instanceof PullStatement) {
+				Statement pull1 = stmts.get(i);
+				Statement pull2 = stmts.get(i+1);
+				if (getObject(pull1).sameVariable(getObject(pull2))) {
 					if (debug)
 						System.out.println("Applied rule (I); removed " + pull2);
 					b.removeStatement(pull2);
 					removed++;
-					List<IdentifierExpression> pull1vars = pull1.getLeft();
-					List<IdentifierExpression> pull2vars = pull2.getLeft();
-					assert (pull1vars.size()==pull2vars.size());
-					for (int j = 0; j < pull1vars.size(); j++) {
-						if (!pull1vars.get(j).toString().equals(pull2vars.get(j).toString())) {
-//							System.out.println("Add assignment (TODO: test)");
-							AssignStatement assign = new AssignStatement(SourceLocation.ANALYSIS,pull2vars.get(j),pull1vars.get(j));
-							b.addStatement(i+1, assign);
-						}
-					}
 				}
 			}
 		}
@@ -114,8 +103,7 @@ public class PushPullSimplifier {
 			if (stmts.get(i) instanceof PushStatement && stmts.get(i+1) instanceof PushStatement) {
 				PushStatement push1 = (PushStatement) stmts.get(i);
 				PushStatement push2 = (PushStatement) stmts.get(i+1);
-				// TODO not the nicest way to compare these...
-				if (push1.getObject().toString().equals(push2.getObject().toString())) {
+				if (getObject(push1).sameVariable(getObject(push2))) {
 					if (debug)
 						System.out.println("Applied rule (II); removed " + push1);
 					b.removeStatement(push1);
@@ -139,16 +127,6 @@ public class PushPullSimplifier {
 						System.out.println("Applied rule (III); removed " + pull);
 					b.removeStatement(pull);
 					removed++;
-					List<Expression> pushvars = push.getRight();
-					List<IdentifierExpression> pullvars = pull.getLeft();
-					assert (pushvars.size()==pullvars.size());
-					for (int j = 0; j < pushvars.size(); j++) {
-						if (!pushvars.get(j).toString().equals(pullvars.get(j).toString())) {
-							System.out.println("Add assignment (TODO: test)");
-							AssignStatement assign = new AssignStatement(SourceLocation.ANALYSIS,pullvars.get(j),pushvars.get(j));
-							b.addStatement(i+1, assign);
-						}
-					}
 				}
 			}
 		}
@@ -160,10 +138,11 @@ public class PushPullSimplifier {
 		int removed = 0;
 		List<Statement> stmts = b.getStatements();
 		for (int i = 0; i+1 < stmts.size(); i++) {
-			if (stmts.get(i) instanceof PullStatement && stmts.get(i+1) instanceof PushStatement) {
-				PullStatement pull = (PullStatement) stmts.get(i);
-				PushStatement push = (PushStatement) stmts.get(i+1);
-				if (sameVars(push,pull)) {
+			if (	(stmts.get(i) instanceof PullStatement || isConstructorCall(stmts.get(i)))
+					&& stmts.get(i+1) instanceof PushStatement) {
+				Statement pull = stmts.get(i);
+				Statement push = stmts.get(i+1);
+				if (sameVarsStatement(push,pull)) {
 					if (debug)
 						System.out.println("Applied rule (IV); removed " + push);
 					b.removeStatement(push);
@@ -179,14 +158,29 @@ public class PushPullSimplifier {
 		int moved = 0;
 		List<Statement> stmts = b.getStatements();
 		for (int i = 0; i+1 < stmts.size(); i++) {
-			if (stmts.get(i+1) instanceof PullStatement) {
-				PullStatement pull = (PullStatement) stmts.get(i+1);
+			if (stmts.get(i+1) instanceof PullStatement || isConstructorCall(stmts.get(i+1))) {
+				Statement pull = stmts.get(i+1);
 				Statement s = stmts.get(i);
-				if (s instanceof AssignStatement || s instanceof AssertStatement /*|| s instanceof AssumeStatement*/) {
-					//only swap if none of the vars in s point to the same location as any of the fields
+				if (s instanceof AssignStatement) {
 					Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
-					Set<IdentifierExpression> svars = s.getIdentifierExpressions();
+					AssignStatement as = (AssignStatement) s;
+					Set<IdentifierExpression>svars = as.getLeft().getUseIdentifierExpressions();
 					if (distinct(svars,pullvars)) {
+						b.swapStatements(i, i+1);
+						if (debug)
+							System.out.println("Applied rule (V); swapped " + s + " and " + pull);
+						moved++;
+					}
+				} else if (s instanceof NewStatement || s instanceof AssumeStatement) {
+					b.swapStatements(i, i+1);
+					if (debug)
+						System.out.println("Applied rule (V); swapped " + s + " and " + pull);
+					moved++;
+				} else if (s instanceof AssertStatement) {
+					// do not move past null check
+					AssertStatement as = (AssertStatement) s;
+					if (i == 0 || (!(pull instanceof PullStatement)) || 
+							!isNullCheckBeforePull(stmts.get(i-1), as, (PullStatement) pull)) {
 						b.swapStatements(i, i+1);
 						if (debug)
 							System.out.println("Applied rule (V); swapped " + s + " and " + pull);
@@ -206,21 +200,12 @@ public class PushPullSimplifier {
 			if (stmts.get(i) instanceof PushStatement) {
 				PushStatement push = (PushStatement) stmts.get(i);
 				Statement s = stmts.get(i+1);
-				if (s instanceof AssignStatement || s instanceof AssertStatement /*|| s instanceof AssumeStatement*/) {
-
-					// I don't think this check is needed. In SatStatic2 example,
-					// it prevents a push to move past an assignment, while there is an identical
-					// push later (there always is, if the assigned vars are not distinct).
-					
-					//only swap if none of the vars in s point to the same location as any of the fields
-//					Set<IdentifierExpression> pushvars = push.getIdentifierExpressions();
-//					Set<IdentifierExpression> svars = s.getDefIdentifierExpressions();
-//					if (distinct(svars,pushvars)) { 
+				if (s instanceof AssignStatement || s instanceof AssertStatement || 
+						s instanceof NewStatement || s instanceof AssumeStatement) {
 						b.swapStatements(i, i+1);
 						if (debug)
 							System.out.println("Applied rule (VI); swapped " + push + " and " + s);
 						moved++;
-//					}
 				}
 			}
 		}
@@ -232,14 +217,12 @@ public class PushPullSimplifier {
 		int swapped = 0;
 		List<Statement> stmts = b.getStatements();
 		for (int i = 0; i+1 < stmts.size(); i++) {
-			if (stmts.get(i) instanceof PushStatement && stmts.get(i+1) instanceof PullStatement) {
-				PushStatement push = (PushStatement) stmts.get(i);
-				PullStatement pull = (PullStatement) stmts.get(i+1);
-				//only swap if none of the vars in the pull and push point to the same location
-//				Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
-//				Set<IdentifierExpression> pushvars = push.getIdentifierExpressions();
-//				if (distinct(pullvars,pushvars)) {
-				if (!SootToCfg.getPointsToAnalysis().mayAlias(pull.getObject(), push.getObject())) {
+			if (	stmts.get(i) instanceof PushStatement && 
+					(stmts.get(i+1) instanceof PullStatement || isConstructorCall(stmts.get(i+1)))) {
+				Statement push = stmts.get(i);
+				Statement pull = stmts.get(i+1);
+				//only swap if the objects in the pull and push do not point to the same location
+				if (!SootToCfg.getPointsToAnalysis().mayAlias(getObject(pull), getObject(push))) {
 					b.swapStatements(i, i+1);
 					if (debug)
 						System.out.println("Applied rule (VII); swapped " + push + " and " + pull);
@@ -257,10 +240,11 @@ public class PushPullSimplifier {
 		int swapped = 0;
 		List<Statement> stmts = b.getStatements();
 		for (int i = 0; i+1 < stmts.size(); i++) {
-			if (stmts.get(i) instanceof PullStatement && stmts.get(i+1) instanceof PullStatement) {
-				PullStatement pull1 = (PullStatement) stmts.get(i);
-				PullStatement pull2 = (PullStatement) stmts.get(i+1);
-				if (pull1.getObject().toString().compareTo(pull2.getObject().toString()) < 0) {
+			if (	(stmts.get(i) instanceof PullStatement || isConstructorCall(stmts.get(i)))
+					&& (stmts.get(i+1) instanceof PullStatement || isConstructorCall(stmts.get(i+1)))) {
+				Statement pull1 = stmts.get(i);
+				Statement pull2 = stmts.get(i+1);
+				if (getObject(pull1).toString().compareTo(getObject(pull2).toString()) < 0) {
 					//only swap if none of the vars in the pull and push point to the same location
 					Set<IdentifierExpression> pull1vars = pull1.getIdentifierExpressions();
 					Set<IdentifierExpression> pull2vars = pull2.getIdentifierExpressions();
@@ -303,35 +287,185 @@ public class PushPullSimplifier {
 	}
 	
 	/* Rule X (new) */
-	private int assumeFalseEatPreceeding(CfgBlock b) {
-		int eaten = 0;
-		List<Statement> stmts = b.getStatements();
-		for (int i = 0; i < stmts.size(); i++) {
-			if (stmts.get(i) instanceof AssumeStatement) {
-				AssumeStatement as = (AssumeStatement) stmts.get(i);
-				if (as.getExpression() instanceof BooleanLiteral && 
-						((BooleanLiteral) as.getExpression()).equals(BooleanLiteral.falseLiteral())) {
-					//Found one! Now eat everything except asserts.
-					Set<Statement> toRemove = new HashSet<Statement>();
-					int j = i - 1;
-					while (j >= 0 && !(stmts.get(j) instanceof AssertStatement)) {
-						System.out.println("Assume(false) eating " + stmts.get(j));
-						toRemove.add(stmts.get(j));
-						j--;
-					}
-					b.removeStatements(toRemove);
-				}
-			}
-		}
-		return eaten;
-	}
+//	private int assumeFalseEatPreceeding(CfgBlock b) {
+//		int eaten = 0;
+//		List<Statement> stmts = b.getStatements();
+//		for (int i = 0; i < stmts.size(); i++) {
+//			if (stmts.get(i) instanceof AssumeStatement) {
+//				AssumeStatement as = (AssumeStatement) stmts.get(i);
+//				if (as.getExpression() instanceof BooleanLiteral && 
+//						((BooleanLiteral) as.getExpression()).equals(BooleanLiteral.falseLiteral())) {
+//					//Found one! Now eat everything except asserts.
+//					Set<Statement> toRemove = new HashSet<Statement>();
+//					int j = i - 1;
+//					while (j >= 0 && !(stmts.get(j) instanceof AssertStatement)) {
+//						System.out.println("Assume(false) eating " + stmts.get(j));
+//						toRemove.add(stmts.get(j));
+//						j--;
+//					}
+//					b.removeStatements(toRemove);
+//				}
+//			}
+//		}
+//		return eaten;
+//	}
+	
+	private int movePullsUpInCFG(Method m) {
+		int moves = 0;
+		for (CfgBlock b : m.vertexSet()) {
 
+			if (debug)
+				System.out.println("Checking block " + b.getLabel() + " for pulls to move up");
+			
+			List<Statement> stmts = b.getStatements();
+			int s = 0;
+			Set<Statement> toRemove = new HashSet<Statement>();
+			while (s < stmts.size() && 
+					(stmts.get(s) instanceof PullStatement || isConstructorCall(stmts.get(s)))) {
+				
+				Statement pull = stmts.get(s);
+				Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);				
+				Set<CfgBlock> moveTo = new HashSet<CfgBlock>();
+				boolean nothingMoves = false;
+				
+				if (debug)
+					System.out.println("Let's see if we can move " + pull + " up in the CFG...");
+				
+				for (CfgEdge in : incoming) {
+					CfgBlock prev = b.getMethod().getEdgeSource(in);
+					
+					// only move up in CFG
+					if (m.distanceToSource(prev) < m.distanceToSource(b)) {
+						if (in.getLabel().isPresent() && 
+								!distinct(in.getLabel().get().getUseIdentifierExpressions(), pull.getIdentifierExpressions())) {
+							// edge label contains a ref to push object, do not move this push
+							if (debug)
+								System.out.println("Label not distinct: " + pull);
+							nothingMoves = true;
+							break;
+						}
+						moveTo.add(prev);
+					} else if (!existsPath(b, prev)) {
+						/**
+						 * With the check that there does not exist a path, we accommodate the following case.
+						 * There is a loop and b is the header. We know this because the is a path from b
+						 * to prev, yet b is closer to the source.
+						 * In this case, we want to move the pull out of the loop into the other
+						 * predecessor nodes (note that these surely exist), yet not move it into
+						 * prev, as we would then be moving it around in circles.
+						 */
+						nothingMoves = true;
+						break;
+					} else if (debug) {
+						System.out.println("Skipping the copy of " + pull + " from " + b + " to " + prev);
+					}
+				}
+				
+				if (!nothingMoves) {
+					for (CfgBlock prev : moveTo) {
+						//don't create references to the same statement in multiple blocks
+						if (toRemove.contains(pull))
+							pull = pull.deepCopy();
+						else
+							toRemove.add(pull);
+						prev.addStatement(pull);
+						moves++;
+
+						if (debug)
+							System.out.println("Moved " + pull + " up in CFG.");
+					}
+				}
+				
+				s++;
+			}
+			b.removeStatements(toRemove);
+		}
+		return moves;
+	}
+	
+	private int movePushesDownInCFG(Method m) {
+		int moves = 0;
+		for (CfgBlock b : m.vertexSet()) {
+			if (debug)
+				System.out.println("Checking block " + b.getLabel() + " for pushes to move down");
+			List<Statement> stmts = b.getStatements();
+			int s = stmts.size()-1;
+			Set<Statement> toRemove = new HashSet<Statement>();
+			while (s >= 0 && stmts.get(s) instanceof PushStatement) {
+				
+				PushStatement push = (PushStatement) stmts.get(s);
+				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);				
+				Set<CfgBlock> moveTo = new HashSet<CfgBlock>();
+				boolean nothingMoves = false;
+
+				if (debug)
+					System.out.println("Let's see if we can move " + push + " down in the CFG...");
+				
+				for (CfgEdge out : outgoing) {
+					CfgBlock next = b.getMethod().getEdgeTarget(out);
+					
+					// only move down in source
+					if (m.distanceToSink(next) < m.distanceToSink(b)) {
+						if (out.getLabel().isPresent() && 
+							!distinct(out.getLabel().get().getUseIdentifierExpressions(), push.getIdentifierExpressions())) {
+							// edge label contains a ref to push object, do not move this push
+							if (debug)
+								System.out.println("Label not distinct: " + push);
+							nothingMoves = true;
+							break;
+						}
+						if (!hasBeenPulledIn(push, next)) {
+							// object has not been pulled in successor block, do not move this push
+							if (debug)
+								System.out.println("Not pulled in predecessor of block " + next.getLabel() + ": " + push);
+							nothingMoves = true;
+							break;
+						}
+						moveTo.add(next);
+					} else if (!existsPath(next, b)) {
+						/**
+						 * Analogous to moving pulls up, we want to break pushes
+						 * from loops.
+						 */
+						nothingMoves = true;
+					} else if (debug) {
+						System.out.println("Skipping the copy of " + push + " from " + b + " to " + next);
+					}
+				}
+				
+				if (!nothingMoves) {
+					for (CfgBlock next : moveTo) {
+						// don't create references to the same statement in multiple blocks
+						if (toRemove.contains(push))
+							push = (PushStatement) push.deepCopy();
+						else
+							toRemove.add(push);
+						next.addStatement(0, push);
+						moves++;
+
+						if (debug)
+							System.out.println("Moved " + push + " down in CFG.");
+					}
+				}
+				
+				s--;
+			}
+			b.removeStatements(toRemove);
+		}
+		return moves;
+	}
+	
 	private boolean distinct(Set<IdentifierExpression> vars1, Set<IdentifierExpression> vars2) {
 		for (IdentifierExpression exp1 : vars1) {
 			for (IdentifierExpression exp2 : vars2) {
 				if (debug)
 					System.out.println("Checking distinctness of " + exp1 + exp1.getType() + " and " + exp2 + exp2.getType());
-				if (exp1.getType() instanceof ReferenceType
+				
+				if (exp1.sameVariable(exp2)) {
+					if (debug)
+						System.out.println("Same var: " + exp1 + " and " + exp2);
+					return false;
+				} else if (exp1.getType() instanceof ReferenceType
 						&& exp2.getType() instanceof ReferenceType) {
 					if (soottocfg.Options.v().memPrecision() >= 3) {
 						if (SootToCfg.getPointsToAnalysis().mayAlias(exp1, exp2))
@@ -351,133 +485,6 @@ public class PushPullSimplifier {
 		return true;
 	}
 	
-	private int movePullsUpInCFG(Method m) {
-		int moves = 0;
-		for (CfgBlock b : m.vertexSet()) {
-			List<Statement> stmts = b.getStatements();
-			int s = 0;
-			Set<Statement> toRemove = new HashSet<Statement>();
-			while (s < stmts.size() && stmts.get(s) instanceof PullStatement) {
-				Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
-				for (CfgEdge in : incoming) {
-					CfgBlock prev = b.getMethod().getEdgeSource(in);
-					
-					// only move up in CFG
-					if (m.distanceToSource(prev) < m.distanceToSource(b)) {
-						Statement stmt = stmts.get(s);
-						//don't create references to the same statement in multiple blocks
-						if (toRemove.contains(stmt))
-							stmt = stmt.deepCopy();
-						else
-							toRemove.add(stmt);
-						prev.addStatement(stmt);
-						moves++;
-
-						if (debug)
-							System.out.println("Moved " + stmts.get(s) + " up in CFG.");
-					}
-				}
-				s++;
-			}
-			b.removeStatements(toRemove);
-		}
-		return moves;
-	}
-	
-	private int movePushesDownInCFG(Method m) {
-		int moves = 0;
-		for (CfgBlock b : m.vertexSet()) {
-			List<Statement> stmts = b.getStatements();
-			int s = stmts.size()-1;
-			Set<Statement> toRemove = new HashSet<Statement>();
-			while (s > 0 && stmts.get(s) instanceof PushStatement) {
-				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
-				for (CfgEdge out : outgoing) {
-					CfgBlock next = b.getMethod().getEdgeTarget(out);
-					
-					// only move down in source
-					if (m.distanceToSink(next) < m.distanceToSink(b)) {
-						Statement stmt = stmts.get(s);
-						//don't create references to the same statement in multiple blocks
-						if (toRemove.contains(stmt))
-							stmt = stmt.deepCopy();
-						else
-							toRemove.add(stmt);
-						next.addStatement(0, stmt);
-						moves++;
-
-						if (debug)
-							System.out.println("Moved " + stmts.get(s) + " down in CFG.");
-					}
-				}
-				s--;
-			}
-			b.removeStatements(toRemove);
-		}
-		return moves;
-	}
-	
-//	private int moveAssumeFalseUpInCFG(Set<CfgBlock> blocks) {
-//		int moves = 0;
-//		for (CfgBlock b : blocks) {
-//			if (!b.getStatements().isEmpty()) {
-//				Statement stmt = b.getStatements().get(0);
-//				if (stmt instanceof AssumeStatement) {
-//					AssumeStatement as = (AssumeStatement) stmt;
-//					if (as.getExpression() instanceof BooleanLiteral && 
-//							((BooleanLiteral) as.getExpression()).equals(BooleanLiteral.falseLiteral())) {
-//						System.out.println("Found assume(false)");
-//						// Found one! Now only move it up if all predecessors are actually up.
-//						boolean allUp = true;
-//						Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
-//						for (CfgEdge in : incoming) {
-//							CfgBlock prev = b.getMethod().getEdgeSource(in);
-//							if (!isUp(prev,b))
-//								allUp = false;
-//						}
-//						if (allUp && !incoming.isEmpty()) {
-//							for (CfgEdge in : incoming) {
-//								CfgBlock prev = b.getMethod().getEdgeSource(in);
-//								prev.addStatement(as);							
-//							}
-//							b.removeStatement(as);
-//							moves++;
-//							if (debug)
-//								System.out.println("Moved assume(false) up in CFG.");
-//						}
-//					}
-//				}
-//			}
-//		}
-//		return moves;
-//	}
-	
-//	private int removeEmptyBlocks(Method m) {
-//		int removed = 0;
-//		Set<CfgBlock> toRemove = new HashSet<CfgBlock>();
-//		for (CfgBlock b : m.vertexSet()) {
-//			if (b.getStatements().isEmpty()) {
-//				//make all predecessors point to unique successor
-//				Set<CfgEdge> outgoing = b.getMethod().outgoingEdgesOf(b);
-//				if (outgoing.size()==1) {
-//					Set<CfgEdge> toRemoveEdges = new HashSet<CfgEdge>();
-//					CfgBlock next = b.getMethod().getEdgeTarget((CfgEdge)outgoing.toArray()[0]);
-//					Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);
-//					for (CfgEdge in : incoming) {
-//						CfgBlock prev = b.getMethod().getEdgeSource(in);
-//						toRemoveEdges.add(in);
-//						b.getMethod().addEdge(prev, next);
-//					}
-//					toRemove.add(b);
-//					b.getMethod().removeAllEdges(toRemoveEdges);
-//				}
-//			}
-//		}
-//		// this one breaks everything...
-//		m.removeAllVertices(toRemove);
-//		return removed;
-//	}
-	
 	private boolean sameVars(PushStatement push, PullStatement pull) {
 		List<Expression> pushvars = push.getRight();
 		List<IdentifierExpression> pullvars = pull.getLeft();
@@ -485,11 +492,131 @@ public class PushPullSimplifier {
 			return false;
 		
 		for (int i = 0; i < pushvars.size(); i++) {
-			// TODO build equals methods
-			if (!pushvars.get(i).toString().equals(pullvars.get(i).toString()))
+			if (! (pushvars.get(i) instanceof IdentifierExpression))
+				return false;
+			IdentifierExpression ie1 = (IdentifierExpression) pullvars.get(i);
+			IdentifierExpression ie2 = (IdentifierExpression) pushvars.get(i);
+			if (!ie1.sameVariable(ie2))
 				return false;
 		}
 		
 		return true;
+	}
+	
+	private boolean sameVars(PushStatement push, CallStatement pull) {
+		List<Expression> pushvars = push.getRight();
+		List<Expression> pullvars = pull.getReceiver();
+		if (pushvars.size() != pullvars.size())
+			return false;
+		
+		for (int i = 0; i < pushvars.size(); i++) {
+			if (! (pullvars.get(i) instanceof IdentifierExpression))
+				return false;
+			if (! (pushvars.get(i) instanceof IdentifierExpression))
+				return false;
+			IdentifierExpression ie1 = (IdentifierExpression) pullvars.get(i);
+			IdentifierExpression ie2 = (IdentifierExpression) pushvars.get(i);
+			if (!ie1.sameVariable(ie2))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	private boolean sameVarsStatement(Statement push, Statement pull) {
+		Verify.verify(push instanceof PushStatement);
+		Verify.verify(pull instanceof PullStatement || isConstructorCall(pull));
+		if (pull instanceof PullStatement)
+			return sameVars((PushStatement) push, (PullStatement) pull);
+		else
+			return sameVars((PushStatement) push, (CallStatement) pull);
+	}
+	
+	private boolean isConstructorCall(Statement s) {
+		if (s instanceof CallStatement) {
+			CallStatement cs = (CallStatement) s;
+			return cs.getCallTarget().isConstructor();
+		}
+		return false;
+	}
+	
+	private IdentifierExpression getObject(Statement s) {
+		if (s instanceof PullStatement)
+			return (IdentifierExpression) ((PullStatement) s).getObject();
+		if (s instanceof PushStatement)
+			return (IdentifierExpression) ((PushStatement) s).getObject();
+		if (isConstructorCall(s))
+			return (IdentifierExpression) ((CallStatement) s).getArguments().get(0);
+		return null;
+	}
+	
+	// check if the object of a push has been pulled in or on the path to CfgBlock b
+	private boolean hasBeenPulledIn(PushStatement push, CfgBlock b) {
+		Set<CfgBlock> done = new HashSet<CfgBlock>();
+		Queue<CfgBlock> q = new LinkedList<CfgBlock>();
+		q.add(b);
+		while (!q.isEmpty()) {
+			CfgBlock cur = q.poll();
+			done.add(cur);
+			for (Statement s : cur.getStatements()) {
+				if (s instanceof PullStatement || isConstructorCall(s)) {
+					if (getObject(s).sameVariable(getObject(push))) {
+						return true;
+					}					
+				}
+			}
+			
+			Set<CfgEdge> incoming = cur.getMethod().incomingEdgesOf(cur);
+			for (CfgEdge in : incoming) {
+				CfgBlock prev = cur.getMethod().getEdgeSource(in);
+				if (!done.contains(prev) && !q.contains(prev))
+					q.add(prev);
+			}
+		}
+		return false;
+	}
+	
+	private boolean existsPath(CfgBlock from, CfgBlock to) {
+		Set<CfgBlock> done = new HashSet<CfgBlock>();
+		Queue<CfgBlock> q = new LinkedList<CfgBlock>();
+		q.add(from);
+		while (!q.isEmpty()) {
+			CfgBlock cur = q.poll();
+			done.add(cur);
+			if (cur.equals(to))
+				return true;
+			
+			Set<CfgEdge> outgoing = cur.getMethod().outgoingEdgesOf(cur);
+			for (CfgEdge out : outgoing) {
+				CfgBlock next = cur.getMethod().getEdgeTarget(out);
+				if (!done.contains(next) && !q.contains(next))
+					q.add(next);
+			}
+		}
+		return false;
+	}
+	
+	private boolean isNullCheckBeforePull(Statement previous, AssertStatement as, PullStatement pull) {
+		Variable pullVar = ((IdentifierExpression) pull.getObject()).getVariable();
+		if (previous instanceof AssignStatement) {
+			AssignStatement assign = (AssignStatement) previous;
+			Expression rhs = assign.getRight();
+			if (rhs instanceof BinaryExpression) {
+				BinaryExpression be = (BinaryExpression) rhs;
+				if (be.getOp() == BinaryExpression.BinaryOperator.Ne) {
+					if (be.getRight() instanceof NullLiteral && be.getLeft() instanceof IdentifierExpression) {
+						IdentifierExpression ie = (IdentifierExpression) be.getLeft();
+						for (Variable v : pull.getAllVariables()) {
+							if (v.equals(pullVar)) {
+								if (debug)
+									System.out.println("Found null check for " + ie);
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+		return false;
 	}
 }

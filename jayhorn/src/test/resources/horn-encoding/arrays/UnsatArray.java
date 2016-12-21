@@ -9,7 +9,7 @@ class B {
   A as[];
 }
 
-class SatArray
+class UnsatArray
 {
 
 	  public static void main(String[] args)
@@ -24,8 +24,7 @@ class SatArray
             b.as[0] = a0;
 	    b.as[1] = a1;
 
-	    assert b.as[0] == a0;
-	    //assert 999 == b.as[0].i;
+	    assert 999 == b.as[0].i;
 	  }
 }
   

@@ -75,6 +75,7 @@ public class BinaryExpression extends Expression {
 				}				
 			}
 		}
+
 		Preconditions.checkArgument(
 				left.getType().getClass() == right.getType().getClass()
 						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(right)

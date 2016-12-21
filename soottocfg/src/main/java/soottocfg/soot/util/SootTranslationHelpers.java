@@ -6,6 +6,10 @@ package soottocfg.soot.util;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Verify;
 
 import soot.ArrayType;
 import soot.Modifier;
@@ -35,8 +39,14 @@ import soot.tagkit.Tag;
 import soottocfg.Options;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
+import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
+import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.TupleAccessExpression;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.SootRunner;
@@ -50,14 +60,17 @@ import soottocfg.soot.memory_model.NewMemoryModel;
  */
 public enum SootTranslationHelpers {
 	INSTANCE;
-
+	
 	public static SootTranslationHelpers v() {
+		Preconditions.checkArgument(initialized, "Call SootTranslationHelpers.initialize first!");
 		return INSTANCE;
 	}
 
 	public static final String HavocClassName = "Havoc_Class";
 	public static final String HavocMethodName = "havoc_";
 
+	private static boolean initialized = false;
+	
 	/**
 	 * Get a method that returns an unknown value of type t.
 	 * 
@@ -80,15 +93,16 @@ public enum SootTranslationHelpers {
 		return cls.getMethodByName("havoc_" + t.toString());
 	}
 
-	public static SootTranslationHelpers v(Program program) {
-		final SootTranslationHelpers instance = INSTANCE;
-		instance.setMemoryModelKind(Options.v().memModel());
-		instance.setProgram(program);
-		return instance;
+	public static void initialize(Program program) {
+		initialized = true;
+		INSTANCE.reset();
+		
+		INSTANCE.setProgram(program);
+		INSTANCE.setMemoryModelKind(Options.v().memModel());
 	}
 
 	private static final String parameterPrefix = "$in_";
-	public static final String typeFieldName = "$dynamicType";
+//	public static final String typeFieldName = "$dynamicType";
 
 	public static final String arrayElementTypeFieldName = "$elType";
 	public static final String lengthFieldName = "$length";
@@ -108,44 +122,17 @@ public enum SootTranslationHelpers {
 		currentSourceFileName = null;
 		memoryModel = null;
 		program = null;
+		writtenOnceFields = null;
 	}
 
-	public static boolean isDynamicTypeVar(Variable v) {
-		return v.getName().contains(SootTranslationHelpers.typeFieldName);
-	}
 
-	public static boolean isDynamicTypeVar(SootField f) {
-		return f.getName().contains(SootTranslationHelpers.typeFieldName);
-	}
-
-	public static SootField getTypeField(SootClass sc) {
-
-		return Scene.v().getSootClass("java.lang.Object").getFieldByName(SootTranslationHelpers.typeFieldName);
-
-		// return sc.getFieldByName(SootTranslationHelpers.typeFieldName);
-	}
-
-	public static void createTypeFields() {
-		SootClass sc = Scene.v().getSootClass("java.lang.Object");
-		if (!sc.declaresField(SootTranslationHelpers.typeFieldName)) {
-			SootField sf = new SootField(SootTranslationHelpers.typeFieldName,
-					RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC);
-			sc.addField(sf);
+	private Set<SootField> writtenOnceFields;
+	
+	public boolean isWrittenOnce(SootField f) {
+		if (writtenOnceFields==null) {
+			writtenOnceFields = WriteOnceFieldCollector.getWriteOnceInstanceFields();
 		}
-		// List<SootClass> classes = new
-		// LinkedList<SootClass>(Scene.v().getClasses());
-		// for (SootClass sc : classes) {
-		// createTypeField(sc);
-		// }
-	}
-
-	public static SootField createTypeField(SootClass sc) {
-		return getTypeField(sc);
-		// SootField sf = new SootField(SootTranslationHelpers.typeFieldName,
-		// RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC
-		// | Modifier.FINAL);
-		// sc.addField(sf);
-		// return sf;
+		return writtenOnceFields.contains(f);
 	}
 
 	public static List<SootField> findFieldsRecursivelyForRef(Value v) {
@@ -175,6 +162,15 @@ public enum SootTranslationHelpers {
 		return res;
  	}
 	
+	public static BinaryExpression createInstanceOfExpression(SourceLocation loc, Variable v, ClassVariable typ) { 
+		Expression lhs = new TupleAccessExpression(loc, v, ReferenceType.TypeFieldName);
+		return createInstanceOfExpression(lhs, typ);
+	}
+	
+	public static BinaryExpression createInstanceOfExpression(Expression lhs, ClassVariable typ) {
+		SourceLocation loc = lhs.getSourceLocation();
+		return new BinaryExpression(loc, BinaryOperator.PoLeq, lhs, new IdentifierExpression(loc, typ));
+	}
 	
 	public Value getDefaultValue(soot.Type t) {
 		Value rhs = null;
@@ -251,6 +247,7 @@ public enum SootTranslationHelpers {
 
 		List<soottocfg.cfg.type.Type> outVarTypes = new LinkedList<soottocfg.cfg.type.Type>();
 		if (!m.getReturnType().equals(VoidType.v())) {
+			Verify.verifyNotNull(memoryModel);
 			outVarTypes.add(memoryModel.lookupType(m.getReturnType()));
 		} else if (m.isConstructor()) {
 			/*
@@ -337,6 +334,7 @@ public enum SootTranslationHelpers {
 
 	void setMemoryModelKind(MemModel kind) {
 		memoryModelKind = kind;
+		getMemoryModel();
 	}
 
 	public MemoryModel getMemoryModel() {
