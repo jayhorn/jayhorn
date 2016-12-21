@@ -474,12 +474,23 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 			if (elementType instanceof RefType) {
 				elementTypeName = ((RefType) elementType).getSootClass().getJavaStyleName();
 			}
-			elementTypeName = elementTypeName.replace('.', '/');
+			elementTypeName = elementTypeName.replace('.', '/');			
 			body.getUnits()
 					.add(Jimple.v().newAssignStmt(
 							Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemTypeField.makeRef()),
 							ClassConstant.v(elementTypeName)));
+			//add default initializers for all fields
+			for (int j = 0; j < num_exact; j++) {
+				Unit asn = Jimple.v().newAssignStmt(
+						Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[j].makeRef()),
+						SootTranslationHelpers.v().getDefaultValue(arrFields[j].getType()));
+				body.getUnits().add(asn);
+			}
+			
 			body.getUnits().add(Jimple.v().newReturnVoidStmt());
+			
+			
+			
 			constructor.setActiveBody(body);
 		}
 		return arrayClass;
