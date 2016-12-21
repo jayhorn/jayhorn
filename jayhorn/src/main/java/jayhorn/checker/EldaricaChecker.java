@@ -106,8 +106,7 @@ public class EldaricaChecker implements Checker{
 
 			for (ProverHornClause clause : allClauses)
 				prover.addAssertion(clause);
-	
-			
+
 			Stopwatch satTimer = Stopwatch.createStarted();
 			if (jayhorn.Options.v().getTimeout() > 0) {
 				int timeoutInMsec = (int) TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());

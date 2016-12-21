@@ -110,8 +110,10 @@ public class HornRegressionTest {
 //			soottocfg.Options.v().setPrintCFG(true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 //			jayhorn.Options.v().setPrintHorn(true);
+
 		
 			return soot2cfg.getProgram();
+
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;

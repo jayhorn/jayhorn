@@ -115,10 +115,9 @@ public class BigSoundnessTests {
 				jayhorn.Options.v().setSolverOptions("abstract");
 
 				Program program = soot2cfg.getProgram();
-//				EldaricaChecker hornChecker = new EldaricaChecker(factory);
-//				result = hornChecker.checkProgram(program);
-				SpacerChecker spacer = new SpacerChecker(factory);
-				result = spacer.checkProgram(program);
+				EldaricaChecker hornChecker = new EldaricaChecker(factory);
+				result = hornChecker.checkProgram(program);
+
 				
 				if (expected == result) {
 					resultCorrect++;

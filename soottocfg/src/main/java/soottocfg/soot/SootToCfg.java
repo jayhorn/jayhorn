@@ -112,7 +112,9 @@ public class SootToCfg {
 		 * reference before applying the array transformation because
 		 * this changes this signature of main.
 		 */
+
 		final SootMethod mainMethod = Scene.v().getMainMethod();
+
 		performBehaviorPreservingTransformations();
 		performAbstractionTransformations();
 		Variable exceptionGlobal = this.program
