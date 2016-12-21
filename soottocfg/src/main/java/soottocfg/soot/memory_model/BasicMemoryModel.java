@@ -82,16 +82,6 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see jayhorn.soot.memory_model.MemoryModel#mkNewExpr(soot.jimple.NewExpr)
-	 */
-	@Override
-	public Expression mkNewExpr(NewExpr arg0) {
-		throw new RuntimeException("Implemented in Assign translation");
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see jayhorn.soot.memory_model.MemoryModel#mkNewArrayExpr(soot.jimple.
 	 * NewArrayExpr )
 	 */

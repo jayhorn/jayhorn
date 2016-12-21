@@ -111,12 +111,6 @@ public class CfgScanner extends CfgVisitor {
 	}
 	
 	@Override
-	protected Statement processStatement(NewStatement s) {
-		processExpression(s.getLeft());
-		return s;
-	}
-	
-	@Override
 	protected Expression processExpression(BinaryExpression e) {
 		processExpression(e.getLeft());
 		processExpression(e.getRight());

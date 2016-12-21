@@ -70,10 +70,6 @@ public class NewStatement extends Statement {
 		res.add(left);	
 		return res;
 	}
-	
-	public ClassVariable getClassVariable() {
-		return this.classVariable;
-	}
 
 	/*
 	 * TODO: the counter var is just a hacky way to keep track
