@@ -126,6 +126,7 @@ public class BigSoundnessTests {
 				}
 			} catch (Exception e) {
 				resultException++;
+				e.printStackTrace();
 				throw new RuntimeException(e.toString());
 			} finally {
 				StringBuilder sb = new StringBuilder();

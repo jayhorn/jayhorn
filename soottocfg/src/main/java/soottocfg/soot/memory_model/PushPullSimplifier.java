@@ -9,13 +9,16 @@ import java.util.Set;
 import com.google.common.base.Verify;
 
 import soottocfg.cfg.Program;
+import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
+import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PullStatement;
@@ -157,17 +160,26 @@ public class PushPullSimplifier {
 			if (stmts.get(i+1) instanceof PullStatement || isConstructorCall(stmts.get(i+1))) {
 				Statement pull = stmts.get(i+1);
 				Statement s = stmts.get(i);
-				if (s instanceof AssignStatement || s instanceof AssertStatement || s instanceof NewStatement /*|| s instanceof AssumeStatement*/) {
-					//only swap if none of the vars in s point to the same location as any of the fields
+				if (s instanceof AssignStatement) {
 					Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
-					Set<IdentifierExpression> svars = s.getIdentifierExpressions();
-					
-					if (s instanceof AssignStatement) {
-						AssignStatement as = (AssignStatement) s;
-						svars = as.getLeft().getUseIdentifierExpressions();
-					}
-					
+					AssignStatement as = (AssignStatement) s;
+					Set<IdentifierExpression>svars = as.getLeft().getUseIdentifierExpressions();
 					if (distinct(svars,pullvars)) {
+						b.swapStatements(i, i+1);
+						if (debug)
+							System.out.println("Applied rule (V); swapped " + s + " and " + pull);
+						moved++;
+					}
+				} else if (s instanceof NewStatement || s instanceof AssumeStatement) {
+					b.swapStatements(i, i+1);
+					if (debug)
+						System.out.println("Applied rule (V); swapped " + s + " and " + pull);
+					moved++;
+				} else if (s instanceof AssertStatement) {
+					// do not move past null check
+					AssertStatement as = (AssertStatement) s;
+					if (i == 0 || (!(pull instanceof PullStatement)) || 
+							!isNullCheckBeforePull(stmts.get(i-1), as, (PullStatement) pull)) {
 						b.swapStatements(i, i+1);
 						if (debug)
 							System.out.println("Applied rule (V); swapped " + s + " and " + pull);
@@ -187,21 +199,12 @@ public class PushPullSimplifier {
 			if (stmts.get(i) instanceof PushStatement) {
 				PushStatement push = (PushStatement) stmts.get(i);
 				Statement s = stmts.get(i+1);
-				if (s instanceof AssignStatement || s instanceof AssertStatement || s instanceof NewStatement /*|| s instanceof AssumeStatement*/) {
-
-					// I don't think this check is needed. In SatStatic2 example,
-					// it prevents a push to move past an assignment, while there is an identical
-					// push later (there always is, if the assigned vars are not distinct).
-					
-					//only swap if none of the vars in s point to the same location as any of the fields
-//					Set<IdentifierExpression> pushvars = push.getIdentifierExpressions();
-//					Set<IdentifierExpression> svars = s.getDefIdentifierExpressions();
-//					if (distinct(svars,pushvars)) { 
+				if (s instanceof AssignStatement || s instanceof AssertStatement || 
+						s instanceof NewStatement || s instanceof AssumeStatement) {
 						b.swapStatements(i, i+1);
 						if (debug)
 							System.out.println("Applied rule (VI); swapped " + push + " and " + s);
 						moved++;
-//					}
 				}
 			}
 		}
@@ -319,7 +322,7 @@ public class PushPullSimplifier {
 			while (s < stmts.size() && 
 					(stmts.get(s) instanceof PullStatement || isConstructorCall(stmts.get(s)))) {
 				
-				PullStatement pull = (PullStatement) stmts.get(s);
+				Statement pull = stmts.get(s);
 				Set<CfgEdge> incoming = b.getMethod().incomingEdgesOf(b);				
 				Set<CfgBlock> moveTo = new HashSet<CfgBlock>();
 				boolean nothingMoves = false;
@@ -340,13 +343,6 @@ public class PushPullSimplifier {
 							nothingMoves = true;
 							break;
 						}
-//						if (!willBePushedIn(pull, prev)) {
-//							// object has not been pushed in successor block, do not move this push
-//							if (debug)
-//								System.out.println("Not pushed in successor of block " + prev.getLabel() + ": " + pull);
-//							nothingMoves = true;
-//							break;
-//						}
 						moveTo.add(prev);
 					} else if (!existsPath(b, prev)) {
 						/**
@@ -579,33 +575,6 @@ public class PushPullSimplifier {
 		return false;
 	}
 	
-	// check if the object of a push has been pulled in or on the path to CfgBlock b
-//	private boolean willBePushedIn(PullStatement pull, CfgBlock b) {
-//		Set<CfgBlock> done = new HashSet<CfgBlock>();
-//		
-//		Queue<CfgBlock> q = new LinkedList<CfgBlock>();
-//		q.add(b);
-//		while (!q.isEmpty()) {
-//			CfgBlock cur = q.poll();
-//			done.add(cur);
-//			for (Statement s : cur.getStatements()) {
-//				if (s instanceof PushStatement) {
-//					if (getObject(s).sameVariable(getObject(pull))) {
-//						return true;
-//					}
-//				}
-//			}
-//			
-//			Set<CfgEdge> outgoing = cur.getMethod().outgoingEdgesOf(cur);
-//			for (CfgEdge out : outgoing) {
-//				CfgBlock next = cur.getMethod().getEdgeTarget(out);
-//				if (!done.contains(next) && !q.contains(next))
-//					q.add(next);
-//			}
-//		}
-//		return false;
-//	}
-	
 	private boolean existsPath(CfgBlock from, CfgBlock to) {
 		Set<CfgBlock> done = new HashSet<CfgBlock>();
 		Queue<CfgBlock> q = new LinkedList<CfgBlock>();
@@ -621,6 +590,27 @@ public class PushPullSimplifier {
 				CfgBlock next = cur.getMethod().getEdgeTarget(out);
 				if (!done.contains(next) && !q.contains(next))
 					q.add(next);
+			}
+		}
+		return false;
+	}
+	
+	private boolean isNullCheckBeforePull(Statement previous, AssertStatement as, PullStatement pull) {
+		if (previous instanceof AssignStatement) {
+			AssignStatement assign = (AssignStatement) previous;
+			Expression rhs = assign.getRight();
+			if (rhs instanceof BinaryExpression) {
+				BinaryExpression be = (BinaryExpression) rhs;
+				if (be.getOp() == BinaryExpression.BinaryOperator.Ne) {
+					if (be.getRight() instanceof NullLiteral && be.getLeft() instanceof IdentifierExpression) {
+						IdentifierExpression ie = (IdentifierExpression) be.getLeft();
+						if (ie.sameVariable((IdentifierExpression) pull.getObject())) {
+							if (debug)
+								System.out.println("Found null check for " + ie);
+							return true;
+						}
+					}
+				}
 			}
 		}
 		return false;
