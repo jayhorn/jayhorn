@@ -19,6 +19,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import jayhorn.checker.EldaricaChecker;
+
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.test.Util;
@@ -112,6 +113,7 @@ public class CallIdTest {
 //			boolean result = checker.checkProgram(soot2cfg.getProgram());
 			
 			Program program = soot2cfg.getProgram();			
+
 	  		EldaricaChecker hornChecker = new EldaricaChecker(factory);
 
 	  		boolean result = hornChecker.checkProgram(program);

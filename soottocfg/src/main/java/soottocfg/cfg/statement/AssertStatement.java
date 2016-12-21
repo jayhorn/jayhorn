@@ -20,7 +20,6 @@ public class AssertStatement extends Statement {
 
 	private static final long serialVersionUID = -2043514337815140767L;
 	private Expression expression;
-	private boolean isHeapCheck;
 
 	/**
 	 * @param createdFrom
@@ -28,7 +27,6 @@ public class AssertStatement extends Statement {
 	public AssertStatement(SourceLocation loc, Expression expr) {
 		super(loc);
 		this.expression = expr.castToBoolIfNecessary();
-		//this.isHeapCheck = isHeap
 	}
 
 	public Expression getExpression() {

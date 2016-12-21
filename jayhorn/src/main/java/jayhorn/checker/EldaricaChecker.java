@@ -208,7 +208,7 @@ public class EldaricaChecker implements Checker{
 				sb.append("--\n");
 			}
 			sb.append("----\n");
-			System.err.println(sb.toString());
+			System.err.println(sb.toString());			
 		}
 	}
 }

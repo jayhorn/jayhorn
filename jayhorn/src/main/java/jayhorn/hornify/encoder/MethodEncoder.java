@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import java.util.Set;
 
 import jayhorn.Log;
@@ -52,6 +53,7 @@ public class MethodEncoder {
 	 */
 	public List<ProverHornClause> encode() {
 		this.clauses.clear();
+
 		LiveVars<CfgBlock> liveVariables = method.computeBlockLiveVariables();
 		makeBlockPredicates(liveVariables);
 
@@ -59,13 +61,12 @@ public class MethodEncoder {
 			encodeEmptyMethod();
 			return clauses;
 		}
-		
+
 		makeEntryPredicate();
 		blocksToHorn(liveVariables);
 		S2H.sh().addClause((Statement)null, tsClauses);
 		return clauses;
 	}
-
 	
 	/**
 	 * Creates a trivial Horn clause:
@@ -239,16 +240,13 @@ public class MethodEncoder {
 
 		StatementEncoder senc = new StatementEncoder(p, this.expEnc);
 
-                List<Statement> stmts = block.getStatements();
+        List<Statement> stmts = block.getStatements();
 		for (int i = 0; i < stmts.size(); ++i) {
-                        final Statement s = stmts.get(i);
+            final Statement s = stmts.get(i);
 			final String postName = initName + "_" + (++counter);
 			final List<Variable> interVarList = HornHelper.hh().setToSortedList(liveAfter.get(s));
 			final HornPredicate postPred = freshHornPredicate(postName, interVarList);
-                        if (i < stmts.size() - 1)
-                          senc.lookAhead(stmts.get(i + 1));
-			this.clauses.addAll(senc.statementToClause(s, prePred, postPred));
-
+			this.clauses.addAll(senc.statementToClause(s, prePred, postPred, this.method));
 			prePred = postPred;
 		}
 

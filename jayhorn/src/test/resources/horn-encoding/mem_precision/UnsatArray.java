@@ -24,7 +24,8 @@ class UnsatArray
             b.as[0] = a0;
 	    b.as[1] = a1;
 
-	    assert 999 != b.as[0].i;
+	assert b.as[0] == a1;
+	    //assert 999 == b.as[0].i;
 	  }
 }
   

@@ -31,9 +31,7 @@ import soot.Body;
 import soot.Local;
 import soot.PatchingChain;
 import soot.RefType;
-import soot.Scene;
 import soot.SootClass;
-import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
@@ -51,7 +49,6 @@ import soot.jimple.IfStmt;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.InvokeStmt;
-import soot.jimple.Jimple;
 import soot.jimple.LengthExpr;
 import soot.jimple.LookupSwitchStmt;
 import soot.jimple.NopStmt;
@@ -70,6 +67,7 @@ import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.TupleAccessExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.method.CfgBlock;
@@ -79,6 +77,9 @@ import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 
@@ -534,10 +535,12 @@ public class SootStmtSwitch implements StmtSwitch {
 				Expression lhs = valueSwitch.popExpression();
 				iivk.getBase().apply(valueSwitch);
 				Expression binOpRhs = valueSwitch.popExpression();
+				Verify.verify(binOpRhs instanceof IdentifierExpression);
+				Variable rhsVar = ((IdentifierExpression)binOpRhs).getVariable();
+				Verify.verify(rhsVar instanceof ClassVariable);		
 				call.getArg(0).apply(valueSwitch);
-				Expression binOpLhs = valueSwitch.popExpression();
-				Expression instOf = new BinaryExpression(this.getCurrentLoc(), BinaryOperator.PoLeq, binOpLhs,
-						binOpRhs);
+				IdentifierExpression binOpLhs = (IdentifierExpression)valueSwitch.popExpression();				
+				Expression instOf = SootTranslationHelpers.createInstanceOfExpression(getCurrentLoc(), binOpLhs.getVariable(), (ClassVariable)rhsVar);
 				currentBlock.addStatement(
 						new AssignStatement(SootTranslationHelpers.v().getSourceLocation(u), lhs, instOf));
 				return true;
@@ -548,18 +551,26 @@ public class SootStmtSwitch implements StmtSwitch {
 			if (optionalLhs != null) {
 				Value objectToGetClassFrom = iivk.getBase();
 				soot.Type t = objectToGetClassFrom.getType();
-				SootField typeField = null;
+//				SootField typeField = null;
 				if (t instanceof RefType) {
 					// first make a heap-read of the type filed.
-					typeField = SootTranslationHelpers.getTypeField(((RefType) t).getSootClass());
+//					typeField = SootTranslationHelpers.getTypeField(((RefType) t).getSootClass());
+//					// now get the dynamic type
+//					SootTranslationHelpers.v().getMemoryModel().mkHeapReadStatement(getCurrentStmt(),
+//							Jimple.v().newInstanceFieldRef(objectToGetClassFrom, typeField.makeRef()), optionalLhs);
+
+					objectToGetClassFrom.apply(valueSwitch);
+					IdentifierExpression base = (IdentifierExpression)valueSwitch.popExpression();
+					optionalLhs.apply(valueSwitch);
+					Expression left = valueSwitch.popExpression();
+					currentBlock.addStatement(new AssignStatement(loc, left, new TupleAccessExpression(loc, base.getVariable(), ReferenceType.TypeFieldName)));
+					
 				} else if (t instanceof ArrayType) {
-					typeField = SootTranslationHelpers.getTypeField(Scene.v().getSootClass("java.lang.Object"));
+//					typeField = SootTranslationHelpers.getTypeField(Scene.v().getSootClass("java.lang.Object"));
+					throw new RuntimeException("Arrays should be removed first.");
 				} else {
 					throw new RuntimeException("Not implemented. " + t + ", " + t.getClass());
 				}
-				// now get the dynamic type
-				SootTranslationHelpers.v().getMemoryModel().mkHeapReadStatement(getCurrentStmt(),
-						Jimple.v().newInstanceFieldRef(objectToGetClassFrom, typeField.makeRef()), optionalLhs);
 				return true;
 			}
 		} else if (call.getMethod().getSignature()

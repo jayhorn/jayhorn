@@ -68,18 +68,18 @@ public class SimpleHornTest {
 		this.sourceFile = source;
 	}
 
-//	@Test
-//	public void testWithPrincess() {
-//		verifyAssertions(new PrincessProverFactory(), false);
-//	}
-
 	@Test
-	public void testWithSpacer() {
-		verifyAssertions(new SpacerProverFactory(), true);
+	public void testWithPrincess() {
+		verifyAssertions(new PrincessProverFactory());
 	}
 
+//	@Test
+//	public void testWithSpacer() {
+//		verifyAssertions(new SpacerProverFactory(), true);
+//	}
+
 	
-	protected void verifyAssertions(ProverFactory factory, boolean is_spacer) {
+	protected void verifyAssertions(ProverFactory factory) {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
@@ -87,24 +87,22 @@ public class SimpleHornTest {
 			SootToCfg soot2cfg = new SootToCfg();
 			soottocfg.Options.v().setPrintCFG(true);
 			soottocfg.Options.v().setMemPrecision(3);
-//			soottocfg.Options.v().setInlineCount(3);
-//			soottocfg.Options.v().setInlineMaxSize(20);
+
+//			soottocfg.Options.v().setInlineCount(1);
+//			soottocfg.Options.v().setInlineMaxSize(10);
+//			soottocfg.Options.v().setArrayInv(true);
+			soottocfg.Options.v().setExactArrayElements(0);
+
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			
 
 			jayhorn.Options.v().setTimeout(300);
+			jayhorn.Options.v().setPrintHorn(true);
 			Program program = soot2cfg.getProgram();
-			boolean result;
 			
-			if (is_spacer){
-				SpacerChecker spacer = new SpacerChecker(factory);
-				
-				result = spacer.checkProgram(program);
-			} else {
 				EldaricaChecker eldarica = new EldaricaChecker(factory);
-				result = eldarica.checkProgram(program);
-			}
-		 
+				boolean result = eldarica.checkProgram(program);
+
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
 

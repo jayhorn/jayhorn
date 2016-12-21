@@ -60,14 +60,17 @@ public class CfgCallInliner {
 			if (!totalCallsTo.containsKey(m.getMethodName())) {
 				totalCallsTo.put(m.getMethodName(), 0);
 			}
-
-			int stmtCount = 0;
+			
 			for (Method callee : calledMethods(m)) {
 				if (!totalCallsTo.containsKey(callee.getMethodName())) {
 					totalCallsTo.put(callee.getMethodName(), 0);
 				}
 				totalCallsTo.put(callee.getMethodName(), totalCallsTo.get(callee.getMethodName()) + 1);
 			}
+			
+			int stmtCount = 0;
+			for (CfgBlock b : m.vertexSet())
+				stmtCount += b.getStatements().size();
 			totalStmts.put(m.getMethodName(), stmtCount);
 		}
 	}
@@ -129,7 +132,7 @@ public class CfgCallInliner {
 		}
 		program.removeMethods(toRemove);
 		
-		System.err.println(program);
+//		System.err.println(program);
 	}
 
 	private void inlineCalls(Method method, int maxSize, int maxOccurences) {
@@ -144,11 +147,15 @@ public class CfgCallInliner {
 				if (s instanceof CallStatement) {
 					CallStatement cs = (CallStatement) s;
 					Method callee = cs.getCallTarget();
+					
+					// first apply inlining to the callee
+					inlineCalls(callee, maxSize, maxOccurences);
+					
 					if (!callee.equals(method) && !callee.isConstructor() && !callee.isStaticInitializer()) {
+
 						if (totalCallsTo.get(callee.getMethodName()) < maxOccurences
 								|| totalStmts.get(callee.getMethodName()) < maxSize) {
-							// first apply inlining to the callee
-							inlineCalls(callee, maxSize, maxOccurences);
+
 							// now copy the callee into the caller.
 							copyCalleeBody(method, b, cs);
 							toRemove.add(b);
@@ -159,7 +166,7 @@ public class CfgCallInliner {
 							 * we know from enforceSingleInlineableCallPerBlock
 							 * that there is only one call per block to inline.
 							 */
-							break;
+//							break;
 						}
 					}
 				}
@@ -198,7 +205,7 @@ public class CfgCallInliner {
 			if (s instanceof CallStatement) {
 				CallStatement cs = (CallStatement) s;
 				Method callee = cs.getCallTarget();
-				if (!callee.equals(m)) {
+				if (!callee.equals(m) && !callee.isConstructor() && !callee.isStaticInitializer()) {
 					if (totalCallsTo.get(callee.getMethodName()) < maxOccurences
 							|| totalStmts.get(callee.getMethodName()) < maxSize) {
 						inlineableCalls++;

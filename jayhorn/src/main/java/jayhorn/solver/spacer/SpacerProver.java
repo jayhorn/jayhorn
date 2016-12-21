@@ -1299,6 +1299,24 @@ public class SpacerProver implements Prover {
     public String solverName(){
     	return "spacer";
     }
+
+	@Override
+	public ProverType getTupleType(ProverType[] subTypes) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ProverExpr mkTuple(ProverExpr[] subExprs) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ProverExpr mkTupleSelect(ProverExpr tuple, int index) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
 
 

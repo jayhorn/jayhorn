@@ -3,10 +3,13 @@ package soottocfg.cfg.optimization;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.google.common.base.Verify;
+
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.IteExpression;
+import soottocfg.cfg.expression.TupleAccessExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
@@ -109,6 +112,7 @@ public class CfgUpdater extends CfgVisitor {
 		return new AssumeStatement(s.getSourceLocation(), e);
 	}
 
+	@Override
 	protected Statement processStatement(CallStatement s) {
 		List<Expression> args = processExpressionList(s.getArguments());
 		List<Expression> rec = new LinkedList<Expression>();
@@ -117,13 +121,13 @@ public class CfgUpdater extends CfgVisitor {
 		}
 		return new CallStatement(s.getSourceLocation(), s.getCallTarget(), args, rec);
 	}
-
+	
 	@Override
 	protected Statement processStatement(NewStatement s) {
-		IdentifierExpression e = (IdentifierExpression)processExpression(s.getLeft());
-		return new NewStatement(s.getSourceLocation(), e, s.getClassVariable(), s.getCounterVar());
+		Expression e = processExpression(s.getLeft());
+		Verify.verify(e instanceof IdentifierExpression);
+		return new NewStatement(s.getSourceLocation(), (IdentifierExpression) e, s.getClassVariable());
 	}
-
 	
 	/// Expressions
 	@Override
@@ -144,23 +148,28 @@ public class CfgUpdater extends CfgVisitor {
 
 	@Override
 	protected Expression processExpression(BooleanLiteral e) {
-		return e;
+		return e.deepCopy();
 	}
 
 	@Override
 	protected Expression processExpression(NullLiteral e) {
-		return e;
+		return e.deepCopy();
 	}
 
 	
 	@Override
 	protected Expression processExpression(IdentifierExpression e) {
-		return e;
+		return e.deepCopy();
 	}
 
 	@Override
 	protected Expression processExpression(IntegerLiteral e) {
-		return e;
+		return e.deepCopy();
+	}
+
+	@Override
+	protected Expression processExpression(TupleAccessExpression e) {
+		return e.deepCopy();
 	}
 
 	@Override

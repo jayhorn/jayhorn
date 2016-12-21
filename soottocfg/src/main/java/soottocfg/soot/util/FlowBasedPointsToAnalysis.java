@@ -11,17 +11,14 @@ import com.google.common.base.Verify;
 
 import soottocfg.cfg.Program;
 import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
-//import soottocfg.cfg.statement.PullStatement;
-//import soottocfg.cfg.statement.PushStatement;
+import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.ReferenceType;
-//import soottocfg.cfg.util.InterProceduralPullPushOrdering;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.transformers.ArrayTransformer;
@@ -39,17 +36,10 @@ public class FlowBasedPointsToAnalysis {
 		for (Method m : program.getMethods()) {
 			for (CfgBlock b : m.vertexSet()) {
 				for (Statement s : b.getStatements()) {
-					if (s instanceof CallStatement) {
-						CallStatement cs = (CallStatement) s;
-						Method target = cs.getCallTarget();
-						if (target.isConstructor()) {
-							List<Expression> args = cs.getArguments();
-							Verify.verify(args.size()>=1 && args.get(0) instanceof IdentifierExpression,
-									"Constructor should have 'this' as first argument");
-							Set<Integer> pt = getPointsToSet(args.get(0));
-							pt.add(nextAliasClass++);
-//							System.out.println("Added alias class for " + args.get(0) + " -> " + pt);
-						}
+					if (s instanceof NewStatement) {
+						NewStatement ns = (NewStatement) s;
+						Set<Integer> pt = getPointsToSet(ns.getLeft());
+						pt.add(nextAliasClass++);
 					}
 				}
 			}
@@ -67,7 +57,8 @@ public class FlowBasedPointsToAnalysis {
 					for (Statement s : b.getStatements()) {
 						if (s instanceof AssignStatement) {
 							AssignStatement as = (AssignStatement) s;
-							if (refType(as.getLeft()) && refType(as.getRight())) {
+							if (refType(as.getLeft()) && refType(as.getRight())
+									&& !(as.getRight() instanceof NullLiteral)) {
 								Variable left = variableFromExpression(as.getLeft());
 								Variable right = variableFromExpression(as.getRight());
 								changes += rightIntoLeft(right, left);
@@ -80,7 +71,8 @@ public class FlowBasedPointsToAnalysis {
 							Verify.verify(params.size()==args.size());
 							for (int i = 0; i < params.size(); i++) {
 								Variable left = params.get(i);
-								if (refType(left) && refType(args.get(i))) {
+								if (refType(left) && refType(args.get(i))
+										&& !(args.get(i) instanceof NullLiteral)) {
 									Variable right = variableFromExpression(args.get(i));
 									changes += rightIntoLeft(right, left);
 								}
@@ -146,6 +138,13 @@ public class FlowBasedPointsToAnalysis {
 				&& !rt1.getClassVariable().superclassOf(rt2.getClassVariable()))
 			return false;
 		
+		if (!(ref1 instanceof NullLiteral || ref2 instanceof NullLiteral)) {
+			Variable v1 = variableFromExpression(ref1);
+			Variable v2 = variableFromExpression(ref2);
+			if (v1.equals(v2))
+				return true;
+		}
+		
 		Set<Integer> pt1 = getPointsToSet(ref1);
 		Set<Integer> pt2 = getPointsToSet(ref2);
 		return pt1.size()==1 && pt2.size()==1 && pt1.containsAll(pt2);
@@ -181,7 +180,7 @@ public class FlowBasedPointsToAnalysis {
 			this.pointsTo.put(v, new HashSet<Integer>());
 		
 		// bit of a hack to get this to work with the Jayhorn classes
-		if (v.getType().toString().startsWith(NewMemoryModel.globalsClassName)
+		if (v.getType().toString().startsWith(NewMemoryModel.GlobalsClassName)
 				|| v.getType().toString().startsWith(ArrayTransformer.arrayTypeName)) {
 			Set<Integer> pointsto = new HashSet<Integer>();
 			int ptid = -v.getType().hashCode();

@@ -122,11 +122,25 @@ public class Options {
 	@Option(name = "-cid", usage = "Insert call IDs variables to track calling context into pull and push statements", required = false)
 	public boolean useCallIDs = false;
 
+
+	
 	/*
 	 * Memory precision
 	 */
 	@Option(name = "-mem-prec", usage = "Precision of memory model", required = false)
-	private int memPrecision = 3;
+	private int memPrecision = soottocfg.Options.MEMPREC_PTA;
+	
+	/*
+	 * Use array invariants
+	 */
+	@Option(name = "-array-inv", usage = "Use array invariants", required = false)
+	private boolean arrayInv = false;
+	
+	/*
+	 * Exact array elements
+	 */
+	@Option(name = "-array-exact", usage = "Number of exactly modeled array elements", required = false)
+	private int exactArrayElements = 5;
 	
 	
 	// /**
@@ -264,6 +278,8 @@ public class Options {
 //		soottocfg.Options.v().setPrintCFG(printCFG);
 		soottocfg.Options.v().setInlineMaxSize(inlineMaxSize);
 		soottocfg.Options.v().setInlineCount(inlineCount);
+		soottocfg.Options.v().setArrayInv(arrayInv);
+		soottocfg.Options.v().setExactArrayElements(exactArrayElements);
 	}
 	
 	/**

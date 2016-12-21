@@ -20,13 +20,15 @@ public interface Prover {
 
 	ProverType getArrayType(ProverType[] argTypes, ProverType resType);
 
+        ProverType getTupleType(ProverType[] subTypes);
+
 	// Variables
 	ProverExpr mkBoundVariable(int deBruijnIndex, ProverType type);
 
 	ProverExpr mkVariable(String name, ProverType type);
 
 	ProverFun mkUnintFunction(String name, ProverType[] argTypes,
-			ProverType resType);
+                                  ProverType resType);
 
 	/**
 	 * Define a new interpreted function. The body is supposed to contain bound
@@ -109,6 +111,10 @@ public interface Prover {
 	ProverExpr mkSelect(ProverExpr ar, ProverExpr[] indexes);
 
 	ProverExpr mkStore(ProverExpr ar, ProverExpr[] indexes, ProverExpr value);
+
+    ProverExpr mkTuple(ProverExpr[] subExprs);
+
+    ProverExpr mkTupleSelect(ProverExpr tuple, int index);
 
 	// Maintain assertion stack (affects assertions and variable declarations)
 	void push();

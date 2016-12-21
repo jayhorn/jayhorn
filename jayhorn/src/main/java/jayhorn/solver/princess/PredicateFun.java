@@ -5,6 +5,7 @@ import ap.parser.ITerm;
 import ap.terfor.preds.Predicate;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFun;
+import jayhorn.solver.ProverTupleExpr;
 import scala.collection.mutable.ArrayBuffer;
 
 class PredicateFun implements ProverFun {
@@ -16,12 +17,14 @@ class PredicateFun implements ProverFun {
 	}
 
 	public ProverExpr mkExpr(ProverExpr[] args) {
-		final ArrayBuffer<ITerm> argsBuf = new ArrayBuffer<ITerm>();
-		for (int i = 0; i < args.length; ++i) {
-			argsBuf.$plus$eq(((PrincessProverExpr)args[i]).toTerm());
-		}
+            ProverExpr[] flatArgs = ProverTupleExpr.flatten(args);
+            
+            final ArrayBuffer<ITerm> argsBuf = new ArrayBuffer<ITerm>();
+            for (int i = 0; i < flatArgs.length; ++i) {
+                argsBuf.$plus$eq(((PrincessProverExpr)flatArgs[i]).toTerm());
+            }
 
- 	        return new FormulaExpr(new IAtom(pred, argsBuf.toSeq()));
+            return new FormulaExpr(new IAtom(pred, argsBuf.toSeq()));
 	}
 
     public String toString() {
