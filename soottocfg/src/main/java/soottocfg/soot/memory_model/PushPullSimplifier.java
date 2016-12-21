@@ -26,6 +26,7 @@ import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.SootToCfg;
 
 public class PushPullSimplifier {
@@ -596,6 +597,7 @@ public class PushPullSimplifier {
 	}
 	
 	private boolean isNullCheckBeforePull(Statement previous, AssertStatement as, PullStatement pull) {
+		Variable pullVar = ((IdentifierExpression) pull.getObject()).getVariable();
 		if (previous instanceof AssignStatement) {
 			AssignStatement assign = (AssignStatement) previous;
 			Expression rhs = assign.getRight();
@@ -604,10 +606,12 @@ public class PushPullSimplifier {
 				if (be.getOp() == BinaryExpression.BinaryOperator.Ne) {
 					if (be.getRight() instanceof NullLiteral && be.getLeft() instanceof IdentifierExpression) {
 						IdentifierExpression ie = (IdentifierExpression) be.getLeft();
-						if (ie.sameVariable((IdentifierExpression) pull.getObject())) {
-							if (debug)
-								System.out.println("Found null check for " + ie);
-							return true;
+						for (Variable v : pull.getAllVariables()) {
+							if (v.equals(pullVar)) {
+								if (debug)
+									System.out.println("Found null check for " + ie);
+								return true;
+							}
 						}
 					}
 				}
