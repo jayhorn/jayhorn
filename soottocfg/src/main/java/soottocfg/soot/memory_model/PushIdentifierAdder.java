@@ -13,7 +13,6 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.util.InterProceduralPullPushOrdering;
 import soottocfg.cfg.variable.Variable;
@@ -65,7 +64,7 @@ public class PushIdentifierAdder {
 //									//Make sure that we set the correct dynamic type.
 //									rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
 //								} else {
-									Variable undefLocal = new Variable("undef_" + id + "_" + (n++), IntType.instance());
+									Variable undefLocal = new Variable("undef_" + id + "_" + (n++), v.getType());
 									rhs.add(new IdentifierExpression(loc, undefLocal));
 //								}					
 							}

@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import java.util.Set;
 
 import jayhorn.Log;
@@ -51,6 +52,7 @@ public class MethodEncoder {
 	 */
 	public List<ProverHornClause> encode() {
 		this.clauses.clear();
+
 		LiveVars<CfgBlock> liveVariables = method.computeBlockLiveVariables();
 		makeBlockPredicates(liveVariables);
 
@@ -58,12 +60,12 @@ public class MethodEncoder {
 			encodeEmptyMethod();
 			return clauses;
 		}
-		
+
 		makeEntryPredicate();
 		blocksToHorn(liveVariables);
+		
 		return clauses;
 	}
-
 	
 	/**
 	 * Creates a trivial Horn clause:
@@ -231,7 +233,7 @@ public class MethodEncoder {
 			final String postName = initName + "_" + (++counter);
 			final List<Variable> interVarList = HornHelper.hh().setToSortedList(liveAfter.get(s));
 			final HornPredicate postPred = freshHornPredicate(postName, interVarList);
-			this.clauses.addAll(senc.statementToClause(s, prePred, postPred));
+			this.clauses.addAll(senc.statementToClause(s, prePred, postPred, this.method));
 
 			prePred = postPred;
 		}

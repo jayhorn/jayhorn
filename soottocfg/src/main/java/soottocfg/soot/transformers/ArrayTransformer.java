@@ -46,6 +46,7 @@ import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
  * @author schaef
+ * @author rodykers
  *         The ArrayTransformer iterates over all classes in the Scene
  *         and replaces Java arrays by generated JayArrays.
  *         For each array type A[] we generate a corresponding JayArray type:
@@ -81,8 +82,10 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 	public static final String arrayGetName = "get";
 	public static final String arrayTypeName = "JayArray";
 	public static final String arrayElementPrefix = "atIndex";
+	
+	private final static String AElem = "_arElem";
 
-	private static final int NumberOfModeledElements = 5;
+//	private static final int NumberOfModeledElements = 0;
 
 	public static boolean isArrayClass(SootClass sc) {
 		return sc.getName().startsWith(arrayTypeName);
@@ -316,40 +319,53 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 	}
 
 	protected SootClass createArrayClass(Type elementType, int numDimensions) {
+		
 		SootClass arrayClass = new SootClass(
 				arrayTypeName + "_" + elementType.toString().replace(".", "_").replace("$", "D"),
 				Modifier.PUBLIC | Modifier.FINAL);
+		
 		// set the superclass to object
 		arrayClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
+		
 		// add the new class to the scene
 		Scene.v().addClass(arrayClass);
 		arrayClass.setResolvingLevel(SootClass.BODIES);
 		arrayClass.setApplicationClass();
 		
-		// add a field for array.length				
+		// add a field for array.length
 		SootField lengthField = new SootField(SootTranslationHelpers.lengthFieldName,
 				IntType.v(), Modifier.PUBLIC | Modifier.FINAL);
-		
-//		SootField lengthField = new SootField(SootTranslationHelpers.lengthFieldName,
-//				RefType.v(Scene.v().getSootClass("java.lang.Integer")), Modifier.PUBLIC | Modifier.FINAL);
 		arrayClass.addField(lengthField);
 
 		// type of the array elements (e.g., float for float[])
 		SootField elemTypeField = new SootField(SootTranslationHelpers.arrayElementTypeFieldName,
 				RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC | Modifier.FINAL);
 		arrayClass.addField(elemTypeField);
-
-		// dynamic type of the array.
-//		SootTranslationHelpers.createTypeField(arrayClass);
+		
+		// number of exactly modeled elements
+		int num_exact = soottocfg.Options.v().exactArrayElements();
+		if (num_exact < 0) num_exact = 0;
+		
+		/**
+		 * New array model stuff
+		 */
+		SootField elemField = new SootField(AElem, elementType);
+		if (soottocfg.Options.v().arrayInv()) {
+			arrayClass.addField(elemField);
+		}
 
 		// create one field for the first N elements of the array which we
 		// model precisely:
-		SootField[] arrFields = new SootField[ArrayTransformer.NumberOfModeledElements];
-		for (int i = 0; i < ArrayTransformer.NumberOfModeledElements; i++) {
+		SootField[] arrFields = new SootField[num_exact];
+		for (int i = 0; i < num_exact; i++) {
 			arrFields[i] = new SootField(ArrayTransformer.arrayElementPrefix + "_" + i, elementType, Modifier.PUBLIC);
 			arrayClass.addField(arrFields[i]);
 		}
 
+		/**
+		 * GET METHOD
+		 */
+		
 		SootMethod getElement = new SootMethod(arrayGetName, Arrays.asList(new Type[] { IntType.v() }), elementType,
 				Modifier.PUBLIC);
 		arrayClass.addMethod(getElement);
@@ -358,7 +374,8 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		Local retLocal = Jimple.v().newLocal("retVal", elementType);
 		body.getLocals().add(retLocal);
 		List<Unit> retStmts = new LinkedList<Unit>();
-		for (int i = 0; i < ArrayTransformer.NumberOfModeledElements; i++) {
+		
+		for (int i = 0; i < num_exact; i++) {
 			Unit ret = Jimple.v().newAssignStmt(retLocal,
 					Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[i].makeRef()));
 			retStmts.add(ret);
@@ -366,26 +383,44 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 			Value cond = Jimple.v().newEqExpr(body.getParameterLocal(0), IntConstant.v(i));
 			body.getUnits().add(Jimple.v().newIfStmt(cond, ret));
 		}
-		// if none of the modeled fields was requested, add return havoc as fall
-		// through case.
-		// ret = havoc; return ret;
-		body.getUnits().add(Jimple.v().newAssignStmt(retLocal,
+		
+		/**
+		 * New array model stuff
+		 */
+		if (soottocfg.Options.v().arrayInv()) {
+			// ret = element; return ret;
+			Unit ret = Jimple.v().newAssignStmt(retLocal,
+					Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()));
+			body.getUnits().add(ret);
+			body.getUnits().add(Jimple.v().newReturnStmt(retLocal));
+		} else {
+			// if none of the modeled fields was requested, add return havoc as fall
+			// through case.
+			// ret = havoc; return ret;
+			body.getUnits().add(Jimple.v().newAssignStmt(retLocal,
 				Jimple.v().newStaticInvokeExpr(SootTranslationHelpers.v().getHavocMethod(elementType).makeRef())));
-		body.getUnits().add(Jimple.v().newReturnStmt(retLocal));
+			body.getUnits().add(Jimple.v().newReturnStmt(retLocal));
+		}
+		
 		// now add all the return statements
 		body.getUnits().addAll(retStmts);
 
-		body.getUnits().add(Jimple.v().newReturnStmt(SootTranslationHelpers.v().getDefaultValue(elementType)));
+//		System.out.println("GET BODY: \n" + body);
+		body.validate();
 		getElement.setActiveBody(body);
+		
+		/**
+		 * SET METHOD
+		 */
 
 		SootMethod setElement = new SootMethod(arraySetName, Arrays.asList(new Type[] { IntType.v(), elementType }),
 				VoidType.v(), Modifier.PUBLIC);
 		arrayClass.addMethod(setElement);
 		body = Jimple.v().newBody(setElement);
 		body.insertIdentityStmts();
-
+		
 		List<Unit> updates = new LinkedList<Unit>();
-		for (int i = 0; i < ArrayTransformer.NumberOfModeledElements; i++) {
+		for (int i = 0; i < num_exact; i++) {
 			Unit asn = Jimple.v().newAssignStmt(
 					Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[i].makeRef()),
 					body.getParameterLocal(1));
@@ -394,20 +429,28 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 			Value cond = Jimple.v().newEqExpr(body.getParameterLocal(0), IntConstant.v(i));
 			body.getUnits().add(Jimple.v().newIfStmt(cond, asn));
 		}
-		/*
-		 * add one more return to if updates is not empty
-		 * to prevent the else case from falling through
-		 * and updating the first field of the array.
+		
+		/**
+		 * New array model stuff
 		 */
-		if (!updates.isEmpty()) {
-			body.getUnits().add(Jimple.v().newReturnVoidStmt());
-		}		
+		if (soottocfg.Options.v().arrayInv()) {
+			Unit asn = Jimple.v().newAssignStmt(
+					Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()),
+					body.getParameterLocal(1));
+			body.getUnits().add(asn);
+		}
+		
+		body.getUnits().add(Jimple.v().newReturnVoidStmt());
 		body.getUnits().addAll(updates);
 
-//		body.getUnits().add(Jimple.v().newReturnVoidStmt());
+//		System.out.println("SET BODY: \n" + body);
+		body.validate();
 		setElement.setActiveBody(body);
+		
+		/**
+		 * CONSTRUCTOR
+		 */
 
-		// add a constructor
 		// Now create constructors that takes the array size as input
 		// For int[][][] we have to create 3 constructors since one
 		// could create new int[1][][], new int[1][2][], or new int[1][2][3]

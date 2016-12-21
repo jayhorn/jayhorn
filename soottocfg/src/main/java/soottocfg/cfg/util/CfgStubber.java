@@ -162,7 +162,6 @@ public class CfgStubber {
 					// JayHornArr12.$elType, JayHornArr12.$dynamicType])
 					List<Expression> rhs = new LinkedList<Expression>();
 					rhs.add(new IdentifierExpression(loc, sizeLocal));
-					rhs.add(new IdentifierExpression(loc, argsType.getClassVariable()));
 					ClassVariable c = argsType.getClassVariable();
 					rhs.add(new IdentifierExpression(loc, c));
 					// this is an array, so initialize the remaining fields with

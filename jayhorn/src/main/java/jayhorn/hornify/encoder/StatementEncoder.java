@@ -36,6 +36,7 @@ import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.soot.transformers.ArrayTransformer;
 
 public class StatementEncoder {
 
@@ -83,7 +84,7 @@ public class StatementEncoder {
 	 *            The predicated describing the post-state.
 	 * @return The set of Horn clauses that encodes the semantics of "s".
 	 */
-	public List<ProverHornClause> statementToClause(Statement s, HornPredicate prePred, HornPredicate postPred) {
+	public List<ProverHornClause> statementToClause(Statement s, HornPredicate prePred, HornPredicate postPred, Method m) {
 
 		final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
 		// First create the atom for prePred.
@@ -102,9 +103,9 @@ public class StatementEncoder {
 		} else if (s instanceof CallStatement) {
 			return callToClause((CallStatement) s, postPred, preAtom, varMap);
 		} else if (s instanceof PullStatement) {
-			return pullToClause((PullStatement) s, postPred, preAtom, varMap);
+			return pullToClause((PullStatement) s, postPred, preAtom, varMap, m);
 		} else if (s instanceof PushStatement) {
-			return pushToClause((PushStatement) s, postPred, preAtom, varMap);
+			return pushToClause((PushStatement) s, postPred, preAtom, varMap, m);
 		}
 
 		throw new RuntimeException("Statement type " + s + " not implemented!");
@@ -351,7 +352,7 @@ public class StatementEncoder {
 	 * @return
 	 */
 	public List<ProverHornClause> pullToClause(PullStatement pull, HornPredicate postPred, ProverExpr preAtom,
-			Map<Variable, ProverExpr> varMap) {
+			Map<Variable, ProverExpr> varMap, Method m) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
 		Set<PushStatement> affecting = pull.getAffectingPushes();
@@ -364,14 +365,14 @@ public class StatementEncoder {
 				if (soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH)
 					pushid = push.getID();
 				HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, pushid);
-				clauses.addAll(pullToIndividualClause(pull, postPred, preAtom, varMap, invariant));
+				clauses.addAll(pullToIndividualClause(pull, postPred, preAtom, varMap, invariant, m));
 			}
 		}
 		return clauses;
 	}
 
 	private List<ProverHornClause> pullToIndividualClause(PullStatement pull, HornPredicate postPred,
-			ProverExpr preAtom, Map<Variable, ProverExpr> varMap, HornPredicate invariant) {
+			ProverExpr preAtom, Map<Variable, ProverExpr> varMap, HornPredicate invariant, Method m) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
 		// the first argument is always the reference
@@ -394,6 +395,16 @@ public class StatementEncoder {
 		if (soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH) {
 			Variable freshLp = new Variable(LP + nextLP, IntType.instance());
 			Expression e = new IdentifierExpression(pull.getSourceLocation(), freshLp);
+			varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
+		}
+		
+		// RK: add index variable for array classes
+		if (soottocfg.Options.v().arrayInv() 
+				&& pull.getObject().getType().toString().contains(ArrayTransformer.arrayTypeName)
+				) {
+			System.out.println("Found pull in array get or set " + pull);
+			Variable arIndex = m.getInParam(1);
+			Expression e = new IdentifierExpression(pull.getSourceLocation(), arIndex);
 			varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
 		}
 
@@ -444,7 +455,7 @@ public class StatementEncoder {
 	 * @return
 	 */
 	public List<ProverHornClause> pushToClause(PushStatement ps, HornPredicate postPred, ProverExpr preAtom,
-			Map<Variable, ProverExpr> varMap) {
+			Map<Variable, ProverExpr> varMap, Method m) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 		final ClassVariable sig = ps.getClassSignature();
 		Verify.verify(sig.getAssociatedFields().length == ps.getRight().size(),
@@ -465,6 +476,15 @@ public class StatementEncoder {
 			invariantArgs.add(lastpush);
 			pushid = ps.getID();
 		}
+		
+		// Rody: add index variable for array classes
+		if (soottocfg.Options.v().arrayInv() 
+				&& ps.getObject().getType().toString().contains(ArrayTransformer.arrayTypeName)) {
+			System.out.println("Found push in array get or set " + ps);
+			Variable arIndex = m.getInParam(1);
+			Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
+			invariantArgs.add(e);
+		}
 
 		invariantArgs.addAll(ps.getRight());
 
@@ -483,8 +503,9 @@ public class StatementEncoder {
 			}
 
 			varMap.put(invariant.variables.get(i), right);
-			// System.err.println(invariant.variables.get(i)+ " =
-			// "+varMap.get(invariant.variables.get(i)));
+			
+//			System.out.println("invariantArgs = " + invariantArgs.get(i));
+//			System.err.println(invariant.variables.get(i)+ " = "+varMap.get(invariant.variables.get(i)));
 		}
 		final ProverExpr invAtom = invariant.instPredicate(varMap);
 		clauses.add(p.mkHornClause(invAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
