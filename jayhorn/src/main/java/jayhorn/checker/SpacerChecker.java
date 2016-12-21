@@ -84,7 +84,7 @@ public class SpacerChecker implements Checker{
 		Hornify hf = new Hornify(factory);
 		Stopwatch toHornTimer = Stopwatch.createStarted();
 		HornEncoderContext hornContext = hf.toHorn(program);
-		Stats.stats().add("ToHorn", String.valueOf(toHornTimer.stop()));
+		Stats.stats().add("CfgToHorn", String.valueOf(toHornTimer.stop()));
 		prover = hf.getProver();
 		//tsClauses = S2H.sh().getTransitionRelationClause();
 		//propertyClauses = S2H.sh().getPropertyClause();

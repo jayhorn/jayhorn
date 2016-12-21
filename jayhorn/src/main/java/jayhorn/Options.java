@@ -98,9 +98,10 @@ public class Options {
 		this.printHorn = b;
 	}
 	
-	// /**
-	// * Print CFG
-	// */
+	@Option(name = "-verbose", usage = "Bla bla bla", required = false)
+	public boolean verbose = false;
+	
+	
 	@Option(name = "-cfg", usage = "Print CFG", required = false)
 	public boolean printCFG = false;
 
@@ -115,10 +116,8 @@ public class Options {
 	@Option(name = "-cex", usage = "Show CEX", required = false)
 	public boolean cex = false;
 	
-	
 	@Option(name = "-solution", usage = "Output full solution or counter-example", required = false)
 	public boolean solution = false;
-
 	
 	@Option(name = "-cid", usage = "Insert call IDs variables to track calling context into pull and push statements", required = false)
 	public boolean useCallIDs = false;

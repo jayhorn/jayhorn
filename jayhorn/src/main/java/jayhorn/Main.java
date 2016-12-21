@@ -3,6 +3,9 @@ package jayhorn;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
@@ -76,8 +79,7 @@ public class Main {
       }
     
 	public static void main(String[] args) {
-		Log.info("\t\t ---   JAYHORN : Static Analayzer for Java Programs ---- ");
-
+		
 		Options options = Options.v();
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
@@ -92,10 +94,15 @@ public class Main {
 			} else {
 				throw new RuntimeException("Don't know solver " + Options.v().getSolver() + ". Using Eldarica instead.");
 			}
+
+			if (Options.v().verbose) Log.v().setLevel(Level.INFO);
+			
+			Log.info("\t\t ---   JAYHORN : Static Analayzer for Java Programs ---- ");
+			Log.info("\t Verification : " + Options.v().getChecker());
+			Log.info("\t Solver : " + Options.v().getSolver());
 			
 			if ("safety".equals(Options.v().getChecker())) {			
 				safetyAnalysis(factory);
-				
 			} else {
 				Log.error(String.format("Checker %s is unknown", Options.v().getChecker()) );
 			}
@@ -114,7 +121,6 @@ public class Main {
 			Options.resetInstance();
 			soot.G.reset();
 		}
-
 	}
 	
 }
