@@ -23,7 +23,7 @@ public class Variable implements Serializable {
 	private static final long serialVersionUID = -2599846473306218710L;
 
 	protected final String variableName;
-	protected final Type type;
+	protected Type type; //don't make the type final because java.lang.Class is recursive
 	protected final boolean constant, unique;
 
 	public Variable(String name, Type t) {
@@ -61,5 +61,24 @@ public class Variable implements Serializable {
 	public String toString() {
 //		return this.variableName + "/" + this.type;
 		return this.type + " " + this.variableName;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null)
+			return false;
+		if (this.getClass() == obj.getClass()) {
+			Variable other = (Variable) obj;
+			return this.variableName.equals(other.variableName) &&	this.type.equals(other.type);
+		}
+		return false;
+	}
+	
+	@Override
+	public int hashCode() {
+		int result = 42;
+		result = 37 * result + this.variableName.hashCode();
+		result = 37 * result + this.type.hashCode();
+		return result;
 	}
 }

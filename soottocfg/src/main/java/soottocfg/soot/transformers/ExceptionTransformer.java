@@ -321,7 +321,7 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 			
 			if (throwsUncaughtException) {
 				//check if the exception global is non-null and return.								
-				if (this.body.getMethod().isMain()) {
+				if (this.body.getMethod().isMain()) {					
 					//if this is main, we can't re-throw, so we
 					//have to assert that the assertion is not null.
 					Local assertionLocal = Jimple.v().newLocal("$assert_" + (body.getLocals().size()), BooleanType.v());
@@ -372,15 +372,18 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 		if (!mayThrowRuntimeException.containsKey(m)) {
 			boolean mayThrow = true;
 			if (m.hasActiveBody()) {
-				NullnessAnalysis nna = new NullnessAnalysis(new CompleteUnitGraph(m.getActiveBody()));
+				JimpleBody jb = (JimpleBody)m.getActiveBody();
+				NullnessAnalysis nna = new NullnessAnalysis(new CompleteUnitGraph(jb));
 				mayThrow = false;
-				for (Unit u : m.getActiveBody().getUnits()) {
+				for (Unit u : jb.getUnits()) {
 					Stmt st = (Stmt)u;
 					if (st.containsArrayRef()) {
 						mayThrow = true; break;
 					} else if (st.containsFieldRef() && st.getFieldRef() instanceof InstanceFieldRef) {
 						InstanceFieldRef fr = (InstanceFieldRef)st.getFieldRef();						
-						if (!nna.isAlwaysNonNullBefore(u, (Immediate)fr.getBase())) {
+						Immediate base = (Immediate)fr.getBase();
+						if (!m.isStatic() && !base.equals(jb.getThisLocal())) {
+//						if (!nna.isAlwaysNonNullBefore(u, base)) {
 							mayThrow = true; break;
 						}
 					} else if (st.containsInvokeExpr() ) {

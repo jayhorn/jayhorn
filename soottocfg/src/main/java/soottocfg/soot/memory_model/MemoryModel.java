@@ -15,7 +15,6 @@ import soot.jimple.DoubleConstant;
 import soot.jimple.FieldRef;
 import soot.jimple.FloatConstant;
 import soot.jimple.NewArrayExpr;
-import soot.jimple.NewExpr;
 import soot.jimple.NewMultiArrayExpr;
 import soot.jimple.StringConstant;
 import soottocfg.cfg.expression.Expression;
@@ -54,8 +53,6 @@ public abstract class MemoryModel {
 	
 	public void mkCopy(Local lhs, Local rhs) { }
 	
-	public abstract Expression mkNewExpr(NewExpr arg0);
-
 	public abstract Expression mkNewArrayExpr(NewArrayExpr arg0);
 
 	public abstract Expression mkNewMultiArrayExpr(NewMultiArrayExpr arg0);

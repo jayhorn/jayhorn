@@ -19,6 +19,7 @@ import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
+import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceType;
@@ -76,12 +77,12 @@ public class CfgStubber {
 						Variable outVar = new Variable("$out"+i, v.getType());
 						outParams.add(outVar);
 						Variable other;
-						if (SootTranslationHelpers.isDynamicTypeVar(v)) {	
-							// Make sure that we set the correct dynamic type.
-							other = rt.getClassVariable();							
-						} else {
+//						if (SootTranslationHelpers.isDynamicTypeVar(v)) {	
+//							// Make sure that we set the correct dynamic type.
+//							other = rt.getClassVariable();							
+//						} else {
 							other = new Variable("undef_field" + i, v.getType());							
-						}
+//						}
 						//assign the outParams to fresh values.
 						block.addStatement(new AssignStatement(loc, 
 								new IdentifierExpression(loc, outVar), 
@@ -120,19 +121,22 @@ public class CfgStubber {
 							List<Expression> rhs = new LinkedList<Expression>();
 
 							for (Variable v : rt.getClassVariable().getAssociatedFields()) {
-								if (SootTranslationHelpers.isDynamicTypeVar(v)) {
-									// Make sure that we set the correct dynamic
-									// type.
-									rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
-								} else {
+//								if (SootTranslationHelpers.isDynamicTypeVar(v)) {
+//									// Make sure that we set the correct dynamic
+//									// type.
+//									rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
+//								} else {
 									Variable undefLocal = new Variable("undef_field" + (f++), v.getType());
 									rhs.add(new IdentifierExpression(loc, undefLocal));
-								}
+//								}
 							}
 							Variable outVar = new Variable(MethodInfo.returnVariableName, rt);
 							
 							rets.add(outVar);
+							//TODO: needs testing!
 							IdentifierExpression ret = new IdentifierExpression(loc, outVar);
+							block.addStatement(new NewStatement(loc, ret, rt.getClassVariable()));
+							
 							PushStatement push = new PushStatement(loc, rt.getClassVariable(), ret, rhs);
 							block.addStatement(push);
 						} else {
@@ -158,7 +162,6 @@ public class CfgStubber {
 					// JayHornArr12.$elType, JayHornArr12.$dynamicType])
 					List<Expression> rhs = new LinkedList<Expression>();
 					rhs.add(new IdentifierExpression(loc, sizeLocal));
-					rhs.add(new IdentifierExpression(loc, argsType.getClassVariable()));
 					ClassVariable c = argsType.getClassVariable();
 					rhs.add(new IdentifierExpression(loc, c));
 					// this is an array, so initialize the remaining fields with

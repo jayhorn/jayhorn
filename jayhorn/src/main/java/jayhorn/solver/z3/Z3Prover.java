@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,6 +46,8 @@ import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverListener;
 import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverType;
+import jayhorn.solver.ProverTupleType;
+import jayhorn.solver.ProverTupleExpr;
 
 /**
  * @author schaef
@@ -199,6 +202,10 @@ public class Z3Prover implements Prover {
 		}
 		return new Z3ArrayType(lookupArraySort(unpack(argTypes[0]), sort), argTypes[0], t);
 	}
+    
+    public ProverType getTupleType(ProverType[] subTypes) {
+        return new ProverTupleType(Arrays.copyOf(subTypes, subTypes.length));
+    }
 
 	private ArraySort lookupArraySort(Sort idx, Sort val) {
 		return this.ctx.mkArraySort(idx, val);
@@ -429,6 +436,19 @@ public class Z3Prover implements Prover {
 		}
 		throw new RuntimeException("not implemented");
 	}
+
+    ////////////////////////////////////////////////////////////////////////////
+
+    public ProverExpr mkTuple(ProverExpr[] subExprs) {
+        return new ProverTupleExpr(Arrays.copyOf(subExprs, subExprs.length));
+    }
+    
+    public ProverExpr mkTupleSelect(ProverExpr tuple, int index) {
+        ProverTupleExpr ttuple = (ProverTupleExpr)tuple;
+        return ttuple.getSubExpr(index);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
 
 	@Override
 	public void push() {

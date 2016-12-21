@@ -37,9 +37,7 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.util.CfgStubber;
-import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.memory_model.MemoryModel;
-import soottocfg.soot.memory_model.MissingPushAdder;
 import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.memory_model.PushIdentifierAdder;
 import soottocfg.soot.memory_model.PushPullSimplifier;
@@ -83,14 +81,14 @@ public class SootToCfg {
 
 	public SootToCfg() {
 		this(new ArrayList<String>());
+		SootTranslationHelpers.initialize(program);
 	}
 
 	public SootToCfg(List<String> resolvedClassNames) {
 		this.resolvedClassNames = resolvedClassNames;
 		// first reset everything:
 		soot.G.reset();
-		SootTranslationHelpers.v().reset();
-		SootTranslationHelpers.v(program);
+		SootTranslationHelpers.initialize(program);
 	}
 
 	/**
@@ -115,16 +113,17 @@ public class SootToCfg {
 		final SootMethod mainMethod = Scene.v().getMainMethod();		
 		performBehaviorPreservingTransformations();
 		performAbstractionTransformations();
-		Variable exceptionGlobal = this.program
-				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
-						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
-		program.setExceptionGlobal(exceptionGlobal);
+//		Variable exceptionGlobal = this.program
+//				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
+//						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
+//		program.setExceptionGlobal(exceptionGlobal);
 
 		constructCfg();
 
 		// now set the entry points.
-		Method m = program.lookupMethod(mainMethod.getSignature());
+		Method m = program.lookupMethod(mainMethod.getSignature());		
 		program.setEntryPoint(m);
+		m.isProgramEntryPoint(true);
 		
 		if (Options.v().outDir() != null) {
 			writeFile(".cfg", program.toString());
@@ -147,15 +146,12 @@ public class SootToCfg {
 
 		// alias analysis
 		setPointsToAnalysis(new FlowBasedPointsToAnalysis());
-		if (Options.v().memPrecision() >= 3) {
+		if (Options.v().memPrecision() >= Options.MEMPREC_PTA) {
 			getPointsToAnalysis().run(program);
 		}
-
-		// add missing pushes
-		MissingPushAdder.addMissingPushes(program);
 		
 		// simplify push-pull
-		if (Options.v().memPrecision() >= 1) {
+		if (Options.v().memPrecision() >= Options.MEMPREC_SIMPLIFY) {
 			PushPullSimplifier pps = new PushPullSimplifier();
 			pps.simplify(program);
 			if (Options.v().outDir() != null)
@@ -163,12 +159,8 @@ public class SootToCfg {
 		}
 		
 		// add push IDs
-		if (Options.v().memPrecision() >= 2) {
-			PushIdentifierAdder pia = new PushIdentifierAdder();
-			pia.addIDs(program);
-			if (Options.v().outDir() != null)
-				writeFile("precise.cfg", program.toString());
-		}
+		PushIdentifierAdder pia = new PushIdentifierAdder();
+		pia.addIDs(program);
 
 		// print CFG
 		if (Options.v().printCFG()) {
@@ -281,7 +273,7 @@ public class SootToCfg {
 	 */
 	private void performBehaviorPreservingTransformations() {
 		// add a field for the dynamic type of an object to each class.
-		SootTranslationHelpers.createTypeFields();
+//		SootTranslationHelpers.createTypeFields();
 		
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
@@ -342,7 +334,7 @@ public class SootToCfg {
 	 // apply some standard Soot optimizations
 	private void performSootOptimizations(Body body) {
 		 soot.jimple.toolkits.scalar.CopyPropagator.v().transform(body);
-		 soot.jimple.toolkits.scalar.UnreachableCodeEliminator.v().transform(body);
+//		 soot.jimple.toolkits.scalar.UnreachableCodeEliminator.v().transform(body);
 		 soot.jimple.toolkits.scalar.ConstantCastEliminator.v().transform(body);
 		 soot.jimple.toolkits.scalar.ConstantPropagatorAndFolder.v().transform(body);
 		 soot.jimple.toolkits.scalar.DeadAssignmentEliminator.v().transform(body);
@@ -386,15 +378,15 @@ public class SootToCfg {
 			}
 			for (SootField f : instanceFields) {
 				Unit init;
-				if (SootTranslationHelpers.isDynamicTypeVar(f)) {
-					init = Jimple.v().newAssignStmt(
-							Jimple.v().newInstanceFieldRef(jbody.getThisLocal(), f.makeRef()),
-							SootTranslationHelpers.v().getClassConstant(RefType.v(containingClass)));
-				} else {
+//				if (SootTranslationHelpers.isDynamicTypeVar(f)) {
+//					init = Jimple.v().newAssignStmt(
+//							Jimple.v().newInstanceFieldRef(jbody.getThisLocal(), f.makeRef()),
+//							SootTranslationHelpers.v().getClassConstant(RefType.v(containingClass)));
+//				} else {
 					init = Jimple.v().newAssignStmt(
 							Jimple.v().newInstanceFieldRef(jbody.getThisLocal(), f.makeRef()),
 							SootTranslationHelpers.v().getDefaultValue(f.getType()));
-				}
+//				}
 				if (insertPos==null) {
 					jbody.getUnits().addFirst(init);	
 				} else {

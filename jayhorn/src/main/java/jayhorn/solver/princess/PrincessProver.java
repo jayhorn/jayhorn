@@ -7,12 +7,15 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Stack;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import com.google.common.base.Verify;
 
 import ap.DialogUtil$;
 import ap.SimpleAPI;
@@ -53,6 +56,8 @@ import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverListener;
 import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverType;
+import jayhorn.solver.ProverTupleType;
+import jayhorn.solver.ProverTupleExpr;
 import lazabs.horn.bottomup.HornClauses;
 import lazabs.horn.bottomup.HornClauses.Clause;
 import lazabs.horn.bottomup.SimpleWrapper;
@@ -94,7 +99,13 @@ public class PrincessProver implements Prover {
 		return new ArrayType(argTypes.length);
 	}
 
+    public ProverType getTupleType(ProverType[] subTypes) {
+        return new ProverTupleType(Arrays.copyOf(subTypes, subTypes.length));
+    }
+
 	public ProverExpr mkBoundVariable(int deBruijnIndex, ProverType type) {
+            // TODO: handle tuples
+            assert(!(type instanceof ProverTupleType));
 		if (type.equals(getBooleanType())) {
 			return mkEq(new TermExpr(new IVariable(deBruijnIndex), getIntType()), mkLiteral(0));
 		} else {
@@ -102,22 +113,26 @@ public class PrincessProver implements Prover {
 		}
 	}
 
-	public ProverExpr mkVariable(String name, ProverType type) {
-		if (type.equals(getIntType())) {
-			return new TermExpr(api.createConstant(name), type);
-		}
+    public ProverExpr mkVariable(String name, ProverType type) {
+        if (type.equals(getIntType())) {
+            return new TermExpr(api.createConstant(name), type);
+        } else if (type.equals(getBooleanType())) {
+            return new FormulaExpr(api.createBooleanVariable(name));
+        } else if (type instanceof ProverTupleType) {
+            final ProverTupleType tt = (ProverTupleType)type;
+            final ProverExpr[] res = new ProverExpr[tt.getArity()];
+            for (int i = 0; i < tt.getArity(); ++i)
+                res[i] = mkVariable(name + "_" + i, tt.getSubType(i));
+            return mkTuple(res);
+        } else if (type instanceof ArrayType) {
+            return new TermExpr(api.createConstant(name), type);
+        }
 
-		if (type.equals(getBooleanType())) {
-			return new FormulaExpr(api.createBooleanVariable(name));
-		}
-
-		// array types
-		return new TermExpr(api.createConstant(name), type);
-
-		// throw new RuntimeException();
-	}
+        throw new IllegalArgumentException();
+    }
 
 	public ProverFun mkUnintFunction(String name, ProverType[] argTypes, ProverType resType) {
+            // TODO: handle tuples
 		return new PrincessFun(api.createFunction(name, argTypes.length), resType);
 	}
 
@@ -127,6 +142,7 @@ public class PrincessProver implements Prover {
 	 * arguments of the function.
 	 */
 	public ProverFun mkDefinedFunction(String name, ProverType[] argTypes, final ProverExpr body) {
+            // TODO: handle tuples
 		return new ProverFun() {
 			public ProverExpr mkExpr(ProverExpr[] args) {
 				final ArrayBuffer<ITerm> argsBuf = new ArrayBuffer<ITerm>();
@@ -145,10 +161,12 @@ public class PrincessProver implements Prover {
 	}
 
 	public ProverExpr mkAll(ProverExpr body, ProverType type) {
+            // TODO: handle tuples
 		return new FormulaExpr(IExpression$.MODULE$.all(((PrincessProverExpr) body).toFormula()));
 	}
 
 	public ProverExpr mkEx(ProverExpr body, ProverType type) {
+            // TODO: handle tuples
 		return new FormulaExpr(IExpression$.MODULE$.ex(((PrincessProverExpr) body).toFormula()));
 	}
 
@@ -162,14 +180,27 @@ public class PrincessProver implements Prover {
 		return new FormulaExpr(IExpression.trig(((FormulaExpr) body).formula, triggerExprs));
 	}
 
-	public ProverExpr mkEq(ProverExpr left, ProverExpr right) {
-		PrincessProverExpr pLeft = (PrincessProverExpr) left;
-		PrincessProverExpr pRight = (PrincessProverExpr) right;
-		if (pLeft.isBoolean() && pRight.isBoolean())
-			return new FormulaExpr(pLeft.toFormula().$less$eq$greater(pRight.toFormula()));
-		else
-			return new FormulaExpr(pLeft.toTerm().$eq$eq$eq(pRight.toTerm()));
-	}
+    public ProverExpr mkEq(ProverExpr left, ProverExpr right) {
+        if (left instanceof ProverTupleExpr) {
+            ProverTupleExpr tLeft = (ProverTupleExpr)left;
+            ProverTupleExpr tRight = (ProverTupleExpr)right;
+            Verify.verify(tLeft.getArity() == tRight.getArity(), tLeft.getArity()+"!="+ tRight.getArity()+ " for " +left + " and " + right);
+
+            ProverExpr[] conjuncts = new ProverExpr[tLeft.getArity()];
+            for (int i = 0; i < tLeft.getArity(); ++i)
+                conjuncts[i] = mkEq(tLeft.getSubExpr(i),
+                                    tRight.getSubExpr(i));
+
+            return mkAnd(conjuncts);
+        }
+        
+        PrincessProverExpr pLeft = (PrincessProverExpr) left;
+        PrincessProverExpr pRight = (PrincessProverExpr) right;
+        if (pLeft.isBoolean() && pRight.isBoolean())
+            return new FormulaExpr(pLeft.toFormula().$less$eq$greater(pRight.toFormula()));
+        else
+            return new FormulaExpr(pLeft.toTerm().$eq$eq$eq(pRight.toTerm()));
+    }
 
 	public ProverExpr mkLiteral(boolean value) {
 		return new FormulaExpr(new IBoolLit(value));
@@ -299,7 +330,18 @@ public class PrincessProver implements Prover {
 		return new TermExpr(new IFunApp(api.storeFun(indexes.length), args.toSeq()), getIntType());
 	}
 
-	// ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+
+    public ProverExpr mkTuple(ProverExpr[] subExprs) {
+        return new ProverTupleExpr(Arrays.copyOf(subExprs, subExprs.length));
+    }
+    
+    public ProverExpr mkTupleSelect(ProverExpr tuple, int index) {
+        ProverTupleExpr ttuple = (ProverTupleExpr)tuple;
+        return ttuple.getSubExpr(index);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
 
 	public void push() {
 		api.push();
@@ -620,14 +662,23 @@ public class PrincessProver implements Prover {
 
 	private final Stack<Integer> assertedClausesStack = new Stack<Integer>();
 
-	public ProverExpr mkHornVariable(String name, ProverType type) {
-		// always use terms as Horn variables/arguments
-		return new TermExpr(api.createConstant(name), type);
-	}
+    public ProverExpr mkHornVariable(String name, ProverType type) {
+        if (type instanceof ProverTupleType) {
+            final ProverTupleType tt = (ProverTupleType)type;
+            final ProverExpr[] res = new ProverExpr[tt.getArity()];
+            for (int i = 0; i < tt.getArity(); ++i)
+                res[i] = mkHornVariable(name + "_" + i, tt.getSubType(i));
+            return mkTuple(res);
+        } else {
+            // always use terms as Horn variables/arguments
+            return new TermExpr(api.createConstant(name), type);
+        }
+    }
 
-	public ProverFun mkHornPredicate(String name, ProverType[] argTypes) {
-		return new PredicateFun(api.createRelation(name, argTypes.length));
-	}
+    public ProverFun mkHornPredicate(String name, ProverType[] argTypes) {
+        ProverType[] flatTypes = ProverTupleType.flatten(argTypes);
+        return new PredicateFun(api.createRelation(name, flatTypes.length));
+    }
 
 	/**
 	 * The head literal can either be constructed using
