@@ -77,6 +77,12 @@ public class CfgScanner extends CfgVisitor {
 		return s;
 	}
 
+	@Override
+	protected Statement processStatement(NewStatement s) {
+		processExpression(s.getLeft());
+		return s;
+	}
+	
 	/// Expressions
 	@Override
 	protected List<Expression> processExpressionList(List<Expression> el) {
@@ -136,7 +142,7 @@ public class CfgScanner extends CfgVisitor {
 	protected Expression processExpression(NullLiteral e) {
 		return e;
 	}
-
+  
 	@Override
 	protected Expression processExpression(TupleAccessExpression e) {
 		return e;

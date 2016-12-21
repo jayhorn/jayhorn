@@ -120,7 +120,7 @@ public class ExpressionEvaluator {
 		// not sure what to put in the optional here... using the expression for now
 		return Optional.of((Object) e);
 	}
-	
+  
 	public static Optional<Object> eval(TupleAccessExpression e) {
 		return Optional.absent();
 	}

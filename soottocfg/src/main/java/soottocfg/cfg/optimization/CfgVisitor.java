@@ -91,9 +91,9 @@ public abstract class CfgVisitor {
 	protected abstract Statement processStatement(PullStatement s);
 
 	protected abstract Statement processStatement(PushStatement s);
-	
+  
 	protected abstract Statement processStatement(NewStatement s);
-	
+  
 	protected Expression processExpression(Expression e) {
 		if (e instanceof BinaryExpression) {
 			return processExpression((BinaryExpression) e);

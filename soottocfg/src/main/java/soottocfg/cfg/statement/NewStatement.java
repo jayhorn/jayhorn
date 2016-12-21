@@ -22,12 +22,15 @@ public class NewStatement extends Statement {
 	private static final long serialVersionUID = 6725099779878843508L;
 	private final IdentifierExpression left;
 	private final ClassVariable classVariable;
-	
+	Variable counterVar = null;
 	
 	public Expression getLeft() {
 		return left;
 	}
 
+	public ClassVariable getClassVariable() {
+		return this.classVariable;
+	}
 	/**
 	 * @param createdFrom
 	 */
@@ -37,6 +40,14 @@ public class NewStatement extends Statement {
 		this.classVariable = classVar;
 	}
 
+	public NewStatement(SourceLocation loc, IdentifierExpression lhs, ClassVariable classVar, Variable cvar) {
+		super(loc);
+		this.left = lhs;
+		this.classVariable = classVar;
+		this.counterVar = cvar;
+	}
+
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -71,7 +82,6 @@ public class NewStatement extends Statement {
 	 * type can be allocated and how many objects are allocated in a 
 	 * certain scope. 
 	 */
-	Variable counterVar = null;
 	public void setCounterVar(Variable v) {
 		this.counterVar = v;
 	}
@@ -82,7 +92,7 @@ public class NewStatement extends Statement {
 	
 	@Override
 	public Statement deepCopy() {
-		return new NewStatement(getSourceLocation(), left.deepCopy(), this.classVariable);
+		return new NewStatement(getSourceLocation(), left.deepCopy(), this.classVariable, this.counterVar);
 	}
 
 	@Override
@@ -91,7 +101,7 @@ public class NewStatement extends Statement {
 		if (subs.containsKey(cv)) {
 			cv = (ClassVariable)subs.get(cv);
 		}
-		return new NewStatement(getSourceLocation(), left.substitute(subs), cv);
+		return new NewStatement(getSourceLocation(), left.substitute(subs), cv, this.counterVar);
 	}
 
 }

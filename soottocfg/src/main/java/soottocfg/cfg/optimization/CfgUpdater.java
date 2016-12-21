@@ -129,6 +129,13 @@ public class CfgUpdater extends CfgVisitor {
 		return new NewStatement(s.getSourceLocation(), (IdentifierExpression) e, s.getClassVariable());
 	}
 
+	@Override
+	protected Statement processStatement(NewStatement s) {
+		IdentifierExpression e = (IdentifierExpression)processExpression(s.getLeft());
+		return new NewStatement(s.getSourceLocation(), e, s.getClassVariable(), s.getCounterVar());
+	}
+
+	
 	/// Expressions
 	@Override
 	protected List<Expression> processExpressionList(List<Expression> el) {
