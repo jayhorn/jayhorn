@@ -404,9 +404,15 @@ public class StatementEncoder {
 		// RK: add index variable for array classes
 		if (soottocfg.Options.v().arrayInv() 
 				&& pull.getObject().getType().toString().contains(ArrayTransformer.arrayTypeName)) {
-			Variable arIndex = m.getInParam(1);
-			Expression e = new IdentifierExpression(pull.getSourceLocation(), arIndex);
-			varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
+			if (m.isArrayMethod()) {
+				Variable arIndex = m.getInParam(1);
+				Expression e = new IdentifierExpression(pull.getSourceLocation(), arIndex);
+				varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
+			} else {
+				Variable arIndex = new Variable(AI + nextAI++, IntType.instance());
+				Expression e = new IdentifierExpression(pull.getSourceLocation(), arIndex);
+				varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
+			}
 		}
 
 		// introduce fresh prover variables for all

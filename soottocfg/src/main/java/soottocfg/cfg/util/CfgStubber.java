@@ -166,7 +166,6 @@ public class CfgStubber {
 					rhs.add(new IdentifierExpression(loc, c));
 					// this is an array, so initialize the remaining fields with
 					// sth as well
-					// TODO:
 					int i = 0;
 					while (rhs.size() < c.getAssociatedFields().length) {
 						Variable undefLocal = new Variable("undef_field" + (i++), c.getAssociatedFields()[i].getType() /*IntType.instance()*/);
