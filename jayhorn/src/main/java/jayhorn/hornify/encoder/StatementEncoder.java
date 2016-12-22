@@ -480,18 +480,28 @@ public class StatementEncoder {
 		}
 		
 		// Rody: add index variable for array classes
-		if (soottocfg.Options.v().arrayInv() && m.isArrayMethod()) {
-			if (m.isArrayGet() || m.isArraySet()) {
-				Variable arIndex = m.getInParam(1);
-				System.out.println("Vars: " + m.getInParams());
-				Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
-				invariantArgs.add(e);
-			} else {
-				Verify.verify(m.isArrayConstructor(),
-						"JayArray class should only contain get, set and constructor, but contains " + m.getMethodName());
+		if (soottocfg.Options.v().arrayInv()) {
+			if (m.isArrayMethod()) {
+				if (m.isArrayGet() || m.isArraySet()) {
+					Variable arIndex = m.getInParam(1);
+	//				System.out.println("Vars: " + m.getInParams());
+					Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
+					invariantArgs.add(e);
+				} else {
+					Verify.verify(m.isArrayConstructor(),
+							"JayArray class should only contain get, set and constructor, but contains "
+									+ m.getMethodName());
+					Variable arIndex = new Variable(AI + nextAI++, IntType.instance());
+					Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
+					invariantArgs.add(e);
+					// TODO add constraint length >= 0
+				}
+			} else if (ps.getObject().getType().toString().contains(ArrayTransformer.arrayTypeName)) {
+	//			System.out.println("Found array push outside array class: " + ps);
 				Variable arIndex = new Variable(AI + nextAI++, IntType.instance());
 				Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
 				invariantArgs.add(e);
+				// TODO add constraint length >= 0
 			}
 		}
 
