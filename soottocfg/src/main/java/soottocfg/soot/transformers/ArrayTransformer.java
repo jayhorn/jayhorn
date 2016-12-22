@@ -450,8 +450,9 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		 */
 
 		// Rody: I don't think code below has been maintained. For now, output warning.
-		if (numDimensions > 1)
+		if (numDimensions > 1 && !elementType.toString().contains("_java_")) {
 			System.err.println("[WARNING] Multi-dimensional arrays not supported. Result will be unsound.");
+		}
 		
 		// Now create constructors that takes the array size as input
 		// For int[][][] we have to create 3 constructors since one
