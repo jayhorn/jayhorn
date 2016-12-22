@@ -15,6 +15,7 @@ import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
+import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
@@ -117,6 +118,14 @@ public class CfgStubber {
 						Type t = method.getReturnType().get(i);
 						// add push with undef values to havoc methods
 						if (t instanceof ReferenceType) {
+							
+							// Rody: because of issue 116, create non-deterministic choice between
+							// null and instance with undef fields
+							CfgBlock caseNull = new CfgBlock(method);
+							method.addEdge(block, caseNull);
+							CfgBlock caseInstance = new CfgBlock(method);
+							method.addEdge(block, caseInstance);
+							
 							ReferenceType rt = (ReferenceType) t;
 							List<Expression> rhs = new LinkedList<Expression>();
 
@@ -137,10 +146,13 @@ public class CfgStubber {
 							rets.add(outVar);
 							//TODO: needs testing!
 							IdentifierExpression ret = new IdentifierExpression(loc, outVar);
-							block.addStatement(new NewStatement(loc, ret, rt.getClassVariable()));
+							caseInstance.addStatement(new NewStatement(loc, ret, rt.getClassVariable()));
 							
 							PushStatement push = new PushStatement(loc, rt.getClassVariable(), ret, rhs);
-							block.addStatement(push);
+							caseInstance.addStatement(push);
+							
+							caseNull.addStatement(new AssignStatement(loc, ret, new NullLiteral(loc)));
+							
 						} else {
 							Variable outVar = new Variable(MethodInfo.returnVariableName, t);
 							rets.add(outVar);
