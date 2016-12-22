@@ -163,8 +163,9 @@ public class PushPullSimplifier {
 				Statement s = stmts.get(i);
 				if (s instanceof AssignStatement) {
 					Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
+					pullvars.addAll(pull.getDefIdentifierExpressions());
 					AssignStatement as = (AssignStatement) s;
-					Set<IdentifierExpression>svars = as.getLeft().getUseIdentifierExpressions();
+					Set<IdentifierExpression> svars = as.getLeft().getUseIdentifierExpressions();
 					if (distinct(svars,pullvars)) {
 						b.swapStatements(i, i+1);
 						if (debug)
@@ -172,10 +173,16 @@ public class PushPullSimplifier {
 						moved++;
 					}
 				} else if (s instanceof NewStatement || s instanceof AssumeStatement) {
-					b.swapStatements(i, i+1);
-					if (debug)
-						System.out.println("Applied rule (V); swapped " + s + " and " + pull);
-					moved++;
+					Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
+					pullvars.addAll(pull.getDefIdentifierExpressions());
+					Set<IdentifierExpression> svars = s.getUseIdentifierExpressions();
+					svars.addAll(s.getDefIdentifierExpressions());
+					if (distinct(svars,pullvars)) {
+						b.swapStatements(i, i+1);
+						if (debug)
+							System.out.println("Applied rule (V); swapped " + s + " and " + pull);
+						moved++;
+					}
 				} else if (s instanceof AssertStatement) {
 					// do not move past null check
 					AssertStatement as = (AssertStatement) s;
@@ -456,6 +463,8 @@ public class PushPullSimplifier {
 	}
 	
 	private boolean distinct(Set<IdentifierExpression> vars1, Set<IdentifierExpression> vars2) {
+		if (debug)
+			System.out.println("Checking distinctness of " + vars1 + " and " + vars2);
 		for (IdentifierExpression exp1 : vars1) {
 			for (IdentifierExpression exp2 : vars2) {
 				if (debug)
