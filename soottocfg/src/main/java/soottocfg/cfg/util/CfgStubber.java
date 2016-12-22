@@ -120,6 +120,8 @@ public class CfgStubber {
 							ReferenceType rt = (ReferenceType) t;
 							List<Expression> rhs = new LinkedList<Expression>();
 
+							// TODO add special case for return type array
+							
 							for (Variable v : rt.getClassVariable().getAssociatedFields()) {
 //								if (SootTranslationHelpers.isDynamicTypeVar(v)) {
 //									// Make sure that we set the correct dynamic
