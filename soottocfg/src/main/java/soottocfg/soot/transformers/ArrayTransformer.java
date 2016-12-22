@@ -405,7 +405,6 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		// now add all the return statements
 		body.getUnits().addAll(retStmts);
 
-//		System.out.println("GET BODY: \n" + body);
 		body.validate();
 		getElement.setActiveBody(body);
 		
@@ -443,7 +442,6 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		body.getUnits().add(Jimple.v().newReturnVoidStmt());
 		body.getUnits().addAll(updates);
 
-//		System.out.println("SET BODY: \n" + body);
 		body.validate();
 		setElement.setActiveBody(body);
 		
@@ -451,6 +449,10 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		 * CONSTRUCTOR
 		 */
 
+		// Rody: I don't think code below has been maintained. For now, output warning.
+		if (numDimensions > 1)
+			System.err.println("[WARNING] Multi-dimensional arrays not supported. Result will be unsound.");
+		
 		// Now create constructors that takes the array size as input
 		// For int[][][] we have to create 3 constructors since one
 		// could create new int[1][][], new int[1][2][], or new int[1][2][3]
@@ -479,6 +481,7 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 					.add(Jimple.v().newAssignStmt(
 							Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemTypeField.makeRef()),
 							ClassConstant.v(elementTypeName)));
+			
 			//add default initializers for all fields
 			for (int j = 0; j < num_exact; j++) {
 				Unit asn = Jimple.v().newAssignStmt(
@@ -487,10 +490,20 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 				body.getUnits().add(asn);
 			}
 			
+			/**
+			 * New array model stuff
+			 */
+			if (soottocfg.Options.v().arrayInv()) {
+				//add default initializer for element in new model
+				Unit asn = Jimple.v().newAssignStmt(
+						Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()),
+						SootTranslationHelpers.v().getDefaultValue(elemField.getType()));
+				body.getUnits().add(asn);
+			}
+			
 			body.getUnits().add(Jimple.v().newReturnVoidStmt());
 			
-			
-			
+			body.validate();
 			constructor.setActiveBody(body);
 		}
 		return arrayClass;
