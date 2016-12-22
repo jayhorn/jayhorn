@@ -48,6 +48,9 @@ public class StatementEncoder {
 	public final static String LP = "_lastpush";
 	private int nextLP = 0;
 
+	public final static String AI = "_ai";
+	private int nextAI = 0;
+	
 	public StatementEncoder(Prover p, ExpressionEncoder expEnc) {
 		this.p = p;
 		this.expEncoder = expEnc;
@@ -400,9 +403,7 @@ public class StatementEncoder {
 		
 		// RK: add index variable for array classes
 		if (soottocfg.Options.v().arrayInv() 
-				&& pull.getObject().getType().toString().contains(ArrayTransformer.arrayTypeName)
-				) {
-			System.out.println("Found pull in array get or set " + pull);
+				&& pull.getObject().getType().toString().contains(ArrayTransformer.arrayTypeName)) {
 			Variable arIndex = m.getInParam(1);
 			Expression e = new IdentifierExpression(pull.getSourceLocation(), arIndex);
 			varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
@@ -431,6 +432,7 @@ public class StatementEncoder {
 
 		// now we can instantiate the invariant.
 		final ProverExpr invAtom = invariant.instPredicate(varMap);
+//		System.err.println("Invariant for " + pull + ": " + invAtom);
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		final ProverHornClause clause = p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom },
 				p.mkLiteral(true));
@@ -478,12 +480,19 @@ public class StatementEncoder {
 		}
 		
 		// Rody: add index variable for array classes
-		if (soottocfg.Options.v().arrayInv() 
-				&& ps.getObject().getType().toString().contains(ArrayTransformer.arrayTypeName)) {
-			System.out.println("Found push in array get or set " + ps);
-			Variable arIndex = m.getInParam(1);
-			Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
-			invariantArgs.add(e);
+		if (soottocfg.Options.v().arrayInv() && m.isArrayMethod()) {
+			if (m.isArrayGet() || m.isArraySet()) {
+				Variable arIndex = m.getInParam(1);
+				System.out.println("Vars: " + m.getInParams());
+				Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
+				invariantArgs.add(e);
+			} else {
+				Verify.verify(m.isArrayConstructor(),
+						"JayArray class should only contain get, set and constructor, but contains " + m.getMethodName());
+				Variable arIndex = new Variable(AI + nextAI++, IntType.instance());
+				Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
+				invariantArgs.add(e);
+			}
 		}
 
 		invariantArgs.addAll(ps.getRight());
@@ -505,14 +514,22 @@ public class StatementEncoder {
 			varMap.put(invariant.variables.get(i), right);
 			
 //			System.out.println("invariantArgs = " + invariantArgs.get(i));
-//			System.err.println(invariant.variables.get(i)+ " = "+varMap.get(invariant.variables.get(i)));
+//			System.out.println(invariant.variables.get(i)+ " = "+varMap.get(invariant.variables.get(i)) + "\n");
 		}
 		final ProverExpr invAtom = invariant.instPredicate(varMap);
 		clauses.add(p.mkHornClause(invAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
+		
+//		System.err.println("Invariant for " + ps + ": " + invAtom);
 
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 		return clauses;
 	}
 
+	private boolean isArraySetOrGet(Method m) {
+		String mname = m.getMethodName();
+		return (	mname.contains(ArrayTransformer.arrayTypeName) &&
+					(mname.contains(ArrayTransformer.arrayGetName) || mname.contains(ArrayTransformer.arraySetName))
+				);
+	}
 }
