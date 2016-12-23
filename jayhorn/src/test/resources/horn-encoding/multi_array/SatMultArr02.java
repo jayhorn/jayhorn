@@ -3,14 +3,11 @@
  *
  */
 public class SatMultArr02 {
-
-//	private static int[][][] mult = new int [17][2][];
-	
 	public static void main(String[] args) {
 		int[][] mult = new int [17][2];
-	    mult[3][0] = 2;
-	    mult[0][4] = 2;
-	    assert mult[3][0]==mult[0][4];	    
+	    mult[1][0] = 42;
+	    mult[0][1] = 42;
+	    assert mult[1][0]==mult[0][1];	    
 	}	
 	
 }
