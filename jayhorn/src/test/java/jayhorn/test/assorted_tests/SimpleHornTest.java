@@ -82,8 +82,8 @@ public class SimpleHornTest {
 		try {
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
-//			soottocfg.Options.v().setPrintCFG(true);
-			soottocfg.Options.v().setMemPrecision(0);
+			soottocfg.Options.v().setPrintCFG(true);
+			soottocfg.Options.v().setMemPrecision(3);
 //			soottocfg.Options.v().setInlineCount(1);
 //			soottocfg.Options.v().setInlineMaxSize(10);
 			soottocfg.Options.v().setArrayInv(true);
