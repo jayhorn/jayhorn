@@ -129,13 +129,13 @@ public class Options {
 	 * Use array invariants
 	 */
 	@Option(name = "-array-inv", usage = "Use array invariants", required = false)
-	private boolean arrayInv = false;
+	private boolean arrayInv = true;
 	
 	/*
 	 * Exact array elements
 	 */
 	@Option(name = "-array-exact", usage = "Number of exactly modeled array elements", required = false)
-	private int exactArrayElements = 5;
+	private int exactArrayElements = 0;
 	
 	
 	// /**

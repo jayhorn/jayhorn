@@ -533,7 +533,7 @@ public class StatementEncoder {
 		final ProverExpr invAtom = invariant.instPredicate(varMap);
 		clauses.add(p.mkHornClause(invAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 		
-		System.err.println("Invariant for " + ps + ": " + invAtom);
+//		System.err.println("Invariant for " + ps + ": " + invAtom);
 
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
