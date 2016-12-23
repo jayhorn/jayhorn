@@ -542,10 +542,10 @@ public class StatementEncoder {
 		return clauses;
 	}
 
-	private boolean isArraySetOrGet(Method m) {
-		String mname = m.getMethodName();
-		return (	mname.contains(ArrayTransformer.arrayTypeName) &&
-					(mname.contains(ArrayTransformer.arrayGetName) || mname.contains(ArrayTransformer.arraySetName))
-				);
-	}
+//	private boolean isArraySetOrGet(Method m) {
+//		String mname = m.getMethodName();
+//		return (	mname.contains(ArrayTransformer.arrayTypeName) &&
+//					(mname.contains(ArrayTransformer.arrayGetName) || mname.contains(ArrayTransformer.arraySetName))
+//				);
+//	}
 }
