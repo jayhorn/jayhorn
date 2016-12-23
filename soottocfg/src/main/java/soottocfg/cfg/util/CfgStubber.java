@@ -193,12 +193,10 @@ public class CfgStubber {
 					
 					IdentifierExpression argsLocal = new IdentifierExpression(loc, argsParam);
 					
-//					NewStatement newArgs = new NewStatement(loc, argsLocal, c);
-//					entry.addStatement(1, newArgs);
-					AssumeStatement asmNotNull = new AssumeStatement(loc, 
-							new BinaryExpression(loc, BinaryOperator.Ne,
-							argsLocal, new NullLiteral(loc)));
-					entry.addStatement(1, asmNotNull);
+//					AssumeStatement asmNotNull = new AssumeStatement(loc, 
+//							new BinaryExpression(loc, BinaryOperator.Ne,
+//							argsLocal, new NullLiteral(loc)));
+//					entry.addStatement(1, asmNotNull);
 					
 					PushStatement push = new PushStatement(loc, c, argsLocal, rhs);
 					entry.addStatement(1, push);
