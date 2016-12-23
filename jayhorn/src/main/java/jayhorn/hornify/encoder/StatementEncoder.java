@@ -500,14 +500,12 @@ public class StatementEncoder {
 					Variable arIndex = new Variable(AI + nextAI++, IntType.instance());
 					Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
 					invariantArgs.add(e);
-					// TODO add constraint length >= 0
 				}
 			} else if (ps.getObject().getType().toString().contains(ArrayTransformer.arrayTypeName)) {
 	//			System.out.println("Found array push outside array class: " + ps);
 				Variable arIndex = new Variable(AI + nextAI++, IntType.instance());
 				Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
 				invariantArgs.add(e);
-				// TODO add constraint length >= 0
 			}
 		}
 
@@ -541,11 +539,4 @@ public class StatementEncoder {
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 		return clauses;
 	}
-
-//	private boolean isArraySetOrGet(Method m) {
-//		String mname = m.getMethodName();
-//		return (	mname.contains(ArrayTransformer.arrayTypeName) &&
-//					(mname.contains(ArrayTransformer.arrayGetName) || mname.contains(ArrayTransformer.arraySetName))
-//				);
-//	}
 }

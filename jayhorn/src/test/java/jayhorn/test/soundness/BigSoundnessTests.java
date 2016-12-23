@@ -47,6 +47,7 @@ public class BigSoundnessTests {
 		collectFileNamesRecursively(new File(testRoot + "cbmc-src"), filenames);		
 		collectFileNamesRecursively(new File(testRoot + "horn-encoding/regression"), filenames);
 		collectFileNamesRecursively(new File(testRoot + "horn-encoding/backlog"), filenames);
+		collectFileNamesRecursively(new File(testRoot + "horn-encoding/arrays"), filenames);
 		collectFileNamesRecursively(new File(testRoot + "horn-encoding/mem_precision"), filenames);
 		collectFileNamesRecursively(new File(testRoot + "horn-encoding/classics"), filenames);
 		if (filenames.isEmpty()) {
@@ -107,7 +108,7 @@ public class BigSoundnessTests {
 			boolean result = false;
 			try {
 				soot2cfg.run(classDir.getAbsolutePath(), null);
-				jayhorn.Options.v().setTimeout(30);
+				jayhorn.Options.v().setTimeout(300);
 //				jayhorn.Options.v().setPrintHorn(true);
 				jayhorn.Options.v().setSolverOptions("abstract");
 

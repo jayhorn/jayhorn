@@ -27,6 +27,7 @@ import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 
@@ -78,12 +79,8 @@ public class CfgStubber {
 						Variable outVar = new Variable("$out"+i, v.getType());
 						outParams.add(outVar);
 						Variable other;
-//						if (SootTranslationHelpers.isDynamicTypeVar(v)) {	
-//							// Make sure that we set the correct dynamic type.
-//							other = rt.getClassVariable();							
-//						} else {
-							other = new Variable("undef_field" + i, v.getType());							
-//						}
+						other = new Variable("undef_field" + i, v.getType());
+						
 						//assign the outParams to fresh values.
 						block.addStatement(new AssignStatement(loc, 
 								new IdentifierExpression(loc, outVar), 
@@ -129,22 +126,32 @@ public class CfgStubber {
 							ReferenceType rt = (ReferenceType) t;
 							List<Expression> rhs = new LinkedList<Expression>();
 
-							// TODO add special case for return type array
-							
-							for (Variable v : rt.getClassVariable().getAssociatedFields()) {
-//								if (SootTranslationHelpers.isDynamicTypeVar(v)) {
-//									// Make sure that we set the correct dynamic
-//									// type.
-//									rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
-//								} else {
+							if (t.toString().contains(ArrayTransformer.arrayTypeName)) {
+								// for an array, make sure we add the constraint that length >= 0
+								Variable sizeLocal = new Variable("undef_size", IntType.instance());
+								AssumeStatement asm = new AssumeStatement(loc, new BinaryExpression(loc, BinaryOperator.Ge,
+										new IdentifierExpression(loc, sizeLocal), IntegerLiteral.zero()));
+								caseInstance.addStatement(0, asm);
+								rhs.add(new IdentifierExpression(loc, sizeLocal));
+								ClassVariable c = rt.getClassVariable();
+//								Variable elemType = c.getAssociatedFields()[1];
+								rhs.add(new IdentifierExpression(loc, c));
+								
+								// this is an array, so initialize the remaining fields with sth as well
+								int n = rhs.size();
+								while (n < c.getAssociatedFields().length) {
+									Variable undefLocal = new Variable("undef_field" + (f++), c.getAssociatedFields()[n++].getType());
+									rhs.add(new IdentifierExpression(loc, undefLocal));
+								}
+							} else {
+								for (Variable v : rt.getClassVariable().getAssociatedFields()) {
 									Variable undefLocal = new Variable("undef_field" + (f++), v.getType());
 									rhs.add(new IdentifierExpression(loc, undefLocal));
-//								}
+								}
 							}
 							Variable outVar = new Variable(MethodInfo.returnVariableName, rt);
 							
 							rets.add(outVar);
-							//TODO: needs testing!
 							IdentifierExpression ret = new IdentifierExpression(loc, outVar);
 							caseInstance.addStatement(new NewStatement(loc, ret, rt.getClassVariable()));
 							
@@ -172,17 +179,15 @@ public class CfgStubber {
 							new IdentifierExpression(loc, sizeLocal), IntegerLiteral.zero()));
 					entry.addStatement(0, asm);
 
-					// pack(JayHornArr12, r0, [JayHornArr12.$length,
-					// JayHornArr12.$elType, JayHornArr12.$dynamicType])
+					// push(JayHornArr12, r0, [JayHornArr12.$length, JayHornArr12.$elType, JayHornArr12.$dynamicType])
 					List<Expression> rhs = new LinkedList<Expression>();
 					rhs.add(new IdentifierExpression(loc, sizeLocal));
 					ClassVariable c = argsType.getClassVariable();
 					rhs.add(new IdentifierExpression(loc, c));
-					// this is an array, so initialize the remaining fields with
-					// sth as well
+					// this is an array, so initialize the remaining fields with sth as well
 					int i = 0;
 					while (rhs.size() < c.getAssociatedFields().length) {
-						Variable undefLocal = new Variable("undef_field" + (i++), c.getAssociatedFields()[i].getType() /*IntType.instance()*/);
+						Variable undefLocal = new Variable("undef_field" + (i++), c.getAssociatedFields()[i].getType());
 						rhs.add(new IdentifierExpression(loc, undefLocal));
 					}
 					PushStatement push = new PushStatement(loc, c, new IdentifierExpression(loc, argsParam), rhs);
