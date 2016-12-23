@@ -450,9 +450,21 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		 */
 
 		// Rody: I don't think code below has been maintained. For now, output warning.
-		if (numDimensions > 1 && !elementType.toString().contains("_java_")) {
-			System.err.println("[WARNING] Multi-dimensional arrays not supported. Result will be unsound.");
-		}
+		/* Martin: Nope, this is sound AF. Java is loco when it comes to multi-arrays.
+		 * Assume you have an:
+		 *   int[][][] arr;
+		 * you can initialize that with
+		 * arr = new int[1][][];
+		 * arr = new int[1][2][];
+		 * or
+		 * arr = new int[1][2][3];
+		 * so you need to create one constructor for each dimension ... 
+		 * a bit annoying, but sound.
+		 *  
+		 */
+//		if (numDimensions > 1 && !elementType.toString().contains("_java_")) {
+//			System.err.println("[WARNING] Multi-dimensional arrays not supported. Result will be unsound.");
+//		}
 		
 		// Now create constructors that takes the array size as input
 		// For int[][][] we have to create 3 constructors since one

@@ -89,6 +89,10 @@ public class BigSoundnessTests {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with " + factory.getClass() + "\n");
 		File classDir = null;
 		try {
+			soottocfg.Options.v().setExactArrayElements(0);
+			soottocfg.Options.v().setArrayInv(true);
+
+			
 //			soottocfg.Options.v().passCallerIdIntoMethods(true);
 //			 soottocfg.Options.v().setPrintCFG(true);
 			// soottocfg.Options.v().setExcAsAssert(true);

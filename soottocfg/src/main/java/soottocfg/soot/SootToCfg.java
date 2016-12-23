@@ -113,11 +113,7 @@ public class SootToCfg {
 		final SootMethod mainMethod = Scene.v().getMainMethod();		
 		performBehaviorPreservingTransformations();
 		performAbstractionTransformations();
-//		Variable exceptionGlobal = this.program
-//				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
-//						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
-//		program.setExceptionGlobal(exceptionGlobal);
-
+		
 		constructCfg();
 
 		// now set the entry points.
