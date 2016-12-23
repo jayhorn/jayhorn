@@ -90,20 +90,15 @@ public class BigSoundnessTests {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with " + factory.getClass() + "\n");
 		File classDir = null;
 		try {
-			soottocfg.Options.v().setExactArrayElements(0);
-			soottocfg.Options.v().setArrayInv(true);
-
-			
-//			soottocfg.Options.v().passCallerIdIntoMethods(true);
-//			 soottocfg.Options.v().setPrintCFG(true);
+			 soottocfg.Options.v().setPrintCFG(true);
 			// soottocfg.Options.v().setExcAsAssert(true);
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
 //			soottocfg.Options.v().setMemPrecision(3);
 //			soottocfg.Options.v().setInlineCount(3);
 //			soottocfg.Options.v().setInlineMaxSize(20);
-			soottocfg.Options.v().setArrayInv(true);
-			soottocfg.Options.v().setExactArrayElements(0);
+//			soottocfg.Options.v().setArrayInv(true);
+//			soottocfg.Options.v().setExactArrayElements(0);
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			boolean result = false;
 			try {

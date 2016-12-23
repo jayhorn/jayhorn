@@ -134,7 +134,6 @@ public class CfgStubber {
 								caseInstance.addStatement(0, asm);
 								rhs.add(new IdentifierExpression(loc, sizeLocal));
 								ClassVariable c = rt.getClassVariable();
-//								Variable elemType = c.getAssociatedFields()[1];
 								rhs.add(new IdentifierExpression(loc, c));
 								
 								// this is an array, so initialize the remaining fields with sth as well
@@ -178,6 +177,7 @@ public class CfgStubber {
 					AssumeStatement asm = new AssumeStatement(loc, new BinaryExpression(loc, BinaryOperator.Ge,
 							new IdentifierExpression(loc, sizeLocal), IntegerLiteral.zero()));
 					entry.addStatement(0, asm);
+					
 
 					// push(JayHornArr12, r0, [JayHornArr12.$length, JayHornArr12.$elType, JayHornArr12.$dynamicType])
 					List<Expression> rhs = new LinkedList<Expression>();
@@ -190,7 +190,17 @@ public class CfgStubber {
 						Variable undefLocal = new Variable("undef_field" + (i++), c.getAssociatedFields()[i].getType());
 						rhs.add(new IdentifierExpression(loc, undefLocal));
 					}
-					PushStatement push = new PushStatement(loc, c, new IdentifierExpression(loc, argsParam), rhs);
+					
+					IdentifierExpression argsLocal = new IdentifierExpression(loc, argsParam);
+					
+//					NewStatement newArgs = new NewStatement(loc, argsLocal, c);
+//					entry.addStatement(1, newArgs);
+					AssumeStatement asmNotNull = new AssumeStatement(loc, 
+							new BinaryExpression(loc, BinaryOperator.Ne,
+							argsLocal, new NullLiteral(loc)));
+					entry.addStatement(1, asmNotNull);
+					
+					PushStatement push = new PushStatement(loc, c, argsLocal, rhs);
 					entry.addStatement(1, push);
 				}
 			}
