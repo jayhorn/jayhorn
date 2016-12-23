@@ -93,7 +93,7 @@ public class BigSoundnessTests {
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
 
-			 soottocfg.Options.v().setPrintCFG(true);
+//			 soottocfg.Options.v().setPrintCFG(true);
 			// soottocfg.Options.v().setExcAsAssert(true);
 //			soottocfg.Options.v().setMemPrecision(3);
 //			soottocfg.Options.v().setInlineCount(3);

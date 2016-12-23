@@ -126,10 +126,10 @@ public class Options {
 	private int memPrecision = soottocfg.Options.MEMPREC_PTA;
 	
 	/*
-	 * Use array invariants
+	 * Disable array invariants
 	 */
-	@Option(name = "-array-inv", usage = "Use array invariants", required = false)
-	private boolean arrayInv = true;
+	@Option(name = "-disable-array-inv", usage = "Disable array invariants", required = false)
+	private boolean disableArrayInv = false;
 	
 	/*
 	 * Exact array elements
@@ -261,7 +261,7 @@ public class Options {
 //		soottocfg.Options.v().setPrintCFG(printCFG);
 		soottocfg.Options.v().setInlineMaxSize(inlineMaxSize);
 		soottocfg.Options.v().setInlineCount(inlineCount);
-		soottocfg.Options.v().setArrayInv(arrayInv);
+		soottocfg.Options.v().setArrayInv(!disableArrayInv);
 		soottocfg.Options.v().setExactArrayElements(exactArrayElements);
 	}
 	
