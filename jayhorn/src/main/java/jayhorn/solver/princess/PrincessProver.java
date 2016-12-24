@@ -515,7 +515,7 @@ public class PrincessProver implements Prover {
 			}
 			killThread();
 		} else {
-			throw new RuntimeException("Start query with check sat first.");
+			throw new RuntimeException("Start query with checkSat(false) first.");
 		}
 		return result;
 
@@ -677,7 +677,8 @@ public class PrincessProver implements Prover {
 
     public ProverFun mkHornPredicate(String name, ProverType[] argTypes) {
         ProverType[] flatTypes = ProverTupleType.flatten(argTypes);
-        return new PredicateFun(api.createRelation(name, flatTypes.length));
+        return new PredicateFun(api.createRelation(name, flatTypes.length),
+                                Arrays.copyOf(argTypes, argTypes.length));
     }
 
 	/**
