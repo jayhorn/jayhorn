@@ -335,6 +335,21 @@ public class NewMemoryModel extends BasicMemoryModel {
 			throw new RuntimeException("not implemented");
 		}
 
+		SootField field = fieldRef.getField();
+		if (SootTranslationHelpers.v().isWrittenOnce(field)) {
+			if (!field.isStatic()) {
+				TupleAccessExpression tae = new TupleAccessExpression(loc, base.getVariable(), field.getName());
+				this.statementSwitch.push(new AssignStatement(loc, left, tae));
+				//New, needs testing!
+				/* We don't need to do this for writing these variables 
+				 * because we assume they are constant anyway.
+				 */
+				return;
+			} else {
+				//TODO:
+			}
+		}
+		
 		Variable fieldVar = lookupFieldLocal(fieldRef); // TODO
 		Verify.verify(fieldLocals.contains(fieldVar));
 
