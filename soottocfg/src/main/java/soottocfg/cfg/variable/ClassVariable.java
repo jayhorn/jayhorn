@@ -36,7 +36,6 @@ public class ClassVariable extends Variable  {
 					Variable v = new Variable(pfield.getName(), pfield.getType());
 					associatedFields.add(v);
 					if (v.isConstant()) {
-						System.err.println("FUuuuuuuu " + v);
 						finalFields.add(v);
 					}
 				}

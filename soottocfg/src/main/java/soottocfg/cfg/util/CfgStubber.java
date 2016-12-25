@@ -134,7 +134,8 @@ public class CfgStubber {
 								caseInstance.addStatement(0, asm);
 								rhs.add(new IdentifierExpression(loc, sizeLocal));
 								ClassVariable c = rt.getClassVariable();
-								rhs.add(new IdentifierExpression(loc, c));
+								//TODO: @Rody: the dynamic type is not pushed anymore.
+//								rhs.add(new IdentifierExpression(loc, c));
 								
 								// this is an array, so initialize the remaining fields with sth as well
 								int n = rhs.size();
@@ -169,10 +170,15 @@ public class CfgStubber {
 
 			} else if (method.isProgramEntryPoint()) {
 				if (method.getInParams().size() == 1 && method.getMethodName().contains("main")) {
-					Variable argsParam = method.getInParams().get(0);
-					ReferenceType argsType = getRefTypeFrom(argsParam);
 					CfgBlock entry = method.getSource();
 					SourceLocation loc = method.getLocation();
+
+					
+					Variable argsParam = method.getInParams().get(0);
+					ReferenceType argsType = getRefTypeFrom(argsParam);					
+					ClassVariable c = argsType.getClassVariable();
+					Verify.verify("JayArray_java_lang_String".equals(c.getName()), "Main needs a string array as argument");
+
 					Variable sizeLocal = new Variable("undef_size", IntType.instance());
 					AssumeStatement asm = new AssumeStatement(loc, new BinaryExpression(loc, BinaryOperator.Ge,
 							new IdentifierExpression(loc, sizeLocal), IntegerLiteral.zero()));
@@ -180,15 +186,22 @@ public class CfgStubber {
 					
 
 					// push(JayHornArr12, r0, [JayHornArr12.$length, JayHornArr12.$elType, JayHornArr12.$dynamicType])
+
+					
 					List<Expression> rhs = new LinkedList<Expression>();
-					rhs.add(new IdentifierExpression(loc, sizeLocal));
-					ClassVariable c = argsType.getClassVariable();
-					rhs.add(new IdentifierExpression(loc, c));
+					/*TODO: @Rody, the push doesn't take the the dynamic 
+					 *  type and size as first two parameters because stuff
+					 *  like this should be part of the tuples.
+					 */
+//					rhs.add(new IdentifierExpression(loc, sizeLocal));
+					
+//					rhs.add(new IdentifierExpression(loc, c));
 					// this is an array, so initialize the remaining fields with sth as well
 					int i = 0;
 					while (rhs.size() < c.getAssociatedFields().length) {
-						Variable undefLocal = new Variable("undef_field" + (i++), c.getAssociatedFields()[i].getType());
+						Variable undefLocal = new Variable("undef_field" + i, c.getAssociatedFields()[i].getType());
 						rhs.add(new IdentifierExpression(loc, undefLocal));
+						i++;
 					}
 					
 					IdentifierExpression argsLocal = new IdentifierExpression(loc, argsParam);
