@@ -175,7 +175,16 @@ public class StatementEncoder {
 			}
 			ProverTupleType pttLeft = (ProverTupleType) HornHelper.hh().getProverType(p, idLhs.getType());
 			if (pttLeft.getArity() > ((ProverTupleExpr) right).getArity()) {
-				throw new RuntimeException("Oops, not implemented");
+				ProverTupleExpr pteR = ((ProverTupleExpr) right);
+				ProverExpr[] expandedRightTuple = new ProverExpr[pttLeft.getArity()];
+				for (int i=0; i<pttLeft.getArity(); i++) {
+					if (i<pteR.getArity()) {
+						expandedRightTuple[i] = pteR.getSubExpr(i);
+					} else {
+						expandedRightTuple[i] = p.mkVariable("$dummy"+i, pttLeft.getSubType(i));
+					}
+				}
+				right = new ProverTupleExpr(expandedRightTuple);
 			} else if (pttLeft.getArity() > ((ProverTupleExpr) right).getArity()) {
 				throw new RuntimeException("Oops, not implemented");
 			}
@@ -267,7 +276,7 @@ public class StatementEncoder {
 
 		int cnt = 0;
 		for (Expression e : callArgs) {
-			final ProverExpr expr;
+			ProverExpr expr;
 			if (e instanceof NullLiteral) {
 				ReferenceType rt = (ReferenceType) inParams.get(cnt).getType();
 				ProverTupleType ptt = (ProverTupleType) HornHelper.hh().getProverType(p, rt);
@@ -275,6 +284,24 @@ public class StatementEncoder {
 			} else {
 				expr = expEncoder.exprToProverExpr(e, varMap);
 			}
+			
+			if (expr instanceof ProverTupleExpr) {
+				/* check if the number of elements match. If the arg type 
+				 * is a super type of the param type, we have to throw away
+				 * the surplus elements of the tuple.
+				 */
+				ProverTupleExpr pte = (ProverTupleExpr)expr;
+				ReferenceType rt = (ReferenceType) inParams.get(cnt).getType();
+				ProverTupleType ptt = (ProverTupleType) HornHelper.hh().getProverType(p, rt);				
+				if (pte.getArity()>ptt.getArity()) {
+					ProverExpr[] smallTuple = new ProverExpr[ptt.getArity()];
+					for (int i=0;i<ptt.getArity();i++) {
+						smallTuple[i] = pte.getSubExpr(i);
+					}
+					expr = new ProverTupleExpr(smallTuple);
+				}
+			}
+			
 			actualInParams[cnt] = expr;
 			actualPostParams[cnt] = expr;
 			++cnt;
