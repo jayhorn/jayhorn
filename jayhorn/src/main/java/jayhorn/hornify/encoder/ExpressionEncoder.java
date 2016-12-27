@@ -10,6 +10,7 @@ import jayhorn.hornify.HornEncoderContext;
 import jayhorn.hornify.HornHelper;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
+import jayhorn.solver.ProverTupleExpr;
 import jayhorn.solver.ProverTupleType;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
@@ -130,6 +131,13 @@ public class ExpressionEncoder {
 			case Mod:
 				return p.mkTMod(left, right);
 			case Eq:
+		        if (left instanceof ProverTupleExpr) {
+		            ProverTupleExpr tLeft = (ProverTupleExpr)left;
+		            ProverTupleExpr tRight = (ProverTupleExpr)right;
+		            //TODO: this is sound if we assume that the first
+		            //element of a tuple is the sound identifier.
+		            return p.mkEq(tLeft.getSubExpr(0), tRight.getSubExpr(0));
+		        }
 				return p.mkEq(left, right);
 			case Ne:
 				return p.mkNot(p.mkEq(left, right));

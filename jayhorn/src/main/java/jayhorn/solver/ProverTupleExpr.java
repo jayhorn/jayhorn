@@ -70,9 +70,9 @@ public class ProverTupleExpr implements ProverExpr {
         res.append("[");
         String sep = "";
         for (int i = 0; i < getArity(); ++i) {
-            res.append(getSubExpr(i));
             res.append(sep);
             sep = ", ";
+            res.append(getSubExpr(i));
         }
         res.append("]");
         return res.toString();

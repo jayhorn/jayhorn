@@ -55,9 +55,9 @@ public class ProverTupleType implements ProverType {
         res.append("[");
         String sep = "";
         for (int i = 0; i < getArity(); ++i) {
-            res.append(getSubType(i));
             res.append(sep);
             sep = ", ";
+            res.append(getSubType(i));
         }
         res.append("]");
         return res.toString();

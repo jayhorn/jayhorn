@@ -48,7 +48,7 @@ public class Options {
 	 * Use array invariants.
 	 */
 	
-	private boolean arrayInv = false;
+	private boolean arrayInv = true;
 	
 	public boolean arrayInv() { 
 		return arrayInv;
@@ -62,7 +62,7 @@ public class Options {
 	 * Number of array elements modeled exactly
 	 */
 	
-	private int exactArrayElements = 5;
+	private int exactArrayElements = 0;
 	
 	public int exactArrayElements() { 
 		return exactArrayElements;

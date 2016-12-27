@@ -33,10 +33,9 @@ public class ClassVariable extends Variable  {
 		for (ClassVariable parent : parents) {
 			for (Variable pfield : parent.getAssociatedFields()) {
 				if (!hasField(pfield.getName())) {
-					Variable v = new Variable(pfield.getName(), pfield.getType());
+					Variable v = new Variable(pfield.getName(), pfield.getType(), pfield.isConstant(), pfield.isUnique());
 					associatedFields.add(v);
 					if (v.isConstant()) {
-						System.err.println("FUuuuuuuu " + v);
 						finalFields.add(v);
 					}
 				}
@@ -59,7 +58,7 @@ public class ClassVariable extends Variable  {
 	public void addFields(List<Variable> fields) {
 		for (Variable f : fields) {
 			if (!hasField(f.getName())) {
-				Variable v = new Variable(f.getName(), f.getType());
+				Variable v = new Variable(f.getName(), f.getType(), f.isConstant(), f.isUnique());
 				associatedFields.add(v);
 				if (v.isConstant()) {
 					finalFields.add(v);
