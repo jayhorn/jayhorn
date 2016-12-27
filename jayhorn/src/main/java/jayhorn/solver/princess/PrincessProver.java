@@ -685,6 +685,11 @@ public class PrincessProver implements Prover {
 
     public ProverFun mkHornPredicate(String name, ProverType[] argTypes) {
         ProverType[] flatTypes = ProverTupleType.flatten(argTypes);
+        System.out.println(name);
+        for(ProverType ty: flatTypes){
+        	System.out.println(ty);
+        }
+        System.out.println("------");
         return new PredicateFun(api.createRelation(name, flatTypes.length));
     }
 

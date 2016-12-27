@@ -2,6 +2,8 @@
 package jayhorn.solver.spacer;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -25,8 +27,11 @@ import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverListener;
 import jayhorn.solver.ProverResult;
+import jayhorn.solver.ProverTupleExpr;
+import jayhorn.solver.ProverTupleType;
 import jayhorn.solver.ProverType;
 
+import com.google.common.base.Verify;
 import com.microsoft.z3.ArithExpr;
 import com.microsoft.z3.ArrayExpr;
 import com.microsoft.z3.ArraySort;
@@ -170,7 +175,7 @@ public class SpacerProver implements Prover {
 		} else if (type instanceof SpacerArrayType) {
 			return ((SpacerArrayType) type).getSort();
 		}
-		throw new RuntimeException("not implemented");
+		throw new RuntimeException( type + "not implemented");
 	}
 
 	protected ProverType pack(Sort type) throws Z3Exception{
@@ -243,6 +248,12 @@ public class SpacerProver implements Prover {
 				exp = ctx.mkArrayConst(name,
 						unpack(((SpacerArrayType) type).getIndexType()),
 						unpack(((SpacerArrayType) type).getValueType()));
+			} else if (type instanceof ProverTupleType){
+				 final ProverTupleType tt = (ProverTupleType)type;
+		            final ProverExpr[] res = new ProverExpr[tt.getArity()];
+		            for (int i = 0; i < tt.getArity(); ++i)
+		                res[i] = mkVariable(name + "_" + i, tt.getSubType(i));
+		            return mkTuple(res);
 			} else {
 				throw new RuntimeException("not implemented");
 			}
@@ -257,9 +268,12 @@ public class SpacerProver implements Prover {
 	public SpacerFun mkUnintFunction(String name, ProverType[] argTypes,
 			ProverType resType) {
 		try{
-			Sort[] argSorts = new Sort[argTypes.length];
-			for (int i = 0; i < argTypes.length; i++) {
-				argSorts[i] = unpack(argTypes[i]);
+			ProverType[] flatType = ProverTupleType.flatten(argTypes);
+			Sort[] argSorts = new Sort[flatType.length];
+			System.out.println(name);
+			System.out.println("Original size: " + argTypes.length + " Flatten Size: " + flatType.length );
+			for (int i = 0; i < flatType.length; i++) {
+						argSorts[i] = unpack(flatType[i]);
 			}
 			return new SpacerFun(ctx.mkFuncDecl(name, argSorts, unpack(resType)), ctx,
 					resType);
@@ -322,6 +336,18 @@ public class SpacerProver implements Prover {
 	@Override
 	public ProverExpr mkEq(ProverExpr left, ProverExpr right)  {
 		try{
+			if (left instanceof ProverTupleExpr) {
+		            ProverTupleExpr tLeft = (ProverTupleExpr)left;
+		            ProverTupleExpr tRight = (ProverTupleExpr)right;
+		            Verify.verify(tLeft.getArity() == tRight.getArity(), tLeft.getArity()+"!="+ tRight.getArity()+ " for " +left + " and " + right);
+
+		            ProverExpr[] conjuncts = new ProverExpr[tLeft.getArity()];
+		            for (int i = 0; i < tLeft.getArity(); ++i)
+		                conjuncts[i] = mkEq(tLeft.getSubExpr(i),
+		                                    tRight.getSubExpr(i));
+
+		            return mkAnd(conjuncts);
+		        }
 			return new SpacerBoolExpr(ctx.mkEq(unpack(left), unpack(right)));
 		}catch (Exception e){
 			throw  new RuntimeException (e.getMessage());
@@ -995,9 +1021,8 @@ public class SpacerProver implements Prover {
 	 * Make Horn Predicate
 	 */
 	public SpacerFun mkHornPredicate(String name, ProverType[] argTypes) {
-	
 		try {
-			
+
 			SpacerFun fun = this.mkUnintFunction(this.replaceName(name), argTypes, this.getBooleanType());
 			this.fx.registerRelation(fun.getFun());
 			return fun;
@@ -1301,22 +1326,24 @@ public class SpacerProver implements Prover {
     }
 
 	@Override
-	public ProverType getTupleType(ProverType[] subTypes) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+//	public ProverType getTupleType(ProverType[] subTypes) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
-	@Override
+	 public ProverType getTupleType(ProverType[] subTypes) {
+	        return new ProverTupleType(Arrays.copyOf(subTypes, subTypes.length));
+	    }
+	 
+	
 	public ProverExpr mkTuple(ProverExpr[] subExprs) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ProverExpr mkTupleSelect(ProverExpr tuple, int index) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+        return new ProverTupleExpr(Arrays.copyOf(subExprs, subExprs.length));
+    }
+    
+    public ProverExpr mkTupleSelect(ProverExpr tuple, int index) {
+        ProverTupleExpr ttuple = (ProverTupleExpr)tuple;
+        return ttuple.getSubExpr(index);
+    }
 }
 
 

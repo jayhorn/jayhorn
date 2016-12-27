@@ -26,7 +26,11 @@ class PrincessFun implements ProverFun {
 
 	public ProverExpr mkExpr(ProverExpr[] args) {
             ProverExpr[] flatArgs = ProverTupleExpr.flatten(args);
-            
+    		for (ProverExpr exp: flatArgs){
+    			System.err.println(exp);
+			System.out.println(exp.getType());
+		    }
+    		System.out.println("---TEME------");
             final ArrayBuffer<ITerm> argsBuf = new ArrayBuffer<ITerm>();
             for (int i = 0; i < flatArgs.length; ++i) {
                 ITerm termArg;

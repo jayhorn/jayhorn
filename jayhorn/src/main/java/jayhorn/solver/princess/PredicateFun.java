@@ -18,7 +18,10 @@ class PredicateFun implements ProverFun {
 
 	public ProverExpr mkExpr(ProverExpr[] args) {
             ProverExpr[] flatArgs = ProverTupleExpr.flatten(args);
-            
+            for (ProverExpr exp: flatArgs){
+    			System.err.println("\t"  + exp  + " : " +  exp.getType());
+    		}
+    		System.err.println("----------");
             final ArrayBuffer<ITerm> argsBuf = new ArrayBuffer<ITerm>();
             for (int i = 0; i < flatArgs.length; ++i) {
                 argsBuf.$plus$eq(((PrincessProverExpr)flatArgs[i]).toTerm());

@@ -494,6 +494,7 @@ public class StatementEncoder {
 	 */
 	public List<ProverHornClause> pushToClause(PushStatement ps, HornPredicate postPred, ProverExpr preAtom,
 			Map<Variable, ProverExpr> varMap, Method m) {
+		System.err.println("Push Statement " + ps.toString());
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 		final ClassVariable sig = ps.getClassSignature();
 		Verify.verify(sig.getAssociatedFields().length == ps.getRight().size(),
@@ -542,8 +543,8 @@ public class StatementEncoder {
 
 			varMap.put(invariant.variables.get(i), right);
 			
-//			System.out.println("invariantArgs = " + invariantArgs.get(i));
-//			System.err.println(invariant.variables.get(i)+ " = "+varMap.get(invariant.variables.get(i)));
+		//	System.out.println("invariantArgs = " + invariantArgs.get(i));
+			//System.err.println(invariant.variables.get(i)+ " = "+varMap.get(invariant.variables.get(i)));
 		}
 		final ProverExpr invAtom = invariant.instPredicate(varMap);
 		clauses.add(p.mkHornClause(invAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));

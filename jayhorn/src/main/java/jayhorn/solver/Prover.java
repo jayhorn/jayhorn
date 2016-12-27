@@ -20,7 +20,7 @@ public interface Prover {
 
 	ProverType getArrayType(ProverType[] argTypes, ProverType resType);
 
-        ProverType getTupleType(ProverType[] subTypes);
+    ProverType getTupleType(ProverType[] subTypes);
 
 	// Variables
 	ProverExpr mkBoundVariable(int deBruijnIndex, ProverType type);

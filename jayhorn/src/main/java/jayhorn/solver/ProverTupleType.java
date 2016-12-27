@@ -52,14 +52,14 @@ public class ProverTupleType implements ProverType {
     @Override
     public String toString() {
         StringBuffer res = new StringBuffer();
-        res.append("[");
-        String sep = "";
+        res.append("[ ");
+        String sep = " ";
         for (int i = 0; i < getArity(); ++i) {
             res.append(getSubType(i));
             res.append(sep);
-            sep = ", ";
+            sep = " , ";
         }
-        res.append("]");
+        res.append(" ]");
         return res.toString();
     }
 
