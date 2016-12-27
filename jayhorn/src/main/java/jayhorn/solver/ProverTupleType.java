@@ -60,6 +60,7 @@ public class ProverTupleType implements ProverType {
             sep = " , ";
         }
         res.append(" ]");
+
         return res.toString();
     }
 

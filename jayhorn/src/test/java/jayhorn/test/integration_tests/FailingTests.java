@@ -83,16 +83,22 @@ public class FailingTests {
 		try {			
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
-			soottocfg.Options.v().setMemPrecision(3);
-			soottocfg.Options.v().setExcAsAssert(false);
+
+//			soottocfg.Options.v().setMemPrecision(0);
+//			soottocfg.Options.v().setExcAsAssert(false);
+
 			soottocfg.Options.v().setPrintCFG(true);
+//			soottocfg.Options.v().setArrayInv(true);
+//			soottocfg.Options.v().setExactArrayElements(0);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			Program program = soot2cfg.getProgram();
 			
-			jayhorn.Options.v().setTimeout(5);
-			jayhorn.Options.v().setPrintHorn(true);
-//	  		EldaricaChecker hornChecker = new EldaricaChecker(factory);
-			SpacerChecker hornChecker = new SpacerChecker(factory);
+
+			jayhorn.Options.v().setTimeout(30);
+			jayhorn.Options.v().setPrintHorn(false);	
+//			jayhorn.Options.v().setOut("/tmp/SatArrayInit");
+	  		EldaricaChecker hornChecker = new EldaricaChecker(factory);
+
 	  		boolean result = hornChecker.checkProgram(program);
 	  		
 			boolean expected = this.sourceFile.getName().startsWith("Sat");

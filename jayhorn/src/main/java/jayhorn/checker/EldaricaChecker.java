@@ -32,7 +32,6 @@ import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 
-
 /**
  * @author teme
  */

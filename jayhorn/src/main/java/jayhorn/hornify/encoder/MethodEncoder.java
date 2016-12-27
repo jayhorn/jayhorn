@@ -65,6 +65,7 @@ public class MethodEncoder {
 		makeEntryPredicate();
 		blocksToHorn(liveVariables);
 		S2H.sh().addClause((Statement)null, tsClauses);
+
 		return clauses;
 	}
 	
@@ -247,12 +248,12 @@ public class MethodEncoder {
 			final List<Variable> interVarList = HornHelper.hh().setToSortedList(liveAfter.get(s));
 			final HornPredicate postPred = freshHornPredicate(postName, interVarList);
 			this.clauses.addAll(senc.statementToClause(s, prePred, postPred, this.method));
+
 			prePred = postPred;
 		}
 
 		return prePred;
 	}
-
 	
 	/**
 	 * Compute for each statement the set of variables

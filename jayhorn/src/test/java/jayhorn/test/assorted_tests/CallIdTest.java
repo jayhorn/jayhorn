@@ -17,8 +17,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
 import jayhorn.checker.EldaricaChecker;
+
 
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
@@ -115,6 +115,7 @@ public class CallIdTest {
 			Program program = soot2cfg.getProgram();			
 
 	  		EldaricaChecker hornChecker = new EldaricaChecker(factory);
+
 
 	  		boolean result = hornChecker.checkProgram(program);
 	  		

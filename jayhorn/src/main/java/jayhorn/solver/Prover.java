@@ -22,6 +22,7 @@ public interface Prover {
 
     ProverType getTupleType(ProverType[] subTypes);
 
+
 	// Variables
 	ProverExpr mkBoundVariable(int deBruijnIndex, ProverType type);
 

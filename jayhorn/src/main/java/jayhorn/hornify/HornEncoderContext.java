@@ -138,23 +138,15 @@ public class HornEncoderContext {
 				args.add(new Variable(entry.getKey(), entry.getValue()));
 			}
 			
-			if (soottocfg.Options.v().arrayInv() && sig.getName().contains(ArrayTransformer.arrayTypeName)) {
+			if (soottocfg.Options.v().arrayInv() && 
+					(sig.getName().contains(ArrayTransformer.arrayTypeName))) {
 				args.add(new Variable("array_index", IntType.instance()));
 			}
 			
-//			if (soottocfg.Options.v().arrayInv() && sig.getName().contains(ArrayTransformer.arrayTypeName)) {
-				// add variables for the array invariants
-//				args.add(new Variable("array_length", IntType.instance()));
-//				args.add(new Variable("array_index", IntType.instance()));
-//				// assumes element type is in field 1
-//				Type elemType = sig.getAssociatedFields()[1].getType();
-//				args.add(new Variable("array_element", elemType));
-//			} else {
-				for (Variable v : sig.getAssociatedFields()) {
-					args.add(v);
-				}
-//			}
-
+			for (Variable v : sig.getAssociatedFields()) {
+				args.add(v);
+			}
+				
             String name = "inv_" + sig.getName();
             if (pushId >= 0)
             	name = name + "_" + pushId;

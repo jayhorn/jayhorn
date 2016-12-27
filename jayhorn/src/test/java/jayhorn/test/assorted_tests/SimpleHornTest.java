@@ -90,7 +90,7 @@ public class SimpleHornTest {
 
 //			soottocfg.Options.v().setInlineCount(1);
 //			soottocfg.Options.v().setInlineMaxSize(10);
-//			soottocfg.Options.v().setArrayInv(true);
+			soottocfg.Options.v().setArrayInv(true);
 			soottocfg.Options.v().setExactArrayElements(0);
 
 			soot2cfg.run(classDir.getAbsolutePath(), null);
@@ -98,6 +98,7 @@ public class SimpleHornTest {
 
 			jayhorn.Options.v().setTimeout(300);
 			jayhorn.Options.v().setPrintHorn(true);
+
 			Program program = soot2cfg.getProgram();
 			
 				EldaricaChecker eldarica = new EldaricaChecker(factory);

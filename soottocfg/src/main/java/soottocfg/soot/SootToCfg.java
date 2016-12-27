@@ -113,11 +113,7 @@ public class SootToCfg {
 		final SootMethod mainMethod = Scene.v().getMainMethod();		
 		performBehaviorPreservingTransformations();
 		performAbstractionTransformations();
-//		Variable exceptionGlobal = this.program
-//				.lookupGlobalVariable(SootTranslationHelpers.v().getExceptionGlobal().getName(), SootTranslationHelpers
-//						.v().getMemoryModel().lookupType(SootTranslationHelpers.v().getExceptionGlobal().getType()));
-//		program.setExceptionGlobal(exceptionGlobal);
-
+		
 		constructCfg();
 
 		// now set the entry points.
@@ -360,9 +356,12 @@ public class SootToCfg {
 					Value base = ((InstanceFieldRef) vb.getValue()).getBase();
 					soot.Type baseType = base.getType();
 					if (baseType instanceof RefType && ((RefType) baseType).getSootClass().equals(containingClass)) {
-						// remove the fields that are initialized anyways from
+						// remove the final fields that are initialized anyways from
 						// our staticFields set.
-						instanceFields.remove(((InstanceFieldRef) vb.getValue()).getField());
+						SootField f = ((InstanceFieldRef) vb.getValue()).getField();
+						if (f.isFinal()) {
+							instanceFields.remove(f);
+						}
 					}
 				}
 			}

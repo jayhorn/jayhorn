@@ -50,6 +50,7 @@ import soot.jimple.InvokeExpr;
 import soot.jimple.InvokeStmt;
 import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
+import soot.jimple.LengthExpr;
 import soot.jimple.NullConstant;
 import soot.jimple.Ref;
 import soot.jimple.ReturnStmt;
@@ -912,6 +913,9 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 			collectPossibleExceptions(u, e.getOp());
 		} else if (v instanceof Ref) {
 			refMayThrowException(u, (Ref) v);
+		} else if (v instanceof LengthExpr) {
+			LengthExpr le = (LengthExpr)v;
+			registerRuntimeException(u, le.getOp(), nullPointerExceptionClass);			
 		} else if (v instanceof AnyNewExpr || v instanceof Immediate) {
 			// ignore
 		} else {
@@ -933,7 +937,9 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 			ArrayRef e = (ArrayRef) r;
 			collectPossibleExceptions(u, e.getBase());
 			collectPossibleExceptions(u, e.getIndex());
+			registerRuntimeException(u, e.getBase(), nullPointerExceptionClass);
 			registerRuntimeException(u, e, arrayIndexOutOfBoundsExceptionClass);
+			
 		} else if (r instanceof IdentityRef || r instanceof StaticFieldRef) {
 			// do nothing.
 		}

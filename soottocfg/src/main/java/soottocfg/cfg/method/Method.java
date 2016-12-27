@@ -39,6 +39,7 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.util.SootTranslationHelpers;
 import soottocfg.util.SetOperations;
 
@@ -507,5 +508,32 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 			sinkBF.put(b, toSink);
 		}
 		return (int) toSink.getCost(getSink());
+	}
+	
+	/**
+	 * TODO need better way to check all this...
+	 */
+	
+	public boolean isArraySet() {
+		return 	thisVariable != null &&
+				thisVariable.getType().toString().contains(ArrayTransformer.arrayTypeName) &&
+				this.methodName.contains(ArrayTransformer.arraySetName);
+	}
+	
+	public boolean isArrayGet() {
+		return 	thisVariable != null &&
+				thisVariable.getType().toString().contains(ArrayTransformer.arrayTypeName) &&
+				this.methodName.contains(ArrayTransformer.arrayGetName);
+	}
+	
+	public boolean isArrayConstructor() {
+		return 	thisVariable != null &&
+				thisVariable.getType().toString().contains(ArrayTransformer.arrayTypeName) &&
+				this.isConstructor();
+	}
+	
+	public boolean isArrayMethod() {
+		return 	thisVariable != null &&
+				thisVariable.getType().toString().contains(ArrayTransformer.arrayTypeName);
 	}
 }

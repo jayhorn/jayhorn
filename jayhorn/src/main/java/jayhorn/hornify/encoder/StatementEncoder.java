@@ -19,16 +19,11 @@ import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 
-import jayhorn.solver.ProverType;
-
-import soottocfg.cfg.expression.BinaryExpression;
-
-import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.literal.IntegerLiteral;
-
 import jayhorn.solver.ProverTupleExpr;
 import jayhorn.solver.ProverTupleType;
+import jayhorn.solver.ProverType;
+import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.literal.NullLiteral;
 
 import soottocfg.cfg.method.Method;
@@ -45,6 +40,7 @@ import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.soot.transformers.ArrayTransformer;
 
 import soottocfg.soot.transformers.ArrayTransformer;
 
@@ -56,9 +52,12 @@ public class StatementEncoder {
 	private final ExpressionEncoder expEncoder;
 	private final HornEncoderContext hornContext;
 
-
 	public final static String LP = "_lastpush";
 	private int nextLP = 0;
+
+	public final static String AI = "_ai";
+	private int nextAI = 0;
+	
 
 	public StatementEncoder(Prover p, ExpressionEncoder expEnc) {
 		this.p = p;
@@ -138,7 +137,6 @@ public class StatementEncoder {
 		throw new RuntimeException("Statement type " + s + " not implemented!");
 	}
 
-	
 	/**
 	 * for "assert(cond)"
 	 * create two Horn clauses
@@ -210,7 +208,16 @@ public class StatementEncoder {
 			}
 			ProverTupleType pttLeft = (ProverTupleType) HornHelper.hh().getProverType(p, idLhs.getType());
 			if (pttLeft.getArity() > ((ProverTupleExpr) right).getArity()) {
-				throw new RuntimeException("Oops, not implemented");
+				ProverTupleExpr pteR = ((ProverTupleExpr) right);
+				ProverExpr[] expandedRightTuple = new ProverExpr[pttLeft.getArity()];
+				for (int i=0; i<pttLeft.getArity(); i++) {
+					if (i<pteR.getArity()) {
+						expandedRightTuple[i] = pteR.getSubExpr(i);
+					} else {
+						expandedRightTuple[i] = p.mkVariable("$dummy"+i, pttLeft.getSubType(i));
+					}
+				}
+				right = new ProverTupleExpr(expandedRightTuple);
 			} else if (pttLeft.getArity() > ((ProverTupleExpr) right).getArity()) {
 				throw new RuntimeException("Oops, not implemented");
 			}
@@ -223,7 +230,7 @@ public class StatementEncoder {
 
 		return clauses;
 	}
-
+	
 	public List<ProverHornClause> newToClause(NewStatement ns, HornPredicate postPred, ProverExpr preAtom,
 			Map<Variable, ProverExpr> varMap) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
@@ -302,7 +309,7 @@ public class StatementEncoder {
 
 		int cnt = 0;
 		for (Expression e : callArgs) {
-			final ProverExpr expr;
+			ProverExpr expr;
 			if (e instanceof NullLiteral) {
 				ReferenceType rt = (ReferenceType) inParams.get(cnt).getType();
 				ProverTupleType ptt = (ProverTupleType) HornHelper.hh().getProverType(p, rt);
@@ -310,6 +317,24 @@ public class StatementEncoder {
 			} else {
 				expr = expEncoder.exprToProverExpr(e, varMap);
 			}
+			
+			if (expr instanceof ProverTupleExpr) {
+				/* check if the number of elements match. If the arg type 
+				 * is a super type of the param type, we have to throw away
+				 * the surplus elements of the tuple.
+				 */
+				ProverTupleExpr pte = (ProverTupleExpr)expr;
+				ReferenceType rt = (ReferenceType) inParams.get(cnt).getType();
+				ProverTupleType ptt = (ProverTupleType) HornHelper.hh().getProverType(p, rt);				
+				if (pte.getArity()>ptt.getArity()) {
+					ProverExpr[] smallTuple = new ProverExpr[ptt.getArity()];
+					for (int i=0;i<ptt.getArity();i++) {
+						smallTuple[i] = pte.getSubExpr(i);
+					}
+					expr = new ProverTupleExpr(smallTuple);
+				}
+			}
+			
 			actualInParams[cnt] = expr;
 			actualPostParams[cnt] = expr;
 			++cnt;
@@ -368,6 +393,7 @@ public class StatementEncoder {
 
 		return clauses;
 	}
+	
 
 	/**
 	 * Translates a pull statement of the form:
@@ -438,12 +464,16 @@ public class StatementEncoder {
 		
 		// RK: add index variable for array classes
 		if (soottocfg.Options.v().arrayInv() 
-				&& pull.getObject().getType().toString().contains(ArrayTransformer.arrayTypeName)
-				) {
-			System.out.println("Found pull in array get or set " + pull);
-			Variable arIndex = m.getInParam(1);
-			Expression e = new IdentifierExpression(pull.getSourceLocation(), arIndex);
-			varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
+				&& pull.getObject().getType().toString().contains(ArrayTransformer.arrayTypeName)) {
+			if (m.isArrayMethod()) {
+				Variable arIndex = m.getInParam(1);
+				Expression e = new IdentifierExpression(pull.getSourceLocation(), arIndex);
+				varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
+			} else {
+				Variable arIndex = new Variable(AI + nextAI++, IntType.instance());
+				Expression e = new IdentifierExpression(pull.getSourceLocation(), arIndex);
+				varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
+			}
 		}
 
 		// introduce fresh prover variables for all
@@ -469,12 +499,14 @@ public class StatementEncoder {
 
 		// now we can instantiate the invariant.
 		final ProverExpr invAtom = invariant.instPredicate(varMap);
+//		System.err.println("Invariant for " + pull + ": " + invAtom);
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		final ProverHornClause clause = p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom },
 				p.mkLiteral(true));
 		clauses.add(clause);
 		return clauses;
 	}
+
 
 	/**
 	 * Works like an assert of the invariant of the type that is
@@ -494,7 +526,6 @@ public class StatementEncoder {
 	 */
 	public List<ProverHornClause> pushToClause(PushStatement ps, HornPredicate postPred, ProverExpr preAtom,
 			Map<Variable, ProverExpr> varMap, Method m) {
-		System.err.println("Push Statement " + ps.toString());
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 		final ClassVariable sig = ps.getClassSignature();
 		Verify.verify(sig.getAssociatedFields().length == ps.getRight().size(),
@@ -517,12 +548,27 @@ public class StatementEncoder {
 		}
 		
 		// Rody: add index variable for array classes
-		if (soottocfg.Options.v().arrayInv() 
-				&& ps.getObject().getType().toString().contains(ArrayTransformer.arrayTypeName)) {
-			System.out.println("Found push in array get or set " + ps);
-			Variable arIndex = m.getInParam(1);
-			Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
-			invariantArgs.add(e);
+		if (soottocfg.Options.v().arrayInv()) {
+			if (m.isArrayMethod()) {
+				if (m.isArrayGet() || m.isArraySet()) {
+					Variable arIndex = m.getInParam(1);
+	//				System.out.println("Vars: " + m.getInParams());
+					Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
+					invariantArgs.add(e);
+				} else {
+					Verify.verify(m.isArrayConstructor(),
+							"JayArray class should only contain get, set and constructor, but contains "
+									+ m.getMethodName());
+					Variable arIndex = new Variable(AI + nextAI++, IntType.instance());
+					Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
+					invariantArgs.add(e);
+				}
+			} else if (ps.getObject().getType().toString().contains(ArrayTransformer.arrayTypeName)) {
+	//			System.out.println("Found array push outside array class: " + ps);
+				Variable arIndex = new Variable(AI + nextAI++, IntType.instance());
+				Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
+				invariantArgs.add(e);
+			}
 		}
 
 		invariantArgs.addAll(ps.getRight());
@@ -543,15 +589,17 @@ public class StatementEncoder {
 
 			varMap.put(invariant.variables.get(i), right);
 			
-		//	System.out.println("invariantArgs = " + invariantArgs.get(i));
-			//System.err.println(invariant.variables.get(i)+ " = "+varMap.get(invariant.variables.get(i)));
+//			System.out.println("invariantArgs = " + invariantArgs.get(i));
+//			System.out.println(invariant.variables.get(i)+ " = "+varMap.get(invariant.variables.get(i)) + "\n");
 		}
 		final ProverExpr invAtom = invariant.instPredicate(varMap);
 		clauses.add(p.mkHornClause(invAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
+		
+//		System.err.println("Invariant for " + ps + ": " + invAtom);
 
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 		return clauses;
 	}
-
 }
+

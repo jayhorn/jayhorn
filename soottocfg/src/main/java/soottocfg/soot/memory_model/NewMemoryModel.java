@@ -5,10 +5,12 @@ package soottocfg.soot.memory_model;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.base.Verify;
 
@@ -144,11 +146,12 @@ public class NewMemoryModel extends BasicMemoryModel {
 				// not contain an write to 'this'
 				List<Unit> tails = graph.getTails();
 				List<Unit> todo = new LinkedList<Unit>();
+				Set<Unit> done = new HashSet<Unit>();
 				todo.add(u);
 				boolean foundPathWithoutAccess = false;
 				while (!todo.isEmpty()) {
 					Unit unit = todo.remove(0);
-
+					done.add(unit);
 					// if it contains another write to 'this', stop exploring
 					// this path
 					Stmt s = (Stmt) unit;
@@ -177,7 +180,12 @@ public class NewMemoryModel extends BasicMemoryModel {
 															// path
 						}
 					} else {
-						todo.addAll(graph.getSuccsOf(unit));
+						for (Unit next : graph.getSuccsOf(unit)) {
+							if (!todo.contains(next) && !done.contains(next)) {
+								todo.add(next);
+							}
+						}
+//						todo.addAll(graph.getSuccsOf(unit));
 					}
 				}
 				return foundPathWithoutAccess;
@@ -327,6 +335,21 @@ public class NewMemoryModel extends BasicMemoryModel {
 			throw new RuntimeException("not implemented");
 		}
 
+		SootField field = fieldRef.getField();
+		if (SootTranslationHelpers.v().isWrittenOnce(field)) {
+			if (!field.isStatic()) {
+				TupleAccessExpression tae = new TupleAccessExpression(loc, base.getVariable(), field.getName());
+				this.statementSwitch.push(new AssignStatement(loc, left, tae));
+				//New, needs testing!
+				/* We don't need to do this for writing these variables 
+				 * because we assume they are constant anyway.
+				 */
+				return;
+			} else {
+				//TODO:
+			}
+		}
+		
 		Variable fieldVar = lookupFieldLocal(fieldRef); // TODO
 		Verify.verify(fieldLocals.contains(fieldVar));
 
