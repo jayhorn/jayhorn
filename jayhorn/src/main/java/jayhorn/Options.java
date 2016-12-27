@@ -55,12 +55,13 @@ public class Options {
 		return checker;
 	}
 
-	@Option(name = "-solver", usage = "Select a solver [eldarica or z3]", required = false)
+	@Option(name = "-solver", usage = "Select a solver [eldarica or spacer]", required = false)
 	private String solver = "eldarica";
 
 	public String getSolver() {
 		return solver;
 	}
+	
 
 	@Option(name = "-solverOptions", usage = "Options for the solver [eldarica: abstract, debug]", required = false)
 	private String solverOptions = "";
@@ -86,7 +87,7 @@ public class Options {
 	// /**
 	// * Print Horn clauses
 	// */
-	@Option(name = "-h", usage = "Print horn clauses", required = false)
+	@Option(name = "-print-horn", usage = "Print horn clauses", required = false)
 	private boolean printHorn = false;
 
 	public boolean getPrintHorn() {
@@ -97,9 +98,10 @@ public class Options {
 		this.printHorn = b;
 	}
 	
-	// /**
-	// * Print CFG
-	// */
+	@Option(name = "-verbose", usage = "Bla bla bla", required = false)
+	public boolean verbose = false;
+	
+	
 	@Option(name = "-cfg", usage = "Print CFG", required = false)
 	public boolean printCFG = false;
 
@@ -111,12 +113,16 @@ public class Options {
 	@Option(name = "-stats", usage = "Generate Stats", required = false)
 	public boolean stats = false;
 	
+	@Option(name = "-cex", usage = "Show CEX", required = false)
+	public boolean cex = false;
+	
 	@Option(name = "-solution", usage = "Output full solution or counter-example", required = false)
 	public boolean solution = false;
-
 	
 	@Option(name = "-cid", usage = "Insert call IDs variables to track calling context into pull and push statements", required = false)
 	public boolean useCallIDs = false;
+
+	
 
 	
 	/*
@@ -130,6 +136,7 @@ public class Options {
 	 */
 	@Option(name = "-disable-array-inv", usage = "Disable array invariants", required = false)
 	private boolean disableArrayInv = false;
+
 	
 	/*
 	 * Exact array elements
@@ -235,6 +242,18 @@ public class Options {
 //	@Option(name = "-callid", usage = "Pass id of caller statement as argument to method")
 //	private boolean passCallerID = soottocfg.Options.v().passCallerIdIntoMethods();
 	
+	
+	/*
+	 * Check Heap Limit 
+	 */
+	@Option(name = "-heap-limit", usage = "Max Heap allocation", required = false)
+	private int heapLimit = -1;
+	
+	public int getHeapLimit(){
+		return heapLimit;
+	}
+	
+
 	
 	/**
 	 * Determines, whether Joogie has an additional classpath

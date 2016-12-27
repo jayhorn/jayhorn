@@ -27,7 +27,7 @@ public class HornHelper {
 	public static final int NullValue = 0;
 	
 	private static HornHelper hh;
-
+	
 	public static void resetInstance() {
 		hh = null;
 	}

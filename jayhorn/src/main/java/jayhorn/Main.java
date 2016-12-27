@@ -3,16 +3,23 @@ package jayhorn;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
 import com.google.common.base.Stopwatch;
 
-import jayhorn.checker.Checker;
+import jayhorn.checker.EldaricaChecker;
+import jayhorn.checker.SpacerChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
-import jayhorn.solver.z3.Z3ProverFactory;
+
+import jayhorn.solver.spacer.SpacerProverFactory;
+
 import jayhorn.utils.Stats;
+
 import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
 import soottocfg.soot.SootToCfg.MemModel;
@@ -53,21 +60,26 @@ public class Main {
   	    Stats.stats().add("SootToCFG", String.valueOf(sootTocfgTimer.stop()));
   		
   		Log.info("Safety Verification ... ");
-  		Checker hornChecker = new Checker(factory);
-  		
-  		boolean result = hornChecker.checkProgram(program);
-  		
+
+  		boolean result;
+  		if ("spacer".equals(Options.v().getSolver())){
+  			SpacerChecker spacer = new SpacerChecker(factory);
+  			result = spacer.checkProgram(program);
+  		} else{
+  			EldaricaChecker eldarica = new EldaricaChecker(factory);
+  			result = eldarica.checkProgram(program);
+  		}
+  	
   		String prettyResult = parseResult(Options.v().getSolver(), result);
   		
-  		Stats.stats().add("Result", prettyResult);
+  		Stats.stats().add("FinalResult", prettyResult);
   		
   		Log.info("Safety Result ... " + prettyResult);
 		if (Options.v().stats){ Stats.stats().printStats(); }
       }
     
 	public static void main(String[] args) {
-		Log.info("\t\t ---   JAYHORN : Static Analayzer for Java Programs ---- ");
-
+		
 		Options options = Options.v();
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
@@ -75,17 +87,22 @@ public class Main {
 			parser.parseArgument(args);
 			options.updateSootToCfgOptions();
 			ProverFactory factory = null;
-			if ("z3".equals(Options.v().getSolver())) {
-				factory = new Z3ProverFactory();
+			if ("spacer".equals(Options.v().getSolver())) {
+				factory = new SpacerProverFactory();
 			} else if ("eldarica".equals(Options.v().getSolver())) {
 				factory = new PrincessProverFactory();
 			} else {
 				throw new RuntimeException("Don't know solver " + Options.v().getSolver() + ". Using Eldarica instead.");
 			}
+
+			if (Options.v().verbose) Log.v().setLevel(Level.INFO);
+			
+			Log.info("\t\t ---   JAYHORN : Static Analayzer for Java Programs ---- ");
+			Log.info("\t Verification : " + Options.v().getChecker());
+			Log.info("\t Solver : " + Options.v().getSolver());
 			
 			if ("safety".equals(Options.v().getChecker())) {			
 				safetyAnalysis(factory);
-				
 			} else {
 				Log.error(String.format("Checker %s is unknown", Options.v().getChecker()) );
 			}
@@ -104,7 +121,6 @@ public class Main {
 			Options.resetInstance();
 			soot.G.reset();
 		}
-
 	}
 	
 }

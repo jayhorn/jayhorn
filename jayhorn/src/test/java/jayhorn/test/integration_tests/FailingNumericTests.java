@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import jayhorn.checker.Checker;
+import jayhorn.checker.EldaricaChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.test.Util;
@@ -81,7 +81,7 @@ public class FailingNumericTests {
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			jayhorn.Options.v().setTimeout(5);
 			jayhorn.Options.v().setPrintHorn(true);
-			Checker checker = new Checker(factory);
+			EldaricaChecker checker = new EldaricaChecker(factory);
 			boolean result = checker.checkProgram(soot2cfg.getProgram());
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);

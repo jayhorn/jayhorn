@@ -18,13 +18,14 @@ import jayhorn.hornify.MethodContract;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverHornClause;
+//import soottocfg.Options;
 import soottocfg.cfg.LiveVars;
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.variable.Variable;
-
 public class MethodEncoder {
 
 	private final Method method;
@@ -34,13 +35,13 @@ public class MethodEncoder {
 
 	private final Map<CfgBlock, HornPredicate> blockPredicates = new LinkedHashMap<CfgBlock, HornPredicate>();
 	private final List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
-
+	private final List<ProverHornClause> tsClauses = new LinkedList<ProverHornClause>(); // keep track of 
 	private final ExpressionEncoder expEnc;
 
 	public MethodEncoder(Prover p, Method method, HornEncoderContext hornContext) {
 		this.p = p;
 		this.method = method;
-
+		
 		MethodContract mc = hornContext.getMethodContract(method);
 		this.precondition = mc.precondition;
 		this.postcondition = mc.postcondition;		
@@ -63,7 +64,8 @@ public class MethodEncoder {
 
 		makeEntryPredicate();
 		blocksToHorn(liveVariables);
-		
+		S2H.sh().addClause((Statement)null, tsClauses);
+
 		return clauses;
 	}
 	
@@ -77,7 +79,10 @@ public class MethodEncoder {
 		final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
 		final ProverExpr entryAtom = precondition.instPredicate(varMap);
 		final ProverExpr exitAtom = postcondition.instPredicate(varMap);
-		clauses.add(p.mkHornClause(exitAtom, new ProverExpr[] { entryAtom }, p.mkLiteral(true)));	
+		final ProverHornClause clause = p.mkHornClause(exitAtom, new ProverExpr[] { entryAtom }, p.mkLiteral(true));
+		tsClauses.add(clause);
+		S2H.sh().addClause((Statement)null, tsClauses);
+		clauses.add(clause);	
 	}
 	
 	/**
@@ -92,7 +97,10 @@ public class MethodEncoder {
 		Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
 		final ProverExpr preAtom = precondition.instPredicate(varMap);		
 		final ProverExpr entryAtom = blockPredicates.get(method.getSource()).instPredicate(varMap);
-		clauses.add(p.mkHornClause(entryAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
+		final ProverHornClause clause = p.mkHornClause(entryAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true));
+		tsClauses.add(clause);
+		S2H.sh().addClause((Statement)null, tsClauses);
+		clauses.add(clause);
 	}
 	
 	/**
@@ -181,8 +189,11 @@ public class MethodEncoder {
 			if (method.outgoingEdgesOf(current).isEmpty()) {
 				// block ends with a return
 				final ProverExpr postAtom =  postcondition.instPredicate(varMap);
-				final ProverExpr exitAtom = exitPred.instPredicate(varMap);				
-				clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { exitAtom }, p.mkLiteral(true)));
+				final ProverExpr exitAtom = exitPred.instPredicate(varMap);
+				ProverHornClause clause = p.mkHornClause(postAtom, new ProverExpr[] { exitAtom }, p.mkLiteral(true));
+				tsClauses.add(clause);
+				S2H.sh().addClause((Statement)null, tsClauses);
+				clauses.add(clause);
 			} else {
 				// link to the successor blocks
 				final ProverExpr exitAtom = exitPred.instPredicate(varMap);						
@@ -198,7 +209,10 @@ public class MethodEncoder {
 						exitCondExpr = p.mkLiteral(true);
 					}
 					final ProverExpr succAtom = blockPredicates.get(succ).instPredicate(varMap); 
-					clauses.add(p.mkHornClause(succAtom, new ProverExpr[] { exitAtom }, exitCondExpr));
+					ProverHornClause clause = p.mkHornClause(succAtom, new ProverExpr[] { exitAtom }, exitCondExpr);
+					tsClauses.add(clause);
+					S2H.sh().addClause((Statement)null, tsClauses);
+					clauses.add(clause);
 				}
 			}
 		}	
@@ -240,7 +254,7 @@ public class MethodEncoder {
 
 		return prePred;
 	}
-
+	
 	/**
 	 * Compute for each statement the set of variables
 	 * that are live after the statement.

@@ -15,9 +15,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import jayhorn.checker.Checker;
+import jayhorn.checker.EldaricaChecker;
+import jayhorn.checker.SpacerChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
+import jayhorn.solver.spacer.SpacerProverFactory;
 import jayhorn.test.Util;
 import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
@@ -66,8 +68,8 @@ public class FailingTests {
 	}
 
 	@Test
-	public void testWithPrincess() {
-		verifyAssertions(new PrincessProverFactory());
+	public void testWithSpacer() {
+		verifyAssertions(new SpacerProverFactory());
 	}
 
 //	@Test
@@ -81,18 +83,22 @@ public class FailingTests {
 		try {			
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
+
 //			soottocfg.Options.v().setMemPrecision(0);
 //			soottocfg.Options.v().setExcAsAssert(false);
+
 			soottocfg.Options.v().setPrintCFG(true);
 //			soottocfg.Options.v().setArrayInv(true);
 //			soottocfg.Options.v().setExactArrayElements(0);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			Program program = soot2cfg.getProgram();
 			
+
 			jayhorn.Options.v().setTimeout(30);
 			jayhorn.Options.v().setPrintHorn(false);	
 //			jayhorn.Options.v().setOut("/tmp/SatArrayInit");
-	  		Checker hornChecker = new Checker(factory);
+	  		EldaricaChecker hornChecker = new EldaricaChecker(factory);
+
 	  		boolean result = hornChecker.checkProgram(program);
 	  		
 			boolean expected = this.sourceFile.getName().startsWith("Sat");

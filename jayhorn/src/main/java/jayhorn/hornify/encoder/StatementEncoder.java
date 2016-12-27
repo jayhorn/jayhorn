@@ -9,19 +9,23 @@ import java.util.Set;
 
 import com.google.common.base.Verify;
 
+import jayhorn.Options;
 import jayhorn.hornify.HornEncoderContext;
 import jayhorn.hornify.HornHelper;
 import jayhorn.hornify.HornPredicate;
 import jayhorn.hornify.MethodContract;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
+import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
+
 import jayhorn.solver.ProverTupleExpr;
 import jayhorn.solver.ProverTupleType;
 import jayhorn.solver.ProverType;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.literal.NullLiteral;
+
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
@@ -38,6 +42,8 @@ import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.transformers.ArrayTransformer;
 
+
+
 public class StatementEncoder {
 
 	private final Prover p;
@@ -50,7 +56,7 @@ public class StatementEncoder {
 
 	public final static String AI = "_ai";
 	private int nextAI = 0;
-	
+
 	public StatementEncoder(Prover p, ExpressionEncoder expEnc) {
 		this.p = p;
 		this.expEncoder = expEnc;
@@ -94,21 +100,36 @@ public class StatementEncoder {
 		HornHelper.hh().findOrCreateProverVar(p, prePred.variables, varMap);
 		final ProverExpr preAtom = prePred.instPredicate(varMap);
 		HornHelper.hh().findOrCreateProverVar(p, postPred.variables, varMap);
-
+		
 		if (s instanceof AssertStatement) {
-			return assertToClause((AssertStatement) s, postPred, preAtom, varMap);
+			List<ProverHornClause> clause = assertToClause((AssertStatement) s, postPred, preAtom, varMap);
+			//System.out.println("Assert " + clause);
+			S2H.sh().addClause(s, clause);
+			return clause;
 		} else if (s instanceof AssumeStatement) {
-			return assumeToClause((AssumeStatement) s, postPred, preAtom, varMap);
+			List<ProverHornClause> clause = assumeToClause((AssumeStatement) s, postPred, preAtom, varMap);
+			S2H.sh().addClause(s, clause);
+			return clause;
 		} else if (s instanceof AssignStatement) {
-			return assignToClause((AssignStatement) s, postPred, preAtom, varMap);
+			List<ProverHornClause> clause = assignToClause((AssignStatement) s, postPred, preAtom, varMap);
+			S2H.sh().addClause(s, clause);
+			return clause;
 		} else if (s instanceof NewStatement) {
-			return newToClause((NewStatement) s, postPred, preAtom, varMap);
+			List<ProverHornClause> clause = newToClause((NewStatement) s, postPred, preAtom, varMap);
+			S2H.sh().addClause(s, clause);
+			return clause;
 		} else if (s instanceof CallStatement) {
-			return callToClause((CallStatement) s, postPred, preAtom, varMap);
+			List<ProverHornClause> clause = callToClause((CallStatement) s, postPred, preAtom, varMap);
+			S2H.sh().addClause(s, clause);
+			return clause;
 		} else if (s instanceof PullStatement) {
-			return pullToClause((PullStatement) s, postPred, preAtom, varMap, m);
+				List<ProverHornClause> clause = pullToClause((PullStatement) s, postPred, preAtom, varMap, m);
+				S2H.sh().addClause(s, clause);
+				return  clause;
 		} else if (s instanceof PushStatement) {
-			return pushToClause((PushStatement) s, postPred, preAtom, varMap, m);
+			List<ProverHornClause> clause = pushToClause((PushStatement) s, postPred, preAtom, varMap, m);
+			S2H.sh().addClause(s, clause);
+			return clause;
 		}
 
 		throw new RuntimeException("Statement type " + s + " not implemented!");
@@ -130,13 +151,23 @@ public class StatementEncoder {
 	public List<ProverHornClause> assertToClause(AssertStatement as, HornPredicate postPred, ProverExpr preAtom,
 			Map<Variable, ProverExpr> varMap) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
-		final ProverExpr cond = expEncoder.exprToProverExpr(as.getExpression(), varMap);
-		clauses.add(p.mkHornClause(p.mkLiteral(false), new ProverExpr[] { preAtom }, p.mkNot(cond)));
+		final ProverExpr cond = expEncoder.exprToProverExpr(as.getExpression(), varMap); 
+
+		final ProverExpr errorState; // For now depending on the solver we use false or a predicate
+		String tag = "ErrorState@line" + as.getJavaSourceLine();
+		final ProverFun errorPredicate = p.mkHornPredicate(tag, new ProverType[] {});
+	
+		if (p.solverName().equals("spacer")){
+			errorState = errorPredicate.mkExpr(new ProverExpr[]{});
+			S2H.sh().setErrorState(errorState, as.getJavaSourceLine());
+		}else{
+			errorState = p.mkLiteral(false);
+		}
+		clauses.add(p.mkHornClause(errorState, new ProverExpr[] { preAtom }, p.mkNot(cond)));
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 		return clauses;
 	}
-
 	/**
 	 * for "assume(cond)"
 	 * create Horn clause
@@ -198,6 +229,7 @@ public class StatementEncoder {
 		return clauses;
 	}
 
+	
 	public List<ProverHornClause> newToClause(NewStatement ns, HornPredicate postPred, ProverExpr preAtom,
 			Map<Variable, ProverExpr> varMap) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
@@ -361,6 +393,7 @@ public class StatementEncoder {
 		return clauses;
 	}
 
+
 	/**
 	 * Translates a pull statement of the form:
 	 * l1, l2, ..., ln = pull(obj)
@@ -383,6 +416,7 @@ public class StatementEncoder {
 	 */
 	public List<ProverHornClause> pullToClause(PullStatement pull, HornPredicate postPred, ProverExpr preAtom,
 			Map<Variable, ProverExpr> varMap, Method m) {
+
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
 		Set<PushStatement> affecting = pull.getAffectingPushes();
@@ -567,3 +601,4 @@ public class StatementEncoder {
 		return clauses;
 	}
 }
+

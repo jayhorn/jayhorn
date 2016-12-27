@@ -87,6 +87,10 @@ public class PrincessProver implements Prover {
 		api = SimpleAPI.spawnWithLog(basename);
 	}
 
+	public String solverName(){
+		return "eldarica";
+	}
+	
 	public ProverType getBooleanType() {
 		return BoolType.INSTANCE;
 	}
@@ -711,6 +715,8 @@ public class PrincessProver implements Prover {
 		return "Princess";
 	}
 
+	public void printRules(){}
+	
 	////////////////////////////////////////////////////////////////////////////
 	// Some functions for outputing SMT-LIB
 
@@ -733,5 +739,23 @@ public class PrincessProver implements Prover {
 		api.execSMTLIB(new StringReader(formula));	
 //		api.extractSMTLIBAssertionsSymbols(new StringReader(formula));
 		
+	}
+
+	@Override
+	public ProverResult query(ProverExpr relation) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void addRule(ProverExpr hornRule) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public ProverExpr getCex() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

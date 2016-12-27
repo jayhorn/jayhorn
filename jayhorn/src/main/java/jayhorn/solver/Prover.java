@@ -20,7 +20,8 @@ public interface Prover {
 
 	ProverType getArrayType(ProverType[] argTypes, ProverType resType);
 
-        ProverType getTupleType(ProverType[] subTypes);
+    ProverType getTupleType(ProverType[] subTypes);
+
 
 	// Variables
 	ProverExpr mkBoundVariable(int deBruijnIndex, ProverType type);
@@ -142,7 +143,12 @@ public interface Prover {
 	 * argument is true, otherwise return immediately.
 	 */
 	ProverResult getResult(boolean block);
-
+	
+	/**
+	 * Query the rechability of the relation
+	 */
+	ProverResult query(ProverExpr relation);
+	
         /**
          * Query result of the last <code>checkSat</code> or <code>nextModel</code>
 	 * call. Will block until a result is available, or until <code>timeout</code>
@@ -234,6 +240,16 @@ public interface Prover {
      */
     ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body,
                                   ProverExpr constraint);
+    
+    
+    void addRule(ProverExpr hornRule);
+    
+    
+    void printRules();
+    
+    String solverName();
+    
+    ProverExpr getCex();
 
     ////////////////////////////////////////////////////////////////////////////
     // Some functions for outputing SMT-LIB

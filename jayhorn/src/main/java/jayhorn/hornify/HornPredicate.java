@@ -64,6 +64,7 @@ public class HornPredicate {
 		}
 		
 		return predicate.mkExpr(exprs);
+
 		
 	}
 

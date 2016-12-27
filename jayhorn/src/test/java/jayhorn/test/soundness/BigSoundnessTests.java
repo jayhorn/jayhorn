@@ -15,9 +15,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import jayhorn.checker.Checker;
+import jayhorn.checker.EldaricaChecker;
+import jayhorn.checker.SpacerChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
+import jayhorn.solver.spacer.SpacerProverFactory;
 import jayhorn.test.Util;
 import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
@@ -85,7 +87,14 @@ public class BigSoundnessTests {
 	// public void testWithZ3() {
 	// verifyAssertions(new Z3ProverFactory());
 	// }
+	
+//	 @Test
+//	public void testWithSpacer() throws IOException {
+//		verifyAssertions(new SpacerProverFactory());
+//	 }
 
+
+					
 	protected void verifyAssertions(ProverFactory factory) throws IOException {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with " + factory.getClass() + "\n");
 		File classDir = null;
@@ -100,6 +109,7 @@ public class BigSoundnessTests {
 //			soottocfg.Options.v().setInlineMaxSize(20);
 //			soottocfg.Options.v().setArrayInv(true);
 //			soottocfg.Options.v().setExactArrayElements(0);
+
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			boolean result = false;
 			try {
@@ -109,9 +119,10 @@ public class BigSoundnessTests {
 				jayhorn.Options.v().setSolverOptions("abstract");
 
 				Program program = soot2cfg.getProgram();
-				Checker hornChecker = new Checker(factory);
+				EldaricaChecker hornChecker = new EldaricaChecker(factory);
 				result = hornChecker.checkProgram(program);
 
+				
 				if (expected == result) {
 					resultCorrect++;
 				} else if (expected == true) {
