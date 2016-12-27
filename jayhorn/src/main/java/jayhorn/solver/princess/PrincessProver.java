@@ -395,7 +395,7 @@ public class PrincessProver implements Prover {
                                                                                                                                     scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
                                                                                                                                     Options.v().getSolverOptions().contains("abstract"),
                                                                                                                                     Options.v().getSolverOptions().contains("debug"),
-                                                                                                                                    false);
+                                                                                                                                    Options.v().dotCEX);
                                     
                                     if (result.isLeft()) {
                                     	

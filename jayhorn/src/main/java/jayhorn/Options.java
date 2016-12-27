@@ -118,6 +118,9 @@ public class Options {
 	
 	@Option(name = "-solution", usage = "Output full solution or counter-example", required = false)
 	public boolean solution = false;
+
+	@Option(name = "-dotCEX", usage = "Output counter-examples in GraphViz format", required = false)
+	public boolean dotCEX = false;
 	
 	@Option(name = "-cid", usage = "Insert call IDs variables to track calling context into pull and push statements", required = false)
 	public boolean useCallIDs = false;

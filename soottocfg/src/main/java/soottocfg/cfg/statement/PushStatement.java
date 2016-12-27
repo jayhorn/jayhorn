@@ -133,7 +133,9 @@ public class PushStatement extends Statement {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("push(");
+		sb.append("push_");
+                sb.append(id);
+		sb.append("(");
 		sb.append(classConstant.getName());
 		sb.append(", ");
 		sb.append(object);

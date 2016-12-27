@@ -116,6 +116,14 @@ public class PullStatement extends Statement {
 			sb.append(e);
 		}
 		sb.append(")");
+		sb.append("[");
+		comma = "";
+		for (PushStatement push : canAffect) {
+			sb.append(comma);
+			sb.append(push.getID());
+			comma = ", ";
+		}
+		sb.append("]");
 		return sb.toString();
 	}
 
