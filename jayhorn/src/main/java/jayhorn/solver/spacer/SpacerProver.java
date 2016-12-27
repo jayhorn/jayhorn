@@ -98,7 +98,6 @@ public class SpacerProver implements Prover {
 			createSolver();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			System.out.println("Context: " + this.ctx.toString());
 			e.printStackTrace();
 		}		
 	}
@@ -270,8 +269,6 @@ public class SpacerProver implements Prover {
 		try{
 			ProverType[] flatType = ProverTupleType.flatten(argTypes);
 			Sort[] argSorts = new Sort[flatType.length];
-			System.out.println(name);
-			System.out.println("Original size: " + argTypes.length + " Flatten Size: " + flatType.length );
 			for (int i = 0; i < flatType.length; i++) {
 						argSorts[i] = unpack(flatType[i]);
 			}

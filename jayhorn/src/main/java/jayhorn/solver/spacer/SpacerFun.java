@@ -33,16 +33,11 @@ class SpacerFun implements ProverFun {
 	
 	public ProverExpr mkExpr(ProverExpr[] args) {
 		ProverExpr[] flatArgs = ProverTupleExpr.flatten(args);
-		for (ProverExpr exp: flatArgs){
-			System.err.println("\t"  + exp  + " : " +  exp.getType());
-		}
-		System.err.println("----------");
 		final Expr[] z3args = new Expr[flatArgs.length];
-
 		for (int i=0; i<flatArgs.length; i++) {
 			if (flatArgs[i] instanceof SpacerTermExpr) {
-				z3args[i]= ((SpacerTermExpr)flatArgs[i]).getExpr();
-			} else if (args[i] instanceof SpacerBoolExpr) {
+				z3args[i]= ((SpacerTermExpr)flatArgs[i]).getExpr();		
+			} else if (flatArgs[i] instanceof SpacerBoolExpr) {
 				z3args[i]= ((SpacerBoolExpr)flatArgs[i]).getExpr();	
 			}			
 		}
@@ -51,7 +46,7 @@ class SpacerFun implements ProverFun {
 			if (this.resType == BoolType.INSTANCE) {
 				return new SpacerBoolExpr((BoolExpr) ctx.mkApp(this.fun, z3args));
 			} else {
-				return new SpacerBoolExpr((BoolExpr) ctx.mkApp(this.fun, z3args));
+				return new SpacerTermExpr(ctx.mkApp(this.fun, z3args), this.resType);
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(e.getMessage());
