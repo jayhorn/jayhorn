@@ -4,8 +4,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
@@ -15,11 +13,8 @@ import jayhorn.checker.EldaricaChecker;
 import jayhorn.checker.SpacerChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
-
 import jayhorn.solver.spacer.SpacerProverFactory;
-
 import jayhorn.utils.Stats;
-
 import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
 import soottocfg.soot.SootToCfg.MemModel;

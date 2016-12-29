@@ -3,8 +3,6 @@ package jayhorn.solver;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.microsoft.z3.Expr;
-
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.solver.spacer.SpacerProver;
 

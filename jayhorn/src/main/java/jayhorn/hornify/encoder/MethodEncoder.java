@@ -7,7 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import java.util.Set;
 
 import jayhorn.Log;
@@ -20,7 +19,6 @@ import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverHornClause;
 //import soottocfg.Options;
 import soottocfg.cfg.LiveVars;
-import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;

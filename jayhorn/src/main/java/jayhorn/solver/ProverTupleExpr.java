@@ -1,9 +1,9 @@
 package jayhorn.solver;
 
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.Stack;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Stack;
 
 public class ProverTupleExpr implements ProverExpr {
     

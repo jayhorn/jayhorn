@@ -1,12 +1,9 @@
 package jayhorn.solver.spacer;
 
-import java.util.ArrayList;
-
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.FuncDecl;
-import com.microsoft.z3.Sort;
 
 import jayhorn.solver.BoolType;
 import jayhorn.solver.ProverExpr;

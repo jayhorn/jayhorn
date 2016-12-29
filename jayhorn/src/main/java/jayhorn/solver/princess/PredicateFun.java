@@ -5,8 +5,8 @@ import ap.parser.ITerm;
 import ap.terfor.preds.Predicate;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFun;
-import jayhorn.solver.ProverType;
 import jayhorn.solver.ProverTupleExpr;
+import jayhorn.solver.ProverType;
 import scala.collection.mutable.ArrayBuffer;
 
 class PredicateFun implements ProverFun {

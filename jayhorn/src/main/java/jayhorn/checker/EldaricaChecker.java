@@ -35,7 +35,7 @@ import soottocfg.cfg.variable.Variable;
 /**
  * @author teme
  */
-public class EldaricaChecker implements Checker{
+public class EldaricaChecker extends Checker{
 
 	private ProverFactory factory;
 	private Prover prover;

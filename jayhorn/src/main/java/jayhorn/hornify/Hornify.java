@@ -11,7 +11,6 @@ import java.util.Set;
 
 import jayhorn.Log;
 import jayhorn.hornify.encoder.MethodEncoder;
-import jayhorn.hornify.encoder.S2H;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverFun;

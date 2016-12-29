@@ -1,22 +1,19 @@
 package jayhorn.hornify.encoder;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
-import soottocfg.cfg.variable.Variable;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.AbstractMap.SimpleEntry;
 
-import jayhorn.hornify.HornHelper;
-import jayhorn.hornify.HornPredicate;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverHornClause;
-import soottocfg.cfg.method.CfgBlock;
+import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.method.Method;
+import soottocfg.cfg.variable.Variable;
 
 public class S2H {
 	

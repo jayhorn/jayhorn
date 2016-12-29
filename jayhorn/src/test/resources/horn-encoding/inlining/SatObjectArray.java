@@ -23,8 +23,7 @@ public class SatObjectArray {
 		}
 
 		while (n != null) {
-			int tmp = n.data;
-			table[tmp]++;
+			table[n.data]++;
 			n = n.next;
 		}
 

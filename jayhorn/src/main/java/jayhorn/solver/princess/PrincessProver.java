@@ -512,9 +512,10 @@ public class PrincessProver implements Prover {
 			try {
 				future.get(timeout, TimeUnit.MILLISECONDS);
 				result = this.thread.getStatus();
-			} catch (InterruptedException | ExecutionException e) {
+			} catch ( ExecutionException e) {
+				e.printStackTrace();
 				throw new RuntimeException("solver failed");
-			} catch (TimeoutException e) {
+			} catch (TimeoutException | InterruptedException e) {
 				result = ProverResult.Unknown;
 			}
 			killThread();

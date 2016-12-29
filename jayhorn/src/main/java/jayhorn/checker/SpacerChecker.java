@@ -4,11 +4,9 @@
 package jayhorn.checker;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
@@ -29,17 +27,14 @@ import jayhorn.utils.GhostRegister;
 import jayhorn.utils.HeapCounterTransformer;
 import jayhorn.utils.Stats;
 import soottocfg.cfg.Program;
-import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.statement.CallStatement;
-import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.variable.Variable;
 
 /**
  * @author teme
  */
-public class SpacerChecker implements Checker{
+public class SpacerChecker extends Checker{
 
 	private ProverFactory factory;
 	private Prover prover;
@@ -177,47 +172,47 @@ public class SpacerChecker implements Checker{
 		//System.out.println(prover.getGroundSatAnswer());
 	}
 	
-	private void removeUnreachableMethods(Program program) {
-		Set<Method> reachable = reachableMethod(program.getEntryPoint());
-		Set<Method> toRemove = new HashSet<Method>();
-		for (Method m : program.getMethods()) {
-			if (!reachable.contains(m)) {
-				toRemove.add(m);
-				Log.info("\tRemoving unreachable method: "+m.getMethodName());
-			} 
-		}
-		program.removeMethods(toRemove);
-//		System.err.println(program);
-	}
+//	private void removeUnreachableMethods(Program program) {
+//		Set<Method> reachable = reachableMethod(program.getEntryPoint());
+//		Set<Method> toRemove = new HashSet<Method>();
+//		for (Method m : program.getMethods()) {
+//			if (!reachable.contains(m)) {
+//				toRemove.add(m);
+//				Log.info("\tRemoving unreachable method: "+m.getMethodName());
+//			} 
+//		}
+//		program.removeMethods(toRemove);
+////		System.err.println(program);
+//	}
 	
-	private Set<Method> reachableMethod(Method main) {
-		Set<Method> reachable = new HashSet<Method>();
-		List<Method> todo = new LinkedList<Method>();
-		todo.add(main);
-		while (!todo.isEmpty()) {
-			Method m = todo.remove(0);
-			reachable.add(m);
-			for (Method n : calledMethods(m)) {
-				if (!reachable.contains(n) && !todo.contains(n)) {
-					todo.add(n);
-				}
-			}
-		}
-		return reachable;
-	}
+//	private Set<Method> reachableMethod(Method main) {
+//		Set<Method> reachable = new HashSet<Method>();
+//		List<Method> todo = new LinkedList<Method>();
+//		todo.add(main);
+//		while (!todo.isEmpty()) {
+//			Method m = todo.remove(0);
+//			reachable.add(m);
+//			for (Method n : calledMethods(m)) {
+//				if (!reachable.contains(n) && !todo.contains(n)) {
+//					todo.add(n);
+//				}
+//			}
+//		}
+//		return reachable;
+//	}
 	
-	private List<Method> calledMethods(Method m) {
-		List<Method> res = new LinkedList<Method>();
-		for (CfgBlock b : m.vertexSet()) {
-			for (Statement s : b.getStatements()) {
-				if (s instanceof CallStatement) {
-					CallStatement cs = (CallStatement) s;
-					res.add(cs.getCallTarget());
-				}
-			}
-		}
-		return res;
-	}
+//	private List<Method> calledMethods(Method m) {
+//		List<Method> res = new LinkedList<Method>();
+//		for (CfgBlock b : m.vertexSet()) {
+//			for (Statement s : b.getStatements()) {
+//				if (s instanceof CallStatement) {
+//					CallStatement cs = (CallStatement) s;
+//					res.add(cs.getCallTarget());
+//				}
+//			}
+//		}
+//		return res;
+//	}
 	
 	
 }

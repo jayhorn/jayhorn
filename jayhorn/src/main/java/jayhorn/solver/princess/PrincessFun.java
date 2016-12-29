@@ -10,8 +10,8 @@ import ap.parser.ITermITE;
 import jayhorn.solver.BoolType;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFun;
-import jayhorn.solver.ProverType;
 import jayhorn.solver.ProverTupleExpr;
+import jayhorn.solver.ProverType;
 import scala.collection.mutable.ArrayBuffer;
 
 class PrincessFun implements ProverFun {

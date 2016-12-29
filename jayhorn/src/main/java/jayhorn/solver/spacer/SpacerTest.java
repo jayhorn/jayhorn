@@ -1,9 +1,17 @@
 package jayhorn.solver.spacer;
 
 
-import com.microsoft.z3.*;
-
 import java.util.HashMap;
+
+import com.microsoft.z3.BoolExpr;
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Fixedpoint;
+import com.microsoft.z3.FuncDecl;
+import com.microsoft.z3.Global;
+import com.microsoft.z3.Sort;
+import com.microsoft.z3.Status;
+import com.microsoft.z3.Symbol;
+import com.microsoft.z3.Z3Exception;
 
 public class SpacerTest {
 

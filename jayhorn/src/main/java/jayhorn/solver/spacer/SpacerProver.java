@@ -2,7 +2,6 @@
 package jayhorn.solver.spacer;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,6 +18,24 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.google.common.base.Verify;
+import com.microsoft.z3.ArithExpr;
+import com.microsoft.z3.ArrayExpr;
+import com.microsoft.z3.ArraySort;
+import com.microsoft.z3.BoolExpr;
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
+import com.microsoft.z3.Fixedpoint;
+import com.microsoft.z3.IntExpr;
+import com.microsoft.z3.InterpolationContext;
+import com.microsoft.z3.Model;
+import com.microsoft.z3.Params;
+import com.microsoft.z3.Quantifier;
+import com.microsoft.z3.Solver;
+import com.microsoft.z3.Sort;
+import com.microsoft.z3.Status;
+import com.microsoft.z3.Z3Exception;
+
 import jayhorn.solver.BoolType;
 import jayhorn.solver.IntType;
 import jayhorn.solver.Prover;
@@ -30,27 +47,6 @@ import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverTupleExpr;
 import jayhorn.solver.ProverTupleType;
 import jayhorn.solver.ProverType;
-
-import com.google.common.base.Verify;
-import com.microsoft.z3.ArithExpr;
-import com.microsoft.z3.ArrayExpr;
-import com.microsoft.z3.ArraySort;
-import com.microsoft.z3.BoolExpr;
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
-import com.microsoft.z3.Fixedpoint;
-import com.microsoft.z3.FuncDecl;
-import com.microsoft.z3.Global;
-import com.microsoft.z3.IntExpr;
-import com.microsoft.z3.InterpolationContext;
-import com.microsoft.z3.Model;
-import com.microsoft.z3.Params;
-import com.microsoft.z3.Quantifier;
-import com.microsoft.z3.Solver;
-import com.microsoft.z3.Sort;
-import com.microsoft.z3.Status;
-import com.microsoft.z3.Symbol;
-import com.microsoft.z3.Z3Exception;
 
 /**
  * @author teme
