@@ -25,6 +25,7 @@ import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.util.CfgVisitor;
 
 //DSN should this be an abstract class
 //DSN There might be value in tracking whether an expression actually changed.  Possible optimization

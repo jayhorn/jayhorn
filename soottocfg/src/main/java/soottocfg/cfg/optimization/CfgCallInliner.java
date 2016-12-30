@@ -1,7 +1,7 @@
 /**
  * 
  */
-package soottocfg.soot.transformers;
+package soottocfg.cfg.optimization;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,9 +20,6 @@ import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.optimization.CfgUpdater;
-import soottocfg.cfg.optimization.DeadCodeElimination;
-import soottocfg.cfg.optimization.FoldStraighLineSeq;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
@@ -121,13 +118,13 @@ public class CfgCallInliner {
 				toRemove.add(m);
 			} else {
 				CfgUpdater dce = new DeadCodeElimination();
-				 dce.runFixpt(m);
-				 
-//				CfgUpdater ie = new ExpressionInliner();
-//				 CfgUpdater cp = new ConstantProp();
-//				 ie.runFixpt(m);
-//				 cp.runFixpt(m);				 
 //				 dce.runFixpt(m);
+				 
+				CfgUpdater ie = new ExpressionInliner();
+				 CfgUpdater cp = new ConstantProp();
+				 ie.runFixpt(m);
+				 cp.runFixpt(m);				 
+				 dce.runFixpt(m);
 			}
 		}
 		program.removeMethods(toRemove);

@@ -80,6 +80,28 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		return m;
 	}
 
+	/**
+	 * ONLY USE THIS METHOD DURING TESTING
+	 * @param p
+	 * @param uniqueName
+	 * @param params
+	 * @param outTypes
+	 * @param sourceLocation
+	 * @return
+	 */
+	public static Method createMethodForTestingOnly(Program p, String uniqueName, List<Variable> params, List<Type> outTypes,
+			SourceLocation sourceLocation) {
+		Preconditions.checkArgument(p.lookupMethod(uniqueName) == null,
+				"Method with name " + uniqueName + " already exists");
+		// add the exceptional return type to all methods that are generated.
+		List<Type> returnTypes = new LinkedList<Type>();
+		returnTypes.addAll(outTypes);
+		Method m = new Method(sourceLocation, uniqueName, params, returnTypes);
+		p.addMethod(m);
+		return m;
+	}
+
+	
 	private Method(SourceLocation loc, String uniqueName, List<Variable> params, List<Type> outTypes) {
 		super(new ClassBasedEdgeFactory<CfgBlock, CfgEdge>(CfgEdge.class), true, true);
 		location = loc;

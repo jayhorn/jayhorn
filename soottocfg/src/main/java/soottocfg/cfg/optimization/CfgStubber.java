@@ -1,4 +1,4 @@
-package soottocfg.cfg.util;
+package soottocfg.cfg.optimization;
 
 import java.util.Arrays;
 import java.util.LinkedList;
