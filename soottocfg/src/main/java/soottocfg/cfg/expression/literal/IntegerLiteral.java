@@ -18,7 +18,7 @@ import soottocfg.cfg.variable.Variable;
  * @author schaef
  *
  */
-public class IntegerLiteral extends Expression {
+public class IntegerLiteral extends Expression implements Literal{
 
 	private static final long serialVersionUID = 7913206010686231183L;
 
@@ -98,6 +98,11 @@ public class IntegerLiteral extends Expression {
 	
 	@Override
 	public Expression substitute(Map<Variable, Variable> subs) {
+		return this.deepCopy();
+	}
+
+	@Override
+	public Expression substituteVarWithExpression(Map<Variable, Expression> subs) {
 		return this.deepCopy();
 	}
 

@@ -68,4 +68,9 @@ public class AssumeStatement extends Statement {
 		return new AssumeStatement(getSourceLocation(), expression.substitute(subs));
 	}
 
+	@Override
+	public AssumeStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
+		return new AssumeStatement(getSourceLocation(), expression.substituteVarWithExpression(subs));
+	}
+	
 }

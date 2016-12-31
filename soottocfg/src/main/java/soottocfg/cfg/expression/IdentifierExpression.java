@@ -74,8 +74,18 @@ public class IdentifierExpression extends Expression {
 		}
 		return new IdentifierExpression(getSourceLocation(), variable);
 	}
+	
+	@Override
+	public Expression substituteVarWithExpression(Map<Variable, Expression> subs) {
+		if (subs.containsKey(variable)) {
+			return subs.get(variable).deepCopy();
+		}
+		return this.deepCopy();
+	}
+
 
 	public boolean sameVariable(IdentifierExpression other) {
 		return this.variable.equals(other.variable);
 	}
+	
 }

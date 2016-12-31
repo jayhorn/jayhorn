@@ -171,4 +171,9 @@ public class BinaryExpression extends Expression {
 	public BinaryExpression substitute(Map<Variable, Variable> subs) {
 		return new BinaryExpression(getSourceLocation(), op, left.substitute(subs), right.substitute(subs));
 	}
+
+	public BinaryExpression substituteVarWithExpression(Map<Variable, Expression> subs) {
+		return new BinaryExpression(getSourceLocation(), op, left.substituteVarWithExpression(subs), right.substituteVarWithExpression(subs));
+	}
+
 }

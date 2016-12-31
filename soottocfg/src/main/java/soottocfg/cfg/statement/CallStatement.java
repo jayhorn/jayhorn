@@ -155,4 +155,17 @@ public class CallStatement extends Statement {
 		return new CallStatement(getSourceLocation(), method, argCopy, rec);
 	}
 
+	@Override
+	public CallStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
+		List<Expression> argCopy = new LinkedList<Expression>();
+		for (Expression e : arguments) {
+			argCopy.add(e.substituteVarWithExpression(subs));
+		}
+		List<Expression> rec = new LinkedList<Expression>();
+		for (Expression e : returnReceiver) {
+			rec.add(e.deepCopy());
+		}
+		return new CallStatement(getSourceLocation(), method, argCopy, rec);
+	}
+	
 }

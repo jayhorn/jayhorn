@@ -169,14 +169,14 @@ public class DataFlowUtils  {
 			for (Statement s : b.getStatements()) {
 				Set<Statement> killSet = new HashSet<Statement>();
 				kill.put(s, killSet);
-				if (s instanceof AssignStatement || s instanceof CallStatement || s instanceof PullStatement) {
+//				if (s instanceof AssignStatement || s instanceof CallStatement || s instanceof PullStatement) {
 					Set<Statement> defStatements = new HashSet<Statement>();
 					for (Variable v : s.getDefVariables()) {
 						defStatements.addAll(defs.get(v));
 					}
 					defStatements.remove(s);
 					kill.get(s).addAll(defStatements);
-				} // else do nothing.
+//				} // else do nothing.
 			}
 		}		
 	}
@@ -232,16 +232,21 @@ public class DataFlowUtils  {
 	private static Set<Statement> getPredecessorStatementRecursively(Method m, Map<CfgBlock, Set<Statement>> lastStmt,
 			CfgBlock current, Set<CfgBlock> visited) {
 		Set<Statement> ret = new HashSet<Statement>();
-		if (visited.contains(current)) {
-			return ret;
-		}
 		if (lastStmt.containsKey(current) && !lastStmt.get(current).isEmpty()) {
 			return lastStmt.get(current);
+		} else if (visited.contains(current)) {
+			//we are in a loop
+			return ret;
 		}
-		Set<CfgBlock> rec_visited = new HashSet<CfgBlock>();
+
+		Set<CfgBlock> rec_visited = new HashSet<CfgBlock>(visited);
 		rec_visited.add(current);
 		for (CfgBlock pre : Graphs.predecessorListOf(m, current)) {
 			ret.addAll(getPredecessorStatementRecursively(m, lastStmt, pre, rec_visited));
+		}
+		if (!lastStmt.containsKey(current)) {
+			lastStmt.put(current, new HashSet<Statement>());
+			lastStmt.get(current).addAll(ret);
 		}
 		return ret;
 	}

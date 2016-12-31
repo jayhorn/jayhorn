@@ -14,6 +14,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.jgrapht.Graphs;
+
 import com.google.common.base.Preconditions;
 
 import soottocfg.cfg.LiveVars;
@@ -234,8 +236,8 @@ public class CfgBlock implements Node, Serializable {
 				out.addAll(getMethod().getOutParams());
 			}
 		} else {
-			for (CfgEdge edge : this.method.outgoingEdgesOf(this)) {
-				out.addAll(in.get(method.getEdgeTarget(edge)));
+			for (CfgBlock suc : Graphs.successorListOf(method, this)) {
+				out.addAll(in.get(suc));
 			}
 		}
 		return out;

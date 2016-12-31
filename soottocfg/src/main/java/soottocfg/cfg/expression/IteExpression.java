@@ -79,7 +79,14 @@ public class IteExpression extends Expression {
 		return new IteExpression(getSourceLocation(), condition.deepCopy(), thenExpr.deepCopy(), elseExpr.deepCopy());
 	}
 
+	@Override
 	public IteExpression substitute(Map<Variable, Variable> subs) {
 		return new IteExpression(getSourceLocation(), condition.substitute(subs), thenExpr.substitute(subs), elseExpr.substitute(subs));
 	}
+
+	@Override
+	public IteExpression substituteVarWithExpression(Map<Variable, Expression> subs) {
+		return new IteExpression(getSourceLocation(), condition.substituteVarWithExpression(subs), thenExpr.substituteVarWithExpression(subs), elseExpr.substituteVarWithExpression(subs));
+	}
+	
 }

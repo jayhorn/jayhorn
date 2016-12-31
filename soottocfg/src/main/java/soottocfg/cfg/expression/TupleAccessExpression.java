@@ -124,4 +124,13 @@ public class TupleAccessExpression extends Expression {
 		return new TupleAccessExpression(this.getSourceLocation(), tupleVariable, tupleKey);
 	}
 
+	@Override
+	public Expression substituteVarWithExpression(Map<Variable, Expression> subs) {
+		if (subs.containsKey(tupleVariable)) {
+//			return new TupleAccessExpression(this.getSourceLocation(), subs.get(tupleVariable), tupleKey);
+			throw new RuntimeException("Not expected! " + subs.get(tupleVariable));
+		}
+		return this.deepCopy();
+	}
+	
 }

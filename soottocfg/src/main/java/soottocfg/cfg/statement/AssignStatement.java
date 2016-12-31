@@ -93,4 +93,9 @@ public class AssignStatement extends Statement {
 		return new AssignStatement(getSourceLocation(), left.substitute(subs), right.substitute(subs));
 	}
 
+	@Override
+	public AssignStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
+		return new AssignStatement(getSourceLocation(), left.deepCopy(), right.substituteVarWithExpression(subs));
+	}
+	
 }

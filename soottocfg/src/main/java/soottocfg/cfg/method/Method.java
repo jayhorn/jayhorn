@@ -8,7 +8,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -351,12 +350,12 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	}
 
 	/**
-	 * Returns an immutable view of the set of local variables.
+	 * Returns the set of local variables.
 	 * 
-	 * @return immutable view of the set of local variables.
+	 * @return set of local variables.
 	 */
 	public Collection<Variable> getLocals() {
-		return Collections.unmodifiableSet(locals);
+		return locals;
 	}
 
 	public void toDot(File dotFile) {

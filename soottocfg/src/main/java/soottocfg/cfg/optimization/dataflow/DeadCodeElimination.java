@@ -1,4 +1,4 @@
-package soottocfg.cfg.optimization;
+package soottocfg.cfg.optimization.dataflow;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -6,42 +6,40 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.optimization.ExpressionEvaluator;
 import soottocfg.cfg.statement.AssignStatement;
+import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.util.UnreachableNodeRemover;
 import soottocfg.util.SetOperations;
 
-public class DeadCodeElimination extends CfgUpdater {
+public class DeadCodeElimination  {
 	// Given a method, eliminate the dead code in it
 	public DeadCodeElimination() {
 	}
 
-	private LiveVars<CfgBlock> blockLiveVars;
-
-	@Override
-	public boolean updateMethod(Method m) {
-		currentMethod = m;
-		blockLiveVars = currentMethod.computeBlockLiveVariables();
-		changed = false;
-		for (CfgBlock block : currentMethod.vertexSet()) {
-			processCfgBlock(block);
+	public static boolean eliminateDeadCode(Method m) {		
+		LiveVars<CfgBlock> blockLiveVars = m.computeBlockLiveVariables();
+		boolean changed = false;
+		for (CfgBlock block : m.vertexSet()) {
+			changed = changed 
+					|| eliminateDeadStatements(m, block, blockLiveVars)
+					|| eliminateDeadConditions(m, block, blockLiveVars);
 		}
 		UnreachableNodeRemover<CfgBlock, CfgEdge> remover = new UnreachableNodeRemover<CfgBlock, CfgEdge>(
-				currentMethod);
-		remover.pruneUnreachableNodes(currentMethod.getSource());
-		blockLiveVars = null;
+				m);
+		remover.pruneUnreachableNodes(m.getSource());
 		return changed;
 	}
 
-	protected boolean isDead(Statement stmt, LiveVars<Statement> liveVars) {
-		if (!(stmt instanceof AssignStatement)) {
-			// only assignments can be dead.
+	protected static boolean isDead(Statement stmt, LiveVars<Statement> liveVars) {
+		if (!(stmt instanceof AssignStatement) && !(stmt instanceof PullStatement)) {
+			// only assignments and pulls can be dead.
 			return false;
 		}
 		// If a statement writes to only variables that are not live, we can
@@ -50,9 +48,8 @@ public class DeadCodeElimination extends CfgUpdater {
 		return SetOperations.intersect(stmt.getDefVariables(), liveVars.liveOut.get(stmt)).isEmpty();
 	}
 
-	protected void processCfgBlock(CfgBlock block) {
-		Preconditions.checkNotNull(currentMethod);
-		setCurrentCfgBlock(block);
+	protected static boolean eliminateDeadStatements(Method method, CfgBlock block, LiveVars<CfgBlock> blockLiveVars) {
+		boolean changed = false;
 		List<Statement> rval = new LinkedList<Statement>();
 		LiveVars<Statement> stmtLiveVars = block.computeLiveVariables(blockLiveVars);
 		for (Statement s : block.getStatements()) {
@@ -61,18 +58,26 @@ public class DeadCodeElimination extends CfgUpdater {
 				changed = true;
 			} else {
 				// otherwise, it stays in the list
-				rval.add(processStatement(s));
+				rval.add(s.deepCopy());
 			}
 		}
-		block.setStatements(rval);
-
+		if (changed) {
+			//only replace statements if something changed.
+			block.setStatements(rval);
+		}
+		return changed;
+	}
+	
+	protected static boolean eliminateDeadConditions(Method method, CfgBlock block, LiveVars<CfgBlock> blockLiveVars) {
+		boolean changed = false;
+		//TODO: this needs to be improved.
 		// Now, check if any of the graph itself is dead
 		// We can't remove successors as we are iterating over them, so instead
 		// I'll keep a set of
 		// blocks to remove, then take them out at the end.
 		Set<CfgEdge> toRemove = new HashSet<CfgEdge>();
 
-		for (CfgEdge edge : currentMethod.outgoingEdgesOf(block)) {
+		for (CfgEdge edge : method.outgoingEdgesOf(block)) {
 			if (edge.getLabel().isPresent()) {
 				Optional<Object> res = ExpressionEvaluator.eval(edge.getLabel().get());
 				if (res.isPresent()) {
@@ -87,11 +92,11 @@ public class DeadCodeElimination extends CfgUpdater {
 				}
 			}
 		}
+				
 		if (!toRemove.isEmpty()) {
-			currentMethod.removeAllEdges(toRemove);
+			method.removeAllEdges(toRemove);
 			changed = true;
 		}
-
-		setCurrentCfgBlock(null);
+		return changed;
 	}
 }

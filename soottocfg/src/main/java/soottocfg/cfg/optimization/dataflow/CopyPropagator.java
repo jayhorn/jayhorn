@@ -1,7 +1,7 @@
 /**
  * 
  */
-package soottocfg.cfg.util;
+package soottocfg.cfg.optimization.dataflow;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,10 +12,8 @@ import java.util.Set;
 
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
@@ -24,6 +22,7 @@ import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.util.DataFlowUtils;
 import soottocfg.cfg.util.DataFlowUtils.ReachingDefinitions;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -80,8 +79,9 @@ public class CopyPropagator {
 	private static boolean progateForEdgeLabels(Method m, CfgBlock b, ReachingDefinitions rdefs) {
 		boolean changes = false;
 		if (!b.getStatements().isEmpty()) {			
-			Set<Statement> defStmts = rdefs.in.get(b.getStatements().get(0));
-			for (CfgEdge e : m.incomingEdgesOf(b)) {
+			Statement lastStmt = b.getStatements().get(b.getStatements().size()-1);
+			Set<Statement> defStmts = rdefs.out.get(lastStmt);
+			for (CfgEdge e : m.outgoingEdgesOf(b)) {
 				if (e.getLabel().isPresent()) {
 					Expression expr = e.getLabel().get();					
 					Map<Variable, Variable> subsitutions = createSubstitutionMap(expr.getUseVariables(), defStmts);

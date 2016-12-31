@@ -116,16 +116,7 @@ public class CfgCallInliner {
 		for (Method m : program.getMethods()) {
 			if (!reachable.contains(m)) {
 				toRemove.add(m);
-			} else {
-				CfgUpdater dce = new DeadCodeElimination();
-//				 dce.runFixpt(m);
-				 
-				CfgUpdater ie = new ExpressionInliner();
-				 CfgUpdater cp = new ConstantProp();
-				 ie.runFixpt(m);
-				 cp.runFixpt(m);				 
-				 dce.runFixpt(m);
-			}
+			} 
 		}
 		program.removeMethods(toRemove);
 		

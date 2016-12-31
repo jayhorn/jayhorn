@@ -99,4 +99,13 @@ public abstract class Expression implements Node, Serializable {
 	 * @return
 	 */
 	public abstract Expression substitute(Map<Variable, Variable> subs);
+	
+	/**
+	 * Substitute variables with the expressions in subs and return
+	 * a clone of the original expression
+	 * @param subs
+	 * @return
+	 */
+	public abstract Expression substituteVarWithExpression(Map<Variable, Expression> subs);
+
 }

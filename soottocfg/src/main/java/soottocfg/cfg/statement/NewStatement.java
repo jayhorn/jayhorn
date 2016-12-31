@@ -87,7 +87,7 @@ public class NewStatement extends Statement {
 	}
 	
 	@Override
-	public Statement deepCopy() {
+	public NewStatement deepCopy() {
 		return new NewStatement(getSourceLocation(), left.deepCopy(), this.classVariable, this.counterVar);
 	}
 
@@ -99,5 +99,10 @@ public class NewStatement extends Statement {
 		}
 		return new NewStatement(getSourceLocation(), left.substitute(subs), cv, this.counterVar);
 	}
-
+	
+	@Override
+	public NewStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
+		return this.deepCopy();
+	}
+	
 }
