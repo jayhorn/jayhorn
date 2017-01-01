@@ -3,6 +3,7 @@ package soottocfg.cfg.optimization;
 import com.google.common.base.Optional;
 
 import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.IteExpression;
@@ -12,6 +13,7 @@ import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
+import soottocfg.cfg.variable.Variable;
 //import soottocfg.cfg.type.ReferenceType;
 
 /**
@@ -22,6 +24,151 @@ import soottocfg.cfg.expression.literal.NullLiteral;
  *
  */
 public class ExpressionEvaluator {
+		
+	public static Expression simplify(Expression e) {
+		if (e instanceof BinaryExpression) {
+			return simplify((BinaryExpression) e);
+		} else if (e instanceof BooleanLiteral) {
+			return e.deepCopy();
+		} else if (e instanceof IdentifierExpression) {
+			return e.deepCopy();
+		} else if (e instanceof IntegerLiteral) {
+			return e.deepCopy();
+		} else if (e instanceof IteExpression) {
+			return simplify((IteExpression) e);
+		} else if (e instanceof UnaryExpression) {
+			return simplify((UnaryExpression) e);
+		} else if (e instanceof NullLiteral) {
+			return e.deepCopy();
+		} else if (e instanceof TupleAccessExpression) {
+			return e.deepCopy();
+		} else {
+			throw new RuntimeException("unexpected expression type: " + e);
+		}	
+	}
+	
+	public static Expression simplify(BinaryExpression e) {
+		Expression left = simplify(e.getLeft());
+		Expression right = simplify(e.getRight());
+		if (left instanceof IntegerLiteral && right instanceof IntegerLiteral) {
+			int res = evalBinop(e.getOp(), ((IntegerLiteral)left).getValue().intValue(), ((IntegerLiteral)right).getValue().intValue());
+			return new IntegerLiteral(e.getSourceLocation(), res);
+		} else if (left instanceof BooleanLiteral && right instanceof BooleanLiteral) {
+			int a = ((BooleanLiteral)left).getValue() ? 1 : 0;
+			int b = ((BooleanLiteral)right).getValue() ? 1 : 0;
+			int res = evalBinop(e.getOp(), a, b);
+			return new BooleanLiteral(e.getSourceLocation(), res==1);
+		} else if (left instanceof IdentifierExpression && right instanceof IdentifierExpression) {
+			Variable leftVar = ((IdentifierExpression)left).getVariable();
+			Variable rightVar = ((IdentifierExpression)right).getVariable();
+			// for the case a==a and a!=a			
+			if (leftVar.equals(rightVar)) {
+				if (e.getOp()==BinaryOperator.Eq) {
+					return BooleanLiteral.trueLiteral();
+				} else if (e.getOp()==BinaryOperator.Ne) {
+					return BooleanLiteral.falseLiteral();
+				}
+			} else if (leftVar.isUnique() && rightVar.isUnique()) {
+				//unique variable cannot be equal
+				if (e.getOp()==BinaryOperator.Eq) {
+					return BooleanLiteral.falseLiteral();
+				} else if (e.getOp()==BinaryOperator.Ne) {
+					return BooleanLiteral.trueLiteral();
+				}				
+			}
+		}
+		return new BinaryExpression(e.getSourceLocation(), e.getOp(),left, right);
+	}
+	
+	private static int evalBinop(BinaryOperator op, int a, int b) {
+		switch (op) {
+		case And:
+			return (a==1 && b==1) ? 1 : 0;
+		case BAnd:
+			return a & b;
+		case BOr:
+			return a | b;
+		case Div:
+			return a / b;
+		case Eq:
+			return a == b ? 1 : 0;
+		case Ge:
+			return a >= b ? 1 : 0;
+		case Gt:
+			return a > b ? 1 : 0;
+		case Implies:
+			return (a==0|| b==1) ? 1 : 0;
+		case Le:
+			return a <= b ? 1 : 0;
+		case Lt:
+			return a < b ? 1 : 0;
+		case Minus:
+			return a - b;
+		case Mod:
+			return a % b;
+		case Mul:
+			return a * b;
+		case Ne:
+			return a != b ? 1 : 0;
+		case Or:
+			return (a==1 || b==1) ? 1 : 0;
+		case Plus:
+			return a + b;
+		case PoLeq:
+			break;
+		case Shl:
+			return a << b;
+		case Shr:
+			return a >> b;
+		case Ushr:
+			return a >>> b;
+		case Xor:
+			return a ^ b;
+		default:
+			break;
+		}
+		throw new RuntimeException("Not implemented: "+op);
+	}
+
+	public static Expression simplify(IteExpression e) {
+		Expression cond = simplify(e.getCondition());
+		Expression thenExpr = simplify(e.getCondition());
+		Expression elseExpr = simplify(e.getCondition());
+		
+		if (cond instanceof BooleanLiteral) {
+			if (((BooleanLiteral)cond).getValue()) {
+				return thenExpr;
+			} else {
+				return elseExpr;
+			}
+		}		
+		return new IteExpression(e.getSourceLocation(), cond, thenExpr, elseExpr);
+	}
+
+	public static Expression simplify(UnaryExpression e) {
+		Expression inner = simplify(e.getExpression());
+		switch (e.getOp()) {
+		case LNot:
+			if (inner instanceof BooleanLiteral) {
+				if (((BooleanLiteral)inner).getValue()) {
+					return BooleanLiteral.falseLiteral();
+				} else {
+					return BooleanLiteral.trueLiteral();
+				}
+			}
+			break;
+		case Neg:
+			if (inner instanceof IntegerLiteral) {
+				return new IntegerLiteral(e.getSourceLocation(), -1*(((IntegerLiteral)inner).getValue()).intValue());
+			}
+			break;
+		default:
+			break;
+		
+		}
+		return new UnaryExpression(e.getSourceLocation(), e.getOp(), inner);
+	}
+
 	
 	public static  Optional<Object> eval(Expression e) {
 		if (e instanceof BinaryExpression) {

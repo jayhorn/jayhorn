@@ -68,6 +68,7 @@ public class CopyPropagator {
 					changes = true;
 				}
 				newStmts.add(s.substitute(subsitutions));
+//				newStmts.add(s.deepCopy());
 			}
 			if (changes) {
 				b.setStatements(newStmts);
@@ -86,8 +87,9 @@ public class CopyPropagator {
 					Expression expr = e.getLabel().get();					
 					Map<Variable, Variable> subsitutions = createSubstitutionMap(expr.getUseVariables(), defStmts);
 					if (!subsitutions.isEmpty()) {
-						changes = true;						
-						e.setLabel(expr.substitute(subsitutions));
+						changes = true;
+						Expression newLabel = expr.substitute(subsitutions);
+						e.setLabel(newLabel);
 					}					
 				}
 			}

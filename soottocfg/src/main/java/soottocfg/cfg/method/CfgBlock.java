@@ -158,7 +158,9 @@ public class CfgBlock implements Node, Serializable {
 		for (Statement s : statements) {
 			used.addAll(s.getUseVariables());
 		}
-		// TODO: do the variables in the conditional belong to this block?
+		// The variables in the conditional belong to this block.
+		//Think of it as a if (cond) goto L1 else goto L2;
+		//as the last stmt in the block.
 		for (CfgEdge edge : this.method.outgoingEdgesOf(this)) {
 			if (edge.getLabel().isPresent()) {
 				used.addAll(edge.getLabel().get().getUseVariables());
@@ -238,6 +240,13 @@ public class CfgBlock implements Node, Serializable {
 		} else {
 			for (CfgBlock suc : Graphs.successorListOf(method, this)) {
 				out.addAll(in.get(suc));
+			}
+			//TODO: is this correct? Add all variable used in the
+			//edges to live out.
+			for (CfgEdge edge : method.outgoingEdgesOf(this)) {
+				if (edge.getLabel().isPresent()) {
+					out.addAll(edge.getLabel().get().getUseVariables());
+				}
 			}
 		}
 		return out;

@@ -5,17 +5,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.base.Optional;
-
 import soottocfg.cfg.LiveVars;
+import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.optimization.ExpressionEvaluator;
+import soottocfg.cfg.optimization.UnreachableNodeRemover;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.Statement;
-import soottocfg.cfg.util.UnreachableNodeRemover;
 import soottocfg.util.SetOperations;
 
 public class DeadCodeElimination  {
@@ -29,11 +29,9 @@ public class DeadCodeElimination  {
 		for (CfgBlock block : m.vertexSet()) {
 			changed = changed 
 					|| eliminateDeadStatements(m, block, blockLiveVars)
-					|| eliminateDeadConditions(m, block, blockLiveVars);
+					|| eliminateDeadConditions(m, block);
 		}
-		UnreachableNodeRemover<CfgBlock, CfgEdge> remover = new UnreachableNodeRemover<CfgBlock, CfgEdge>(
-				m);
-		remover.pruneUnreachableNodes(m.getSource());
+		UnreachableNodeRemover.pruneUnreachableNodes(m, m.getSource());
 		return changed;
 	}
 
@@ -67,29 +65,45 @@ public class DeadCodeElimination  {
 		}
 		return changed;
 	}
-	
-	protected static boolean eliminateDeadConditions(Method method, CfgBlock block, LiveVars<CfgBlock> blockLiveVars) {
+
+	/**
+	 * Simplify the expressions on the edge labels. If an expression simplifies
+	 * to True, we can remove the lable. If it simplifies to false, we can remove
+	 * the edge.
+	 * @param method
+	 * @param block
+	 * @return
+	 */
+	protected static boolean eliminateDeadConditions(Method method, CfgBlock block) {
 		boolean changed = false;
-		//TODO: this needs to be improved.
-		// Now, check if any of the graph itself is dead
-		// We can't remove successors as we are iterating over them, so instead
-		// I'll keep a set of
-		// blocks to remove, then take them out at the end.
 		Set<CfgEdge> toRemove = new HashSet<CfgEdge>();
 
 		for (CfgEdge edge : method.outgoingEdgesOf(block)) {
 			if (edge.getLabel().isPresent()) {
-				Optional<Object> res = ExpressionEvaluator.eval(edge.getLabel().get());
-				if (res.isPresent()) {
-					if (!(Boolean)res.get()) {
-						// condition false, remove edge
-						toRemove.add(edge);
+				Expression simpleLabel = ExpressionEvaluator.simplify(edge.getLabel().get());
+				if (simpleLabel instanceof BooleanLiteral) {
+					if (((BooleanLiteral)simpleLabel).getValue()) {
+						//then we can remove the label.
+						edge.removeLabel();
 					} else {
-						// condition true, remove all other edges?
+						//then we can remove the edge.
+						toRemove.add(edge);
 					}
 				} else {
-					// TODO?
+					edge.setLabel(simpleLabel);
 				}
+//				
+//				Optional<Object> res = ExpressionEvaluator.eval(edge.getLabel().get());
+//				if (res.isPresent()) {
+//					if (!(Boolean)res.get()) {
+//						// condition false, remove edge
+//						toRemove.add(edge);
+//					} else {
+//						// condition true, remove all other edges?
+//					}
+//				} else {
+//					// TODO?
+//				}
 			}
 		}
 				
