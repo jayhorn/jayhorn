@@ -149,7 +149,7 @@ public class SootToCfg {
 					while (CopyPropagator.copyPropagate(method)) {
 						changed = true;
 					}
-					changed = changed || DeadCodeElimination.eliminateDeadCode(method);
+					changed = DeadCodeElimination.eliminateDeadCode(method) ? true : changed ;
 				}
 				//now remove the locals that have been eliminated.
 				Set<Variable> allVars = new HashSet<Variable>();

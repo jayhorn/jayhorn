@@ -90,7 +90,9 @@ public class DeadCodeElimination  {
 						toRemove.add(edge);
 					}
 				} else {
-					edge.setLabel(simpleLabel);
+					//TODO : do not set the label for now because it causes
+					//princess to fail during type checking.
+//					edge.setLabel(simpleLabel);
 				}
 //				
 //				Optional<Object> res = ExpressionEvaluator.eval(edge.getLabel().get());

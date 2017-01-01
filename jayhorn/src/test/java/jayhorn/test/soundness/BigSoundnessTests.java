@@ -7,9 +7,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,6 +22,7 @@ import jayhorn.checker.EldaricaChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.test.Util;
+import jayhorn.test.soundness.BigSoundnessUtil.TestOutcome;
 import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
 
@@ -29,6 +33,8 @@ import soottocfg.soot.SootToCfg;
 @RunWith(Parameterized.class)
 public class BigSoundnessTests {
 
+	private static Map<String, TestOutcome> testResults = new LinkedHashMap<String, TestOutcome>();	
+	
 	private static final String userDir = System.getProperty("user.dir") + "/";
 	private static final String testRoot = userDir + "src/test/resources/";
 
@@ -80,6 +86,13 @@ public class BigSoundnessTests {
 	public void testWithPrincess() throws IOException {
 		verifyAssertions(new PrincessProverFactory());
 	}
+	
+    @AfterClass
+    public static void tearDown() {
+        System.out.println("tearing down");
+        BigSoundnessUtil.storeNewTestRun(testResults);
+        testResults.clear();
+    }
 
 	// @Test
 	// public void testWithZ3() {
@@ -123,10 +136,13 @@ public class BigSoundnessTests {
 				
 				if (expected == result) {
 					resultCorrect++;
+					testResults.put(this.sourceFile.getParent()+"/"+ this.sourceFile.getName(), TestOutcome.CORRECT);
 				} else if (expected == true) {
 					resultImprecise++;
+					testResults.put(this.sourceFile.getParent()+"/"+ this.sourceFile.getName(), TestOutcome.IMPRECISE);
 				} else {
 					resultUnsound++;
+					testResults.put(this.sourceFile.getParent()+"/"+ this.sourceFile.getName(), TestOutcome.UNSOUND);
 					StringBuilder sb = new StringBuilder();
 					sb.append(unsoundFileNames);
 					sb.append("  ");
@@ -136,6 +152,7 @@ public class BigSoundnessTests {
 				}
 			} catch (Exception e) {
 				resultException++;
+				testResults.put(this.sourceFile.getParent()+"/"+ this.sourceFile.getName(), TestOutcome.EXCEPTION);
 				e.printStackTrace();
 				throw new RuntimeException(e.toString());
 			} finally {
