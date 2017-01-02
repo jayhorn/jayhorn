@@ -25,6 +25,8 @@ import com.google.gson.Gson;
  */
 public class BigSoundnessUtil {
 
+	private static final int MAX_ELEMENTS = 3;
+	
 	public static void storeNewTestRun(Map<String, TestOutcome> testResults) {
 		TestHistory results = getPreviousResults(SOUNDNESS_TEST_RESULTS);
 		String commit_hash = "unknown_"+LocalDateTime.now();
@@ -56,6 +58,9 @@ public class BigSoundnessUtil {
 		}
 		
 		results.testRuns.add(test);
+		while (results.testRuns.size()>MAX_ELEMENTS) {
+			results.testRuns.remove(0);
+		}
 
 		writeResults(SOUNDNESS_TEST_RESULTS, results);		
 	}

@@ -136,31 +136,7 @@ public class SootToCfg {
 		// inline method calls
 		CfgCallInliner inliner = new CfgCallInliner(program);
 		inliner.inlineFromMain(Options.v().getInlineMaxSize(), Options.v().getInlineCount());
-		removeUnreachableMethods(program);
-
-		if (Options.v().optimizeMethods) {
-			for (Method method : program.getMethods()) {
-				boolean changed = true;
-				while (changed) {					
-					changed = false;
-					while (ConstPropagator.constPropagate(method)) {
-						changed = true;
-					}
-					while (CopyPropagator.copyPropagate(method)) {
-						changed = true;
-					}
-					changed = DeadCodeElimination.eliminateDeadCode(method) ? true : changed ;
-				}
-				//now remove the locals that have been eliminated.
-				Set<Variable> allVars = new HashSet<Variable>();
-				for (CfgBlock b : method.vertexSet()) {
-					allVars.addAll(b.getUseVariables());
-					allVars.addAll(b.getDefVariables());
-				}
-				method.getLocals().retainAll(allVars);
-			}			
-		}
-//		System.err.println(program);
+		removeUnreachableMethods(program);	
 		
 		if (program.getEntryPoint() == null) {
 			System.err.println("WARNING: No entry point found in program!");
@@ -168,20 +144,11 @@ public class SootToCfg {
 			return;
 		}
 
-		// alias analysis
-		setPointsToAnalysis(new FlowBasedPointsToAnalysis());
-		if (Options.v().memPrecision() >= Options.MEMPREC_PTA) {
-			getPointsToAnalysis().run(program);
+		boolean changed = true;
+		while(changed) {			
+			changed = applyPullPushSimplification();
+			changed = applyDataFlowSimplifications() ? true : changed;
 		}
-
-		// simplify push-pull
-		if (Options.v().memPrecision() >= Options.MEMPREC_SIMPLIFY) {
-			PushPullSimplifier pps = new PushPullSimplifier();
-			pps.simplify(program);
-			if (Options.v().outDir() != null)
-				writeFile(".simpl.cfg", program.toString());
-		}
-
 		// add push IDs
 		PushIdentifierAdder pia = new PushIdentifierAdder();
 		pia.addIDs(program);
@@ -195,6 +162,54 @@ public class SootToCfg {
 		SootTranslationHelpers.v().reset();
 	}
 
+	
+	private boolean applyPullPushSimplification() {
+		boolean programChanged = false;
+		// alias analysis
+		setPointsToAnalysis(new FlowBasedPointsToAnalysis());
+		if (Options.v().memPrecision() >= Options.MEMPREC_PTA) {
+			getPointsToAnalysis().run(program);
+		}
+
+		// simplify push-pull
+		if (Options.v().memPrecision() >= Options.MEMPREC_SIMPLIFY) {
+			PushPullSimplifier pps = new PushPullSimplifier();
+			programChanged = pps.simplify(program);
+			if (Options.v().outDir() != null)
+				writeFile(".simpl.cfg", program.toString());
+		}
+		return programChanged;
+	}
+	
+	private boolean applyDataFlowSimplifications() {
+		boolean programChanged = false;
+		if (Options.v().optimizeMethods) {
+			for (Method method : program.getMethods()) {
+				boolean changed = true;
+				while (changed) {					
+					changed = false;
+					while (ConstPropagator.constPropagate(method)) {
+						changed = true;
+					}
+					while (CopyPropagator.copyPropagate(method)) {						
+						changed = true;
+					}
+					changed = DeadCodeElimination.eliminateDeadCode(method) ? true : changed ;
+					programChanged = programChanged || changed;
+				}
+				//now remove the locals that have been eliminated.
+				Set<Variable> allVars = new HashSet<Variable>();
+				for (CfgBlock b : method.vertexSet()) {
+					allVars.addAll(b.getUseVariables());
+					allVars.addAll(b.getDefVariables());
+				}
+				method.getLocals().retainAll(allVars);				
+			}			
+		}
+		return programChanged;
+	}
+	
+	
 	/**
 	 * Like run, but only performs the behavior preserving transformations
 	 * and does construct a CFG. This method is only needed to test the

@@ -27,9 +27,10 @@ public class DeadCodeElimination  {
 		LiveVars<CfgBlock> blockLiveVars = m.computeBlockLiveVariables();
 		boolean changed = false;
 		for (CfgBlock block : m.vertexSet()) {
-			changed = changed 
-					|| eliminateDeadStatements(m, block, blockLiveVars)
-					|| eliminateDeadConditions(m, block);
+			changed = eliminateDeadStatements(m, block, blockLiveVars) ? true : changed; 
+			//TODO: this currently doesn't affect the value of changed 
+			//because its not finished yet.
+			eliminateDeadConditions(m, block);
 		}
 		UnreachableNodeRemover.pruneUnreachableNodes(m, m.getSource());
 		return changed;

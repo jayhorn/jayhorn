@@ -117,7 +117,7 @@ public class BigSoundnessTests {
 			// soottocfg.Options.v().setExcAsAssert(true);
 //			soottocfg.Options.v().setMemPrecision(3);
 //			soottocfg.Options.v().setInlineCount(3);
-//			soottocfg.Options.v().setInlineMaxSize(20);
+//			soottocfg.Options.v().setInlineMaxSize(50);
 //			soottocfg.Options.v().setArrayInv(true);
 //			soottocfg.Options.v().setExactArrayElements(0);
 

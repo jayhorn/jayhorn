@@ -16,7 +16,7 @@ public class Options {
 	public final static int MEMPREC_LASTPUSH = 2;
 	public final static int MEMPREC_PTA = 3;
 	
-	public boolean optimizeMethods = false;
+	public boolean optimizeMethods = true;
 	
 	/*
 	 * Built in specs.

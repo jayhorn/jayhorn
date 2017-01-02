@@ -33,7 +33,8 @@ public class PushPullSimplifier {
 	
 	private static boolean debug = false;
 	
-	public void simplify(Program p) {
+	public boolean simplify(Program p) {
+		boolean change = false;
 		Method[] ms = p.getMethods();
 		for (Method m : ms) {
 			if (debug) {
@@ -44,21 +45,25 @@ public class PushPullSimplifier {
 			int simplifications;
 			do {
 				// intra-block simplification
-				for (CfgBlock block : blocks)
-					simplify(block);
+				for (CfgBlock block : blocks) {
+					change = simplify(block) ? true : change;
+				}
 				
 				// inter-block simplifications
 				simplifications = 0;
 				simplifications += movePullsUpInCFG(m);
 				simplifications += movePushesDownInCFG(m);
+				change = (simplifications>0) ? true : change;
 			} while (simplifications > 0);
 			
 			if (debug)
-				System.out.println("SIMPLIFIED:\n"+m);
+				System.out.println("SIMPLIFIED:\n"+m);			
 		}
+		return change;
 	}
 	
-	public void simplify(CfgBlock b) {
+	public boolean simplify(CfgBlock b) {
+		boolean change = false;
 		int simplifications;
 		do {
 			simplifications = 0;
@@ -72,7 +77,11 @@ public class PushPullSimplifier {
 			simplifications += orderPulls(b);
 			simplifications += orderPushes(b);
 //			simplifications += assumeFalseEatPreceeding(b);
+			if (simplifications>0) {
+				change = true;
+			}
 		} while (simplifications > 0);
+		return change;
 	}
 	
 	/* Rule I */

@@ -34,6 +34,16 @@ import soottocfg.soot.util.SootTranslationHelpers;
  */
 public class ConstPropagator {
 
+	private static boolean cfgEquals(Expression s1, Expression s2) {
+		// TODO: equals currently broken
+		return s1.toString().equals(s2.toString());
+	}
+
+	private static boolean cfgEquals(Statement s1, Statement s2) {
+		// TODO: equals currently broken
+		return s1.toString().equals(s2.toString());
+	}
+
 	public static void main(String[] args) {
 		Method m = createExampleProgram();
 		System.err.println(m);
@@ -41,11 +51,9 @@ public class ConstPropagator {
 		while (constPropagate(m)) {
 			System.err.println("Running propagator again");
 		}
-		System.err.println(m);	
+		System.err.println(m);
 	}
 
-	
-	
 	/**
 	 * Copy propagation of local variables. Returns true
 	 * if anything has changed and false otherwise.
@@ -56,18 +64,19 @@ public class ConstPropagator {
 	 */
 	public static boolean constPropagate(Method m) {
 		ReachingDefinitions rdefs = DataFlowUtils.computeReachingDefinitions(m);
-		boolean changes = false;		
+		
+		boolean changes = false;
+
 		for (CfgBlock b : m.vertexSet()) {
 			if (progateForEdgeLabels(m, b, rdefs)) {
 				changes = true;
 			}
-			List<Statement> newStmts = new LinkedList<Statement>(); 
+			List<Statement> newStmts = new LinkedList<Statement>();
 			for (Statement s : b.getStatements()) {
 				Map<Variable, Expression> subsitutions = createSubstitutionMap(s.getUseVariables(), rdefs.in.get(s));
-				if (!subsitutions.isEmpty()) {
-					changes = true;
-				}
-				newStmts.add(s.substituteVarWithExpression(subsitutions));
+				Statement newStmt = s.substituteVarWithExpression(subsitutions);
+				changes = !cfgEquals(newStmt, s) ? true : changes;
+				newStmts.add(newStmt);
 			}
 			if (changes) {
 				b.setStatements(newStmts);
@@ -78,41 +87,52 @@ public class ConstPropagator {
 
 	private static boolean progateForEdgeLabels(Method m, CfgBlock b, ReachingDefinitions rdefs) {
 		boolean changes = false;
-		if (!b.getStatements().isEmpty()) {			
-			Statement lastStmt = b.getStatements().get(b.getStatements().size()-1);
+		if (!b.getStatements().isEmpty()) {
+			Statement lastStmt = b.getStatements().get(b.getStatements().size() - 1);
 			Set<Statement> defStmts = rdefs.out.get(lastStmt);
 			for (CfgEdge e : m.outgoingEdgesOf(b)) {
 				if (e.getLabel().isPresent()) {
-					Expression expr = e.getLabel().get();					
+					Expression expr = e.getLabel().get();
 					Map<Variable, Expression> subsitutions = createSubstitutionMap(expr.getUseVariables(), defStmts);
 					if (!subsitutions.isEmpty()) {
-						changes = true;						
-						e.setLabel(expr.substituteVarWithExpression(subsitutions));
-					}					
+						Expression newExpr = expr.substituteVarWithExpression(subsitutions);						
+						if (!cfgEquals(expr, newExpr)) {
+							e.setLabel(newExpr);
+							changes = true;
+						}
+					}
 				}
 			}
 		}
 		return changes;
 	}
-	
-	private static Map<Variable, Expression> createSubstitutionMap(Set<Variable> useVars, Set<Statement> reachingStatements) {
+
+	private static Map<Variable, Expression> createSubstitutionMap(Set<Variable> useVars,
+			Set<Statement> reachingStatements) {
 		Map<Variable, Expression> subsitutions = new HashMap<Variable, Expression>();
 		for (Variable v : useVars) {
+//			boolean debug = false;
+//			if (v.getName().contains("cp_$ex__9")) debug=true;
+			
 			Set<Statement> defStmts = getDefStatementsForVar(v, reachingStatements);
-			if (defStmts.size()==1) {
+//			if (debug) System.err.println("1 " + reachingStatements);
+			if (defStmts.size() == 1) {
 				Statement stmt = defStmts.iterator().next();
-				if (stmt instanceof AssignStatement && ((AssignStatement)stmt).getRight() instanceof Literal) {
-					Expression literal = (Expression)((AssignStatement)stmt).getRight();
+//				if (debug) System.err.println("2");
+				if (stmt instanceof AssignStatement && ((AssignStatement) stmt).getRight() instanceof Literal) {
+					Expression literal = (Expression) ((AssignStatement) stmt).getRight();
+//					if (debug) System.err.println("3");
 					subsitutions.put(v, literal);
 				}
 			}
 		}
 		return subsitutions;
 	}
-	
+
 	/**
 	 * Returns the subset of statements that def the variable v.
 	 * This can be assignments, calls, or pulls.
+	 * 
 	 * @param v
 	 * @param reachingStatements
 	 * @return
@@ -126,18 +146,18 @@ public class ConstPropagator {
 		}
 		return res;
 	}
-	
-	
-	
+
 	/**
 	 * Creates example program from Listing 17.3 on page 356
+	 * 
 	 * @return
 	 */
 	private static Method createExampleProgram() {
 		Program p = new Program();
 		SootTranslationHelpers.initialize(p);
 		SourceLocation loc = SourceLocation.ANALYSIS;
-		Method m = Method.createMethodForTestingOnly(p, "test", new LinkedList<Variable>(), new LinkedList<Type>(), loc);
+		Method m = Method.createMethodForTestingOnly(p, "test", new LinkedList<Variable>(), new LinkedList<Type>(),
+				loc);
 
 		Variable a = new Variable("a", IntType.instance());
 		Variable b = new Variable("b", IntType.instance());
@@ -150,7 +170,7 @@ public class ConstPropagator {
 		l0.addStatement(new AssignStatement(loc, a.mkExp(loc), new IntegerLiteral(loc, 5)));
 		l0.addStatement(new AssignStatement(loc, b.mkExp(loc), a.mkExp(loc)));
 		l0.addStatement(new AssignStatement(loc, c.mkExp(loc), b.mkExp(loc)));
-				
+
 		return m;
 	}
 }
