@@ -80,6 +80,13 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	}
 
 	/**
+	 * @return returns the this-variable if there is one and null otherwise.
+	 */
+	public Variable getThisVariable() {
+		return this.thisVariable;
+	}
+	
+	/**
 	 * ONLY USE THIS METHOD DURING TESTING
 	 * @param p
 	 * @param uniqueName
@@ -145,7 +152,8 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	public boolean removeVertex(CfgBlock v) {
 		if (this.source == v) {
 			this.source = null;
-		} else if (this.sink == v) {
+		} 
+		if (this.sink == v) {
 			this.sink = null;
 		}
 		return super.removeVertex(v);
@@ -241,7 +249,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		if (sink == null) {
 			for (CfgBlock b : vertexSet()) {
 				if (outDegreeOf(b) == 0) {
-					Verify.verify(sink == null, "More than one source in graph!");
+					Verify.verify(sink == null, "More than one sink in graph for "+this.methodName);
 					sink = b;
 				}
 			}

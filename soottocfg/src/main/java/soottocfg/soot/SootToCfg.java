@@ -138,6 +138,8 @@ public class SootToCfg {
 		inliner.inlineFromMain(Options.v().getInlineMaxSize(), Options.v().getInlineCount());
 		removeUnreachableMethods(program);	
 		
+		
+		
 		if (program.getEntryPoint() == null) {
 			System.err.println("WARNING: No entry point found in program!");
 			SootTranslationHelpers.v().reset();

@@ -23,7 +23,9 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.soot.transformers.ArrayTransformer;
 
 /**
  * @author schaef
@@ -57,21 +59,20 @@ public class CfgCallInliner {
 			if (!totalCallsTo.containsKey(m.getMethodName())) {
 				totalCallsTo.put(m.getMethodName(), 0);
 			}
-			
+
 			for (Method callee : calledMethods(m)) {
 				if (!totalCallsTo.containsKey(callee.getMethodName())) {
 					totalCallsTo.put(callee.getMethodName(), 0);
 				}
 				totalCallsTo.put(callee.getMethodName(), totalCallsTo.get(callee.getMethodName()) + 1);
 			}
-			
+
 			int stmtCount = 0;
 			for (CfgBlock b : m.vertexSet())
 				stmtCount += b.getStatements().size();
 			totalStmts.put(m.getMethodName(), stmtCount);
 		}
 	}
-
 
 	private List<Method> calledMethods(Method m) {
 		List<Method> res = new LinkedList<Method>();
@@ -105,7 +106,7 @@ public class CfgCallInliner {
 	public void inlineFromMain(int maxSize, int maxOccurences) {
 		if (maxSize <= 0 && maxOccurences <= 0) {
 			return;
-		}		
+		}
 		Method mainMethod = program.getEntryPoint();
 		inlineCalls(mainMethod, maxSize, maxOccurences);
 		FoldStraighLineSeq folder = new FoldStraighLineSeq();
@@ -116,11 +117,23 @@ public class CfgCallInliner {
 		for (Method m : program.getMethods()) {
 			if (!reachable.contains(m)) {
 				toRemove.add(m);
-			} 
+			}
 		}
 		program.removeMethods(toRemove);
-		
-//		System.err.println(program);
+
+		// System.err.println(program);
+	}
+
+	private boolean canBeInlined(Method caller, Method callee) {
+		boolean res = !callee.equals(caller) && !callee.isConstructor() && !callee.isStaticInitializer();
+
+		if (soottocfg.Options.v().arrayInv() &&
+				callee.getThisVariable() != null
+				&& ((ReferenceType) callee.getThisVariable().getType()).getClassVariable().getName().startsWith(ArrayTransformer.arrayTypeName)) {
+			//TODO: for Rody's array model we must not inline array stuff.
+			return false;
+		}
+		return res;
 	}
 
 	private void inlineCalls(Method method, int maxSize, int maxOccurences) {
@@ -135,11 +148,11 @@ public class CfgCallInliner {
 				if (s instanceof CallStatement) {
 					CallStatement cs = (CallStatement) s;
 					Method callee = cs.getCallTarget();
-					
+
 					// first apply inlining to the callee
 					inlineCalls(callee, maxSize, maxOccurences);
-					
-					if (!callee.equals(method) && !callee.isConstructor() && !callee.isStaticInitializer()) {
+
+					if (canBeInlined(method, callee)) {
 
 						if (totalCallsTo.get(callee.getMethodName()) < maxOccurences
 								|| totalStmts.get(callee.getMethodName()) < maxSize) {
@@ -154,7 +167,7 @@ public class CfgCallInliner {
 							 * we know from enforceSingleInlineableCallPerBlock
 							 * that there is only one call per block to inline.
 							 */
-//							break;
+							// break;
 						}
 					}
 				}
@@ -285,11 +298,11 @@ public class CfgCallInliner {
 		toCopy.addAll(callee.getInParams());
 		toCopy.addAll(callee.getOutParams());
 		toCopy.addAll(callee.getLocals());
-		
+
 		for (Variable v : toCopy) {
 			Variable local = new Variable("cp_" + v.getName() + "_" + (++freshInt), v.getType());
 			caller.addLocalVariable(local);
-			varSubstitionMap.put(v, local); 
+			varSubstitionMap.put(v, local);
 		}
 		SourceLocation loc = call.getSourceLocation();
 		for (int i = 0; i < callee.getInParams().size(); i++) {
@@ -341,10 +354,10 @@ public class CfgCallInliner {
 			Expression receiver;
 			if (i < call.getReceiver().size()) {
 				receiver = call.getReceiver().get(i);
-				postBlock.addStatement(0,
-						new AssignStatement(loc, receiver, varSubstitionMap.get(callee.getOutParams().get(i)).mkExp(loc)));
+				postBlock.addStatement(0, new AssignStatement(loc, receiver,
+						varSubstitionMap.get(callee.getOutParams().get(i)).mkExp(loc)));
 			} else {
-				System.err.println("More outparams than receivers "+call);
+				System.err.println("More outparams than receivers " + call);
 			}
 		}
 

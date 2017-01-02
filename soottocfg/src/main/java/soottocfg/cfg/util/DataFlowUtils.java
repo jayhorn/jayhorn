@@ -23,6 +23,7 @@ import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.IntType;
@@ -142,6 +143,15 @@ public class DataFlowUtils  {
 		return res;
  	}
 	
+	/**
+	 * Returns true if s generates an update to a variable.
+	 * @param s
+	 * @return
+	 */
+	private static boolean isGenStatement(Statement s) {
+		return s instanceof AssignStatement || s instanceof CallStatement || s instanceof PullStatement || s instanceof NewStatement;
+	}
+	
 	private static void computeGenAndKillSets(Method m, Map<Statement, Set<Statement>> gen, Map<Statement, Set<Statement>> kill) {
 		Map<Variable, Set<Statement>> defs = new HashMap<Variable, Set<Statement>>();
 		// compute defs and gen sets before computing kill sets.
@@ -157,7 +167,7 @@ public class DataFlowUtils  {
 				// create the gen[s] map
 				Set<Statement> genSet = new HashSet<Statement>();
 				gen.put(s, genSet);
-				if (s instanceof AssignStatement || s instanceof CallStatement || s instanceof PullStatement) {
+				if (isGenStatement(s)) {
 					gen.get(s).add(s);
 				} // else do nothing.
 			}

@@ -116,8 +116,12 @@ public class BigSoundnessTests {
 //			 soottocfg.Options.v().setPrintCFG(true);
 			// soottocfg.Options.v().setExcAsAssert(true);
 //			soottocfg.Options.v().setMemPrecision(3);
-//			soottocfg.Options.v().setArrayInv(true);
-//			soottocfg.Options.v().setExactArrayElements(0);
+
+			jayhorn.Options.v().setInlineMaxSize(100);
+			jayhorn.Options.v().setInlineCount(5);
+
+			soottocfg.Options.v().setArrayInv(true);
+			soottocfg.Options.v().setExactArrayElements(0);
 
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			boolean result = false;
