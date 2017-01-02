@@ -28,6 +28,8 @@ public class PushStatement extends Statement {
 	private IdentifierExpression object;
 	private final List<Expression> right;
 	
+	private final List<Expression> ghostExpressions;
+	
 	private final int id;	
 	private static int nextID = 0;
 	
@@ -35,32 +37,56 @@ public class PushStatement extends Statement {
 	 * @param loc
 	 */
 	public PushStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj, List<Expression> rhs, int id) {
+		this(loc, c, obj, rhs, null, id);
+	}
+	
+	public PushStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj, List<Expression> rhs, List<Expression> ghostExpressions, int id) {
 		super(loc);
+		this.ghostExpressions = new LinkedList<Expression>();
+		if (ghostExpressions!=null) {
+			this.ghostExpressions.addAll(ghostExpressions);
+		}
 		classConstant = c;
 		object = obj;
 		right = new LinkedList<Expression>(rhs);
-		if (c.getAssociatedFields().length != right.size()) {
+		this.id = id;
+		verifySize();
+	}
+	
+	private void verifySize() {
+		if (classConstant.getAssociatedFields().length != right.size()) {
 			StringBuilder err = new StringBuilder();
-			err.append(obj);
+			err.append(object);
 			err.append(" has fields ");
 			String comma = "";
 			err.append("[");
-			for (Variable cv : c.getAssociatedFields()) {
+			for (Variable cv : classConstant.getAssociatedFields()) {
 				err.append(comma);
 				comma = ", ";
-				err.append(cv.getName());
+				err.append(cv.getName()+":"+cv.getType());
 			}
 			err.append("] but is assigned to ");
-			err.append(rhs);
+			err.append("[");
+			comma = "";
+			for (Expression e : right) {
+				err.append(comma);
+				comma = ", ";
+				err.append(e+":"+e.getType());				
+			}
+			err.append("]");
 			Verify.verify(false, err.toString());
 		}
-		this.id = id;
 	}
 	
 	public PushStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj, List<Expression> rhs) {
 		this(loc, c, obj, rhs, nextID());
 	}
 
+    public List<Expression> getGhostExpressions() {
+    	return this.ghostExpressions;
+    }
+
+	
 	// had to put this in a method to silence findBugs...
 	private static int nextID() {
 		return ++nextID;
@@ -82,9 +108,6 @@ public class PushStatement extends Statement {
     	return id;
     }
     
-    public void addGhostField(Expression e) {
-    	right.add(e);
-    }
     
 	@Override
 	public Set<IdentifierExpression> getUseIdentifierExpressions() {
@@ -92,6 +115,10 @@ public class PushStatement extends Statement {
 		for (Expression e : right) {
 			used.addAll(e.getUseIdentifierExpressions());	
 		}
+		for (Expression e: ghostExpressions) {
+			used.addAll(e.getUseIdentifierExpressions());
+		}
+//TODO: I'm not sure if a push is a use or a def of 'object' ... or both?
         used.add(object);
 		return used;
 	}
@@ -99,17 +126,24 @@ public class PushStatement extends Statement {
 	@Override
 	public Set<IdentifierExpression> getDefIdentifierExpressions() {
 		Set<IdentifierExpression> res = new HashSet<IdentifierExpression>();
-		res.add(object);
+//		res.add(object);
 		return res;
 	}
 	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("push(");
+		sb.append("push_");
+                sb.append(id);
+		sb.append("(");
 		sb.append(classConstant.getName());
 		sb.append(", ");
 		sb.append(object);
+		for (Expression e : this.ghostExpressions) {
+			sb.append(", ");
+			sb.append(e);
+		}
+
 		sb.append(", [");
 		String comma = "";
 		for (Expression v : right) {
@@ -129,7 +163,11 @@ public class PushStatement extends Statement {
 		for (Expression e : right) {
 			rightCopy.add(e.deepCopy());
 		}
-		return new PushStatement(getSourceLocation(), classConstant, object.deepCopy(), rightCopy, this.id);
+		List<Expression> ghostCopy = new LinkedList<Expression>();
+		for (Expression e : ghostExpressions) {
+			ghostCopy.add(e.deepCopy());
+		}
+		return new PushStatement(getSourceLocation(), classConstant, object.deepCopy(), rightCopy, ghostCopy, this.id);
 	}
 
 	@Override
@@ -138,20 +176,39 @@ public class PushStatement extends Statement {
 		for (Expression e : right) {
 			rightCopy.add(e.substitute(subs));
 		}
-		return new PushStatement(getSourceLocation(), classConstant, object.substitute(subs), rightCopy, this.id);
+		List<Expression> ghostCopy = new LinkedList<Expression>();
+		for (Expression e : ghostExpressions) {
+			ghostCopy.add(e.substitute(subs));
+		}
 
+		return new PushStatement(getSourceLocation(), classConstant, object.substitute(subs), rightCopy, ghostCopy, this.id);
 	}
 	
 	@Override
-	public boolean equals(Object o) {
-		if (!(o instanceof PushStatement))
-			return false;
-		PushStatement other = (PushStatement) o;
-		return this.id == other.id;
-	}
+	public PushStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
+		List<Expression> rightCopy = new LinkedList<Expression>();
+		for (Expression e : right) {
+			rightCopy.add(e.substituteVarWithExpression(subs));
+		}
+		List<Expression> ghostCopy = new LinkedList<Expression>();
+		for (Expression e : ghostExpressions) {
+			ghostCopy.add(e.substituteVarWithExpression(subs));
+		}
+//		Verify.verify(!subs.containsKey(object.getVariable()));
+		return new PushStatement(getSourceLocation(), classConstant, object.deepCopy(), rightCopy, ghostCopy, this.id);
+	}	
 	
-	@Override
-	public int hashCode() {
-		return id;
-	}
+	
+//	@Override
+//	public boolean equals(Object o) {
+//		if (!(o instanceof PushStatement))
+//			return false;
+//		PushStatement other = (PushStatement) o;
+//		return this.id == other.id;
+//	}
+//	
+//	@Override
+//	public int hashCode() {
+//		return id;
+//	}
 }

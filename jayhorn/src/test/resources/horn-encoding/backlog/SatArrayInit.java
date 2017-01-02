@@ -1,5 +1,5 @@
 class A {
-  int value = 0;
+//  int value = 0;
 }
 
 class SatArrayInit
@@ -10,8 +10,9 @@ class SatArrayInit
     A[] array = new A[size];
 
     for (int i = 0; i < size; i++) {
-      array[i] = new A();
-      assert array[i] != null;
+      array[i] = new A();  
+      //assert array[i] != null;    
     }
+    assert array[3] != null;
   }
 }

@@ -4,9 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import jayhorn.solver.princess.PrincessProverFactory;
+import jayhorn.solver.spacer.SpacerProver;
 
 public class Main {
-
+	
 	public void test01(Prover p) {
 		System.out.println("\n\n\nDSN Testing interpolation and abduction");
 		Map<String, ProverExpr> vars = new HashMap<String, ProverExpr>();
@@ -98,7 +99,8 @@ public class Main {
 		p.pop();
 
 	}
-
+	
+	
 	public void test04(Prover p) {
 		p.push();
 		final ProverExpr a = p.mkVariable("a", p.getIntType());
@@ -262,6 +264,7 @@ public class Main {
 //		final ProverFactory factory = new Z3ProverFactory();
 		Main m = new Main();
 		m.runTests(factory);
+		m.testSpacer();
 	}
 
 	private static ProverExpr getVar(String name, ProverType type,
@@ -277,6 +280,67 @@ public class Main {
 		return var;
 	}
 
+
+	public void testSpacer(){
+		System.out.print("Testing Spacer\n");
+		SpacerProver p = new SpacerProver();
+		final ProverFun r =
+                p.mkHornPredicate("r", new ProverType[] { p.getIntType() });
+		final ProverFun s =
+				p.mkHornPredicate("s", new ProverType[] { p.getIntType() });
+		final ProverFun error =
+				p.mkHornPredicate("error", new ProverType[] {p.getBooleanType()});
+		final ProverExpr x =
+				p.mkVariable("x", p.getIntType());
+		
+		final ProverHornClause c1 =
+				p.mkHornClause(r.mkExpr(new ProverExpr[] {p.mkLiteral(0)}),
+						new ProverExpr[0],
+						p.mkLiteral(true));
+		
+		final ProverHornClause c2 =
+				p.mkHornClause(r.mkExpr(new ProverExpr[] {p.mkPlus(x, p.mkLiteral(1))}),
+						new ProverExpr[] {
+								r.mkExpr(new ProverExpr[] {x})
+				},
+						p.mkLiteral(true));
+		final ProverHornClause c3 =
+				p.mkHornClause(s.mkExpr(new ProverExpr[] {x}),
+						new ProverExpr[] {
+								r.mkExpr(new ProverExpr[] {x})
+				},
+						p.mkLiteral(true));
+
+		final ProverHornClause errorState =
+				p.mkHornClause(error.mkExpr(new ProverExpr[] {p.mkLiteral(true)}),
+						new ProverExpr[] {r.mkExpr(new ProverExpr[] {x})}, 
+						p.mkLiteral(true));
+//            System.out.println("c1: " + c1);
+//            System.out.println("c2: " + c2);
+//            System.out.println("c3: " + c3);
+//            System.out.println("error: " + errorState);
+
+            p.addRule(c1);
+            p.addRule(c2);
+            p.addRule(c3);          
+            p.addRule(errorState);
+            p.printRules();
+            final ProverExpr e = error.mkExpr(new ProverExpr[] {p.mkLiteral(true)});
+            System.out.println(e);
+            ProverResult result = p.query(e);
+            System.out.println(result);
+            if (result.toString().equals("Sat")){
+            	System.out.println(p.getGroundSatAnswer());
+            }
+//            if pr.equals("unsat"){
+//               Expr pr = p.getGroundSatAnswer();
+//            }
+            //p.printRules();
+
+            
+               
+	}
+	
 	private String demoHornProg() {
 		final String hornProg = 
 		"(declare-rel cp-rel-entry ())\n"

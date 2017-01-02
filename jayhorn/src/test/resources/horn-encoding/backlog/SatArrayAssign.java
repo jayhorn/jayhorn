@@ -11,7 +11,7 @@ class SatArrayAssign
     for(int i=0; i<size; i++)
       int_array[i]=i;
 
-    assert int_array[7] == 7;
+//    assert int_array[7] == 7;
 
     A what_not_array[]=new A[size];
     

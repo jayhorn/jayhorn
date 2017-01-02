@@ -1,6 +1,3 @@
-/**
- * 
- */
 package soottocfg.cfg.statement;
 
 import java.util.HashSet;
@@ -17,38 +14,49 @@ import soottocfg.cfg.variable.Variable;
 
 /**
  * @author schaef
+ * @author rodykers
  *
  */
 public class PullStatement extends Statement {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 9221818898828469398L;
 	private final ClassVariable classConstant;
 	private IdentifierExpression object;
 	private final List<IdentifierExpression> left;
 
+	private final List<Expression> ghostExpressions;
+	
+	private Set<PushStatement> canAffect;
+	
+	public PullStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj,
+			List<IdentifierExpression> lhs) {
+		this(loc, c, obj, lhs, null);
+	}
 	/**
 	 * @param loc
 	 */
 	public PullStatement(SourceLocation loc, ClassVariable c, IdentifierExpression obj,
-			List<IdentifierExpression> lhs) {
+			List<IdentifierExpression> lhs, List<Expression> ghostExp) {
 		super(loc);
 		classConstant = c;
 		object = obj;
 		left = new LinkedList<IdentifierExpression>(lhs);
+		this.ghostExpressions = new LinkedList<Expression>();
+		if (ghostExp!=null) {
+			this.ghostExpressions.addAll(ghostExp);
+		}
 		assert (c.getAssociatedFields().length == left.size());
+		this.canAffect = new HashSet<PushStatement>();
 	}
 
 	public List<IdentifierExpression> getLeft() {
 		return left;
 	}
 	
-    public void addGhostField(IdentifierExpression e) {
-    	left.add(e);
+    public List<Expression> getGhostExpressions() {
+    	return this.ghostExpressions;
     }
-	
+		
     public ClassVariable getClassSignature() {
         return classConstant;
     }
@@ -61,6 +69,9 @@ public class PullStatement extends Statement {
 	public Set<IdentifierExpression> getUseIdentifierExpressions() {
 		Set<IdentifierExpression> used = new HashSet<IdentifierExpression>();
 		used.add(object);
+//		for (Expression e: ghostExpressions) {
+//			used.addAll(e.getUseIdentifierExpressions());
+//		}
 		return used;
 	}
 
@@ -68,10 +79,25 @@ public class PullStatement extends Statement {
 	public Set<IdentifierExpression> getDefIdentifierExpressions() {
 		Set<IdentifierExpression> res = new HashSet<IdentifierExpression>();
 		res.addAll(left);
+		for (Expression e: ghostExpressions) {
+			res.addAll(e.getUseIdentifierExpressions());
+		}
+
 		return res;
 	}
 
+	public Set<PushStatement> getAffectingPushes() {
+		return canAffect;
+	}
+	
+	public void canAffect(PushStatement push) {
+		canAffect.add(push);
+	}
 
+	public void canAffect(Set<PushStatement> pushes) {
+		canAffect.addAll(pushes);
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -85,7 +111,19 @@ public class PullStatement extends Statement {
 		sb.append(classConstant.getName());
 		sb.append(", ");
 		sb.append(object);
+		for (Expression e : this.ghostExpressions) {
+			sb.append(", ");
+			sb.append(e);
+		}
 		sb.append(")");
+		sb.append("[");
+		comma = "";
+		for (PushStatement push : canAffect) {
+			sb.append(comma);
+			sb.append(push.getID());
+			comma = ", ";
+		}
+		sb.append("]");
 		return sb.toString();
 	}
 
@@ -95,7 +133,11 @@ public class PullStatement extends Statement {
 		for (IdentifierExpression e : left) {
 			leftCopy.add(e.deepCopy());
 		}
-		return new PullStatement(getSourceLocation(), classConstant, object.deepCopy(), leftCopy);
+		List<Expression> ghostCopy = new LinkedList<Expression>();
+		for (Expression e : ghostExpressions) {
+			ghostCopy.add(e.deepCopy());
+		}
+		return new PullStatement(getSourceLocation(), classConstant, object.deepCopy(), leftCopy, ghostCopy);
 	}
 
 	@Override
@@ -104,7 +146,27 @@ public class PullStatement extends Statement {
 		for (IdentifierExpression e : left) {
 			leftCopy.add(e.substitute(subs));
 		}
-		return new PullStatement(getSourceLocation(), classConstant, object.substitute(subs), leftCopy);
+		List<Expression> ghostCopy = new LinkedList<Expression>();
+		for (Expression e : ghostExpressions) {
+			ghostCopy.add(e.substitute(subs));
+		}
+		
+		return new PullStatement(getSourceLocation(), classConstant, object.substitute(subs), leftCopy, ghostCopy);
 	}
 
+	@Override
+	public PullStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
+		List<IdentifierExpression> leftCopy = new LinkedList<IdentifierExpression>();
+		for (IdentifierExpression e : left) {
+			leftCopy.add(e.deepCopy());
+		}
+		List<Expression> ghostCopy = new LinkedList<Expression>();
+		for (Expression e : ghostExpressions) {
+			ghostCopy.add(e.substituteVarWithExpression(subs));
+		}
+		
+//		Verify.verify(!subs.containsKey(object.getVariable()));
+		return new PullStatement(getSourceLocation(), classConstant, object.deepCopy(), leftCopy, ghostCopy);
+	}
+	
 }

@@ -300,7 +300,7 @@ public class SootRunner {
 			// }
 			PackManager.v().runPacks();
 			createAssertionClass();
-
+			
 			/*
 			 * TODO: apply some preprocessing stuff like:
 			 * soot.jimple.toolkits.base or maybe the optimize option from soot.

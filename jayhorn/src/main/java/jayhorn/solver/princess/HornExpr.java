@@ -75,7 +75,7 @@ class HornExpr implements ProverHornClause {
     public ProverFun getHeadFun() {
         if (clause.head().equals(SimpleWrapper.FALSEAtom()))
             return null;
-        return new PredicateFun(clause.head().pred());
+        return new PredicateFun(clause.head().pred(), null);
     }
 
     /**
@@ -108,7 +108,7 @@ class HornExpr implements ProverHornClause {
      * Get the predicate symbol of the body literal <code>num</code>.
      */
     public ProverFun getBodyFun(int num) {
-        return new PredicateFun(clause.body().apply(num).pred());
+        return new PredicateFun(clause.body().apply(num).pred(), null);
     }
 
     /**

@@ -62,4 +62,10 @@ public class AssertStatement extends Statement {
 	public AssertStatement substitute(Map<Variable, Variable> subs) {
 		return new AssertStatement(getSourceLocation(), expression.substitute(subs));
 	}
+	
+	@Override
+	public AssertStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
+		return new AssertStatement(getSourceLocation(), expression.substituteVarWithExpression(subs));
+	}
+
 }

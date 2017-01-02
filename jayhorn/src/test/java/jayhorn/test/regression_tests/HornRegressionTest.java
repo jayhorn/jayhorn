@@ -14,9 +14,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import jayhorn.checker.Checker;
+import jayhorn.checker.EldaricaChecker;
+import jayhorn.checker.SpacerChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
+import jayhorn.solver.spacer.SpacerProverFactory;
 import jayhorn.test.Util;
 import scala.actors.threadpool.Arrays;
 import soottocfg.cfg.Program;
@@ -65,46 +67,95 @@ public class HornRegressionTest {
 		this.sourceFile = source;
 	}
 
+
 	@Test
 	public void testWithPrincess() {
-		verifyAssertions(new PrincessProverFactory());
+		PrincessProverFactory factory = new PrincessProverFactory();
+		Program program = getCFG(factory);
+		if (program != null){
+			EldaricaChecker eldarica = new EldaricaChecker(factory);
+			boolean result = eldarica.checkProgram(program);
+			boolean expected = this.sourceFile.getName().startsWith("Sat");
+			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
+		} else {
+			Assert.fail();
+		}
 	}
 
-//	@Test
-//	public void testWithZ3() {
-//		verifyAssertions(new Z3ProverFactory());
-//	}
-
+	//@Test
+	public void testWithSpacer() {
+		SpacerProverFactory factory = new SpacerProverFactory();
+		Program program = getCFG(factory);
+		if (program != null){
+			SpacerChecker spacer = new SpacerChecker(factory);
+			System.out.println("Context: " + spacer.getProver());
+			boolean result = spacer.checkProgram(program);		
+			boolean expected = this.sourceFile.getName().startsWith("Sat");
+			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
+		} else {
+			Assert.fail();
+		}
+	}
 	
-	protected void verifyAssertions(ProverFactory factory) {
+	protected Program getCFG(ProverFactory factory) {
 		jayhorn.Options.v().setTimeout(60);
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
-			jayhorn.Options.v().setInlineCount(15);
-			jayhorn.Options.v().setInlineMaxSize(50);			
-
+//			jayhorn.Options.v().setInlineCount(15);
+//			jayhorn.Options.v().setInlineMaxSize(50);			
+//			soottocfg.Options.v().setMemPrecision(1);
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
 //			soottocfg.Options.v().setPrintCFG(true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 //			jayhorn.Options.v().setPrintHorn(true);
-			soottocfg.Options.v().setMemPrecision(3);
-			Program program = soot2cfg.getProgram();
-	  		Checker hornChecker = new Checker(factory);
-	  		boolean result = hornChecker.checkProgram(program);
 
-			boolean expected = this.sourceFile.getName().startsWith("Sat");
-			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
+		
+			return soot2cfg.getProgram();
 
 		} catch (IOException e) {
 			e.printStackTrace();
-			Assert.fail();
+			return null;
 		} finally {
 			if (classDir!=null) {
 				classDir.deleteOnExit();
 			}
 		}	
 	}
+		
+//	protected void verifyAssertions(ProverFactory factory) {
+//		jayhorn.Options.v().setTimeout(60);
+//		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
+//		File classDir = null;
+//		try {
+////			jayhorn.Options.v().setInlineCount(15);
+////			jayhorn.Options.v().setInlineMaxSize(50);			
+////			soottocfg.Options.v().setMemPrecision(1);
+//			classDir = Util.compileJavaFile(this.sourceFile);
+//			SootToCfg soot2cfg = new SootToCfg();
+////			soottocfg.Options.v().setPrintCFG(true);
+//			soot2cfg.run(classDir.getAbsolutePath(), null);
+////			jayhorn.Options.v().setPrintHorn(true);
+//
+//			
+//			Program program = soot2cfg.getProgram();
+//			//boolean result;
+//			
+//			EldaricaChecker eldarica = new EldaricaChecker(factory);
+//			boolean result = eldarica.checkProgram(program);
+//
+//			boolean expected = this.sourceFile.getName().startsWith("Sat");
+//			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
+//
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//			Assert.fail();
+//		} finally {
+//			if (classDir!=null) {
+//				classDir.deleteOnExit();
+//			}
+//		}	
+//	}
 		
 }

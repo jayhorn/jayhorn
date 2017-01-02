@@ -11,11 +11,12 @@ import com.google.common.base.Verify;
 
 import soottocfg.cfg.Program;
 import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.Variable;
@@ -35,23 +36,17 @@ public class FlowBasedPointsToAnalysis {
 		for (Method m : program.getMethods()) {
 			for (CfgBlock b : m.vertexSet()) {
 				for (Statement s : b.getStatements()) {
-					if (s instanceof CallStatement) {
-						CallStatement cs = (CallStatement) s;
-						Method target = cs.getCallTarget();
-						if (target.isConstructor()) {
-							List<Expression> args = cs.getArguments();
-							Verify.verify(args.size()>=1 && args.get(0) instanceof IdentifierExpression,
-									"Constructor should have 'this' as first argument");
-							Set<Integer> pt = getPointsToSet(variableFromExpression(args.get(0)));
-							pt.add(nextAliasClass++);
-//							System.out.println("Added alias class for " + args.get(0) + " -> " + pt);
-						}
+					if (s instanceof NewStatement) {
+						NewStatement ns = (NewStatement) s;
+						Set<Integer> pt = getPointsToSet(ns.getLeft());
+						pt.add(nextAliasClass++);
 					}
 				}
 			}
 		}
 		
 		// then propagate point to sets until we reach a fixpoint
+//		InterProceduralPullPushOrdering ordering = new InterProceduralPullPushOrdering(program.getEntryPoint());
 		int changes;
 		do {
 			changes = 0;
@@ -62,7 +57,8 @@ public class FlowBasedPointsToAnalysis {
 					for (Statement s : b.getStatements()) {
 						if (s instanceof AssignStatement) {
 							AssignStatement as = (AssignStatement) s;
-							if (refType(as.getLeft()) && refType(as.getRight())) {
+							if (refType(as.getLeft()) && refType(as.getRight())
+									&& !(as.getRight() instanceof NullLiteral)) {
 								Variable left = variableFromExpression(as.getLeft());
 								Variable right = variableFromExpression(as.getRight());
 								changes += rightIntoLeft(right, left);
@@ -75,14 +71,14 @@ public class FlowBasedPointsToAnalysis {
 							Verify.verify(params.size()==args.size());
 							for (int i = 0; i < params.size(); i++) {
 								Variable left = params.get(i);
-								if (refType(left) && refType(args.get(i))) {
+								if (refType(left) && refType(args.get(i))
+										&& !(args.get(i) instanceof NullLiteral)) {
 									Variable right = variableFromExpression(args.get(i));
 									changes += rightIntoLeft(right, left);
 								}
 							}
 							List<Variable> rets = target.getOutParams();
 							List<Expression> rec = cs.getReceiver();
-//							System.out.println("Rec: " + rec + "; rets: " + rets);
 							Verify.verify(rec.size()==1 || rets.size()==rec.size(),
 									"In "+m.getMethodName()+ " for "+ cs+": "+rets.size()+"!="+rec.size());
 							for (int i = 1; i < rec.size(); i++) {
@@ -92,7 +88,15 @@ public class FlowBasedPointsToAnalysis {
 									changes += rightIntoLeft(right, left);
 								}
 							}
-						} 
+//						} else if (s instanceof PullStatement) {
+//							PullStatement pull = (PullStatement) s;
+//							Variable left = variableFromExpression(pull.getObject());
+//							Set<PushStatement> pushes = ordering.getPushsInfluencing(pull);
+//							for (PushStatement push : pushes) {
+//								Variable right = variableFromExpression(push.getObject());
+//								changes += rightIntoLeft(right, left);
+//							}
+						}
 					}
 				}
 			}
@@ -134,26 +138,36 @@ public class FlowBasedPointsToAnalysis {
 				&& !rt1.getClassVariable().superclassOf(rt2.getClassVariable()))
 			return false;
 		
-		Set<Integer> pt1 = getPointsToSet(variableFromExpression(ref1));
-		Set<Integer> pt2 = getPointsToSet(variableFromExpression(ref2));
+		if (!(ref1 instanceof NullLiteral || ref2 instanceof NullLiteral)) {
+			Variable v1 = variableFromExpression(ref1);
+			Variable v2 = variableFromExpression(ref2);
+			if (v1.equals(v2))
+				return true;
+		}
+		
+		Set<Integer> pt1 = getPointsToSet(ref1);
+		Set<Integer> pt2 = getPointsToSet(ref2);
 		return pt1.size()==1 && pt2.size()==1 && pt1.containsAll(pt2);
 	}
 	
 	public boolean mayAlias(Expression ref1, Expression ref2) {
+		if (ref1 instanceof NullLiteral || ref2 instanceof NullLiteral)
+			return false;
+		
 		ReferenceType rt1 = getReferenceType(ref1);
 		ReferenceType rt2 = getReferenceType(ref2);
 		
 		if (rt1.getClassVariable()==null || rt2.getClassVariable()==null) {
 //			System.err.println("Class var not set: " + ref1 + " and " + ref2);
-			return false; 
+			return false;
 		}
 		
 		if (!rt1.getClassVariable().subclassOf(rt2.getClassVariable()) 
 				&& !rt1.getClassVariable().superclassOf(rt2.getClassVariable()))
 			return false;
 		
-		Set<Integer> pt1 = getPointsToSet(variableFromExpression(ref1));
-		Set<Integer> pt2 = getPointsToSet(variableFromExpression(ref2));
+		Set<Integer> pt1 = getPointsToSet(ref1);
+		Set<Integer> pt2 = getPointsToSet(ref2);
 		
 		// If we did not collect points to info, err on the safe side
 		if (pt1.isEmpty() || pt2.isEmpty()) return true;
@@ -166,7 +180,7 @@ public class FlowBasedPointsToAnalysis {
 			this.pointsTo.put(v, new HashSet<Integer>());
 		
 		// bit of a hack to get this to work with the Jayhorn classes
-		if (v.getType().toString().startsWith(NewMemoryModel.globalsClassName)
+		if (v.getType().toString().startsWith(NewMemoryModel.GlobalsClassName)
 				|| v.getType().toString().startsWith(ArrayTransformer.arrayTypeName)) {
 			Set<Integer> pointsto = new HashSet<Integer>();
 			int ptid = -v.getType().hashCode();
@@ -175,6 +189,13 @@ public class FlowBasedPointsToAnalysis {
 		}
 		
 		return this.pointsTo.get(v);
+	}
+	
+	private Set<Integer> getPointsToSet(Expression e) {
+		if (e instanceof NullLiteral) {
+			return new HashSet<Integer>();
+		}
+		return getPointsToSet(variableFromExpression(e));
 	}
 	
 	private Variable variableFromExpression(Expression e) {

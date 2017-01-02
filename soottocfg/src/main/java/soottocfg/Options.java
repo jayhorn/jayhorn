@@ -11,10 +11,16 @@ import soottocfg.soot.SootToCfg.MemModel;
  */
 public class Options {
 
+	public final static int MEMPREC_LOW = 0;
+	public final static int MEMPREC_SIMPLIFY = 1;
+	public final static int MEMPREC_LASTPUSH = 2;
+	public final static int MEMPREC_PTA = 3;
+	
+	public boolean optimizeMethods = true;
+	
 	/*
 	 * Built in specs.
-	 */
-	
+	 */	
 	private boolean useBuiltInSpecs = false;
 
 	public boolean useBuiltInSpecs() {
@@ -40,10 +46,38 @@ public class Options {
 	}
 	
 	/*
+	 * Use array invariants.
+	 */
+	
+	private boolean arrayInv = true;
+	
+	public boolean arrayInv() { 
+		return arrayInv;
+	}
+	
+	public void setArrayInv(boolean b) {		
+		this.arrayInv = b;
+	}
+	
+	/*
+	 * Number of array elements modeled exactly
+	 */
+	
+	private int exactArrayElements = 0;
+	
+	public int exactArrayElements() { 
+		return exactArrayElements;
+	}
+	
+	public void setExactArrayElements(int ar) {		
+		this.exactArrayElements = ar;
+	}
+
+	/*
 	 * Precision of push-pull memory model.
 	 */
 	
-	private int memPrecision = 3;
+	private int memPrecision = Options.MEMPREC_PTA;
 	
 	public int memPrecision() { 
 		return memPrecision;
@@ -67,22 +101,7 @@ public class Options {
 		this.resolveVirtualCalls = r;
 	}
 	
-	
-	/*
-	 * Pass the id of the call site as
-	 * method parameter to allow disjunctive
-	 * invariants
-	 */
-//	private boolean passCallerIdIntoMethods = false;
-//	
-//	public boolean passCallerIdIntoMethods() {
-//		return passCallerIdIntoMethods;
-//	}
-//	
-//	public void passCallerIdIntoMethods(boolean val) {
-//		this.passCallerIdIntoMethods = val;
-//	}
-	
+
 	/* 
 	 * Create Assertions For Uncaught Exceptions
 	 */
@@ -142,6 +161,38 @@ public class Options {
 	public void checkMixedJavaClassFiles(boolean val) {
 		checkMixedJavaClassFiles = val;
 	}
+	
+	private int inlineMaxSize = -1;
+
+	/**
+	 * @return the inlineMinSize
+	 */
+	public int getInlineMaxSize() {
+		return inlineMaxSize;
+	}
+
+	/**
+	 * @param inlineMinSize the inlineMinSize to set
+	 */
+	public void setInlineMaxSize(int inlineMaxSize) {
+		this.inlineMaxSize = inlineMaxSize;
+	}
+
+	/**
+	 * @return the inlineCount
+	 */
+	public int getInlineCount() {
+		return inlineCount;
+	}
+
+	/**
+	 * @param inlineCount the inlineCount to set
+	 */
+	public void setInlineCount(int inlineCount) {
+		this.inlineCount = inlineCount;
+	}
+
+	private int inlineCount = -1;
 	
 	/*
 	 * Singleton
