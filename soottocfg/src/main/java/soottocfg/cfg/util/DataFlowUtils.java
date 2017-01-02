@@ -39,10 +39,8 @@ public class DataFlowUtils  {
 
 	public static void main(String[] args) {
 		Method m = createExampleProgram17_3();
-		System.err.println(m);
-		
+		System.err.println(m);		
 		ReachingDefinitions rd = computeReachingDefinitions(m);
-		
 		System.err.println(rd);	
 	}
 	
@@ -59,7 +57,7 @@ public class DataFlowUtils  {
 			sb.append(System.getProperty("line.separator"));
 			List<Statement> statementList = new LinkedList<Statement>(in.keySet());
 			for (Statement s : in.keySet()) {				 
-				sb.append(String.format("%1$5d:  %2$15s  ", statementList.indexOf(s), s));
+				sb.append(String.format("%1$5d:  %2$25s  ", statementList.indexOf(s), s));
 				StringBuilder tmp = new StringBuilder();
 				String comma = "In: ";
 				for (Statement inS : in.get(s)) {
@@ -84,7 +82,6 @@ public class DataFlowUtils  {
 		}
 	}
 	
-	
 	public static ReachingDefinitions computeReachingDefinitions(Method m) {
 
 		Map<Statement, Set<Statement>> gen = new LinkedHashMap<Statement, Set<Statement>>();
@@ -107,6 +104,7 @@ public class DataFlowUtils  {
 		while(changed) {
 			changed = false;
 			for (Statement s : allStatements) {
+
 				//update the in-sets
 				Set<Statement> newIn = computeInSet(s, predMap, out);
 				if (!in.get(s).equals(newIn) ) {
@@ -188,7 +186,7 @@ public class DataFlowUtils  {
 	 * @return Map from statement to set of predecessor statements 
 	 */
 	private static Map<Statement, Set<Statement>> getStatementPredecessorMap(Method m) {
-		Map<Statement, Set<Statement>> pred = new HashMap<Statement, Set<Statement>>();
+		Map<Statement, Set<Statement>> pred = new LinkedHashMap<Statement, Set<Statement>>();
 
 		Map<CfgBlock, Set<Statement>> lastStmt = new HashMap<CfgBlock, Set<Statement>>();
 
@@ -209,9 +207,9 @@ public class DataFlowUtils  {
 				}
 			} else {
 				blockWithLastStatement.add(b);
-
 			}
 		}
+		
 		while (!blockWithLastStatement.isEmpty()) {
 			CfgBlock current = blockWithLastStatement.remove(0);
 			lastStmt.get(current)

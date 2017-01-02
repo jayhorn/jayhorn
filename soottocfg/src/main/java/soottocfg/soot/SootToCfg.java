@@ -143,7 +143,7 @@ public class SootToCfg {
 			SootTranslationHelpers.v().reset();
 			return;
 		}
-
+		
 		boolean changed = true;
 		while(changed) {			
 			changed = applyPullPushSimplification();

@@ -199,16 +199,16 @@ public class PushStatement extends Statement {
 	}	
 	
 	
-	@Override
-	public boolean equals(Object o) {
-		if (!(o instanceof PushStatement))
-			return false;
-		PushStatement other = (PushStatement) o;
-		return this.id == other.id;
-	}
-	
-	@Override
-	public int hashCode() {
-		return id;
-	}
+//	@Override
+//	public boolean equals(Object o) {
+//		if (!(o instanceof PushStatement))
+//			return false;
+//		PushStatement other = (PushStatement) o;
+//		return this.id == other.id;
+//	}
+//	
+//	@Override
+//	public int hashCode() {
+//		return id;
+//	}
 }

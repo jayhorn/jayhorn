@@ -398,12 +398,12 @@ public enum SootTranslationHelpers {
 		return ah.getJavaSourceStartLineNumber();
 	}
 
-	public int getUniqueNumberForUnit(Unit u) {
-		return u.hashCode();
-	}
-
-	public int getUniqueNumberForUnit(Statement s) {
-		return s.hashCode();
-	}
+//	public int getUniqueNumberForUnit(Unit u) {
+//		return u.hashCode();
+//	}
+//
+//	public int getUniqueNumberForUnit(Statement s) {
+//		return s.hashCode();
+//	}
 
 }

@@ -178,7 +178,10 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		}
 		
 		if (this.thisVariable != null) {
-			// then the first parameter must be the reference to the current
+			if (!this.locals.contains(this.thisVariable)) {
+				this.locals.add(this.thisVariable);
+			}
+ 			// then the first parameter must be the reference to the current
 			// instance
 			// and we have to add an assignment to the source block.
 			Verify.verify(!this.parameterList.isEmpty());
@@ -346,6 +349,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	 * @param local
 	 */
 	public void addLocalVariable(Variable local) {
+		Verify.verify(!locals.contains(local));
 		locals.add(local);
 	}
 

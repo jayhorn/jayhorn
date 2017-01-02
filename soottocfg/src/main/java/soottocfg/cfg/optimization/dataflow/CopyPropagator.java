@@ -73,7 +73,7 @@ public class CopyPropagator {
 			for (Statement s : b.getStatements()) {
 				Map<Variable, Variable> subsitutions = createSubstitutionMap(s.getUseVariables(), rdefs.in.get(s));
 				Statement newStmt = s.substitute(subsitutions);
-				changes = !cfgEquals(newStmt, s) ? true : changes;
+				changes = !cfgEquals(newStmt, s) ? true : changes;				
 				newStmts.add(newStmt);
 			}
 			if (changes) {

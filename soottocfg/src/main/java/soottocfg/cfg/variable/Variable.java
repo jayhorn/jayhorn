@@ -65,9 +65,7 @@ public class Variable implements Serializable {
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null)
-			return false;
-		if (this.getClass() == obj.getClass()) {
+		if (obj instanceof Variable) {
 			Variable other = (Variable) obj;
 			return this.variableName.equals(other.variableName) &&	this.type.equals(other.type);
 		}

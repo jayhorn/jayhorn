@@ -285,10 +285,11 @@ public class CfgCallInliner {
 		toCopy.addAll(callee.getInParams());
 		toCopy.addAll(callee.getOutParams());
 		toCopy.addAll(callee.getLocals());
+		
 		for (Variable v : toCopy) {
 			Variable local = new Variable("cp_" + v.getName() + "_" + (++freshInt), v.getType());
 			caller.addLocalVariable(local);
-			varSubstitionMap.put(v, local);
+			varSubstitionMap.put(v, local); 
 		}
 		SourceLocation loc = call.getSourceLocation();
 		for (int i = 0; i < callee.getInParams().size(); i++) {
