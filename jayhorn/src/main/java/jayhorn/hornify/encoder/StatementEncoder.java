@@ -15,20 +15,31 @@ import jayhorn.hornify.HornPredicate;
 import jayhorn.hornify.MethodContract;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
+import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
+import jayhorn.solver.ProverTupleExpr;
+import jayhorn.solver.ProverTupleType;
+import jayhorn.solver.ProverType;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.type.IntType;
+import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.soot.transformers.ArrayTransformer;
+
+
 
 public class StatementEncoder {
 
@@ -36,6 +47,12 @@ public class StatementEncoder {
 
 	private final ExpressionEncoder expEncoder;
 	private final HornEncoderContext hornContext;
+
+	public final static String LP = "_lastpush";
+	private int nextLP = 0;
+
+	public final static String AI = "_ai";
+	private int nextAI = 0;
 
 	public StatementEncoder(Prover p, ExpressionEncoder expEnc) {
 		this.p = p;
@@ -73,26 +90,43 @@ public class StatementEncoder {
 	 *            The predicated describing the post-state.
 	 * @return The set of Horn clauses that encodes the semantics of "s".
 	 */
-	public List<ProverHornClause> statementToClause(Statement s, HornPredicate prePred, HornPredicate postPred) {
+	public List<ProverHornClause> statementToClause(Statement s, HornPredicate prePred, HornPredicate postPred, Method m) {
 
 		final Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
 		// First create the atom for prePred.
 		HornHelper.hh().findOrCreateProverVar(p, prePred.variables, varMap);
 		final ProverExpr preAtom = prePred.instPredicate(varMap);
 		HornHelper.hh().findOrCreateProverVar(p, postPred.variables, varMap);
-
+		
 		if (s instanceof AssertStatement) {
-			return assertToClause((AssertStatement) s, postPred, preAtom, varMap);
+			List<ProverHornClause> clause = assertToClause((AssertStatement) s, postPred, preAtom, varMap);
+			//System.out.println("Assert " + clause);
+			S2H.sh().addClause(s, clause);
+			return clause;
 		} else if (s instanceof AssumeStatement) {
-			return assumeToClause((AssumeStatement) s, postPred, preAtom, varMap);
+			List<ProverHornClause> clause = assumeToClause((AssumeStatement) s, postPred, preAtom, varMap);
+			S2H.sh().addClause(s, clause);
+			return clause;
 		} else if (s instanceof AssignStatement) {
-			return assignToClause((AssignStatement) s, postPred, preAtom, varMap);
+			List<ProverHornClause> clause = assignToClause((AssignStatement) s, postPred, preAtom, varMap);
+			S2H.sh().addClause(s, clause);
+			return clause;
+		} else if (s instanceof NewStatement) {
+			List<ProverHornClause> clause = newToClause((NewStatement) s, postPred, preAtom, varMap);
+			S2H.sh().addClause(s, clause);
+			return clause;
 		} else if (s instanceof CallStatement) {
-			return callToClause((CallStatement) s, postPred, preAtom, varMap);
+			List<ProverHornClause> clause = callToClause((CallStatement) s, postPred, preAtom, varMap);
+			S2H.sh().addClause(s, clause);
+			return clause;
 		} else if (s instanceof PullStatement) {
-			return pullToClause((PullStatement) s, postPred, preAtom, varMap);
+				List<ProverHornClause> clause = pullToClause((PullStatement) s, postPred, preAtom, varMap, m);
+				S2H.sh().addClause(s, clause);
+				return  clause;
 		} else if (s instanceof PushStatement) {
-			return pushToClause((PushStatement) s, postPred, preAtom, varMap);
+			List<ProverHornClause> clause = pushToClause((PushStatement) s, postPred, preAtom, varMap, m);
+			S2H.sh().addClause(s, clause);
+			return clause;
 		}
 
 		throw new RuntimeException("Statement type " + s + " not implemented!");
@@ -114,13 +148,23 @@ public class StatementEncoder {
 	public List<ProverHornClause> assertToClause(AssertStatement as, HornPredicate postPred, ProverExpr preAtom,
 			Map<Variable, ProverExpr> varMap) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
-		final ProverExpr cond = expEncoder.exprToProverExpr(as.getExpression(), varMap);
-		clauses.add(p.mkHornClause(p.mkLiteral(false), new ProverExpr[] { preAtom }, p.mkNot(cond)));
+		final ProverExpr cond = expEncoder.exprToProverExpr(as.getExpression(), varMap); 
+
+		final ProverExpr errorState; // For now depending on the solver we use false or a predicate
+		String tag = "ErrorState@line" + as.getJavaSourceLine();
+		final ProverFun errorPredicate = p.mkHornPredicate(tag, new ProverType[] {});
+	
+		if (p.solverName().equals("spacer")){
+			errorState = errorPredicate.mkExpr(new ProverExpr[]{});
+			S2H.sh().setErrorState(errorState, as.getJavaSourceLine());
+		}else{
+			errorState = p.mkLiteral(false);
+		}
+		clauses.add(p.mkHornClause(errorState, new ProverExpr[] { preAtom }, p.mkNot(cond)));
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 		return clauses;
 	}
-
 	/**
 	 * for "assume(cond)"
 	 * create Horn clause
@@ -148,7 +192,66 @@ public class StatementEncoder {
 		Verify.verify(as.getLeft() instanceof IdentifierExpression,
 				"only assignments to variables are supported, not to " + as.getLeft());
 		final IdentifierExpression idLhs = (IdentifierExpression) as.getLeft();
-		varMap.put(idLhs.getVariable(), expEncoder.exprToProverExpr(as.getRight(), varMap));
+
+		ProverExpr right = expEncoder.exprToProverExpr(as.getRight(), varMap);
+		if (as.getRight() instanceof NullLiteral) {
+			ProverTupleType pttLeft = (ProverTupleType) HornHelper.hh().getProverType(p, idLhs.getType());
+			right = HornHelper.hh().mkNullExpression(p, pttLeft.getSubTypes());
+		} else if (right instanceof ProverTupleExpr) {
+			if (!(idLhs.getType() instanceof ReferenceType)) {
+				Verify.verify(false, "Chances are that this is a cast from java.lang.Integer to int");
+			}
+			ProverTupleType pttLeft = (ProverTupleType) HornHelper.hh().getProverType(p, idLhs.getType());
+			if (pttLeft.getArity() > ((ProverTupleExpr) right).getArity()) {
+				ProverTupleExpr pteR = ((ProverTupleExpr) right);
+				ProverExpr[] expandedRightTuple = new ProverExpr[pttLeft.getArity()];
+				for (int i=0; i<pttLeft.getArity(); i++) {
+					if (i<pteR.getArity()) {
+						expandedRightTuple[i] = pteR.getSubExpr(i);
+					} else {
+						expandedRightTuple[i] = p.mkVariable("$dummy"+i, pttLeft.getSubType(i));
+					}
+				}
+				right = new ProverTupleExpr(expandedRightTuple);
+			} else if (pttLeft.getArity() > ((ProverTupleExpr) right).getArity()) {
+				throw new RuntimeException("Oops, not implemented");
+			}
+		}
+
+		varMap.put(idLhs.getVariable(), right);
+
+		final ProverExpr postAtom = postPred.instPredicate(varMap);
+		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
+
+		return clauses;
+	}
+
+	
+	public List<ProverHornClause> newToClause(NewStatement ns, HornPredicate postPred, ProverExpr preAtom,
+			Map<Variable, ProverExpr> varMap) {
+		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
+
+		Verify.verify(ns.getLeft() instanceof IdentifierExpression,
+				"only assignments to variables are supported, not to " + ns.getLeft());
+		final IdentifierExpression idLhs = (IdentifierExpression) ns.getLeft();
+
+		ReferenceType rightType = new ReferenceType(ns.getClassVariable());
+		ProverExpr[] tupleElements = new ProverExpr[rightType.getElementTypeList().size()];
+
+		tupleElements[0] = expEncoder
+				.exprToProverExpr(new IdentifierExpression(ns.getSourceLocation(), ns.getCounterVar()), varMap);
+		tupleElements[1] = p.mkLiteral(hornContext.getTypeID(ns.getClassVariable()));
+		for (int i = 2; i < tupleElements.length; i++) {
+			tupleElements[i] = p.mkVariable("$new" + i,
+					HornHelper.hh().getProverType(p, rightType.getElementTypeList().get(i)));
+		}
+		varMap.put(idLhs.getVariable(), p.mkTuple(tupleElements));
+
+		// final ProverExpr ctr = expEncoder.exprToProverExpr(new
+		// IdentifierExpression(ns.getSourceLocation(), ns.getCounterVar()),
+		// varMap);
+		// // set the ref to the current heap counter.
+		// varMap.put(idLhs.getVariable(), ctr);
 
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
@@ -162,7 +265,7 @@ public class StatementEncoder {
 	 * We assume that there exists a MethodContract that
 	 * has two predicates:
 	 * precondtion of arity M, and postcondition of arity N+M
-	 * We generate two Horn clauses: 
+	 * We generate two Horn clauses:
 	 * 
 	 * pre(...) -> precondition(...)
 	 * postcondition(...) -> post(...)
@@ -180,8 +283,13 @@ public class StatementEncoder {
 		final Method calledMethod = cs.getCallTarget();
 		final MethodContract contract = hornContext.getMethodContract(calledMethod);
 
-		Verify.verify(calledMethod.getInParams().size() == cs.getArguments().size()
-				&& calledMethod.getInParams().size() == contract.precondition.variables.size());
+		List<Expression> callArgs = new LinkedList<Expression>(cs.getArguments());
+
+		List<Variable> inParams = new LinkedList<Variable>(calledMethod.getInParams());
+
+		Verify.verify(inParams.size() == callArgs.size(), inParams.size() + "!=" + callArgs.size());
+		Verify.verify(inParams.size() == contract.precondition.variables.size(),
+				inParams.size() + "!=" + contract.precondition.variables.size());
 
 		final List<Variable> receiverVars = new ArrayList<Variable>();
 		for (Expression e : cs.getReceiver()) {
@@ -190,33 +298,88 @@ public class StatementEncoder {
 		// final List<ProverExpr> receiverExprs =
 		HornHelper.hh().findOrCreateProverVar(p, receiverVars, varMap);
 
-		final ProverExpr[] actualInParams = new ProverExpr[calledMethod.getInParams().size()];
-		final ProverExpr[] actualPostParams = new ProverExpr[calledMethod.getInParams().size()
-				+ calledMethod.getReturnType().size()];
+		List<Type> retTypes = new LinkedList<Type>(calledMethod.getReturnType());
+
+		final ProverExpr[] actualInParams = new ProverExpr[inParams.size()];
+		final ProverExpr[] actualPostParams = new ProverExpr[inParams.size() + retTypes.size()];
 
 		int cnt = 0;
-		for (Expression e : cs.getArguments()) {
-			final ProverExpr expr = expEncoder.exprToProverExpr(e, varMap);
+		for (Expression e : callArgs) {
+			ProverExpr expr;
+			if (e instanceof NullLiteral) {
+				ReferenceType rt = (ReferenceType) inParams.get(cnt).getType();
+				ProverTupleType ptt = (ProverTupleType) HornHelper.hh().getProverType(p, rt);
+				expr = HornHelper.hh().mkNullExpression(p, ptt.getSubTypes());
+			} else {
+				expr = expEncoder.exprToProverExpr(e, varMap);
+			}
+			
+			if (expr instanceof ProverTupleExpr) {
+				/* check if the number of elements match. If the arg type 
+				 * is a super type of the param type, we have to throw away
+				 * the surplus elements of the tuple.
+				 */
+				ProverTupleExpr pte = (ProverTupleExpr)expr;
+				ReferenceType rt = (ReferenceType) inParams.get(cnt).getType();
+				ProverTupleType ptt = (ProverTupleType) HornHelper.hh().getProverType(p, rt);				
+				if (pte.getArity()>ptt.getArity()) {
+					ProverExpr[] smallTuple = new ProverExpr[ptt.getArity()];
+					for (int i=0;i<ptt.getArity();i++) {
+						smallTuple[i] = pte.getSubExpr(i);
+					}
+					expr = new ProverTupleExpr(smallTuple);
+				}
+			}
+			
 			actualInParams[cnt] = expr;
 			actualPostParams[cnt] = expr;
 			++cnt;
 		}
 
-                for (int i = 0; i < calledMethod.getReturnType().size(); ++i) {
-                    Type tp = calledMethod.getReturnType().get(i);
-                    final ProverExpr callRes = HornHelper.hh().createVariable(p, "callRes_", tp);
-                    actualPostParams[cnt++] = callRes;
-                    if (i < cs.getReceiver().size()) {
-                        Expression lhs = cs.getReceiver().get(i);
-                        Verify.verify(lhs instanceof IdentifierExpression,
-                                      "only assignments to variables are supported, not to " + lhs);
-                        //update the receiver var to the expression that we use in the call pred.	
-                        varMap.put( ((IdentifierExpression) lhs).getVariable(), callRes);
-                    }
-                }
+		List<Expression> receiver = new LinkedList<Expression>(cs.getReceiver());
+
+		for (int i = 0; i < retTypes.size(); ++i) {
+			Type tp = retTypes.get(i);
+			final ProverExpr callRes = HornHelper.hh().createVariable(p, "callRes_", tp);
+			actualPostParams[cnt++] = callRes;
+			if (i < receiver.size()) {
+				Expression lhs = receiver.get(i);
+				Verify.verify(lhs instanceof IdentifierExpression,
+						"only assignments to variables are supported, not to " + lhs);
+				// update the receiver var to the expression that we use in the
+				// call pred.
+				varMap.put(((IdentifierExpression) lhs).getVariable(), callRes);
+			}
+		}
 
 		final ProverExpr preCondAtom = contract.precondition.predicate.mkExpr(actualInParams);
 		clauses.add(p.mkHornClause(preCondAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
+
+		if (actualPostParams.length != contract.postcondition.variables.size()) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(actualPostParams.length + "!=" + contract.postcondition.variables.size() + "\n");
+			sb.append(cs.toString());
+			sb.append("  [");
+			String comma = "";
+			for (Type t : cs.getCallTarget().getReturnType()) {
+				sb.append(comma);
+				comma = ", ";
+				sb.append(t);
+			}
+			sb.append("]");
+			Verify.verify(false, sb.toString());
+		}
+
+		for (int i = 0; i < contract.postcondition.variables.size(); i++) {
+			ProverType t_ = actualPostParams[i].getType();
+			ProverType vt = HornHelper.hh().getProverType(p, contract.postcondition.variables.get(i).getType());
+			if (!vt.equals(t_)) {
+				System.err.println("*********** at pos "+i+": ");
+				System.err.println(cs);
+				System.err.println(t_ + "\t" + vt);
+				throw new RuntimeException("Return type and receiver type don't match: " + vt + " and " + t_);
+			}
+		}
 
 		final ProverExpr postCondAtom = contract.postcondition.predicate.mkExpr(actualPostParams);
 
@@ -249,54 +412,95 @@ public class StatementEncoder {
 	 * @return
 	 */
 	public List<ProverHornClause> pullToClause(PullStatement pull, HornPredicate postPred, ProverExpr preAtom,
-			Map<Variable, ProverExpr> varMap) {
+			Map<Variable, ProverExpr> varMap, Method m) {
+
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
-		// get the possible (sub)types of the object used in pull.
-		// TODO: find a more precise implementation.
-		final Set<ClassVariable> possibleTypes = this.hornContext.ppOrdering
-				.getBrutalOverapproximationOfPossibleType(pull);
-		
-		for (ClassVariable sig : possibleTypes) {
-			// get the invariant for this subtype.
-			final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig);
 
-			// the first argument is always the reference
-                        // to the object
-
-                        // PR: once the reference becomes a vector, we
-                        // have to properly map between the elements
-                        // of the vector and the fields of the object
-                        varMap.put(invariant.variables.get(0),
-                                   expEncoder.exprToProverExpr(pull.getObject(), varMap));
-
-                        // introduce fresh prover variables for all
-                        // the other invariant parameters, and map
-                        // them to the post-state
-                        for (int i = 1; i < invariant.variables.size(); i++) {
-                            final ProverExpr var =
-                                HornHelper.hh().createVariable(p, "pullVar_",
-                                                               invariant.variables.get(i).getType());
-                            varMap.put(invariant.variables.get(i), var);
-                            if (i <= pull.getLeft().size())
-                                varMap.put(pull.getLeft().get(i - 1).getVariable(), var);
-                            /*
-                             * If our current invariant is a subtype
-                             * of what the orginial pull used, it
-                             * might have more fields (that were added
-                             * in the subtype). For this case, we have
-                             * to fill up our args with fresh, unbound
-                             * variables to match the number of
-                             * arguments.
-                             */
-                        }
-
-			// now we can instantiate the invariant.
-			final ProverExpr invAtom = invariant.instPredicate(varMap);
-			final ProverExpr postAtom = postPred.instPredicate(varMap);
-                        final ProverHornClause clause =
-                            p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom }, p.mkLiteral(true));
-			clauses.add(clause);
+		Set<PushStatement> affecting = pull.getAffectingPushes();
+		Verify.verify(!affecting.isEmpty(),
+				"The set of pushes affecting this pull is empty, this would create an assume false");
+		for (PushStatement push : pull.getAffectingPushes()) {
+			ClassVariable sig = push.getClassSignature();
+			if (sig.subclassOf(pull.getClassSignature())) {
+				long pushid = -1;
+				if (soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH)
+					pushid = push.getID();
+				HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, pushid);
+				clauses.addAll(pullToIndividualClause(pull, postPred, preAtom, varMap, invariant, m));
+			}
 		}
+		return clauses;
+	}
+
+	private List<ProverHornClause> pullToIndividualClause(PullStatement pull, HornPredicate postPred,
+			ProverExpr preAtom, Map<Variable, ProverExpr> varMap, HornPredicate invariant, Method m) {
+		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
+
+		// the first argument is always the reference
+		// to the object
+
+		int i = 0;
+		// PR: once the reference becomes a vector, we
+		// have to properly map between the elements
+		// of the vector and the fields of the object
+		varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(pull.getObject(), varMap));
+
+		// RK: we should probably elimate these ghostExpressions altogether
+		// MS: add all global ghosts
+		for (Expression e : pull.getGhostExpressions()) {
+			// System.err.println(invariant.variables.get(i)+" = "+e);
+			varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
+		}
+
+		// RK: add last push variable
+		if (soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH) {
+			Variable freshLp = new Variable(LP + nextLP, IntType.instance());
+			Expression e = new IdentifierExpression(pull.getSourceLocation(), freshLp);
+			varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
+		}
+		
+		// RK: add index variable for array classes
+		if (soottocfg.Options.v().arrayInv() 
+				&& pull.getObject().getType().toString().contains(ArrayTransformer.arrayTypeName)) {
+			if (m.isArrayMethod()) {
+				Variable arIndex = m.getInParam(1);
+				Expression e = new IdentifierExpression(pull.getSourceLocation(), arIndex);
+				varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
+			} else {
+				Variable arIndex = new Variable(AI + nextAI++, IntType.instance());
+				Expression e = new IdentifierExpression(pull.getSourceLocation(), arIndex);
+				varMap.put(invariant.variables.get(i++), expEncoder.exprToProverExpr(e, varMap));
+			}
+		}
+
+		// introduce fresh prover variables for all
+		// the other invariant parameters, and map
+		// them to the post-state
+		int j = 0;
+		for (; i < invariant.variables.size(); i++) {
+			final ProverExpr var = HornHelper.hh().createVariable(p, "pullVar_", invariant.variables.get(i).getType());
+			varMap.put(invariant.variables.get(i), var);
+			if (j < pull.getLeft().size()) {
+				varMap.put(pull.getLeft().get(j++).getVariable(), var);
+			}
+			/*
+			 * If our current invariant is a subtype
+			 * of what the orginial pull used, it
+			 * might have more fields (that were added
+			 * in the subtype). For this case, we have
+			 * to fill up our args with fresh, unbound
+			 * variables to match the number of
+			 * arguments.
+			 */
+		}
+
+		// now we can instantiate the invariant.
+		final ProverExpr invAtom = invariant.instPredicate(varMap);
+//		System.err.println("Invariant for " + pull + ": " + invAtom);
+		final ProverExpr postAtom = postPred.instPredicate(varMap);
+		final ProverHornClause clause = p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom },
+				p.mkLiteral(true));
+		clauses.add(clause);
 		return clauses;
 	}
 
@@ -317,26 +521,81 @@ public class StatementEncoder {
 	 * @return
 	 */
 	public List<ProverHornClause> pushToClause(PushStatement ps, HornPredicate postPred, ProverExpr preAtom,
-			Map<Variable, ProverExpr> varMap) {
+			Map<Variable, ProverExpr> varMap, Method m) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 		final ClassVariable sig = ps.getClassSignature();
 		Verify.verify(sig.getAssociatedFields().length == ps.getRight().size(),
 				"Unequal lengths: " + sig + " and " + ps.getRight() + " in " + ps);
-		// get the invariant for the ClassVariable
-		final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig);
+		int pushid = -1;
+
 		final List<Expression> invariantArgs = new LinkedList<Expression>();
+		// TODO: unpack once we have tuples
 		invariantArgs.add(ps.getObject());
+
+		// RK: eliminate and handle callerID here instead?
+		// MS: add all global ghosts
+		invariantArgs.addAll(ps.getGhostExpressions());
+
+		if (soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH) {
+			Variable lp = new Variable(LP + nextLP++, IntType.instance());
+			Expression lastpush = new IdentifierExpression(ps.getSourceLocation(), lp);
+			invariantArgs.add(lastpush);
+			pushid = ps.getID();
+		}
+		
+		// Rody: add index variable for array classes
+		if (soottocfg.Options.v().arrayInv()) {
+			if (m.isArrayMethod()) {
+				if (m.isArrayGet() || m.isArraySet()) {
+					Variable arIndex = m.getInParam(1);
+	//				System.out.println("Vars: " + m.getInParams());
+					Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
+					invariantArgs.add(e);
+				} else {
+					Verify.verify(m.isArrayConstructor(),
+							"JayArray class should only contain get, set and constructor, but contains "
+									+ m.getMethodName());
+					Variable arIndex = new Variable(AI + nextAI++, IntType.instance());
+					Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
+					invariantArgs.add(e);
+				}
+			} else if (ps.getObject().getType().toString().contains(ArrayTransformer.arrayTypeName)) {
+	//			System.out.println("Found array push outside array class: " + ps);
+				Variable arIndex = new Variable(AI + nextAI++, IntType.instance());
+				Expression e = new IdentifierExpression(ps.getSourceLocation(), arIndex);
+				invariantArgs.add(e);
+			}
+		}
+
 		invariantArgs.addAll(ps.getRight());
+
+		// get the invariant for the ClassVariable
+		final HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, pushid);
+
 		// assign the variables of the invariant pred to the respective value.
 		for (int i = 0; i < invariantArgs.size(); i++) {
-			varMap.put(invariant.variables.get(i), expEncoder.exprToProverExpr(invariantArgs.get(i), varMap));
+			final ProverExpr right;
+			if (invariantArgs.get(i) instanceof NullLiteral) {
+				ProverTupleType ptt = (ProverTupleType) HornHelper.hh().getProverType(p,
+						invariant.variables.get(i).getType());
+				right = HornHelper.hh().mkNullExpression(p, ptt.getSubTypes());
+			} else {
+				right = expEncoder.exprToProverExpr(invariantArgs.get(i), varMap);
+			}
+
+			varMap.put(invariant.variables.get(i), right);
+			
+//			System.out.println("invariantArgs = " + invariantArgs.get(i));
+//			System.out.println(invariant.variables.get(i)+ " = "+varMap.get(invariant.variables.get(i)) + "\n");
 		}
 		final ProverExpr invAtom = invariant.instPredicate(varMap);
 		clauses.add(p.mkHornClause(invAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
+		
+//		System.err.println("Invariant for " + ps + ": " + invAtom);
 
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
 		return clauses;
 	}
-
 }
+

@@ -5,6 +5,7 @@ package jayhorn.test.integration_tests;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,9 +15,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import jayhorn.checker.Checker;
+import jayhorn.checker.EldaricaChecker;
 import jayhorn.solver.ProverFactory;
-import jayhorn.solver.princess.PrincessProverFactory;
+import jayhorn.solver.spacer.SpacerProverFactory;
 import jayhorn.test.Util;
 import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
@@ -47,6 +48,7 @@ public class FailingTests {
 	private static void collectFileNamesRecursively(File file, List<Object[]> filenames) {
 		File[] directoryListing = file.listFiles();
 		if (directoryListing != null) {
+			Arrays.sort(directoryListing);
 			for (File child : directoryListing) {
 				if (child.isFile() && child.getName().endsWith(".java")) {
 					filenames.add(new Object[] { child, child.getName() });
@@ -64,8 +66,8 @@ public class FailingTests {
 	}
 
 	@Test
-	public void testWithPrincess() {
-		verifyAssertions(new PrincessProverFactory());
+	public void testWithSpacer() {
+		verifyAssertions(new SpacerProverFactory());
 	}
 
 //	@Test
@@ -79,15 +81,22 @@ public class FailingTests {
 		try {			
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
-			soottocfg.Options.v().setMemPrecision(2);
-			soottocfg.Options.v().setExcAsAssert(false);
+
+//			soottocfg.Options.v().setMemPrecision(0);
+//			soottocfg.Options.v().setExcAsAssert(false);
+
 			soottocfg.Options.v().setPrintCFG(true);
+//			soottocfg.Options.v().setArrayInv(true);
+//			soottocfg.Options.v().setExactArrayElements(0);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			Program program = soot2cfg.getProgram();
 			
-			jayhorn.Options.v().setTimeout(5);
+
+			jayhorn.Options.v().setTimeout(30);
 			jayhorn.Options.v().setPrintHorn(false);	
-	  		Checker hornChecker = new Checker(factory);
+//			jayhorn.Options.v().setOut("/tmp/SatArrayInit");
+	  		EldaricaChecker hornChecker = new EldaricaChecker(factory);
+
 	  		boolean result = hornChecker.checkProgram(program);
 	  		
 			boolean expected = this.sourceFile.getName().startsWith("Sat");

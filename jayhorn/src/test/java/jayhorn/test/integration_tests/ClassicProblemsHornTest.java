@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import jayhorn.checker.Checker;
+import jayhorn.checker.EldaricaChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.test.Util;
@@ -83,10 +83,15 @@ public class ClassicProblemsHornTest {
 		try {
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
+//			soottocfg.Options.v().setMemPrecision(0);
+			soottocfg.Options.v().setPrintCFG(true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			
+			jayhorn.Options.v().setTimeout(900);
+			jayhorn.Options.v().setSolverOptions("abstract");
+			
 			Program program = soot2cfg.getProgram();
-	  		Checker hornChecker = new Checker(factory);
+	  		EldaricaChecker hornChecker = new EldaricaChecker(factory);
 	  		boolean result = hornChecker.checkProgram(program);
 
 //			Checker checker = new Checker(factory);

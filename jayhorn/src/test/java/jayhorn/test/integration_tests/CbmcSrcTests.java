@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import jayhorn.checker.Checker;
+import jayhorn.checker.EldaricaChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.test.Util;
@@ -81,21 +81,20 @@ public class CbmcSrcTests {
 		try {
 //			soottocfg.Options.v().passCallerIdIntoMethods(true);
 //			soottocfg.Options.v().setPrintCFG(false);
-			soottocfg.Options.v().setMemPrecision(3);
 //			soottocfg.Options.v().setExcAsAssert(true);
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
-			soottocfg.Options.v().setMemPrecision(0);
+			soottocfg.Options.v().setMemPrecision(3);
 
 			soot2cfg.run(classDir.getAbsolutePath(), null);
-			jayhorn.Options.v().setTimeout(5);			
+			jayhorn.Options.v().setTimeout(400);
 			jayhorn.Options.v().setPrintHorn(false);
 						
 //			Checker checker = new Checker(factory);
 //			boolean result = checker.checkProgram(soot2cfg.getProgram());
 			
 			Program program = soot2cfg.getProgram();			
-	  		Checker hornChecker = new Checker(factory);
+	  		EldaricaChecker hornChecker = new EldaricaChecker(factory);
 	  		boolean result = hornChecker.checkProgram(program);
 	  		
 			boolean expected = this.sourceFile.getName().startsWith("Sat");

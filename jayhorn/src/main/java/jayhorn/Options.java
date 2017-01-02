@@ -55,18 +55,23 @@ public class Options {
 		return checker;
 	}
 
-	@Option(name = "-solver", usage = "Select a solver [eldarica or z3]", required = false)
+	@Option(name = "-solver", usage = "Select a solver [eldarica or spacer]", required = false)
 	private String solver = "eldarica";
 
 	public String getSolver() {
 		return solver;
 	}
+	
 
 	@Option(name = "-solverOptions", usage = "Options for the solver [eldarica: abstract, debug]", required = false)
 	private String solverOptions = "";
 
 	public List<String> getSolverOptions() {
 		return Arrays.asList(solverOptions.split(","));
+	}
+	
+	public void setSolverOptions(String so) {
+		solverOptions = so;
 	}
 
 	/**
@@ -82,7 +87,7 @@ public class Options {
 	// /**
 	// * Print Horn clauses
 	// */
-	@Option(name = "-h", usage = "Print horn clauses", required = false)
+	@Option(name = "-print-horn", usage = "Print horn clauses", required = false)
 	private boolean printHorn = false;
 
 	public boolean getPrintHorn() {
@@ -93,11 +98,12 @@ public class Options {
 		this.printHorn = b;
 	}
 	
-	// /**
-	// * Print CFG
-	// */
+	@Option(name = "-verbose", usage = "Bla bla bla", required = false)
+	public boolean verbose = false;
+	
+	
 	@Option(name = "-cfg", usage = "Print CFG", required = false)
-	private boolean printCFG = false;
+	public boolean printCFG = false;
 
 	
 	@Option(name = "-specs", usage = "Use built-in specs", required = false)
@@ -107,14 +113,39 @@ public class Options {
 	@Option(name = "-stats", usage = "Generate Stats", required = false)
 	public boolean stats = false;
 	
+	@Option(name = "-cex", usage = "Show CEX", required = false)
+	public boolean cex = false;
+	
 	@Option(name = "-solution", usage = "Output full solution or counter-example", required = false)
 	public boolean solution = false;
 
+	@Option(name = "-dotCEX", usage = "Output counter-examples in GraphViz format", required = false)
+	public boolean dotCEX = false;
+	
+	@Option(name = "-cid", usage = "Insert call IDs variables to track calling context into pull and push statements", required = false)
+	public boolean useCallIDs = false;
+
+	
+
+	
 	/*
 	 * Memory precision
 	 */
 	@Option(name = "-mem-prec", usage = "Precision of memory model", required = false)
-	private int memPrecision = 3;
+	private int memPrecision = soottocfg.Options.MEMPREC_PTA;
+	
+	/*
+	 * Disable array invariants
+	 */
+	@Option(name = "-disable-array-inv", usage = "Disable array invariants", required = false)
+	private boolean disableArrayInv = false;
+
+	
+	/*
+	 * Exact array elements
+	 */
+	@Option(name = "-array-exact", usage = "Number of exactly modeled array elements", required = false)
+	private int exactArrayElements = 0;
 	
 	
 	// /**
@@ -168,6 +199,7 @@ public class Options {
 	 */
 	public void setInlineMaxSize(int inlineMaxSize) {
 		this.inlineMaxSize = inlineMaxSize;
+		soottocfg.Options.v().setInlineMaxSize(inlineMaxSize);
 	}
 
 	/**
@@ -182,6 +214,7 @@ public class Options {
 	 */
 	public void setInlineCount(int inlineCount) {
 		this.inlineCount = inlineCount;
+		soottocfg.Options.v().setInlineCount(inlineCount);
 	}
 
 	@Option(name = "-inline_count", usage = "Inline everything that's called less than N times", required = false)
@@ -213,6 +246,18 @@ public class Options {
 //	private boolean passCallerID = soottocfg.Options.v().passCallerIdIntoMethods();
 	
 	
+	/*
+	 * Check Heap Limit 
+	 */
+	@Option(name = "-heap-limit", usage = "Max Heap allocation", required = false)
+	private int heapLimit = -1;
+	
+	public int getHeapLimit(){
+		return heapLimit;
+	}
+	
+
+	
 	/**
 	 * Determines, whether Joogie has an additional classpath
 	 * 
@@ -235,7 +280,11 @@ public class Options {
 //		soottocfg.Options.v().passCallerIdIntoMethods(passCallerID);
 		soottocfg.Options.v().setExcAsAssert(insertRuntimeAssertions);
 		soottocfg.Options.v().setMemPrecision(memPrecision);
-		soottocfg.Options.v().setPrintCFG(printCFG);
+//		soottocfg.Options.v().setPrintCFG(printCFG);
+		soottocfg.Options.v().setInlineMaxSize(inlineMaxSize);
+		soottocfg.Options.v().setInlineCount(inlineCount);
+		soottocfg.Options.v().setArrayInv(!disableArrayInv);
+		soottocfg.Options.v().setExactArrayElements(exactArrayElements);
 	}
 	
 	/**

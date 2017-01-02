@@ -5,6 +5,8 @@ import java.io.PrintStream;
 import java.io.StringReader;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Stack;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -12,6 +14,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import com.google.common.base.Verify;
 
 import ap.DialogUtil$;
 import ap.SimpleAPI;
@@ -51,6 +55,8 @@ import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverListener;
 import jayhorn.solver.ProverResult;
+import jayhorn.solver.ProverTupleExpr;
+import jayhorn.solver.ProverTupleType;
 import jayhorn.solver.ProverType;
 import lazabs.horn.bottomup.HornClauses;
 import lazabs.horn.bottomup.HornClauses.Clause;
@@ -81,6 +87,10 @@ public class PrincessProver implements Prover {
 		api = SimpleAPI.spawnWithLog(basename);
 	}
 
+	public String solverName(){
+		return "eldarica";
+	}
+	
 	public ProverType getBooleanType() {
 		return BoolType.INSTANCE;
 	}
@@ -93,7 +103,13 @@ public class PrincessProver implements Prover {
 		return new ArrayType(argTypes.length);
 	}
 
+    public ProverType getTupleType(ProverType[] subTypes) {
+        return new ProverTupleType(Arrays.copyOf(subTypes, subTypes.length));
+    }
+
 	public ProverExpr mkBoundVariable(int deBruijnIndex, ProverType type) {
+            // TODO: handle tuples
+            assert(!(type instanceof ProverTupleType));
 		if (type.equals(getBooleanType())) {
 			return mkEq(new TermExpr(new IVariable(deBruijnIndex), getIntType()), mkLiteral(0));
 		} else {
@@ -101,22 +117,26 @@ public class PrincessProver implements Prover {
 		}
 	}
 
-	public ProverExpr mkVariable(String name, ProverType type) {
-		if (type.equals(getIntType())) {
-			return new TermExpr(api.createConstant(name), type);
-		}
+    public ProverExpr mkVariable(String name, ProverType type) {
+        if (type.equals(getIntType())) {
+            return new TermExpr(api.createConstant(name), type);
+        } else if (type.equals(getBooleanType())) {
+            return new FormulaExpr(api.createBooleanVariable(name));
+        } else if (type instanceof ProverTupleType) {
+            final ProverTupleType tt = (ProverTupleType)type;
+            final ProverExpr[] res = new ProverExpr[tt.getArity()];
+            for (int i = 0; i < tt.getArity(); ++i)
+                res[i] = mkVariable(name + "_" + i, tt.getSubType(i));
+            return mkTuple(res);
+        } else if (type instanceof ArrayType) {
+            return new TermExpr(api.createConstant(name), type);
+        }
 
-		if (type.equals(getBooleanType())) {
-			return new FormulaExpr(api.createBooleanVariable(name));
-		}
-
-		// array types
-		return new TermExpr(api.createConstant(name), type);
-
-		// throw new RuntimeException();
-	}
+        throw new IllegalArgumentException();
+    }
 
 	public ProverFun mkUnintFunction(String name, ProverType[] argTypes, ProverType resType) {
+            // TODO: handle tuples
 		return new PrincessFun(api.createFunction(name, argTypes.length), resType);
 	}
 
@@ -126,6 +146,7 @@ public class PrincessProver implements Prover {
 	 * arguments of the function.
 	 */
 	public ProverFun mkDefinedFunction(String name, ProverType[] argTypes, final ProverExpr body) {
+            // TODO: handle tuples
 		return new ProverFun() {
 			public ProverExpr mkExpr(ProverExpr[] args) {
 				final ArrayBuffer<ITerm> argsBuf = new ArrayBuffer<ITerm>();
@@ -144,10 +165,12 @@ public class PrincessProver implements Prover {
 	}
 
 	public ProverExpr mkAll(ProverExpr body, ProverType type) {
+            // TODO: handle tuples
 		return new FormulaExpr(IExpression$.MODULE$.all(((PrincessProverExpr) body).toFormula()));
 	}
 
 	public ProverExpr mkEx(ProverExpr body, ProverType type) {
+            // TODO: handle tuples
 		return new FormulaExpr(IExpression$.MODULE$.ex(((PrincessProverExpr) body).toFormula()));
 	}
 
@@ -161,14 +184,27 @@ public class PrincessProver implements Prover {
 		return new FormulaExpr(IExpression.trig(((FormulaExpr) body).formula, triggerExprs));
 	}
 
-	public ProverExpr mkEq(ProverExpr left, ProverExpr right) {
-		PrincessProverExpr pLeft = (PrincessProverExpr) left;
-		PrincessProverExpr pRight = (PrincessProverExpr) right;
-		if (pLeft.isBoolean() && pRight.isBoolean())
-			return new FormulaExpr(pLeft.toFormula().$less$eq$greater(pRight.toFormula()));
-		else
-			return new FormulaExpr(pLeft.toTerm().$eq$eq$eq(pRight.toTerm()));
-	}
+    public ProverExpr mkEq(ProverExpr left, ProverExpr right) {
+        if (left instanceof ProverTupleExpr) {
+            ProverTupleExpr tLeft = (ProverTupleExpr)left;
+            ProverTupleExpr tRight = (ProverTupleExpr)right;
+            Verify.verify(tLeft.getArity() == tRight.getArity(), tLeft.getArity()+"!="+ tRight.getArity()+ " for " +left + " and " + right);
+
+            ProverExpr[] conjuncts = new ProverExpr[tLeft.getArity()];
+            for (int i = 0; i < tLeft.getArity(); ++i)
+                conjuncts[i] = mkEq(tLeft.getSubExpr(i),
+                                    tRight.getSubExpr(i));
+
+            return mkAnd(conjuncts);
+        }
+        
+        PrincessProverExpr pLeft = (PrincessProverExpr) left;
+        PrincessProverExpr pRight = (PrincessProverExpr) right;
+        if (pLeft.isBoolean() && pRight.isBoolean())
+            return new FormulaExpr(pLeft.toFormula().$less$eq$greater(pRight.toFormula()));
+        else
+            return new FormulaExpr(pLeft.toTerm().$eq$eq$eq(pRight.toTerm()));
+    }
 
 	public ProverExpr mkLiteral(boolean value) {
 		return new FormulaExpr(new IBoolLit(value));
@@ -298,7 +334,18 @@ public class PrincessProver implements Prover {
 		return new TermExpr(new IFunApp(api.storeFun(indexes.length), args.toSeq()), getIntType());
 	}
 
-	// ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+
+    public ProverExpr mkTuple(ProverExpr[] subExprs) {
+        return new ProverTupleExpr(Arrays.copyOf(subExprs, subExprs.length));
+    }
+    
+    public ProverExpr mkTupleSelect(ProverExpr tuple, int index) {
+        ProverTupleExpr ttuple = (ProverTupleExpr)tuple;
+        return ttuple.getSubExpr(index);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
 
 	public void push() {
 		api.push();
@@ -325,56 +372,72 @@ public class PrincessProver implements Prover {
 	private Future<?> future = null;
 	private PrincessSolverThread thread = null;
 
+	
+	private java.util.Map<String, String> lastSolution;
+	public java.util.Map<String, String> getLastSolution() {
+		return lastSolution;
+	}
+	
 	public ProverResult checkSat(boolean block) {
 		if (assertedClauses.isEmpty()) {
 			return translateRes(api.checkSat(block));
 		} else {
-			if (block) {
-
+			if (block) {				
 				final ArrayBuffer<HornClauses.Clause> clauses = new ArrayBuffer<HornClauses.Clause>();
 				for (HornExpr clause : assertedClauses)
 					clauses.$plus$eq(clause.clause);
 
 				lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
-				final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
-						scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
-						Options.v().getSolverOptions().contains("abstract"),
-						Options.v().getSolverOptions().contains("debug"));
+				
+                                if (Options.v().solution) {
+                                	               	
+                                    final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
+                                                                                                                                    scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
+                                                                                                                                    Options.v().getSolverOptions().contains("abstract"),
+                                                                                                                                    Options.v().getSolverOptions().contains("debug"),
+                                                                                                                                    Options.v().dotCEX);
+                                    
+                                    if (result.isLeft()) {
+                                    	
+                                        StringBuffer sol = new StringBuffer();
+                                        sol.append("Solution:\n");
+                                        List<Tuple2<Predicate, IFormula>> ar = result.left().get().toList();
+                                        
+                                        lastSolution = new HashMap<String, String>();
+                                        while (!ar.isEmpty()) {
+                                            Tuple2<Predicate, IFormula> p = ar.head();
+                                            ar = (List<Tuple2<Predicate, IFormula>>) ar.tail();
+                                            sol.append("" + p._1() + ": " + api.pp(p._2()) + "\n");
+                                            lastSolution.put(p._1().toString(), api.pp(p._2()));
+                                        }
+                                        Log.info(sol.toString());
+                                        return ProverResult.Sat;
+                                    } else {
+                                        Log.info("Counterexample:\n"
+                                                 + DialogUtil$.MODULE$.asString(new scala.runtime.AbstractFunction0<Integer>() {
+                                                         public Integer apply() {
+                                                             Dag<IAtom> simpDag = result.right().get()
+                                                                 .map(new scala.runtime.AbstractFunction1<Tuple2<IAtom, Clause>, IAtom>() {
+                                                                         public IAtom apply(Tuple2<IAtom, Clause> p) {
+                                                                             return p._1();
+                                                                         }
+                                                                     });
+                                                             simpDag.prettyPrint();
+                                                             return 0;
+                                                         }
+                                                     }));
+                                        return ProverResult.Unsat;
+                                    }
+                                } else {
+                                    if (SimpleWrapper.isSat(clauses,
+                                                            scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
+                                                            Options.v().getSolverOptions().contains("abstract"),
+                                                            Options.v().getSolverOptions().contains("debug")))
+                                        return ProverResult.Sat;
+                                    else
+                                        return ProverResult.Unsat;
+                                }
 
-				if (result.isLeft()) {
-					if (Options.v().solution) {
-						StringBuffer sol = new StringBuffer();
-						sol.append("Solution:\n");
-						List<Tuple2<Predicate, IFormula>> ar = result.left().get().toList();
-
-						while (!ar.isEmpty()) {
-							Tuple2<Predicate, IFormula> p = ar.head();
-							ar = (List<Tuple2<Predicate, IFormula>>) ar.tail();
-							sol.append("" + p._1() + ": " + api.pp(p._2()) + "\n");
-						}
-
-						Log.info(sol.toString());
-					}
-					return ProverResult.Sat;
-
-				} else {
-					if (Options.v().solution) {
-						Log.info("Counterexample:\n"
-								+ DialogUtil$.MODULE$.asString(new scala.runtime.AbstractFunction0<Integer>() {
-									public Integer apply() {
-										Dag<IAtom> simpDag = result.right().get()
-												.map(new scala.runtime.AbstractFunction1<Tuple2<IAtom, Clause>, IAtom>() {
-													public IAtom apply(Tuple2<IAtom, Clause> p) {
-														return p._1();
-													}
-												});
-										simpDag.prettyPrint();
-										return 0;
-									}
-								}));
-					}
-					return ProverResult.Unsat;
-				}
 			} else {
 				this.executor = Executors.newSingleThreadExecutor();
 				this.thread = new PrincessSolverThread(assertedClauses);
@@ -399,11 +462,11 @@ public class PrincessProver implements Prover {
 			for (HornExpr clause : hornClauses)
 				clauses.$plus$eq(clause.clause);
 			lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
-			final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
+			final boolean res = SimpleWrapper.isSat(clauses,
 					scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
 					Options.v().getSolverOptions().contains("abstract"),
 					Options.v().getSolverOptions().contains("debug"));
-			if (result.isLeft())
+			if (res)
 				this.status = ProverResult.Sat;
 			else
 				this.status = ProverResult.Unsat;
@@ -449,14 +512,15 @@ public class PrincessProver implements Prover {
 			try {
 				future.get(timeout, TimeUnit.MILLISECONDS);
 				result = this.thread.getStatus();
-			} catch (InterruptedException | ExecutionException e) {
+			} catch ( ExecutionException e) {
+				e.printStackTrace();
 				throw new RuntimeException("solver failed");
-			} catch (TimeoutException e) {
+			} catch (TimeoutException | InterruptedException e) {
 				result = ProverResult.Unknown;
 			}
 			killThread();
 		} else {
-			throw new RuntimeException("Start query with check sat first.");
+			throw new RuntimeException("Start query with checkSat(false) first.");
 		}
 		return result;
 
@@ -603,14 +667,24 @@ public class PrincessProver implements Prover {
 
 	private final Stack<Integer> assertedClausesStack = new Stack<Integer>();
 
-	public ProverExpr mkHornVariable(String name, ProverType type) {
-		// always use terms as Horn variables/arguments
-		return new TermExpr(api.createConstant(name), type);
-	}
+    public ProverExpr mkHornVariable(String name, ProverType type) {
+        if (type instanceof ProverTupleType) {
+            final ProverTupleType tt = (ProverTupleType)type;
+            final ProverExpr[] res = new ProverExpr[tt.getArity()];
+            for (int i = 0; i < tt.getArity(); ++i)
+                res[i] = mkHornVariable(name + "_" + i, tt.getSubType(i));
+            return mkTuple(res);
+        } else {
+            // always use terms as Horn variables/arguments
+            return new TermExpr(api.createConstant(name), type);
+        }
+    }
 
-	public ProverFun mkHornPredicate(String name, ProverType[] argTypes) {
-		return new PredicateFun(api.createRelation(name, argTypes.length));
-	}
+    public ProverFun mkHornPredicate(String name, ProverType[] argTypes) {
+        ProverType[] flatTypes = ProverTupleType.flatten(argTypes);
+        return new PredicateFun(api.createRelation(name, flatTypes.length),
+                                Arrays.copyOf(argTypes, argTypes.length));
+    }
 
 	/**
 	 * The head literal can either be constructed using
@@ -642,6 +716,8 @@ public class PrincessProver implements Prover {
 		return "Princess";
 	}
 
+	public void printRules(){}
+	
 	////////////////////////////////////////////////////////////////////////////
 	// Some functions for outputing SMT-LIB
 
@@ -664,5 +740,23 @@ public class PrincessProver implements Prover {
 		api.execSMTLIB(new StringReader(formula));	
 //		api.extractSMTLIBAssertionsSymbols(new StringReader(formula));
 		
+	}
+
+	@Override
+	public ProverResult query(ProverExpr relation) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void addRule(ProverExpr hornRule) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public ProverExpr getCex() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

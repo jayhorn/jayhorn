@@ -6,18 +6,23 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+
+import com.google.common.base.Verify;
 
 import jayhorn.Log;
 import jayhorn.solver.Prover;
+import jayhorn.utils.GhostRegister;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.util.GraphUtil;
-import soottocfg.cfg.util.InterProceduralPullPushOrdering;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.soot.transformers.ArrayTransformer;
 
 /**
  * Holds the context of the current Horn clause construction:
@@ -42,13 +47,12 @@ public class HornEncoderContext {
 	private final Prover p;
 
 	private Map<ClassVariable, Integer> typeIds = new LinkedHashMap<ClassVariable, Integer>();
-	private Map<ClassVariable, HornPredicate> invariantPredicates = new HashMap<ClassVariable, HornPredicate>(); 
+	private Map<ClassVariable, Map<Long, HornPredicate>> invariantPredicates =
+          new HashMap<ClassVariable, Map<Long, HornPredicate>>(); 
 	private Map<Method, MethodContract> methodContracts = new LinkedHashMap<Method, MethodContract>();
-	public InterProceduralPullPushOrdering ppOrdering;
 	
 	public HornEncoderContext(Prover p, Program prog) {
 		this.program = prog;
-		ppOrdering = new InterProceduralPullPushOrdering(program.getEntryPoint());
 		this.p = p;		
 		for (ClassVariable var : program.getTypeGraph().vertexSet()) {
 			//add +1 to make sure that no type is the
@@ -59,6 +63,14 @@ public class HornEncoderContext {
 	}
 
 	/**
+	 * Get the invariant predicates for each class. This is for debugging only.
+	 * @return
+	 */
+	public Map<ClassVariable, Map<Long, HornPredicate>> getInvariantPredicates() {
+		return this.invariantPredicates;
+	}
+	
+	/**
 	 * Creates method contracts for all methods in the current scene.
 	 * @param program
 	 * @param p
@@ -67,8 +79,12 @@ public class HornEncoderContext {
 		for (Method method : program.getMethods()) {
 			final List<Variable> inParams = new ArrayList<Variable>(method.getInParams());
 			final List<Variable> postParams = new ArrayList<Variable>();
-			postParams.addAll(method.getInParams());
+
+			postParams.addAll(inParams);
+			
 			if (!method.getOutParams().isEmpty()) {
+				Verify.verify(method.getOutParams().size()==method.getReturnType().size(), 
+						method.getOutParams().size()+"!="+method.getReturnType().size());
 				postParams.addAll(method.getOutParams());
 			} else if (!method.getReturnType().isEmpty()) {
 				int ctr = 0;
@@ -104,16 +120,41 @@ public class HornEncoderContext {
 	 * @param sig
 	 * @return
 	 */
-	public HornPredicate lookupInvariantPredicate(ClassVariable sig) {
-		if (!invariantPredicates.containsKey(sig)) {
+	public HornPredicate lookupInvariantPredicate(ClassVariable sig,
+                                                      long pushId) {
+		if (!invariantPredicates.containsKey(sig))
+                  invariantPredicates.put
+                    (sig, new HashMap<Long, HornPredicate>());
+
+                final Map<Long, HornPredicate> subMap =
+                  invariantPredicates.get(sig);
+                if (!subMap.containsKey(pushId)) {
 			List<Variable> args = new ArrayList<Variable>();
 			args.add(new Variable("ref", new ReferenceType(sig)));
+			
+			//add variables for the ghost fields
+			//used by pull and push.
+			for (Entry<String, Type> entry : GhostRegister.v().ghostVariableMap.entrySet()) {
+				args.add(new Variable(entry.getKey(), entry.getValue()));
+			}
+			
+			if (soottocfg.Options.v().arrayInv() && 
+					(sig.getName().contains(ArrayTransformer.arrayTypeName))) {
+				args.add(new Variable("array_index", IntType.instance()));
+			}
+			
 			for (Variable v : sig.getAssociatedFields()) {
 				args.add(v);
 			}
-			invariantPredicates.put(sig, new HornPredicate(p, "inv_" + sig.getName(), args));
+				
+            String name = "inv_" + sig.getName();
+            if (pushId >= 0)
+            	name = name + "_" + pushId;
+			subMap.put(pushId, new HornPredicate(p, name, args));
+			
+
 		}
-		return invariantPredicates.get(sig);
+		return subMap.get(pushId);
 	}
 	
 	/**
@@ -139,6 +180,10 @@ public class HornEncoderContext {
 		return result;
 	}
 
+	public Program getProgram() {
+		return this.program;
+	}
+	
 	/**
 	 * Gets a map from ClassVariable to unique ID.
 	 * @return

@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import jayhorn.checker.Checker;
+import jayhorn.checker.EldaricaChecker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.test.Util;
@@ -98,7 +98,7 @@ public class MutliFileTest {
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			
 			Program program = soot2cfg.getProgram();
-	  		Checker hornChecker = new Checker(factory);
+	  		EldaricaChecker hornChecker = new EldaricaChecker(factory);
 	  		boolean result = hornChecker.checkProgram(program);
 
 			boolean expected = benchmarkName.startsWith("Sat") || benchmarkName.endsWith("_true");

@@ -41,16 +41,16 @@ public class DominanceFrontier<V> {
 	 * Algorithm from
 	 * Modern Compiler Implementation in Java, Second Edition page 406
 	 * computeDF[n] =
-		S ← {}
+		S <- {}
 		for each node y in succ[n]    //This loop computes DFlocal[n]
-			if idom(y) != n
-				S ← S ∪ {y}
+			if idom(y) != n
+				S <- S \cup {y}
 		for each child c of n in the dominator tree
 			computeDF[c]
 			for each element w of DF[c]     // This loop computes DFup[c]
 				if n does not dominate w, or if n = w
-				S ← S ∪ {w}
-		DF[n] ← S
+				S <- S \cup {w}
+		DF[n] <- S
 	 * @param n Vertex for which we want to compute the dominance frontier.
 	 * @return Set of vertices that comprise the dominance frontier of n.
 	 */

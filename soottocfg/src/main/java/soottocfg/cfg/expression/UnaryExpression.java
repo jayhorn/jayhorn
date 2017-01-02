@@ -99,4 +99,9 @@ public class UnaryExpression extends Expression {
 		return new UnaryExpression(getSourceLocation(), op, expression.substitute(subs));
 	}
 
+	@Override
+	public UnaryExpression substituteVarWithExpression(Map<Variable, Expression> subs) {
+		return new UnaryExpression(getSourceLocation(), op, expression.substituteVarWithExpression(subs));
+	}
+	
 }

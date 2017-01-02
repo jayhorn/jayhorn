@@ -20,6 +20,7 @@ import soot.Body;
 import soot.BooleanType;
 import soot.Hierarchy;
 import soot.Local;
+import soot.NullType;
 import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
@@ -187,8 +188,13 @@ public class VirtualCallResolver extends AbstractSceneTransformer {
 							&& subClass.declaresMethod(callee.getSubSignature())) {
 						possibleClasses.add(subClass);
 					}
+				} else if (t instanceof NullType) {
+					/*This case can be ignored since we insert a runtime
+					 * assertion that the base is non-null anyway. So the
+					 * assertion will fail before we resolve the call.
+					 */
 				} else {
-					Verify.verify(t instanceof ArrayType);
+					Verify.verify(t instanceof ArrayType, "possible callee of type " + t.getClass() + " not expected");
 					/* This is sth like
 					 * int[] a = ...;
 					 * a.clone();
