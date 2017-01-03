@@ -9,6 +9,7 @@ import java.util.Set;
 
 import com.google.common.base.Verify;
 
+import jayhorn.Options;
 import jayhorn.hornify.HornEncoderContext;
 import jayhorn.hornify.HornHelper;
 import jayhorn.hornify.HornPredicate;
@@ -96,6 +97,7 @@ public class StatementEncoder {
 		// First create the atom for prePred.
 		HornHelper.hh().findOrCreateProverVar(p, prePred.variables, varMap);
 		final ProverExpr preAtom = prePred.instPredicate(varMap);
+
 		HornHelper.hh().findOrCreateProverVar(p, postPred.variables, varMap);
 		
 		if (s instanceof AssertStatement) {
@@ -160,6 +162,7 @@ public class StatementEncoder {
 		}else{
 			errorState = p.mkLiteral(false);
 		}
+		
 		clauses.add(p.mkHornClause(errorState, new ProverExpr[] { preAtom }, p.mkNot(cond)));
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));

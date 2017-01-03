@@ -113,11 +113,11 @@ public class Options {
 	@Option(name = "-stats", usage = "Generate Stats", required = false)
 	public boolean stats = false;
 	
-	@Option(name = "-cex", usage = "Show CEX", required = false)
-	public boolean cex = false;
-	
 	@Option(name = "-solution", usage = "Output full solution or counter-example", required = false)
 	public boolean solution = false;
+	
+//	@Option(name = "-no_pre", usage = "Don't encode pre predicate", required = false)
+//	public boolean no_pre = false;
 
 	@Option(name = "-dotCEX", usage = "Output counter-examples in GraphViz format", required = false)
 	public boolean dotCEX = false;

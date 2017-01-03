@@ -410,10 +410,10 @@ public class PrincessProver implements Prover {
                                             sol.append("" + p._1() + ": " + api.pp(p._2()) + "\n");
                                             lastSolution.put(p._1().toString(), api.pp(p._2()));
                                         }
-                                        Log.info(sol.toString());
+                                        System.out.println(sol.toString());
                                         return ProverResult.Sat;
                                     } else {
-                                        Log.info("Counterexample:\n"
+                                        System.out.println("Counterexample:\n"
                                                  + DialogUtil$.MODULE$.asString(new scala.runtime.AbstractFunction0<Integer>() {
                                                          public Integer apply() {
                                                              Dag<IAtom> simpDag = result.right().get()
@@ -755,8 +755,8 @@ public class PrincessProver implements Prover {
 	}
 
 	@Override
-	public ProverExpr getCex() {
+	public void getCex() {
 		// TODO Auto-generated method stub
-		return null;
+		
 	}
 }

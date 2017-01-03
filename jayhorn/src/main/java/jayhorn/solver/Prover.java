@@ -249,7 +249,7 @@ public interface Prover {
     
     String solverName();
     
-    ProverExpr getCex();
+    void getCex();
 
     ////////////////////////////////////////////////////////////////////////////
     // Some functions for outputing SMT-LIB
@@ -259,4 +259,6 @@ public interface Prover {
     String toSMTLIBFormula(ProverHornClause clause);
 
     void parseSMTLIBFormula(final String formula);
+    
+    
 }

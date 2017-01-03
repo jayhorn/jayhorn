@@ -2,7 +2,9 @@
 package jayhorn.solver.spacer;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -26,6 +28,7 @@ import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.Fixedpoint;
+import com.microsoft.z3.FuncDecl;
 import com.microsoft.z3.IntExpr;
 import com.microsoft.z3.InterpolationContext;
 import com.microsoft.z3.Model;
@@ -1183,10 +1186,45 @@ public class SpacerProver implements Prover {
 		}
     	
     }
+    
+    private ArrayList<Expr> getConjuncts(Expr exp){
+    	ArrayList<Expr> conj = new ArrayList<Expr>();
+    	try{
+    		Verify.verify(exp.isBool(), "Trying to get conjucts from horn forumla");
+    		if (exp.isAnd()){
+    			for (Expr e: exp.getArgs()){
+    				conj.add(e);
+    			}
+    			return conj; 
+    		}
+    	conj.add(exp);
+    	return conj;
+    	} catch (Exception e) {
+    		throw new RuntimeException(e.getMessage());
+    	}
+    }
+    
+    public void getCex(){
+    	// get the model 
+    	Expr exp = this.getGroundSatAnswer();
+    	// get the list of expr
+    	ArrayList<Expr> conjuncts  = getConjuncts(exp);
+    	// reversing the expr so we start from the error case
+    	//Collections.reverse(conjuncts); 
+    	try{
+    		System.out.println("--- CEX --- ");
+    		int i = 0;
+    		for (Expr e: conjuncts){
+    			Expr[] args = e.getArgs();
+    			FuncDecl funDecl = e.getFuncDecl();
+    			System.out.println(i + "\t" + funDecl.getName());
+    			i++;
+    		}
 
-    public ProverExpr getCex(){
-    	throw new UnsupportedOperationException();
-     }
+    	} catch (Exception e) {
+    		throw new RuntimeException(e.getMessage());
+    	}
+    }
     /**
      * Retrieve explanation why fixedpoint engine returned status Unknown.
      **/

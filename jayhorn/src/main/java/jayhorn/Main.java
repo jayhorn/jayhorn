@@ -60,6 +60,10 @@ public class Main {
   		if ("spacer".equals(Options.v().getSolver())){
   			SpacerChecker spacer = new SpacerChecker(factory);
   			result = spacer.checkProgram(program);
+  			// Show CEX
+  			if(!result && Options.v().solution){
+		    		spacer.cex();
+		    	}
   		} else{
   			EldaricaChecker eldarica = new EldaricaChecker(factory);
   			result = eldarica.checkProgram(program);

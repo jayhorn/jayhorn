@@ -15,6 +15,11 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.variable.Variable;
 
+/**
+ * 
+ * @author Teme
+ *
+ */
 public class S2H {
 	
 	private final HashMap<Statement, List<ProverHornClause>> statToClause = new HashMap<Statement, List<ProverHornClause>>();

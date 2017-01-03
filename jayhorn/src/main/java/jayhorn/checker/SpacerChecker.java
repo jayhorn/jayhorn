@@ -133,9 +133,6 @@ public class SpacerChecker extends Checker{
 			    	Stats.stats().add(propLine, "SAFE");
 			    } else if (result == ProverResult.Sat){
 			    	Stats.stats().add(propLine, "UNSAFE");
-			    	if (Options.v().cex){
-			    		cex();
-			    	}
 			    } else {
 			    	Stats.stats().add(propLine, "ERROR");
 			    }
@@ -164,11 +161,11 @@ public class SpacerChecker extends Checker{
 				throw new RuntimeException("Verification failed with prover code " + result);
 			}
 		}
-
 		return true;
 	}
 
-	private void cex(){
+	public void cex(){
+		prover.getCex();
 		//System.out.println(prover.getGroundSatAnswer());
 	}
 	
