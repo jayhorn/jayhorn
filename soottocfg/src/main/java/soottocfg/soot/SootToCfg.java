@@ -36,8 +36,12 @@ import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.optimization.CfgCallInliner;
 import soottocfg.cfg.optimization.CfgStubber;
+import soottocfg.cfg.optimization.dataflow.ConstPropagator;
+import soottocfg.cfg.optimization.dataflow.CopyPropagator;
+import soottocfg.cfg.optimization.dataflow.DeadCodeElimination;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.memory_model.NewMemoryModel;
 import soottocfg.soot.memory_model.PushIdentifierAdder;
@@ -110,17 +114,17 @@ public class SootToCfg {
 		 * reference before applying the array transformation because
 		 * this changes this signature of main.
 		 */
-		final SootMethod mainMethod = Scene.v().getMainMethod();		
+		final SootMethod mainMethod = Scene.v().getMainMethod();
 		performBehaviorPreservingTransformations();
 		performAbstractionTransformations();
-		
+
 		constructCfg();
 
 		// now set the entry points.
-		Method m = program.lookupMethod(mainMethod.getSignature());		
+		Method m = program.lookupMethod(mainMethod.getSignature());
 		program.setEntryPoint(m);
 		m.isProgramEntryPoint(true);
-		
+
 		if (Options.v().outDir() != null) {
 			writeFile(".cfg", program.toString());
 		}
@@ -128,32 +132,25 @@ public class SootToCfg {
 		// stub
 		CfgStubber stubber = new CfgStubber();
 		stubber.stubUnboundFieldsAndMethods(program);
-		
+
 		// inline method calls
 		CfgCallInliner inliner = new CfgCallInliner(program);
 		inliner.inlineFromMain(Options.v().getInlineMaxSize(), Options.v().getInlineCount());
-		removeUnreachableMethods(program);
+		removeUnreachableMethods(program);	
 		
-		if (program.getEntryPoint()==null) {
+		
+		
+		if (program.getEntryPoint() == null) {
 			System.err.println("WARNING: No entry point found in program!");
 			SootTranslationHelpers.v().reset();
 			return;
 		}
-
-		// alias analysis
-		setPointsToAnalysis(new FlowBasedPointsToAnalysis());
-		if (Options.v().memPrecision() >= Options.MEMPREC_PTA) {
-			getPointsToAnalysis().run(program);
-		}
 		
-		// simplify push-pull
-		if (Options.v().memPrecision() >= Options.MEMPREC_SIMPLIFY) {
-			PushPullSimplifier pps = new PushPullSimplifier();
-			pps.simplify(program);
-			if (Options.v().outDir() != null)
-				writeFile(".simpl.cfg", program.toString());
+		boolean changed = true;
+		while(changed) {			
+			changed = applyPullPushSimplification();
+			changed = applyDataFlowSimplifications() ? true : changed;
 		}
-		
 		// add push IDs
 		PushIdentifierAdder pia = new PushIdentifierAdder();
 		pia.addIDs(program);
@@ -166,6 +163,54 @@ public class SootToCfg {
 		// reset all the soot stuff.
 		SootTranslationHelpers.v().reset();
 	}
+
+	
+	private boolean applyPullPushSimplification() {
+		boolean programChanged = false;
+		// alias analysis
+		setPointsToAnalysis(new FlowBasedPointsToAnalysis());
+		if (Options.v().memPrecision() >= Options.MEMPREC_PTA) {
+			getPointsToAnalysis().run(program);
+		}
+
+		// simplify push-pull
+		if (Options.v().memPrecision() >= Options.MEMPREC_SIMPLIFY) {
+			PushPullSimplifier pps = new PushPullSimplifier();
+			programChanged = pps.simplify(program);
+			if (Options.v().outDir() != null)
+				writeFile(".simpl.cfg", program.toString());
+		}
+		return programChanged;
+	}
+	
+	private boolean applyDataFlowSimplifications() {
+		boolean programChanged = false;
+		if (Options.v().optimizeMethods) {
+			for (Method method : program.getMethods()) {
+				boolean changed = true;
+				while (changed) {					
+					changed = false;
+					while (ConstPropagator.constPropagate(method)) {
+						changed = true;
+					}
+					while (CopyPropagator.copyPropagate(method)) {						
+						changed = true;
+					}
+					changed = DeadCodeElimination.eliminateDeadCode(method) ? true : changed ;
+					programChanged = programChanged || changed;
+				}
+				//now remove the locals that have been eliminated.
+				Set<Variable> allVars = new HashSet<Variable>();
+				for (CfgBlock b : method.vertexSet()) {
+					allVars.addAll(b.getUseVariables());
+					allVars.addAll(b.getDefVariables());
+				}
+				method.getLocals().retainAll(allVars);				
+			}			
+		}
+		return programChanged;
+	}
+	
 	
 	/**
 	 * Like run, but only performs the behavior preserving transformations
@@ -247,7 +292,7 @@ public class SootToCfg {
 		}
 	}
 
-	private void performAbstractionTransformations() {		
+	private void performAbstractionTransformations() {
 		StaticInitializerTransformer sit = new StaticInitializerTransformer();
 		sit.applyTransformation();
 
@@ -269,8 +314,8 @@ public class SootToCfg {
 	 */
 	private void performBehaviorPreservingTransformations() {
 		// add a field for the dynamic type of an object to each class.
-//		SootTranslationHelpers.createTypeFields();
-		
+		// SootTranslationHelpers.createTypeFields();
+
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		for (SootClass sc : classes) {
 			if (sc == SootTranslationHelpers.v().getAssertionClass()) {
@@ -324,27 +369,27 @@ public class SootToCfg {
 		if (Options.v().resolveVirtualCalls()) {
 			VirtualCallResolver vc = new VirtualCallResolver();
 			vc.applyTransformation();
-		}		
+		}
 	}
 
-	 // apply some standard Soot optimizations
+	// apply some standard Soot optimizations
 	private void performSootOptimizations(Body body) {
-		 soot.jimple.toolkits.scalar.CopyPropagator.v().transform(body);
-//		 soot.jimple.toolkits.scalar.UnreachableCodeEliminator.v().transform(body);
-		 soot.jimple.toolkits.scalar.ConstantCastEliminator.v().transform(body);
-		 soot.jimple.toolkits.scalar.ConstantPropagatorAndFolder.v().transform(body);
-		 soot.jimple.toolkits.scalar.DeadAssignmentEliminator.v().transform(body);
-		 soot.jimple.toolkits.scalar.EmptySwitchEliminator.v().transform(body);
+		soot.jimple.toolkits.scalar.CopyPropagator.v().transform(body);
+		// soot.jimple.toolkits.scalar.UnreachableCodeEliminator.v().transform(body);
+		soot.jimple.toolkits.scalar.ConstantCastEliminator.v().transform(body);
+		soot.jimple.toolkits.scalar.ConstantPropagatorAndFolder.v().transform(body);
+		soot.jimple.toolkits.scalar.DeadAssignmentEliminator.v().transform(body);
+		soot.jimple.toolkits.scalar.EmptySwitchEliminator.v().transform(body);
 	}
 
 	private void addDefaultInitializers(SootMethod constructor, SootClass containingClass) {
 		if (constructor.isConstructor()) {
 			Preconditions.checkArgument(constructor.getDeclaringClass().equals(containingClass));
-			JimpleBody jbody = (JimpleBody)constructor.retrieveActiveBody();
-			
-			//TODO: use this guy in instead.
-//			jbody.insertIdentityStmts();
-			
+			JimpleBody jbody = (JimpleBody) constructor.retrieveActiveBody();
+
+			// TODO: use this guy in instead.
+			// jbody.insertIdentityStmts();
+
 			Set<SootField> instanceFields = new LinkedHashSet<SootField>();
 			for (SootField f : containingClass.getFields()) {
 				if (!f.isStatic()) {
@@ -356,7 +401,8 @@ public class SootToCfg {
 					Value base = ((InstanceFieldRef) vb.getValue()).getBase();
 					soot.Type baseType = base.getType();
 					if (baseType instanceof RefType && ((RefType) baseType).getSootClass().equals(containingClass)) {
-						// remove the final fields that are initialized anyways from
+						// remove the final fields that are initialized anyways
+						// from
 						// our staticFields set.
 						SootField f = ((InstanceFieldRef) vb.getValue()).getField();
 						if (f.isFinal()) {
@@ -367,7 +413,7 @@ public class SootToCfg {
 			}
 
 			Unit insertPos = null;
-			
+
 			for (Unit u : jbody.getUnits()) {
 				if (u instanceof IdentityStmt) {
 					insertPos = u;
@@ -377,17 +423,17 @@ public class SootToCfg {
 			}
 			for (SootField f : instanceFields) {
 				Unit init;
-//				if (SootTranslationHelpers.isDynamicTypeVar(f)) {
-//					init = Jimple.v().newAssignStmt(
-//							Jimple.v().newInstanceFieldRef(jbody.getThisLocal(), f.makeRef()),
-//							SootTranslationHelpers.v().getClassConstant(RefType.v(containingClass)));
-//				} else {
-					init = Jimple.v().newAssignStmt(
-							Jimple.v().newInstanceFieldRef(jbody.getThisLocal(), f.makeRef()),
-							SootTranslationHelpers.v().getDefaultValue(f.getType()));
-//				}
-				if (insertPos==null) {
-					jbody.getUnits().addFirst(init);	
+				// if (SootTranslationHelpers.isDynamicTypeVar(f)) {
+				// init = Jimple.v().newAssignStmt(
+				// Jimple.v().newInstanceFieldRef(jbody.getThisLocal(),
+				// f.makeRef()),
+				// SootTranslationHelpers.v().getClassConstant(RefType.v(containingClass)));
+				// } else {
+				init = Jimple.v().newAssignStmt(Jimple.v().newInstanceFieldRef(jbody.getThisLocal(), f.makeRef()),
+						SootTranslationHelpers.v().getDefaultValue(f.getType()));
+				// }
+				if (insertPos == null) {
+					jbody.getUnits().addFirst(init);
 				} else {
 					jbody.getUnits().insertAfter(init, insertPos);
 				}
@@ -418,18 +464,18 @@ public class SootToCfg {
 	private static void setPointsToAnalysis(FlowBasedPointsToAnalysis pointsto) {
 		pta = pointsto;
 	}
-	
+
 	private void removeUnreachableMethods(Program program) {
 		Set<Method> reachable = reachableMethod(program.getEntryPoint());
 		Set<Method> toRemove = new HashSet<Method>();
 		for (Method m : program.getMethods()) {
 			if (!reachable.contains(m)) {
 				toRemove.add(m);
-			} 
+			}
 		}
 		program.removeMethods(toRemove);
 	}
-	
+
 	private Set<Method> reachableMethod(Method main) {
 		Set<Method> reachable = new HashSet<Method>();
 		List<Method> todo = new LinkedList<Method>();
@@ -445,7 +491,7 @@ public class SootToCfg {
 		}
 		return reachable;
 	}
-	
+
 	private List<Method> calledMethods(Method m) {
 		List<Method> res = new LinkedList<Method>();
 		for (CfgBlock b : m.vertexSet()) {

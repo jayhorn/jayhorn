@@ -8,7 +8,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -81,6 +80,13 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	}
 
 	/**
+	 * @return returns the this-variable if there is one and null otherwise.
+	 */
+	public Variable getThisVariable() {
+		return this.thisVariable;
+	}
+	
+	/**
 	 * ONLY USE THIS METHOD DURING TESTING
 	 * @param p
 	 * @param uniqueName
@@ -146,7 +152,8 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	public boolean removeVertex(CfgBlock v) {
 		if (this.source == v) {
 			this.source = null;
-		} else if (this.sink == v) {
+		} 
+		if (this.sink == v) {
 			this.sink = null;
 		}
 		return super.removeVertex(v);
@@ -179,7 +186,10 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		}
 		
 		if (this.thisVariable != null) {
-			// then the first parameter must be the reference to the current
+			if (!this.locals.contains(this.thisVariable)) {
+				this.locals.add(this.thisVariable);
+			}
+ 			// then the first parameter must be the reference to the current
 			// instance
 			// and we have to add an assignment to the source block.
 			Verify.verify(!this.parameterList.isEmpty());
@@ -239,7 +249,7 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		if (sink == null) {
 			for (CfgBlock b : vertexSet()) {
 				if (outDegreeOf(b) == 0) {
-					Verify.verify(sink == null, "More than one source in graph!");
+					Verify.verify(sink == null, "More than one sink in graph for "+this.methodName);
 					sink = b;
 				}
 			}
@@ -347,16 +357,17 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	 * @param local
 	 */
 	public void addLocalVariable(Variable local) {
+		Verify.verify(!locals.contains(local));
 		locals.add(local);
 	}
 
 	/**
-	 * Returns an immutable view of the set of local variables.
+	 * Returns the set of local variables.
 	 * 
-	 * @return immutable view of the set of local variables.
+	 * @return set of local variables.
 	 */
 	public Collection<Variable> getLocals() {
-		return Collections.unmodifiableSet(locals);
+		return locals;
 	}
 
 	public void toDot(File dotFile) {

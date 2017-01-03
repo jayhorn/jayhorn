@@ -124,7 +124,7 @@ public class CfgStubber {
 							method.addEdge(block, caseNull);
 							CfgBlock caseInstance = new CfgBlock(method);
 							method.addEdge(block, caseInstance);
-
+							
 							ReferenceType rt = (ReferenceType) t;
 							List<Expression> rhs = new LinkedList<Expression>();
 
@@ -173,6 +173,7 @@ public class CfgStubber {
 						}
 					}
 					method.setOutParam(rets);
+					method.findOrCreateUniqueSink();
 				}
 
 			} else if (method.isProgramEntryPoint()) {

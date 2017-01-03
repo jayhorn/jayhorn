@@ -23,6 +23,7 @@ import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.IntType;
@@ -39,10 +40,8 @@ public class DataFlowUtils  {
 
 	public static void main(String[] args) {
 		Method m = createExampleProgram17_3();
-		System.err.println(m);
-		
+		System.err.println(m);		
 		ReachingDefinitions rd = computeReachingDefinitions(m);
-		
 		System.err.println(rd);	
 	}
 	
@@ -59,7 +58,7 @@ public class DataFlowUtils  {
 			sb.append(System.getProperty("line.separator"));
 			List<Statement> statementList = new LinkedList<Statement>(in.keySet());
 			for (Statement s : in.keySet()) {				 
-				sb.append(String.format("%1$5d:  %2$15s  ", statementList.indexOf(s), s));
+				sb.append(String.format("%1$5d:  %2$25s  ", statementList.indexOf(s), s));
 				StringBuilder tmp = new StringBuilder();
 				String comma = "In: ";
 				for (Statement inS : in.get(s)) {
@@ -84,7 +83,6 @@ public class DataFlowUtils  {
 		}
 	}
 	
-	
 	public static ReachingDefinitions computeReachingDefinitions(Method m) {
 
 		Map<Statement, Set<Statement>> gen = new LinkedHashMap<Statement, Set<Statement>>();
@@ -107,6 +105,7 @@ public class DataFlowUtils  {
 		while(changed) {
 			changed = false;
 			for (Statement s : allStatements) {
+
 				//update the in-sets
 				Set<Statement> newIn = computeInSet(s, predMap, out);
 				if (!in.get(s).equals(newIn) ) {
@@ -144,6 +143,15 @@ public class DataFlowUtils  {
 		return res;
  	}
 	
+	/**
+	 * Returns true if s generates an update to a variable.
+	 * @param s
+	 * @return
+	 */
+	private static boolean isGenStatement(Statement s) {
+		return s instanceof AssignStatement || s instanceof CallStatement || s instanceof PullStatement || s instanceof NewStatement;
+	}
+	
 	private static void computeGenAndKillSets(Method m, Map<Statement, Set<Statement>> gen, Map<Statement, Set<Statement>> kill) {
 		Map<Variable, Set<Statement>> defs = new HashMap<Variable, Set<Statement>>();
 		// compute defs and gen sets before computing kill sets.
@@ -159,7 +167,7 @@ public class DataFlowUtils  {
 				// create the gen[s] map
 				Set<Statement> genSet = new HashSet<Statement>();
 				gen.put(s, genSet);
-				if (s instanceof AssignStatement || s instanceof CallStatement || s instanceof PullStatement) {
+				if (isGenStatement(s)) {
 					gen.get(s).add(s);
 				} // else do nothing.
 			}
@@ -169,14 +177,14 @@ public class DataFlowUtils  {
 			for (Statement s : b.getStatements()) {
 				Set<Statement> killSet = new HashSet<Statement>();
 				kill.put(s, killSet);
-				if (s instanceof AssignStatement || s instanceof CallStatement || s instanceof PullStatement) {
+//				if (s instanceof AssignStatement || s instanceof CallStatement || s instanceof PullStatement) {
 					Set<Statement> defStatements = new HashSet<Statement>();
 					for (Variable v : s.getDefVariables()) {
 						defStatements.addAll(defs.get(v));
 					}
 					defStatements.remove(s);
 					kill.get(s).addAll(defStatements);
-				} // else do nothing.
+//				} // else do nothing.
 			}
 		}		
 	}
@@ -188,7 +196,7 @@ public class DataFlowUtils  {
 	 * @return Map from statement to set of predecessor statements 
 	 */
 	private static Map<Statement, Set<Statement>> getStatementPredecessorMap(Method m) {
-		Map<Statement, Set<Statement>> pred = new HashMap<Statement, Set<Statement>>();
+		Map<Statement, Set<Statement>> pred = new LinkedHashMap<Statement, Set<Statement>>();
 
 		Map<CfgBlock, Set<Statement>> lastStmt = new HashMap<CfgBlock, Set<Statement>>();
 
@@ -209,9 +217,9 @@ public class DataFlowUtils  {
 				}
 			} else {
 				blockWithLastStatement.add(b);
-
 			}
 		}
+		
 		while (!blockWithLastStatement.isEmpty()) {
 			CfgBlock current = blockWithLastStatement.remove(0);
 			lastStmt.get(current)
@@ -232,16 +240,21 @@ public class DataFlowUtils  {
 	private static Set<Statement> getPredecessorStatementRecursively(Method m, Map<CfgBlock, Set<Statement>> lastStmt,
 			CfgBlock current, Set<CfgBlock> visited) {
 		Set<Statement> ret = new HashSet<Statement>();
-		if (visited.contains(current)) {
-			return ret;
-		}
 		if (lastStmt.containsKey(current) && !lastStmt.get(current).isEmpty()) {
 			return lastStmt.get(current);
+		} else if (visited.contains(current)) {
+			//we are in a loop
+			return ret;
 		}
-		Set<CfgBlock> rec_visited = new HashSet<CfgBlock>();
+
+		Set<CfgBlock> rec_visited = new HashSet<CfgBlock>(visited);
 		rec_visited.add(current);
 		for (CfgBlock pre : Graphs.predecessorListOf(m, current)) {
 			ret.addAll(getPredecessorStatementRecursively(m, lastStmt, pre, rec_visited));
+		}
+		if (!lastStmt.containsKey(current)) {
+			lastStmt.put(current, new HashSet<Statement>());
+			lastStmt.get(current).addAll(ret);
 		}
 		return ret;
 	}

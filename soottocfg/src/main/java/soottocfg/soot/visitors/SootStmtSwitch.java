@@ -124,7 +124,11 @@ public class SootStmtSwitch implements StmtSwitch {
 				u.apply(this);
 			}
 		} else {
-			this.entryBlock = new CfgBlock(methodInfo.getMethod());
+			if (methodInfo.getMethod().getSource()==null) {
+				methodInfo.getMethod().setSource(new CfgBlock(methodInfo.getMethod()));
+			}
+//			this.entryBlock = new CfgBlock(methodInfo.getMethod());
+			this.entryBlock = methodInfo.getMethod().getSource();
 			this.currentBlock = this.entryBlock;
 		}
 

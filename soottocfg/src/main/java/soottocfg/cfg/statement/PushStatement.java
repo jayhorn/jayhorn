@@ -118,7 +118,7 @@ public class PushStatement extends Statement {
 		for (Expression e: ghostExpressions) {
 			used.addAll(e.getUseIdentifierExpressions());
 		}
-
+//TODO: I'm not sure if a push is a use or a def of 'object' ... or both?
         used.add(object);
 		return used;
 	}
@@ -126,7 +126,7 @@ public class PushStatement extends Statement {
 	@Override
 	public Set<IdentifierExpression> getDefIdentifierExpressions() {
 		Set<IdentifierExpression> res = new HashSet<IdentifierExpression>();
-		res.add(object);
+//		res.add(object);
 		return res;
 	}
 	
@@ -182,19 +182,33 @@ public class PushStatement extends Statement {
 		}
 
 		return new PushStatement(getSourceLocation(), classConstant, object.substitute(subs), rightCopy, ghostCopy, this.id);
-
 	}
 	
 	@Override
-	public boolean equals(Object o) {
-		if (!(o instanceof PushStatement))
-			return false;
-		PushStatement other = (PushStatement) o;
-		return this.id == other.id;
-	}
+	public PushStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
+		List<Expression> rightCopy = new LinkedList<Expression>();
+		for (Expression e : right) {
+			rightCopy.add(e.substituteVarWithExpression(subs));
+		}
+		List<Expression> ghostCopy = new LinkedList<Expression>();
+		for (Expression e : ghostExpressions) {
+			ghostCopy.add(e.substituteVarWithExpression(subs));
+		}
+//		Verify.verify(!subs.containsKey(object.getVariable()));
+		return new PushStatement(getSourceLocation(), classConstant, object.deepCopy(), rightCopy, ghostCopy, this.id);
+	}	
 	
-	@Override
-	public int hashCode() {
-		return id;
-	}
+	
+//	@Override
+//	public boolean equals(Object o) {
+//		if (!(o instanceof PushStatement))
+//			return false;
+//		PushStatement other = (PushStatement) o;
+//		return this.id == other.id;
+//	}
+//	
+//	@Override
+//	public int hashCode() {
+//		return id;
+//	}
 }

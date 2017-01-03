@@ -18,7 +18,7 @@ import soottocfg.cfg.variable.Variable;
  * @author schaef
  *
  */
-public class BooleanLiteral extends Expression {
+public class BooleanLiteral extends Expression implements Literal{
 
 	/**
 	 * 
@@ -88,6 +88,11 @@ public class BooleanLiteral extends Expression {
 	
 	@Override
 	public Expression substitute(Map<Variable, Variable> subs) {
+		return this.deepCopy();
+	}
+
+	@Override
+	public Expression substituteVarWithExpression(Map<Variable, Expression> subs) {
 		return this.deepCopy();
 	}
 

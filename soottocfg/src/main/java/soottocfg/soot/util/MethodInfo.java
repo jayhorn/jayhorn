@@ -63,6 +63,7 @@ public class MethodInfo {
 		cfgMethod = SootTranslationHelpers.v().lookupOrCreateMethod(sootMethod);
 		methodLoc = SootTranslationHelpers.v().getSourceLocation(sm);
 		sink = new CfgBlock(getMethod());
+		getMethod().setSink(sink);
 		this.sourceFileName = sourceFileName;
 
 		this.returnVariables = new LinkedList<Variable>();
