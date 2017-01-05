@@ -18,14 +18,12 @@ public class SatObjectArray {
 		Node n = null;
 		while (random.nextBoolean()) {
 			final int d = random.nextInt();
-			if (d >= 0 && d <= table.length)
+			if (d >= 0 && d < table.length)
 				n = new Node(n, d);
 		}
-
+		
 		while (n != null) {
-			int tmp = n.data;
-//			assert (tmp<=5);
-			table[tmp]++;
+			table[n.data]++;
 			n = n.next;
 		}
 

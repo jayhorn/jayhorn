@@ -10,6 +10,6 @@ public class UnsatHavoc01 {
 
 		int i = c;
 		
-		assert (l1==l2);
+		assert (x==y);
 	}
 }

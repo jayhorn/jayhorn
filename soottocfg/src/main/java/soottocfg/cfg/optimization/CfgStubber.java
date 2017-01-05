@@ -46,6 +46,7 @@ public class CfgStubber {
 			Method method = todo.remove();
 
 			if (method.getSource() == null) {
+				method.setStub(true);
 				/*
 				 * If the method does not have a body, we just add a non-det
 				 * assignment to the

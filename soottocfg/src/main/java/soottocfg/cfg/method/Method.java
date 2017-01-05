@@ -65,6 +65,8 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	private transient BellmanFordShortestPath<CfgBlock, CfgEdge> sourceBF;
 	private transient Map<CfgBlock, BellmanFordShortestPath<CfgBlock, CfgEdge>> sinkBF;
 
+	private boolean isStub = false;
+	
 	public static Method createMethodInProgram(Program p, String uniqueName, List<Variable> params, List<Type> outTypes,
 			SourceLocation sourceLocation) {
 		Preconditions.checkArgument(p.lookupMethod(uniqueName) == null,
@@ -568,5 +570,19 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 	public boolean isArrayMethod() {
 		return 	thisVariable != null &&
 				thisVariable.getType().toString().contains(ArrayTransformer.arrayTypeName);
+	}
+
+	/**
+	 * @return the isStub
+	 */
+	public boolean isStub() {
+		return isStub;
+	}
+
+	/**
+	 * @param isStub the isStub to set
+	 */
+	public void setStub(boolean isStub) {
+		this.isStub = isStub;
 	}
 }

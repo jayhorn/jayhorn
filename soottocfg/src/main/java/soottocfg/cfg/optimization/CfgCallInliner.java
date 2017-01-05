@@ -125,6 +125,9 @@ public class CfgCallInliner {
 	}
 
 	private boolean canBeInlined(Method caller, Method callee) {
+		if (callee.isStub()) {
+			return false;
+		}
 		boolean res = !callee.equals(caller) && !callee.isConstructor() && !callee.isStaticInitializer();
 
 		if (soottocfg.Options.v().arrayInv() &&
