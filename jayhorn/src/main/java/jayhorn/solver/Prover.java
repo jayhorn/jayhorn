@@ -247,7 +247,6 @@ public interface Prover {
     
     void printRules();
     
-    String solverName();
     
     ProverExpr getCex();
 

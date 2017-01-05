@@ -87,9 +87,6 @@ public class PrincessProver implements Prover {
 		api = SimpleAPI.spawnWithLog(basename);
 	}
 
-	public String solverName(){
-		return "eldarica";
-	}
 	
 	public ProverType getBooleanType() {
 		return BoolType.INSTANCE;
@@ -713,7 +710,7 @@ public class PrincessProver implements Prover {
 
 	@Override
 	public String toString() {
-		return "Princess";
+		return "eldarica";
 	}
 
 	public void printRules(){}
