@@ -20,20 +20,24 @@ public class SpacerTest {
         HashMap<String, String> cfg = new HashMap<String, String>();
         Context ctx = new Context(cfg);
         Fixedpoint fp = ctx.mkFixedpoint();
-
-        
+       
         /* declare function g */
-        Sort I = ctx.mkIntSort();
-        FuncDecl g = ctx.mkFuncDecl("g", new Sort[] { I, I }, I);
-
-
-        ctx.parseSMTLIBString(
-                "(benchmark tst :formula (forall (x Int) (y Int) (implies (= x y) (= (ggd x 0) (gg 0 y)))))",
-                null, null, new Symbol[] { ctx.mkSymbol("gg") },
-                new FuncDecl[] { g });
-
-        BoolExpr thm = ctx.getSMTLIBFormulas()[0];
-        System.out.println("formula: " + thm);
+        //Sort I = ctx.mkIntSort();
+        Sort B = ctx.mkBoolSort();
+        FuncDecl g = ctx.mkFuncDecl("g", new Sort[] { B, B }, B);
+        //FuncDecl gg = ctx.mkFuncDecl("gg", new Sort[] { B, B }, B);
+        BoolExpr v = (BoolExpr) ctx.mkBound(1, B);
+       // IntExpr i = (BoolExpr) ctx.mkBound(1, I);
+        fp.registerRelation(g);
+        fp.addRule(ctx.mkImplies((BoolExpr) g.apply(v, v), (BoolExpr) g.apply(v, v)), null);
+//
+//        ctx.parseSMTLIBString(
+//                "(benchmark tst :formula (forall (x Int) (y Int) (implies (= x y) (= (ggd x 0) (gg 0 y)))))",
+//                null, null, new Symbol[] { ctx.mkSymbol("gg") },
+//                new FuncDecl[] { g });
+//
+//        BoolExpr thm = ctx.getSMTLIBFormulas()[0];
+//        System.out.println("formula: " + thm);
         
         FuncDecl a = ctx.mkConstDecl("a", ctx.mkBoolSort());
         fp.registerRelation(a);

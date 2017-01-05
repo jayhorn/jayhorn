@@ -156,7 +156,7 @@ public class StatementEncoder {
 		String tag = "ErrorState@line" + as.getJavaSourceLine();
 		final ProverFun errorPredicate = p.mkHornPredicate(tag, new ProverType[] {});
 	
-		if (p.solverName().equals("spacer")){
+		if (p.toString().equals("spacer")){
 			errorState = errorPredicate.mkExpr(new ProverExpr[]{});
 			S2H.sh().setErrorState(errorState, as.getJavaSourceLine());
 		}else{

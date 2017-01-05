@@ -245,9 +245,8 @@ public interface Prover {
     void addRule(ProverExpr hornRule);
     
     
-    void printRules();
+    String getRules();
     
-    String solverName();
     
     void getCex();
 

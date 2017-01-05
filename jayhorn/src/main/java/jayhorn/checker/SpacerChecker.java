@@ -3,6 +3,10 @@
  */
 package jayhorn.checker;
 
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -123,7 +127,19 @@ public class SpacerChecker extends Checker{
 				Stats.stats().add("Warning", "No assertions found.");
 				return true;
 			}
-			
+
+			if (Options.v().getPrintHorn()) {
+				//System.out.println(hf.writeHorn());
+				String outDir = Options.v().getOutDir();
+				String outName = Options.v().getOut() + ".smt2";
+				System.out.println(outDir);
+				System.out.println(outName);
+				try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+						new FileOutputStream(outName), "utf-8"))) {
+					writer.write(prover.getRules());
+				}
+
+			}
 			
 			for (Map.Entry<ProverExpr, Integer> props : S2H.sh().getErrorState().entrySet()) {
 			    ProverExpr prop = props.getKey();
@@ -139,10 +155,7 @@ public class SpacerChecker extends Checker{
 				results.put(prop, result);
 			}
 
-			if (Options.v().getPrintHorn()) {
-				//System.out.println(hf.writeHorn());
-				prover.printRules();
-			}
+			
 			Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));
 			
 		} catch (Throwable t) {

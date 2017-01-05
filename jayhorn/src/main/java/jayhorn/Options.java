@@ -151,7 +151,7 @@ public class Options {
 	// /**
 	// * Output intermediate representations
 	// */
-	@Option(name = "-out", usage = "Output directory for intermediate represenations", required = false)
+	@Option(name = "-out", usage = "Output directory for intermediate representations", required = false)
 	private String out = null;
 
 	public String getOut() {

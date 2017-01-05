@@ -324,7 +324,7 @@ public class Main {
             p.addRule(c2);
             p.addRule(c3);          
             p.addRule(errorState);
-            p.printRules();
+            //p.printRules();
             final ProverExpr e = error.mkExpr(new ProverExpr[] {p.mkLiteral(true)});
             System.out.println(e);
             ProverResult result = p.query(e);

@@ -87,9 +87,6 @@ public class PrincessProver implements Prover {
 		api = SimpleAPI.spawnWithLog(basename);
 	}
 
-	public String solverName(){
-		return "eldarica";
-	}
 	
 	public ProverType getBooleanType() {
 		return BoolType.INSTANCE;
@@ -716,7 +713,9 @@ public class PrincessProver implements Prover {
 		return "Princess";
 	}
 
-	public void printRules(){}
+	public String getRules(){
+		throw new UnsupportedOperationException();
+	}
 	
 	////////////////////////////////////////////////////////////////////////////
 	// Some functions for outputing SMT-LIB

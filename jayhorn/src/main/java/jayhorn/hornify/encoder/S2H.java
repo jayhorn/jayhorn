@@ -12,6 +12,7 @@ import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverHornClause;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
+import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.variable.Variable;
 
@@ -41,8 +42,26 @@ public class S2H {
 
 	private S2H() {}
 	
+	/**
+	 * Collect statements to clause
+	 * @param s
+	 * @param h
+	 */
 	public void addClause(Statement s, List<ProverHornClause> h){
 		statToClause.put(s,h);
+//		if (s instanceof CallStatement){
+//			CallStatement cs = (CallStatement) s;
+//			System.out.println("-- Call Statement -- ");
+//			System.out.println("Line number : " + s.getJavaSourceLine());
+//			System.out.println("Name : " + s.toString());
+//			System.out.println("Arguments : " + cs.getArguments());
+//			System.out.println("Target method: " + cs.getCallTarget().getMethodName());
+//			for(ProverHornClause hh: h){
+//				System.out.println(hh);
+//			}
+//			System.out.println("-- End Call Statement -- ");
+//		}
+		
 	}
 	
 	/**
