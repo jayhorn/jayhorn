@@ -19,6 +19,7 @@
 
 package soottocfg.soot.visitors;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -34,7 +35,8 @@ import soot.NullType;
 import soot.PrimType;
 import soot.RefType;
 import soot.ShortType;
-import soot.SootMethodRef;
+import soot.SootClass;
+import soot.SootMethod;
 import soot.Type;
 import soot.Value;
 import soot.jimple.AddExpr;
@@ -283,34 +285,81 @@ public class SootValueSwitch implements JimpleValueSwitch {
 	@Override
 	public void caseCastExpr(CastExpr arg0) {
 		if (isPrimitiveNarrowing(arg0)) {
-			// if we down-cast a numeric type, translate a havoc instead of the
-			// actual cast.
-			// TODO: this should me implemented in a more flexible way.
-			createHavocLocal(arg0.getCastType());
+			boxDownCastExpression((PrimType) arg0.getCastType(), arg0.getOp());
 		} else {
 			arg0.getOp().apply(this);
 		}
 	}
 
 	/**
-	 * Creates a fresh local of type t, adds a statement
-	 * that assigns a non-det value to this local, and puts
-	 * this local on the stack.
-	 * 
-	 * @param t
-	 *            Type of the local that should be generated
+	 * For an expression ((primitiveType)arg) where 'primitiveType' is a primitive type
+	 * and ...
+	 * @param primitiveType
+	 * @param arg
+	 * @return local of primitiveType that is the result of calling the downcast method on the boxed type.
 	 */
-	private void createHavocLocal(Type t) {
-		// create a fresh local variable
-		final String localName = "$ndet" + this.statementSwitch.getMethod().getActiveBody().getLocals().size();
-		Local freshLocal = Jimple.v().newLocal(localName, t);
-		this.statementSwitch.getMethod().getActiveBody().getLocals().add(freshLocal);
-		// add a statement that assigns a non-det value to this variable.
-		SootMethodRef smr = SootTranslationHelpers.v().getHavocMethod(t).makeRef();
-		Jimple.v().newAssignStmt(freshLocal, Jimple.v().newStaticInvokeExpr(smr)).apply(this.statementSwitch);
-		// push this fresh local on the expression stack.
-		freshLocal.apply(this);
+	private void boxDownCastExpression(PrimType primitiveType, Value arg) {
+		if (primitiveType == CharType.v()) {
+			/* Chars are different from other stuff. They don't have these
+			 * nice cast methods like signed primitive types. We actually
+			 * have to cast stuff by hand.
+			 * TODO: this needs testing. 
+			 */
+					
+//			SourceLocation loc = this.statementSwitch.getCurrentLoc();
+//			//push the int value on the stack.
+//			if (arg.getType() != IntType.v()) {
+//				Jimple.v().newCastExpr(arg, IntType.v()).apply(this);
+//			} else {
+//				arg.apply(this);
+//			}
+//			//pop the int value and compute mod max char. 
+//			Expression intValue = this.popExpression();
+//			if (intValue instanceof IntegerLiteral) {
+//				long l = ((IntegerLiteral)intValue).getValue();
+//				this.expressionStack.add(new IntegerLiteral(intValue.getSourceLocation(), l % Character.MAX_VALUE));
+//			}
+//			BinaryExpression be = new BinaryExpression(loc, BinaryOperator.Mod, intValue, new IntegerLiteral(loc, Character.MAX_VALUE));
+//			this.expressionStack.add(be);
+			
+			/*
+			 * http://stackoverflow.com/questions/41476617/is-there-a-method-in-java-that-mimics-the-cast-of-primitive-type-to-character/41477136#41477136
+			 */
+			if (arg.getType()!=IntType.v()) {
+				arg = Jimple.v().newCastExpr(arg, IntType.v());
+			}
+			Jimple.v().newAndExpr(arg, IntConstant.v(0x0000FFFF)).apply(this);
+
+			return;
+		}
+		
+
+		RefType boxedRhsType;
+		if (arg.getType() instanceof PrimType) {
+			boxedRhsType = ((PrimType)arg.getType()).boxedType();
+		} else {
+			boxedRhsType = (RefType)arg.getType();
+		}
+		SootClass boxedClass = boxedRhsType.getSootClass();		
+		
+		final String localName = "$boxed_" + this.statementSwitch.getMethod().getActiveBody().getLocals().size();
+		Local boxedLocal = Jimple.v().newLocal(localName, boxedRhsType);
+		this.statementSwitch.getMethod().getActiveBody().getLocals().add(boxedLocal);
+		
+		//freshLocal = new java.lang.Integer;
+		Jimple.v().newAssignStmt(boxedLocal, Jimple.v().newNewExpr(boxedRhsType)).apply(this.statementSwitch);
+		//call <java.lang.Integer <init>(primitive_type>(arg)
+		SootMethod constructor = boxedClass.getMethod(SootMethod.constructorName , Arrays.asList(arg.getType()) );
+		Jimple.v().newInvokeStmt(Jimple.v().newSpecialInvokeExpr(boxedLocal, constructor.makeRef(), Arrays.asList(arg))).apply(this.statementSwitch);
+		//freshLocal.doubleValue():
+		SootMethod downCastMethod = boxedClass.getMethod(primitiveType.toString()+"Value", new LinkedList<Type>(), primitiveType);
+		//TODO: we don't check if that method actually exists. But if not something is badly wrong.		
+		Local primLocal = Jimple.v().newLocal(localName, primitiveType);
+		this.statementSwitch.getMethod().getActiveBody().getLocals().add(primLocal);
+		Jimple.v().newAssignStmt(primLocal, Jimple.v().newVirtualInvokeExpr(boxedLocal, downCastMethod.makeRef()) ).apply(this.statementSwitch);
+		primLocal.apply(this);
 	}
+	
 
 	/**
 	 * Check if the cast narrows a numeric type.

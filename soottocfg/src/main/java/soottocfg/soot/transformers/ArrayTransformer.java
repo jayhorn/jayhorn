@@ -400,9 +400,10 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 			// fall
 			// through case.
 			// ret = havoc; return ret;
-			body.getUnits().add(Jimple.v().newAssignStmt(retLocal,
-					Jimple.v().newStaticInvokeExpr(SootTranslationHelpers.v().getHavocMethod(elementType).makeRef())));
-			body.getUnits().add(Jimple.v().newReturnStmt(retLocal));
+//			body.getUnits().add(Jimple.v().newAssignStmt(retLocal,
+//					Jimple.v().newStaticInvokeExpr(SootTranslationHelpers.v().getHavocMethod(elementType).makeRef())));
+//			body.getUnits().add(Jimple.v().newReturnStmt(retLocal));
+			throw new RuntimeException("Let's stick to the new Array model");
 		}
 
 		// now add all the return statements

@@ -24,6 +24,7 @@ public class SatObjectArray {
 
 		while (n != null) {
 			int tmp = n.data;
+//			assert (tmp<=5);
 			table[tmp]++;
 			n = n.next;
 		}
