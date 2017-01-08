@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import soot.Body;
+import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
@@ -24,7 +25,7 @@ import soot.jimple.ParameterRef;
  */
 public class WriteOnceFieldCollector {
 
-	static Set<SootField> getWriteOnceInstanceFields() {
+	public static Set<SootField> getWriteOnceInstanceFields() {
 		Set<SootField> writtenFields = new HashSet<SootField>();
 		Set<SootField> writtenTwiceFields = new HashSet<SootField>();
 		
@@ -57,9 +58,27 @@ public class WriteOnceFieldCollector {
 			}
 		}
 		writtenFields.removeAll(writtenTwiceFields);
+		removeRecursiveFields(writtenFields);
 		return writtenFields;
  	}
 
-	
+	/**
+	 * Removes all fields that are of a type that is defined recursively.
+	 * @param fields
+	 */
+	private static void removeRecursiveFields(Set<SootField> fields) {
+		//TODO:
+		for (SootField sf : new HashSet<SootField>(fields)) {			
+			if (sf.getType() instanceof RefType) {
+				SootClass sc = ((RefType)sf.getType()).getSootClass();
+				if (sc.equals(sf.getDeclaringClass())) {
+					fields.remove(sf);
+					continue;
+				}
+				//TODO: we also have ot check if nested fields
+				//can be recursive.
+			}
+		}		
+	}
 	
 }

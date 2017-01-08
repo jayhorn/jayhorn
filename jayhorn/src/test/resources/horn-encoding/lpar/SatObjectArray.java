@@ -2,7 +2,7 @@ public class SatObjectArray {
 
 	public static class Node {
 		final Node next;
-		final int data;
+		int data; //cannot verify if data is final
 
 		public Node(Node next, int data) {
 			this.next = next;
@@ -13,7 +13,7 @@ public class SatObjectArray {
 	public static void main(String[] args) {
 		java.util.Random random = new java.util.Random(42);
 
-		final int[] table = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+		final int[] table = new int[10] ;
 
 		Node n = null;
 		while (random.nextBoolean()) {
@@ -29,6 +29,6 @@ public class SatObjectArray {
 
 		// If the next line is uncommented, verification fails
 		// (would need information about allocation sites)
-		// new Node(null, 100);
+//		 new Node(null, 100);
 	}
 }

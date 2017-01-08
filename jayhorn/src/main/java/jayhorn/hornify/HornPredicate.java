@@ -41,7 +41,7 @@ public class HornPredicate {
 			if (pt instanceof ProverTupleType) {
 				ProverTupleType ptt = (ProverTupleType)pt;
 				ProverTupleExpr pte = (ProverTupleExpr)exprs[i];
-				if (pte.getArity()>ptt.getArity()) {
+				if (pte.getArity()<ptt.getArity()) {
 					ProverExpr[] tupleElements = new ProverExpr[ptt.getArity()];
 					for (int j=0;j<ptt.getArity();j++) {
 						if (j<pte.getArity()) {
@@ -51,7 +51,7 @@ public class HornPredicate {
 						}
 					}
 					exprs[i] = new ProverTupleExpr(tupleElements);
-				} else if (pte.getArity()<ptt.getArity()) {
+				} else if (pte.getArity()>ptt.getArity()) {
 					ProverExpr[] tupleElements = new ProverExpr[ptt.getArity()];
 					for (int j=0;j<ptt.getArity();j++) {
 						tupleElements[j]=pte.getSubExpr(j);

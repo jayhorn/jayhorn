@@ -185,7 +185,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 								todo.add(next);
 							}
 						}
-//						todo.addAll(graph.getSuccsOf(unit));
+						// todo.addAll(graph.getSuccsOf(unit));
 					}
 				}
 				return foundPathWithoutAccess;
@@ -244,10 +244,9 @@ public class NewMemoryModel extends BasicMemoryModel {
 			classVar = ((ReferenceType) base.getType()).getClassVariable();
 			// for (SootField sf :
 			// findFieldsRecursively(fieldRef.getField().getDeclaringClass())) {
-			for (SootField sf : SootTranslationHelpers.findFieldsRecursivelyForRef(ifr.getBase())) {
-				if (!sf.isStatic()) {
-					fieldLocals.add(lookupFieldLocal(base.getVariable(), sf));
-				}
+
+			for (SootField sf : SootTranslationHelpers.findNonStaticFieldsRecursivelyForRef(ifr.getBase())) {
+				fieldLocals.add(lookupFieldLocal(base.getVariable(), sf));
 			}
 		} else if (fieldRef instanceof StaticFieldRef) {
 			/*
@@ -340,16 +339,17 @@ public class NewMemoryModel extends BasicMemoryModel {
 			if (!field.isStatic()) {
 				TupleAccessExpression tae = new TupleAccessExpression(loc, base.getVariable(), field.getName());
 				this.statementSwitch.push(new AssignStatement(loc, left, tae));
-				//New, needs testing!
-				/* We don't need to do this for writing these variables 
+				// New, needs testing!
+				/*
+				 * We don't need to do this for writing these variables
 				 * because we assume they are constant anyway.
 				 */
 				return;
 			} else {
-				//TODO:
+				// TODO:
 			}
 		}
-		
+
 		Variable fieldVar = lookupFieldLocal(fieldRef); // TODO
 		Verify.verify(fieldLocals.contains(fieldVar));
 
@@ -534,8 +534,8 @@ public class NewMemoryModel extends BasicMemoryModel {
 			CallStatement stmt = new CallStatement(loc, method, args, receiver);
 			this.statementSwitch.push(stmt);
 			for (AssumeStatement s : assumeTupleVals) {
-//				System.err.println("sfgdfgd\t" + s);
-				//TODO: debug if this is reachable
+				// System.err.println("sfgdfgd\t" + s);
+				// TODO: debug if this is reachable
 				this.statementSwitch.push(s);
 			}
 		}
@@ -623,7 +623,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			}
 
 			boolean makeConst = SootTranslationHelpers.v().isWrittenOnce(sf);
-			// boolean makeConst = sf.isFinal();
+
 			Variable l = currentMethodInfo.createFreshLocal(name, tp, makeConst, false);
 			f2l.put(sf.getDeclaration(), l);
 
