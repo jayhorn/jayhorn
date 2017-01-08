@@ -36,6 +36,7 @@ import com.microsoft.z3.Sort;
 import com.microsoft.z3.Status;
 import com.microsoft.z3.Z3Exception;
 
+import jayhorn.Options;
 import jayhorn.solver.BoolType;
 import jayhorn.solver.IntType;
 import jayhorn.solver.Prover;
@@ -85,10 +86,7 @@ public class SpacerProver implements Prover {
 	}
 
 	public SpacerProver(){
-		//com.microsoft.z3.Global.ToggleWarningMessages(true)
 		this.cfg.put("model", "true");
-			
-		// this.ctx = new Context(this.cfg);
 		try {
 			this.ctx = new Context(this.cfg);
 			createSolver();
@@ -102,15 +100,17 @@ public class SpacerProver implements Prover {
 		try {
 				this.solver = this.ctx.mkSolver();
 				this.fx = this.ctx.mkFixedpoint();
-				//Global.setParameter("fixedpoint.engine", "spacer");
 				Params params = this.ctx.mkParams();
 				params.add(":engine", "spacer");
-				params.add (":xform.slice", false);
 				params.add (":use_heavy_mev", true);
 				params.add (":reset_obligation_queue", true);
 				params.add (":pdr.flexible_trace", false);
-				params.add (":xform.inline-linear", false);
-				params.add (":xform.inline-eager", false);
+				if (Options.v().getSolverOptions().contains("spacer_no_pp")){
+					// No pre-processing
+					params.add (":xform.slice", false);
+					params.add (":xform.inline-linear", false);
+					params.add (":xform.inline-eager", false);
+				}
 				params.add (":pdr.utvpi", false);
 			    //params.set (":pdr.flexible_trace", FlexTrace);
 
@@ -1039,6 +1039,9 @@ public class SpacerProver implements Prover {
 		createSolver();		
 	}
 	
+	public String toString(){
+		return "spacer";
+	}
 	/**
 	 * Add Fact
 	 **/
@@ -1313,10 +1316,7 @@ public class SpacerProver implements Prover {
     public java.util.Map<String, String> getLastSolution() {
     	throw new UnsupportedOperationException();
 	}
-    
-    public String solverName(){
-    	return "spacer";
-    }
+
 
 	@Override
 //	public ProverType getTupleType(ProverType[] subTypes) {
