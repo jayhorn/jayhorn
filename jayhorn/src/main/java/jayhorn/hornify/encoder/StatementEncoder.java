@@ -2,6 +2,7 @@ package jayhorn.hornify.encoder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -419,14 +420,18 @@ public class StatementEncoder {
 		Set<PushStatement> affecting = pull.getAffectingPushes();
 		Verify.verify(!affecting.isEmpty(),
 				"The set of pushes affecting this pull is empty, this would create an assume false");
+		Set<Long> done = new HashSet<Long>();
 		for (PushStatement push : pull.getAffectingPushes()) {
 			ClassVariable sig = push.getClassSignature();
 			if (sig.subclassOf(pull.getClassSignature())) {
 				long pushid = -1;
 				if (soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH)
 					pushid = push.getID();
-				HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, pushid);
-				clauses.addAll(pullToIndividualClause(pull, postPred, preAtom, varMap, invariant, m));
+				if (!done.contains(pushid)) {
+					HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, pushid);
+					clauses.addAll(pullToIndividualClause(pull, postPred, preAtom, varMap, invariant, m));
+					done.add(pushid);
+				}
 			}
 		}
 		return clauses;
