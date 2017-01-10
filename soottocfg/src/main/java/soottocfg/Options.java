@@ -18,6 +18,8 @@ public class Options {
 	
 	public boolean optimizeMethods = true;
 	
+	public boolean useAllocationSiteTupleElement = true;
+	
 	/*
 	 * Built in specs.
 	 */	

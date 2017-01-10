@@ -17,6 +17,8 @@ public class ReferenceType extends Type {
 
 	public static final String RefFieldName = "$Ref";
 	public static final String TypeFieldName = "$Type";
+	
+	public static final String AllocationSiteFieldName = "$AllocSite";
 
 	private static final long serialVersionUID = 4056715121602313972L;
 	private final ClassVariable classVariable;
@@ -28,6 +30,10 @@ public class ReferenceType extends Type {
 		elementTypes = new LinkedHashMap<String, Type>();
 		elementTypes.put(RefFieldName, IntType.instance() );
 		elementTypes.put(TypeFieldName, new TypeType());
+		if (soottocfg.Options.v().useAllocationSiteTupleElement) {
+			elementTypes.put(AllocationSiteFieldName, IntType.instance() );
+		}
+		
 		if (classVariable != null) {			
 			for (Variable finalField : classVariable.getFinalFields()) {
 				// TODO: don't look for final - look for all fields that

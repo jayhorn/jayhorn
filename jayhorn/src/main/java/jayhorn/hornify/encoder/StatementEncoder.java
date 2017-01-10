@@ -239,10 +239,17 @@ public class StatementEncoder {
 		ReferenceType rightType = new ReferenceType(ns.getClassVariable());
 		ProverExpr[] tupleElements = new ProverExpr[rightType.getElementTypeList().size()];
 
-		tupleElements[0] = expEncoder
+		int offset = 0;
+		tupleElements[offset++] = expEncoder
 				.exprToProverExpr(new IdentifierExpression(ns.getSourceLocation(), ns.getCounterVar()), varMap);
-		tupleElements[1] = p.mkLiteral(hornContext.getTypeID(ns.getClassVariable()));
-		for (int i = 2; i < tupleElements.length; i++) {
+		tupleElements[offset++] = p.mkLiteral(hornContext.getTypeID(ns.getClassVariable()));
+
+		if (soottocfg.Options.v().useAllocationSiteTupleElement) {
+			//set the new stmt id.
+			tupleElements[offset++] = p.mkLiteral(HornHelper.hh().newVarNum());
+		}
+		
+		for (int i = offset; i < tupleElements.length; i++) {
 			tupleElements[i] = p.mkVariable("$new" + i,
 					HornHelper.hh().getProverType(p, rightType.getElementTypeList().get(i)));
 		}
