@@ -2,7 +2,7 @@ public class SatObjectArray {
 
 	public static class Node {
 		final Node next;
-		int data; //cannot verify if data is final
+		final int data; //cannot verify if data is final
 
 		public Node(Node next, int data) {
 			this.next = next;

@@ -72,9 +72,10 @@ public class MethodInfo {
 				.lookupType(RefType.v("java.lang.Throwable")));
 		this.returnVariables.add(this.exceptionVariable); 
 		
+
 		if (!(sm.getReturnType() instanceof VoidType)) {
 			// create a return variable if the method does not
-			// return void.		
+			// return void.
 			this.returnVariables.add(new Variable(returnVariableName,
 					SootTranslationHelpers.v().getMemoryModel().lookupType(sm.getReturnType())));
 		} 
@@ -133,11 +134,11 @@ public class MethodInfo {
 		return this.sourceFileName;
 	}
 
-	public IdentifierExpression getReturnVariable() {
+	public Variable getReturnVariable() {
 		// TODO this is a hack that assumes that we only use that if there
 		// is a single return variable.
-		Verify.verify(this.returnVariables.size() >= 2);
-		return new IdentifierExpression(methodLoc, this.returnVariables.get(1));
+		if (this.returnVariables.size() < 2) return null;
+		return this.returnVariables.get(1);
 	}
 
 	public IdentifierExpression getExceptionVariable() {

@@ -343,7 +343,7 @@ public class SootStmtSwitch implements StmtSwitch {
 		arg0.getOp().apply(valueSwitch);
 		Expression returnValue = valueSwitch.popExpression();
 		currentBlock.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(arg0),
-				methodInfo.getReturnVariable(), returnValue));
+				methodInfo.getReturnVariable().mkExp(loc), returnValue));
 		connectBlocks(currentBlock, methodInfo.getSink());
 		currentBlock = null;
 	}
@@ -415,7 +415,6 @@ public class SootStmtSwitch implements StmtSwitch {
 			call.getArg(i).apply(valueSwitch);
 			args.add(valueSwitch.popExpression());
 		}
-
 		Expression baseExpression = null;
 		// List of possible virtual methods that can be called at this point.
 		// Order matters here.
@@ -440,7 +439,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			optionalLhs.apply(valueSwitch);
 			Expression lhs = valueSwitch.popExpression();
 			receiver.add(lhs);
-		}
+		} 
 		// System.err.println(call);
 		if (call.getMethod().isConstructor() && call instanceof SpecialInvokeExpr) {
 			/*
@@ -451,23 +450,13 @@ public class SootStmtSwitch implements StmtSwitch {
 		} else {
 			Method method = SootTranslationHelpers.v().lookupOrCreateMethod(call.getMethod());
 
-			// if (optionalLhs!=null) {
-			// System.err.println("Method " +method.getMethodName());
-			// List<Type> rtypes = new LinkedList<Type>();
-			// for (Expression e : receiver)
-			// rtypes.add(e.getType());
-			// System.err.println("Receiver " +rtypes.toString());
-			// System.err.println("Out " +method.getReturnType().toString());
-			// Type receiverType = receiver.get(receiver.size()-1).getType();
-			// Type returnType =
-			// method.getReturnType().get(method.getReturnType().size()-1);
-			// if (!receiverType.equals(returnType)) {
-			// System.err.println(receiverType);
-			// System.err.println(returnType);
-			// throw new RuntimeException("");
-			// }
-			// }
-
+			if (method.getReturnType().size()>1 && optionalLhs==null) {
+				for (int i=1; i<method.getReturnType().size(); i++) {
+					final Variable dummyVar = methodInfo.createFreshLocal("dummy_ret", method.getReturnType().get(i), false, false);
+					receiver.add(new IdentifierExpression(loc, dummyVar));
+				}
+			}
+			
 			CallStatement stmt = new CallStatement(SootTranslationHelpers.v().getSourceLocation(u), method, args,
 					receiver);
 			this.currentBlock.addStatement(stmt);

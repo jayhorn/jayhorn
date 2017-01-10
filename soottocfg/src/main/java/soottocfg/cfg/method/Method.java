@@ -169,13 +169,12 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		if (returnVariables != null) {
 			Verify.verify(returnVariables.size() == this.returnTypes.size());
 		}
-
 		this.thisVariable = thisVariable;
 		this.returnVariables = returnVariables;
 		this.locals = new LinkedHashSet<Variable>(locals);
 		this.source = source;
 		this.isProgramEntry = isEntryPoint;
-
+		
 		SourceLocation loc = null; // TODO
 		// return var 0 is the exceptional return variable.
 		// first statement has to assign the exception local to null
