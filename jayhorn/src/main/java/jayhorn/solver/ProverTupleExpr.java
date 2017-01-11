@@ -31,6 +31,31 @@ public class ProverTupleExpr implements ProverExpr {
         return res.toArray(new ProverExpr[0]);
     }
 
+    public static ProverExpr[] unflatten(ProverExpr[] flatExprs,
+                                         ProverType[] types) {
+        ArrayList<ProverExpr> res = new ArrayList<ProverExpr>();
+        int ind = 0;
+        for (int i = 0; i < types.length; ++i)
+          ind = unflattenHelp(flatExprs, ind, types[i], res);
+        return res.toArray(new ProverExpr[0]);
+    }
+
+    private static int unflattenHelp(ProverExpr[] flatExprs, int ind,
+                                     ProverType t,
+                                     ArrayList<ProverExpr> res) {
+      if (t instanceof ProverTupleType) {
+        ProverTupleType tt = (ProverTupleType)t;
+        ArrayList<ProverExpr> exprs = new ArrayList<ProverExpr>();
+        for (int i = 0; i < tt.getArity(); ++i)
+          ind = unflattenHelp(flatExprs, ind, tt.getSubType(i), exprs);
+        res.add(new ProverTupleExpr(exprs.toArray(new ProverExpr[0])));
+        return ind;
+      } else {
+        res.add(flatExprs[ind]);
+        return ind + 1;
+      }
+    }
+
     private final ProverExpr[] subExprs;
     private ProverTupleType type = null;
     
@@ -70,9 +95,9 @@ public class ProverTupleExpr implements ProverExpr {
         res.append("[");
         String sep = "";
         for (int i = 0; i < getArity(); ++i) {
-            res.append(getSubExpr(i));
             res.append(sep);
             sep = ", ";
+            res.append(getSubExpr(i));
         }
         res.append("]");
         return res.toString();

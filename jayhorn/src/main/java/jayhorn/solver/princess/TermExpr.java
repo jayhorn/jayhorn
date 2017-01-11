@@ -8,6 +8,8 @@ import ap.parser.IExpression$;
 import ap.parser.IFormula;
 import ap.parser.IIntLit;
 import ap.parser.ITerm;
+import ap.basetypes.IdealInt$;
+import jayhorn.solver.IntType;
 import jayhorn.solver.BoolType;
 import jayhorn.solver.ProverType;
 
@@ -21,10 +23,22 @@ class TermExpr extends PrincessProverExpr {
 		this.type = type;
 	}
 
-	@Override
-	public String toString() {
-		return SimpleAPI$.MODULE$.pp(term);
-	}
+    @Override
+    public String toString() {
+        if (type == IntType.INSTANCE) {
+            return SimpleAPI$.MODULE$.pp(term);
+        } else if (type == BoolType.INSTANCE) {
+            if (term.equals(new IIntLit(IdealInt$.MODULE$.apply(0))))
+                return "true";
+            else if (term.equals(new IIntLit(IdealInt$.MODULE$.apply(1))))
+                return "false";
+            else
+                return SimpleAPI$.MODULE$.pp(toFormula());
+        } else {
+            throw new IllegalArgumentException
+                ("Don't know what to do with type " + type);
+        }
+    }
 
 	public ITerm toTerm() {
 		return term;

@@ -19,6 +19,7 @@ import com.google.common.base.Verify;
 
 import ap.DialogUtil$;
 import ap.SimpleAPI;
+import ap.SimpleAPI$;
 import ap.SimpleAPI.ProverStatus$;
 import ap.basetypes.IdealInt$;
 import ap.parser.ConstantSubstVisitor$;
@@ -366,123 +367,172 @@ public class PrincessProver implements Prover {
 	// ////////////////////////////////////////////////////////////////////////////
 
 	private ExecutorService executor = null;
-	private Future<?> future = null;
+	private Future<?> futureProverResult = null;
 	private PrincessSolverThread thread = null;
 
 	
-	private java.util.Map<String, String> lastSolution;
-	public java.util.Map<String, String> getLastSolution() {
-		return lastSolution;
-	}
+    private java.util.Map<String, String> lastSolution;
+    public java.util.Map<String, String> getLastSolution() {
+        return lastSolution;
+    }
 	
-	public ProverResult checkSat(boolean block) {
-		if (assertedClauses.isEmpty()) {
-			return translateRes(api.checkSat(block));
-		} else {
-			if (block) {				
-				final ArrayBuffer<HornClauses.Clause> clauses = new ArrayBuffer<HornClauses.Clause>();
-				for (HornExpr clause : assertedClauses)
-					clauses.$plus$eq(clause.clause);
+    private Dag<Tuple2<ProverFun, ProverExpr[]>>[] lastCEX;
+    public Dag<Tuple2<ProverFun, ProverExpr[]>> getLastCEX() {
+        return lastCEX[0];
+    }
 
-				lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
+    public ProverResult checkSat(boolean block) {
+        if (assertedClauses.isEmpty()) {
+            return translateRes(api.checkSat(block));
+        } else {
+            lastSolution = new HashMap<String, String>();
+            lastCEX = new Dag[1];
+            if (block) {
+                return runEldarica(assertedClauses, fullHornTypes,
+                                   lastSolution, lastCEX);
+            } else {
+                this.executor = Executors.newSingleThreadExecutor();
+                this.thread =
+                    new PrincessSolverThread(assertedClauses,
+                                             fullHornTypes,
+                                             lastSolution,
+                                             lastCEX);
+                this.futureProverResult = executor.submit(this.thread);
+                return ProverResult.Running;
+            }
+        }
+    }
+
+    private static ProverResult runEldarica(ArrayList<HornExpr> assertedClauses,
+                                            java.util.Map<Predicate, ProverType[]> fullHornTypes,
+                                            java.util.Map<String, String> lastSolution,
+                                            Dag<Tuple2<ProverFun, ProverExpr[]>>[] lastCEXAr) {
+        final ArrayBuffer<HornClauses.Clause> clauses = new ArrayBuffer<HornClauses.Clause>();
+        for (HornExpr clause : assertedClauses)
+            clauses.$plus$eq(clause.clause);
+
+        lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
 				
-                                if (Options.v().solution) {
+        if (Options.v().solution) {
                                 	               	
-                                    final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result = SimpleWrapper.solve(clauses,
-                                                                                                                                    scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
-                                                                                                                                    Options.v().getSolverOptions().contains("abstract"),
-                                                                                                                                    Options.v().getSolverOptions().contains("debug"),
-                                                                                                                                    Options.v().dotCEX);
-                                    
-                                    if (result.isLeft()) {
-                                    	
-                                        StringBuffer sol = new StringBuffer();
-                                        sol.append("Solution:\n");
-                                        List<Tuple2<Predicate, IFormula>> ar = result.left().get().toList();
-                                        
-                                        lastSolution = new HashMap<String, String>();
-                                        while (!ar.isEmpty()) {
-                                            Tuple2<Predicate, IFormula> p = ar.head();
-                                            ar = (List<Tuple2<Predicate, IFormula>>) ar.tail();
-                                            sol.append("" + p._1() + ": " + api.pp(p._2()) + "\n");
-                                            lastSolution.put(p._1().toString(), api.pp(p._2()));
-                                        }
-                                        Log.info(sol.toString());
-                                        return ProverResult.Sat;
-                                    } else {
-                                        Log.info("Counterexample:\n"
-                                                 + DialogUtil$.MODULE$.asString(new scala.runtime.AbstractFunction0<Integer>() {
-                                                         public Integer apply() {
-                                                             Dag<IAtom> simpDag = result.right().get()
-                                                                 .map(new scala.runtime.AbstractFunction1<Tuple2<IAtom, Clause>, IAtom>() {
-                                                                         public IAtom apply(Tuple2<IAtom, Clause> p) {
-                                                                             return p._1();
-                                                                         }
-                                                                     });
-                                                             simpDag.prettyPrint();
-                                                             return 0;
-                                                         }
-                                                     }));
-                                        return ProverResult.Unsat;
-                                    }
+            final Either<Map<Predicate, IFormula>, Dag<Tuple2<IAtom, Clause>>> result =
+                SimpleWrapper.solve(clauses,
+                                    scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
+                                    Options.v().getSolverOptions().contains("abstract"),
+                                    Options.v().getSolverOptions().contains("debug"),
+                                    Options.v().dotCEX);
+            
+            if (result.isLeft()) {
+                StringBuffer sol = new StringBuffer();
+                sol.append("Solution:\n");
+                List<Tuple2<Predicate, IFormula>> ar = result.left().get().toList();
+                
+                while (!ar.isEmpty()) {
+                    Tuple2<Predicate, IFormula> p = ar.head();
+                    ar = (List<Tuple2<Predicate, IFormula>>) ar.tail();
+                    sol.append("" + p._1() + ": " + SimpleAPI$.MODULE$.pp(p._2()) + "\n");
+                    lastSolution.put(p._1().toString(), SimpleAPI$.MODULE$.pp(p._2()));
+                }
+                Log.info(sol.toString());
+                return ProverResult.Sat;
+            } else {
+                lastCEXAr[0] = result.right().get()
+                    .map(new scala.runtime.AbstractFunction1<Tuple2<IAtom, Clause>,
+                                                             Tuple2<ProverFun, ProverExpr[]>>() {
+                            public Tuple2<ProverFun, ProverExpr[]> apply(Tuple2<IAtom, Clause> p) {
+                                if (p._1().equals(SimpleWrapper.FALSEAtom()))
+                                    // encode FALSE as null
+                                    return null;
+                                final Predicate pred = p._1().pred();
+                                final ProverType[] types = fullHornTypes.get(pred);
+                                final ProverType[] flatTypes = ProverTupleType.flatten(types);
+                                assert(flatTypes.length == pred.arity());
+                                final ProverFun fun = new PredicateFun(pred, types);
+                                final ProverExpr[] flatArgs = new ProverExpr[pred.arity()];
+                                for (int i = 0; i < flatTypes.length; ++i)
+                                    flatArgs[i] = new TermExpr(p._1().args().apply(i), flatTypes[i]);
+                                return new Tuple2(fun, ProverTupleExpr.unflatten(flatArgs, types));
+                            }
+                        });
+                final Dag<String> prettyCEX =
+                    lastCEXAr[0].map(new scala.runtime.AbstractFunction1<Tuple2<ProverFun, ProverExpr[]>,
+                                   String>() {
+                            public String apply(Tuple2<ProverFun, ProverExpr[]> p) {
+                                if (p == null) {
+                                    return "false";
                                 } else {
-                                    if (SimpleWrapper.isSat(clauses,
-                                                            scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
-                                                            Options.v().getSolverOptions().contains("abstract"),
-                                                            Options.v().getSolverOptions().contains("debug")))
-                                        return ProverResult.Sat;
-                                    else
-                                        return ProverResult.Unsat;
+                                    final StringBuffer res = new StringBuffer();
+                                    res.append(p._1());
+                                    res.append("(");
+                                    String sep = "";
+                                    for (int i = 0; i < p._2().length; ++i) {
+                                        res.append(sep);
+                                        sep = ", ";
+                                        res.append(p._2()[i]);
+                                    }
+                                    res.append(")");
+                                    return res.toString();
                                 }
+                            }
+                        });
+                Log.info("Counterexample:\n"
+                         + DialogUtil$.MODULE$.asString(new scala.runtime.AbstractFunction0<Integer>() {
+                                 public Integer apply() {
+                                     prettyCEX.prettyPrint();
+                                     return 0;
+                                 }
+                             }));
+                return ProverResult.Unsat;
+            }
+        } else {
+            if (SimpleWrapper.isSat(clauses,
+                                    scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
+                                    Options.v().getSolverOptions().contains("abstract"),
+                                    Options.v().getSolverOptions().contains("debug")))
+                return ProverResult.Sat;
+            else
+                return ProverResult.Unsat;
+        }
+    }
 
-			} else {
-				this.executor = Executors.newSingleThreadExecutor();
-				this.thread = new PrincessSolverThread(assertedClauses);
-				this.future = executor.submit(this.thread);
-				return ProverResult.Running;
-			}
-		}
-	}
+    static class PrincessSolverThread implements Runnable {
+        private final ArrayList<HornExpr> hornClauses;
+        private final java.util.Map<String, String> lastSolution;
+        private final Dag<Tuple2<ProverFun, ProverExpr[]>>[] lastCEX;
+        private final java.util.Map<Predicate, ProverType[]> fullHornTypes;
+        private ProverResult status;
 
-	static class PrincessSolverThread implements Runnable {
-		private final ArrayList<HornExpr> hornClauses;
-		private ProverResult status;
+        public PrincessSolverThread(ArrayList<HornExpr> clauses,
+                                    java.util.Map<Predicate, ProverType[]> fullHornTypes,
+                                    java.util.Map<String, String> lastSolution,
+                                    Dag<Tuple2<ProverFun, ProverExpr[]>>[] lastCEX) {
+            this.hornClauses = clauses;
+            this.fullHornTypes = fullHornTypes;
+            this.lastSolution = lastSolution;
+            this.lastCEX = lastCEX;
+        }
 
-		public PrincessSolverThread(ArrayList<HornExpr> clauses) {
-			this.hornClauses = clauses;
-		}
+        @Override
+        public void run() {
+            status = ProverResult.Running;
+            status = runEldarica(hornClauses, fullHornTypes,
+                                 lastSolution, lastCEX);
+        }
 
-		@Override
-		public void run() {
-			status = ProverResult.Running;
-			final ArrayBuffer<HornClauses.Clause> clauses = new ArrayBuffer<HornClauses.Clause>();
-			for (HornExpr clause : hornClauses)
-				clauses.$plus$eq(clause.clause);
-			lazabs.GlobalParameters$.MODULE$.get().assertions_$eq(false);
-			final boolean res = SimpleWrapper.isSat(clauses,
-					scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
-					Options.v().getSolverOptions().contains("abstract"),
-					Options.v().getSolverOptions().contains("debug"));
-			if (res)
-				this.status = ProverResult.Sat;
-			else
-				this.status = ProverResult.Unsat;
-		}
-
-		public ProverResult getStatus() {
-			return this.status;
-		}
-	}
+        public ProverResult getStatus() {
+            return this.status;
+        }
+    }
 
 	private void killThread() {
-		if (this.future != null && !this.future.isDone()) {
-			this.future.cancel(true);
+		if (this.futureProverResult != null && !this.futureProverResult.isDone()) {
+			this.futureProverResult.cancel(true);
 		}
 		if (this.executor != null) {
 			this.executor.shutdown();
 		}
 		this.executor = null;
-		this.future = null;
+		this.futureProverResult = null;
 		this.thread = null;
 	}
 
@@ -505,9 +555,9 @@ public class PrincessProver implements Prover {
 
 	public ProverResult getResult(long timeout) {
 		ProverResult result;
-		if (future != null) {
+		if (futureProverResult != null) {
 			try {
-				future.get(timeout, TimeUnit.MILLISECONDS);
+				futureProverResult.get(timeout, TimeUnit.MILLISECONDS);
 				result = this.thread.getStatus();
 			} catch ( ExecutionException e) {
 				e.printStackTrace();
@@ -660,9 +710,14 @@ public class PrincessProver implements Prover {
 	////////////////////////////////////////////////////////////////////////////
 	// Horn clause interface
 
-	private final ArrayList<HornExpr> assertedClauses = new ArrayList<HornExpr>();
+	private final ArrayList<HornExpr> assertedClauses =
+          new ArrayList<HornExpr>();
 
-	private final Stack<Integer> assertedClausesStack = new Stack<Integer>();
+	private final Stack<Integer> assertedClausesStack =
+          new Stack<Integer>();
+
+        private final java.util.Map<Predicate, ProverType[]> fullHornTypes =
+          new HashMap<Predicate, ProverType[]> ();
 
     public ProverExpr mkHornVariable(String name, ProverType type) {
         if (type instanceof ProverTupleType) {
@@ -679,8 +734,10 @@ public class PrincessProver implements Prover {
 
     public ProverFun mkHornPredicate(String name, ProverType[] argTypes) {
         ProverType[] flatTypes = ProverTupleType.flatten(argTypes);
-        return new PredicateFun(api.createRelation(name, flatTypes.length),
-                                Arrays.copyOf(argTypes, argTypes.length));
+        Predicate pred = api.createRelation(name, flatTypes.length);
+        ProverType[] argCopy = Arrays.copyOf(argTypes, argTypes.length);
+        fullHornTypes.put(pred, argCopy);
+        return new PredicateFun(pred, argCopy);
     }
 
 	/**
