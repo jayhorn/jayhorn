@@ -44,7 +44,7 @@ JayHorn is partially funded by:
    * AFRL contract No. FA8750- 15-C-0010.
    * DARPA under agreement FA8750-15-2-0087
    * NSF award No. 1422705
-   * The Swedish Research Council
+   * The Swedish Research Council grant 2014-5484
    
 Any opinions, findings and conclusions or recommendations expressed in
 this material are those of the author(s) do not necessarily
