@@ -35,7 +35,7 @@ public class ReferenceType extends Type {
 		}
 		
 		if (classVariable != null) {			
-			for (Variable finalField : classVariable.getFinalFields()) {
+			for (Variable finalField : classVariable.getInlineableFields()) {
 				// TODO: don't look for final - look for all fields that
 				// are only written to once, and the rhs is a constant.
 				elementTypes.put(finalField.getName(), finalField.getType());

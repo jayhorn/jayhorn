@@ -282,8 +282,8 @@ public abstract class BasicMemoryModel extends MemoryModel {
 				List<Variable> fields = new LinkedList<Variable>();
 				if (c.resolvingLevel() > SootClass.DANGLING) {					
 					for (SootField f : SootTranslationHelpers.findNonStaticFieldsRecursively(c)) {
-						boolean isConst = SootTranslationHelpers.v().isWrittenOnce(f);						
-						fields.add(new Variable(f.getName(), this.lookupType(f.getType()), isConst, false));						
+						boolean isInlineable = SootTranslationHelpers.v().isWrittenOnce(f);						
+						fields.add(new Variable(f.getName(), this.lookupType(f.getType()), isInlineable, false));						
 					}
 				}
 				cv.addFields(fields);

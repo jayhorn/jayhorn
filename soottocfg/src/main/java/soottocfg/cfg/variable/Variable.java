@@ -24,17 +24,17 @@ public class Variable implements Serializable {
 
 	protected final String variableName;
 	protected Type type; //don't make the type final because java.lang.Class is recursive
-	protected final boolean constant, unique;
+	protected final boolean inlineable, unique;
 
 	public Variable(String name, Type t) {
 		this(name, t, false, false);
 	}
 
-	public Variable(String name, Type t, boolean constant, boolean unique) {
+	public Variable(String name, Type t, boolean inlineable, boolean unique) {
 		Preconditions.checkNotNull(t);
 		this.variableName = name;
 		this.type = t;
-		this.constant = constant;
+		this.inlineable = inlineable;
 		this.unique = unique;
 	}
 
@@ -50,8 +50,8 @@ public class Variable implements Serializable {
 		return this.type;
 	}
 
-	public boolean isConstant() {
-		return constant;
+	public boolean isInlineable() {
+		return inlineable;
 	}
 
 	public boolean isUnique() {

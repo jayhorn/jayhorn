@@ -129,9 +129,17 @@ public enum SootTranslationHelpers {
 	
 	public boolean isWrittenOnce(SootField f) {
 		if (writtenOnceFields==null) {
-			writtenOnceFields = WriteOnceFieldCollector.getWriteOnceInstanceFields();
+			writtenOnceFields = InlineableFieldCollector.getInlineableFields();
 		}
 		return writtenOnceFields.contains(f);
+	}
+	
+	private Set<SootClass> recursivelyDefinedClasses;
+	public Set<SootClass> getRecursivelyDefinedClasses() {
+		if (recursivelyDefinedClasses==null) {
+			recursivelyDefinedClasses = InlineableFieldCollector.getRecursivelyDefinedClasses();
+		}
+		return recursivelyDefinedClasses;
 	}
 
 	public static List<SootField> findFieldsRecursivelyForRef(Value v) {

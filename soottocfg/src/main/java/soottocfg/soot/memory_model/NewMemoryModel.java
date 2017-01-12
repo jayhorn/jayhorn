@@ -509,7 +509,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 			ClassVariable cv = SootTranslationHelpers.v().getClassVariable(declClass);
 			IdentifierExpression baseExpr = (IdentifierExpression) args.get(0);
 
-			List<Variable> finalFields = Arrays.asList(cv.getFinalFields());
+			List<Variable> finalFields = Arrays.asList(cv.getInlineableFields());
 
 			List<AssumeStatement> assumeTupleVals = new LinkedList<AssumeStatement>();
 			// ignore the first outparam (for the exception) because we added

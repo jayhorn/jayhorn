@@ -21,22 +21,22 @@ public class ClassVariable extends Variable  {
 
 	private static final long serialVersionUID = -1647842783828780974L;	
 	private final Set<ClassVariable> parentConstants;
-	private List<Variable> associatedFields, finalFields;
+	private List<Variable> associatedFields, inlineableFields;
 
 	public ClassVariable(String name, Collection<ClassVariable> parents) {
 		super(name, new TypeType(), true, true); //TODO, its actually not reference type.	
 		parentConstants = new HashSet<ClassVariable>();
 		parentConstants.addAll(parents);
 		associatedFields = new LinkedList<Variable>();
-		finalFields = new LinkedList<Variable>(); 
+		inlineableFields = new LinkedList<Variable>(); 
 		//add all fields from the super class
 		for (ClassVariable parent : parents) {
 			for (Variable pfield : parent.getAssociatedFields()) {
 				if (!hasField(pfield.getName())) {
-					Variable v = new Variable(pfield.getName(), pfield.getType(), pfield.isConstant(), pfield.isUnique());
+					Variable v = new Variable(pfield.getName(), pfield.getType(), pfield.isInlineable(), pfield.isUnique());
 					associatedFields.add(v);
-					if (v.isConstant()) {
-						finalFields.add(v);
+					if (v.isInlineable()) {
+						inlineableFields.add(v);
 					}
 				}
 			}
@@ -58,10 +58,10 @@ public class ClassVariable extends Variable  {
 	public void addFields(List<Variable> fields) {
 		for (Variable f : fields) {
 			if (!hasField(f.getName())) {
-				Variable v = new Variable(f.getName(), f.getType(), f.isConstant(), f.isUnique());
+				Variable v = new Variable(f.getName(), f.getType(), f.isInlineable(), f.isUnique());
 				associatedFields.add(v);
-				if (v.isConstant()) {
-					finalFields.add(v);
+				if (v.isInlineable()) {
+					inlineableFields.add(v);
 				}
 			} else {
 				//warn about that.
@@ -74,12 +74,14 @@ public class ClassVariable extends Variable  {
 	}
 	
 	/**
-	 * Returns the subset of fields that are final. Note that these
+	 * Returns the subset of fields that can be inlined into tuples. Note that these
 	 * fields are also part of getAssociatedFields().
+	 * Fields can be inlined if they are not defined recursively and either final or
+	 * only assigned once to a constant.
 	 * @return
 	 */
-	public Variable[] getFinalFields() {
-		return finalFields.toArray(new Variable[finalFields.size()]);
+	public Variable[] getInlineableFields() {
+		return inlineableFields.toArray(new Variable[inlineableFields.size()]);
 	}
 
 	
@@ -132,7 +134,7 @@ public class ClassVariable extends Variable  {
 			return this.variableName.equals(other.variableName)
 					&& this.type.equals(other.type)
 					&& this.associatedFields.containsAll(other.associatedFields)
-					&& this.finalFields.containsAll(other.finalFields)
+					&& this.inlineableFields.containsAll(other.inlineableFields)
 					&& this.parentConstants.containsAll(other.parentConstants);
 		}
 		return false;
@@ -144,7 +146,7 @@ public class ClassVariable extends Variable  {
 		result = 37 * result + this.variableName.hashCode();
 		result = 37 * result + this.type.hashCode();
 		result = 37 * result + this.associatedFields.hashCode();
-		result = 37 * result + this.finalFields.hashCode();
+		result = 37 * result + this.inlineableFields.hashCode();
 		result = 37 * result + this.parentConstants.hashCode();
 		return result;
 	}
