@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 import com.google.common.base.Verify;
@@ -93,13 +94,14 @@ public class NewMemoryModel extends BasicMemoryModel {
 		if (fr instanceof InstanceFieldRef) {
 			InstanceFieldRef ifr = (InstanceFieldRef) fr;
 
-			// in constructor never pull 'this'
+			// in constructor never pull 'this'...
 			if (m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal())) {
 				
-//				// except in the case of the constructor of a multi-dimensional array 
-//				// which calls set() for setting the elements
-//				if (m.getName().contains(ArrayTransformer.arrayTypeName) 
-//						&& m.getName().contains(ArrayTransformer.arrayTypeName)
+				// ...except after a method call
+				UnitGraph graph = new CompleteUnitGraph(m.getActiveBody());
+				if (methodCallAfterLastFieldRef(u, graph, m.getActiveBody().getThisLocal())) {
+					return true;
+				}
 				
 				return false;
 			}
@@ -110,6 +112,34 @@ public class NewMemoryModel extends BasicMemoryModel {
 				return false;
 		}
 		return true;
+	}
+	
+	private boolean methodCallAfterLastFieldRef(Unit u, UnitGraph graph, Local thisLocal) {
+		Queue<Unit> todo = new LinkedList<Unit>();
+		Set<Unit> done = new HashSet<Unit>();
+		todo.add(u);
+		while (!todo.isEmpty()) {
+			Unit unit = todo.poll();
+			done.add(unit);
+			Stmt s = (Stmt) unit;
+			if (s.containsInvokeExpr()) {
+				return true;
+			} else if (s.containsFieldRef()) {
+				FieldRef fr2 = s.getFieldRef();
+				if (fr2 instanceof InstanceFieldRef) {
+					InstanceFieldRef ifr2 = (InstanceFieldRef) fr2;
+					if (ifr2.getBase().equals(thisLocal) && !u.equals(unit)) {
+						continue;
+					}
+				}
+				for (Unit prev : graph.getPredsOf(unit)) {
+					if (!todo.contains(prev) && !done.contains(prev)) {
+						todo.add(prev);
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
