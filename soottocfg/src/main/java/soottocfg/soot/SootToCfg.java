@@ -282,7 +282,14 @@ public class SootToCfg {
 	}
 
 	private void constructCfg() {
+		//ingest all class definitions first.
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
+		for (SootClass sc : classes) {
+			if (sc.resolvingLevel() >= SootClass.SIGNATURES ) {
+				SootTranslationHelpers.v().getClassVariable(sc);
+			}
+		}				
+
 		for (SootClass sc : classes) {
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
 				if ((!sc.isJavaLibraryClass() && !sc.isLibraryClass())) {

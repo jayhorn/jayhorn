@@ -59,7 +59,6 @@ public class HornHelper {
 		}
 		if (t instanceof ReferenceType) {
 			ReferenceType rt = (ReferenceType) t;
-
 			final ProverType[] subTypes = new ProverType[rt.getElementTypeList().size()];
 			for (int i = 0; i < rt.getElementTypeList().size(); i++) {
 				subTypes[i] = getProverType(p, rt.getElementTypeList().get(i));

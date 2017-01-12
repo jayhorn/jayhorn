@@ -15,6 +15,8 @@ import soottocfg.cfg.variable.Variable;
  */
 public class ReferenceType extends Type {
 
+//	private static HashMap<String, LinkedHashMap<String, Type>> DEBUG_SIZE = new HashMap<String, LinkedHashMap<String, Type>> (); 
+	
 	public static final String RefFieldName = "$Ref";
 	public static final String TypeFieldName = "$Type";
 	
@@ -23,24 +25,11 @@ public class ReferenceType extends Type {
 	private static final long serialVersionUID = 4056715121602313972L;
 	private final ClassVariable classVariable;
 
-	private final Map<String, Type> elementTypes;
+	private Map<String, Type> elementTypes = null;
 
 	public ReferenceType(ClassVariable var) {
 		classVariable = var;
-		elementTypes = new LinkedHashMap<String, Type>();
-		elementTypes.put(RefFieldName, IntType.instance() );
-		elementTypes.put(TypeFieldName, new TypeType());
-		if (soottocfg.Options.v().useAllocationSiteTupleElement) {
-			elementTypes.put(AllocationSiteFieldName, IntType.instance() );
-		}
-		
-		if (classVariable != null) {			
-			for (Variable finalField : classVariable.getInlineableFields()) {
-				// TODO: don't look for final - look for all fields that
-				// are only written to once, and the rhs is a constant.
-				elementTypes.put(finalField.getName(), finalField.getType());
-			}
-		}
+
 	}
 
 	private static ReferenceType instance = new ReferenceType(null);
@@ -54,11 +43,46 @@ public class ReferenceType extends Type {
 	}
 
 	public Map<String, Type> getElementTypes() {
+		if (this.elementTypes==null) {
+			/*
+			 * Compute element types on the fly to avoid problems
+			 * with recurive definitions.
+			 */			
+			elementTypes = new LinkedHashMap<String, Type>();
+			elementTypes.put(RefFieldName, IntType.instance() );
+			elementTypes.put(TypeFieldName, new TypeType());
+			if (soottocfg.Options.v().useAllocationSiteTupleElement) {
+				elementTypes.put(AllocationSiteFieldName, IntType.instance() );
+			}
+			
+			if (classVariable != null) {			
+				for (Variable finalField : classVariable.getInlineableFields()) {
+					// TODO: don't look for final - look for all fields that
+					// are only written to once, and the rhs is a constant.
+					elementTypes.put(finalField.getName(), finalField.getType());
+				}
+			}
+//			
+//			if (classVariable!=null) {
+//			if (DEBUG_SIZE.containsKey(classVariable.getName())) {
+//				if(DEBUG_SIZE.get(classVariable.getName()).size()!=elementTypes.size()) {
+//					System.err.println(classVariable.getName());
+//					System.err.println("A: " + this.elementTypes.keySet());
+//					System.err.println("A: " + this.elementTypes.values());
+//					System.err.println("B: " + DEBUG_SIZE.get(classVariable.getName()).keySet());
+//					System.err.println("B: " + DEBUG_SIZE.get(classVariable.getName()).values());
+//					Verify.verify(false);
+//				}
+//			}
+//			DEBUG_SIZE.put(classVariable.getName(), (LinkedHashMap<String, Type>) elementTypes);
+//			}
+		}
+		
 		return this.elementTypes;
 	}
 
 	public List<Type> getElementTypeList() {
-		return new LinkedList<Type>(this.elementTypes.values());
+		return new LinkedList<Type>(getElementTypes().values());
 	}
 
 	public String toString() {
