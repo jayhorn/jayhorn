@@ -17,6 +17,7 @@ import org.junit.runners.Parameterized;
 
 import jayhorn.checker.EldaricaChecker;
 import jayhorn.solver.ProverFactory;
+import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.solver.spacer.SpacerProverFactory;
 import jayhorn.test.Util;
 import soottocfg.cfg.Program;
@@ -65,9 +66,14 @@ public class FailingTests {
 		this.sourceFile = source;
 	}
 
+//	@Test
+//	public void testWithSpacer() {
+//		verifyAssertions(new SpacerProverFactory());
+//	}
+	
 	@Test
-	public void testWithSpacer() {
-		verifyAssertions(new SpacerProverFactory());
+	public void testWithPrincess() {
+		verifyAssertions(new PrincessProverFactory());
 	}
 
 //	@Test

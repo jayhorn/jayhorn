@@ -452,12 +452,7 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		/**
 		 * CONSTRUCTOR
 		 */
-
-		// Rody: I don't think code below has been maintained. For now, output
-		// warning.
 		/*
-		 * Martin: Nope, this is sound AF. Java is loco when it comes to
-		 * multi-arrays.
 		 * Assume you have an:
 		 * int[][][] arr;
 		 * you can initialize that with
@@ -469,11 +464,10 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		 * a bit annoying, but sound.
 		 * 
 		 */
-		// if (numDimensions > 1 && !elementType.toString().contains("_java_"))
-		// {
-		// System.err.println("[WARNING] Multi-dimensional arrays not supported.
-		// Result will be unsound.");
-		// }
+		if (numDimensions > 1 && !elementType.toString().contains("_java_"))
+		{
+			System.err.println("[WARNING] Multi-dimensional arrays not supported. Result will be unsound.");
+		}
 
 		// Now create constructors that takes the array size as input
 		// For int[][][] we have to create 3 constructors since one
@@ -494,17 +488,36 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		/*
 		 * Now create the bodies for all constructors. Note that this
 		 * loop starts from 1 not from 0.
+		 * For simple arrays, we initialize all elements to default values
+		 * (i.e., zero or null). For multi arrays, we may have to initialize
+		 * the elements to new arrays. E.g.,
+		 * for new int[1][2] we create a constructor call
+		 * <init>(1, 2) which contains one element of type int[] and
+		 * we have to initialize this to a new array int[2] instead of null.
 		 */
 		for (int i = 1; i <= numDimensions; i++) {
 			SootMethod constructor = constructors[i - 1];
 			body = Jimple.v().newBody(constructor);
 			// add a local for the first param
 			body.insertIdentityStmts();
+			
+			Local newElement = Jimple.v().newLocal("elem", elementType);
+			body.getLocals().add(newElement);
+			
+			// create the assignment for the length field, so we can jump back to it
+			Stmt lengthSet = Jimple.v().newAssignStmt(
+					Jimple.v().newInstanceFieldRef(body.getThisLocal(), lengthField.makeRef()),
+					body.getParameterLocal(0));
+			
+			// initialize inner arrays if multi-dimensional
+			if (i > 1) {
+				initializeMultiArrayVars(elementType, elemField, newElement,
+						body, setElement, constructor, lengthSet);
+			}
+			
 			// set the length field.
-			body.getUnits()
-					.add(Jimple.v().newAssignStmt(
-							Jimple.v().newInstanceFieldRef(body.getThisLocal(), lengthField.makeRef()),
-							body.getParameterLocal(0)));
+			body.getUnits().add(lengthSet);
+			
 			// set the element type
 			String elementTypeName = elementType.toString();
 			if (elementType instanceof RefType) {
@@ -516,39 +529,30 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 							Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemTypeField.makeRef()),
 							ClassConstant.v(elementTypeName)));
 
-			/*
-			 * Create the statement here, so we can use it
-			 * as a jump target for the loop later.
-			 */
-			Stmt returnStmt = Jimple.v().newReturnVoidStmt();
-
-			/*
-			 * For simple arrays, we initialize all elements to default values
-			 * (i.e., zero or null). For multi arrays, we may have to initialize
-			 * the elements to new arrays. E.g.,
-			 * for new int[1][2] we create a constructor call
-			 * <init>(1, 2) which contains one element of type int[] and
-			 * we have to initialize this to a new array int[2] instead of null.
-			 */
+			// pull element if multi-dim or set to default value else
 			if (i > 1) {
-				initializeMultiArrayVars(elementType, body, setElement, constructor, returnStmt);
+				// TODO exactly modeled fields
+				
+				// for new array model
+				Unit asn1 = Jimple.v().newAssignStmt(
+						newElement,
+						Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()));
+				body.getUnits().add(asn1);
+				Unit asn = Jimple.v().newAssignStmt(
+						Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()),
+						newElement);
+				body.getUnits().add(asn);
 			} else {
-				// this is a one dimensional array, so
-				// we can initialize with default values.
-				/**
-				 * Old array model stuff
-				 */
+				// for exactly modeled fields
 				for (int j = 0; j < num_exact; j++) {
 					Unit asn = Jimple.v().newAssignStmt(
 							Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[j].makeRef()),
 							SootTranslationHelpers.v().getDefaultValue(arrFields[j].getType()));
 					body.getUnits().add(asn);
 				}
-				/**
-				 * New array model stuff
-				 */
+
+				// for new array model
 				if (soottocfg.Options.v().arrayInv()) {
-					// add default initializer for element in new model
 					Unit asn = Jimple.v().newAssignStmt(
 							Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()),
 							SootTranslationHelpers.v().getDefaultValue(elemField.getType()));
@@ -556,15 +560,15 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 				}
 			}
 
-			body.getUnits().add(returnStmt);
-
+			body.getUnits().add(Jimple.v().newReturnVoidStmt());
 			body.validate();
 			constructor.setActiveBody(body);
 		}
 		return arrayClass;
 	}
 
-	private void initializeMultiArrayVars(Type elementType, JimpleBody body, SootMethod setElement,
+	private void initializeMultiArrayVars(Type elementType, SootField elemField, Local newElement,
+			JimpleBody body, SootMethod setElement,
 			SootMethod constructor, Stmt returnStmt) {
 		/*
 		 * Create n objects of the next smaller dimension of
@@ -582,11 +586,9 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		Stmt loopHead = Jimple.v().newIfStmt(Jimple.v().newGeExpr(counter, body.getParameterLocal(0)),
 				returnStmt);
 		body.getUnits().add(loopHead);
+
+		RefType elRefType = (RefType) elementType;
 		
-		RefType elRefType = (RefType)elementType;
-		
-		Local newElement = Jimple.v().newLocal("elem", elRefType);
-		body.getLocals().add(newElement);
 		//create a new object				
 		body.getUnits().add(Jimple.v().newAssignStmt(newElement, Jimple.v().newNewExpr(elRefType)));
 		//the elements have one dimension less than the current one.
@@ -607,6 +609,7 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		List<Value> args = new LinkedList<Value>();
 		args.add(counter);
 		args.add(newElement);
+		
 		body.getUnits().add(Jimple.v().newInvokeStmt(Jimple.v().newVirtualInvokeExpr(body.getThisLocal(), setElement.makeRef(), args)));
 		body.getUnits().add(Jimple.v().newAssignStmt(counter, Jimple.v().newAddExpr(counter, IntConstant.v(1))));
 		body.getUnits().add(Jimple.v().newGotoStmt(loopHead));

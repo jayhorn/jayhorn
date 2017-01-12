@@ -47,6 +47,7 @@ import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 
@@ -93,8 +94,15 @@ public class NewMemoryModel extends BasicMemoryModel {
 			InstanceFieldRef ifr = (InstanceFieldRef) fr;
 
 			// in constructor never pull 'this'
-			if (m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal()))
+			if (m.isConstructor() && ifr.getBase().equals(m.getActiveBody().getThisLocal())) {
+				
+//				// except in the case of the constructor of a multi-dimensional array 
+//				// which calls set() for setting the elements
+//				if (m.getName().contains(ArrayTransformer.arrayTypeName) 
+//						&& m.getName().contains(ArrayTransformer.arrayTypeName)
+				
 				return false;
+			}
 		} else if (fr instanceof StaticFieldRef) {
 
 			// in static initializer never pull static field
