@@ -29,6 +29,6 @@ public class SatObjectArray {
 
 		// If the next line is uncommented, verification fails
 		// (would need information about allocation sites)
-//		 new Node(null, 100);
+		 new Node(null, 100);
 	}
 }
