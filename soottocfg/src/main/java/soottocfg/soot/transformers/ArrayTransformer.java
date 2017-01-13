@@ -503,31 +503,38 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 			
 			Local newElement = Jimple.v().newLocal("elem", elementType);
 			body.getLocals().add(newElement);
+
+			Stmt retStmt = Jimple.v().newReturnVoidStmt();
 			
 			// create the assignment for the length field, so we can jump back to it
 			Stmt lengthSet = Jimple.v().newAssignStmt(
 					Jimple.v().newInstanceFieldRef(body.getThisLocal(), lengthField.makeRef()),
 					body.getParameterLocal(0));
 			
-			// initialize inner arrays if multi-dimensional
-			if (i > 1) {
-				initializeMultiArrayVars(elementType, elemField, newElement,
-						body, setElement, constructor, lengthSet);
-			}
-			
 			// set the length field.
 			body.getUnits().add(lengthSet);
-			
+
 			// set the element type
 			String elementTypeName = elementType.toString();
 			if (elementType instanceof RefType) {
 				elementTypeName = ((RefType) elementType).getSootClass().getJavaStyleName();
 			}
 			elementTypeName = elementTypeName.replace('.', '/');
-			body.getUnits()
-					.add(Jimple.v().newAssignStmt(
-							Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemTypeField.makeRef()),
-							ClassConstant.v(elementTypeName)));
+			body.getUnits().add(Jimple.v().newAssignStmt(
+					Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemTypeField.makeRef()),
+					ClassConstant.v(elementTypeName)));
+			
+			// set element to default value
+			Unit def = Jimple.v().newAssignStmt(
+					Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()),
+					SootTranslationHelpers.v().getDefaultValue(elemField.getType()));
+			body.getUnits().add(def);
+
+			// initialize inner arrays if multi-dimensional
+			if (i > 1) {
+				initializeMultiArrayVars(elementType, elemField, newElement,
+						body, setElement, constructor, retStmt);
+			}	
 
 			// pull element if multi-dim or set to default value else
 			if (i > 1) {
@@ -538,10 +545,10 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 						newElement,
 						Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()));
 				body.getUnits().add(asn1);
-				Unit asn = Jimple.v().newAssignStmt(
-						Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()),
-						newElement);
-				body.getUnits().add(asn);
+//				Unit asn = Jimple.v().newAssignStmt(
+//						Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()),
+//						newElement);
+//				body.getUnits().add(asn);
 			} else {
 				// for exactly modeled fields
 				for (int j = 0; j < num_exact; j++) {
@@ -560,7 +567,7 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 				}
 			}
 
-			body.getUnits().add(Jimple.v().newReturnVoidStmt());
+			body.getUnits().add(retStmt);
 			body.validate();
 			constructor.setActiveBody(body);
 		}

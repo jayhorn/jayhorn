@@ -48,7 +48,6 @@ import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
-import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.util.MethodInfo;
 import soottocfg.soot.util.SootTranslationHelpers;
 
@@ -117,7 +116,7 @@ public class NewMemoryModel extends BasicMemoryModel {
 	private boolean methodCallAfterLastFieldRef(Unit u, UnitGraph graph, Local thisLocal) {
 		Queue<Unit> todo = new LinkedList<Unit>();
 		Set<Unit> done = new HashSet<Unit>();
-		todo.add(u);
+		todo.addAll(graph.getPredsOf(u));
 		while (!todo.isEmpty()) {
 			Unit unit = todo.poll();
 			done.add(unit);
@@ -132,10 +131,10 @@ public class NewMemoryModel extends BasicMemoryModel {
 						continue;
 					}
 				}
-				for (Unit prev : graph.getPredsOf(unit)) {
-					if (!todo.contains(prev) && !done.contains(prev)) {
-						todo.add(prev);
-					}
+			}
+			for (Unit prev : graph.getPredsOf(unit)) {
+				if (!todo.contains(prev) && !done.contains(prev)) {
+					todo.add(prev);
 				}
 			}
 		}
