@@ -133,7 +133,7 @@ public class SpacerChecker extends Checker{
 			    	Stats.stats().add(propLine, "SAFE");
 			    } else if (result == ProverResult.Sat){
 			    	Stats.stats().add(propLine, "UNSAFE");
-			    	if (Options.v().cex){
+			    	if (Options.v().solution){
 			    		cex();
 			    	}
 			    } else {
@@ -169,7 +169,8 @@ public class SpacerChecker extends Checker{
 	}
 
 	private void cex(){
-		//System.out.println(prover.getGroundSatAnswer());
+		//work in progress
+		System.out.println(prover.getCex());
 	}
 	
 //	private void removeUnreachableMethods(Program program) {
