@@ -69,8 +69,12 @@ public class Main {
   		
   		Stats.stats().add("FinalResult", prettyResult);
   		
-  		Log.info("Safety Result ... " + prettyResult);
-		if (Options.v().stats){ Stats.stats().printStats(); }
+  		
+		if (Options.v().stats){ 
+			Stats.stats().printStats(); 
+		}else{
+			System.out.println(prettyResult);
+		}
       }
     
 	public static void main(String[] args) {
