@@ -433,7 +433,9 @@ public class PrincessProver implements Prover {
                     sol.append("" + p._1() + ": " + SimpleAPI$.MODULE$.pp(p._2()) + "\n");
                     lastSolution.put(p._1().toString(), SimpleAPI$.MODULE$.pp(p._2()));
                 }
-                Log.info(sol.toString());
+                if (Options.v().getSolverOptions().contains("debug")) {
+                	Log.info(sol.toString());
+                }
                 return ProverResult.Sat;
             } else {
                 lastCEXAr[0] = result.right().get()

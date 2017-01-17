@@ -114,22 +114,11 @@ public class EldaricaChecker extends Checker{
 			} else {
 				result = prover.checkSat(true);
 			}
-			printHeapInvariants(hornContext);
+			if (Options.v().solution) {
+				Log.info(printHeapInvariants(hornContext));
+			}
 			Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));
-			
-			
-//			for (Entry<ClassVariable, Map<Long, HornPredicate>> entry : hornContext.getInvariantPredicates().entrySet()) {
-//				
-//				for (Entry<Long, HornPredicate> entry2 : entry.getValue().entrySet()) {
-//					ProverExpr pe = prover.evaluate(entry2.getValue().instPredicate(new HashMap<Variable, ProverExpr>()));
-//					System.err.println(pe);
-//				}
-//				
-//				
-//			}
-			
-			
-			
+
 			allClauses.remove(allClauses.size() - 1);
 			prover.pop();
 		} catch (Throwable t) {
@@ -147,10 +136,10 @@ public class EldaricaChecker extends Checker{
 		throw new RuntimeException("Verification failed with prover code " + result);
 	}
 	
-	private void printHeapInvariants(HornEncoderContext hornContext) {
-		if (prover.getLastSolution()!=null) {
-			StringBuilder sb = new StringBuilder();
-			sb.append("No assertion can fail using the following heap invarians:\n");
+	private String printHeapInvariants(HornEncoderContext hornContext) {
+		StringBuilder sb = new StringBuilder();
+		if (prover.getLastSolution()!=null) {			
+			sb.append("No assertion can fail using the following heap invariants:\n");
 			
 			Map<ClassVariable, TreeMap<Long,String>> heapInvariants = new LinkedHashMap<ClassVariable, TreeMap<Long,String>>();
 			
@@ -170,18 +159,6 @@ public class EldaricaChecker extends Checker{
 								readable = readable.replace("_"+i, hp.variables.get(i).getName());
 							}
 							heapInvariants.get(pentry.getKey()).put(predEntry.getKey(), readable);
-//							
-//							sb.append(pentry.getKey().getName());
-//							sb.append(":\n\t");
-//							int i=0;
-//							String readable = entry.getValue();
-//							for (Variable v : hp.variables) {
-//								readable = readable.replace("_"+(i++), v.getName());
-//							}
-//							sb.append(readable);
-//							sb.append("\n");
-//							found = true;
-//							break;
 						}
 					}
 					if (found) {
@@ -209,5 +186,6 @@ public class EldaricaChecker extends Checker{
 			sb.append("----\n");
 			//System.err.println(sb.toString());			
 		}
+		return sb.toString();
 	}
 }
