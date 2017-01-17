@@ -184,7 +184,7 @@ public class EldaricaChecker extends Checker{
 				sb.append("--\n");
 			}
 			sb.append("----\n");
-			//System.err.println(sb.toString());			
+			System.err.println(sb.toString());			
 		}
 		return sb.toString();
 	}
