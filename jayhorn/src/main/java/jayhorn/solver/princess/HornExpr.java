@@ -2,6 +2,12 @@ package jayhorn.solver.princess;
 
 import java.math.BigInteger;
 
+import ap.parser.PartialEvaluator$;
+import ap.parser.EquivExpander$;
+import ap.parser.Transform2Prenex$;
+import ap.parser.IFormula;
+import ap.parser.SMTLineariser$;
+
 import jayhorn.solver.BoolType;
 import jayhorn.solver.IntType;
 import jayhorn.solver.ProverExpr;
@@ -66,7 +72,12 @@ class HornExpr implements ProverHornClause {
   }
 
     public String toSMTLIBFormula() {
-        return clause.toSMTString();
+        //return clause.toSMTString();
+        IFormula f = clause.toFormula();
+        f = PartialEvaluator$.MODULE$.apply(f);
+        f = EquivExpander$.MODULE$.apply(f);
+        f = Transform2Prenex$.MODULE$.apply(f);
+        return SMTLineariser$.MODULE$.asString(f);
     }
 
     /**
