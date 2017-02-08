@@ -799,7 +799,7 @@ public class PrincessProver implements Prover {
 	}
 
 	@Override
-	public ProverResult query(ProverExpr relation) {
+	public ProverResult query(ProverExpr relation, boolean isTimed) {
 		// TODO Auto-generated method stub
 		return null;
 	}

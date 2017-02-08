@@ -64,12 +64,9 @@ public class Main {
   			EldaricaChecker eldarica = new EldaricaChecker(factory);
   			result = eldarica.checkProgram(program);
   		}
-  	
   		String prettyResult = parseResult(Options.v().getSolver(), result);
-  		
   		Stats.stats().add("FinalResult", prettyResult);
-  		
-  		
+
 		if (Options.v().stats){ 
 			Stats.stats().printStats(); 
 		}else{

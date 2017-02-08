@@ -327,7 +327,7 @@ public class Main {
             p.printRules();
             final ProverExpr e = error.mkExpr(new ProverExpr[] {p.mkLiteral(true)});
             System.out.println(e);
-            ProverResult result = p.query(e);
+            ProverResult result = p.query(e, false);
             System.out.println(result);
             if (result.toString().equals("Sat")){
             	System.out.println(p.getGroundSatAnswer());

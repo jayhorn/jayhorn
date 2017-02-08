@@ -147,7 +147,7 @@ public interface Prover {
 	/**
 	 * Query the rechability of the relation
 	 */
-	ProverResult query(ProverExpr relation);
+	ProverResult query(ProverExpr relation, boolean isTimed);
 	
         /**
          * Query result of the last <code>checkSat</code> or <code>nextModel</code>

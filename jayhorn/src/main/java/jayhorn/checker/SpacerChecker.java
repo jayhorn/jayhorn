@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
@@ -101,6 +102,11 @@ public class SpacerChecker extends Checker{
 				prover.addRule(clause);
 			}
 			
+			if (Options.v().getPrintHorn()) {
+				//System.out.println(hf.writeHorn());
+				prover.printRules();
+			}
+			
 			// Bounds Check
 //			if (Options.v().getHeapLimit() > -1) {
 //				HeapBoundsCheck bc = new HeapBoundsCheck(prover);
@@ -124,10 +130,16 @@ public class SpacerChecker extends Checker{
 				return true;
 			}
 			
-			
+
 			for (Map.Entry<ProverExpr, Integer> props : S2H.sh().getErrorState().entrySet()) {
 			    ProverExpr prop = props.getKey();
-			    result = prover.query(prop);
+			    if (jayhorn.Options.v().getTimeout() > 0) {
+					int timeoutInMsec = (int) TimeUnit.SECONDS.toMillis(jayhorn.Options.v().getTimeout());
+					prover.query(prop, true);
+					result = prover.getResult(timeoutInMsec);
+				} else {
+					result = prover.query(prop, false);
+				}
 			    String propLine = "Property@Line"+props.getValue();
 			    if (result == ProverResult.Unsat) {
 			    	Stats.stats().add(propLine, "SAFE");
@@ -142,10 +154,7 @@ public class SpacerChecker extends Checker{
 				results.put(prop, result);
 			}
 
-			if (Options.v().getPrintHorn()) {
-				//System.out.println(hf.writeHorn());
-				prover.printRules();
-			}
+			
 			Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));
 			
 		} catch (Throwable t) {

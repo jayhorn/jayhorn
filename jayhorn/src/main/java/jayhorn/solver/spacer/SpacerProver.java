@@ -63,17 +63,19 @@ public class SpacerProver implements Prover {
 	private Fixedpoint fx;
 
 	static class SpacerSolverThread implements Runnable {
-		private final Solver solver;
+		private final Fixedpoint fx;
 		private Status status;
+		private BoolExpr tgt;
 
-		public SpacerSolverThread(Solver s) {
-			this.solver = s;
+		public SpacerSolverThread(Fixedpoint fx, BoolExpr tgt) {
+			this.fx = fx;
+			this.tgt = tgt;
 		}
 
 		@Override
 		public void run() {
 			try {
-				this.status = this.solver.check();
+				this.status = this.fx.query(this.tgt);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -268,6 +270,7 @@ public class SpacerProver implements Prover {
 			for (int i = 0; i < flatType.length; i++) {
 						argSorts[i] = unpack(flatType[i]);
 			}
+			
 			return new SpacerFun(ctx.mkFuncDecl(name, argSorts, unpack(resType)), ctx,
 					resType);
 		}catch (Z3Exception e){
@@ -691,21 +694,7 @@ public class SpacerProver implements Prover {
 
 	@Override
 	public ProverResult checkSat(boolean block) {
-		try {
-			if (block) {
-				return translateResult(this.solver.check());
-			} else {
-				if (future != null && !future.isDone()) {
-					throw new RuntimeException("Another check is still running.");
-				}
-				this.executor = Executors.newSingleThreadExecutor();
-				this.thread = new SpacerSolverThread(solver);
-				this.future = executor.submit(this.thread);
-				return ProverResult.Running;
-			}
-		} catch (Exception e) {
-			throw new RuntimeException(e.getMessage());
-		}
+		throw new UnsupportedOperationException();
 	}
 
 	private ProverResult translateResult(Status status) {
@@ -1010,12 +999,12 @@ public class SpacerProver implements Prover {
 		new_name = new_name.replaceAll("\\(|\\)|<|>|:|/", "");
 		 return new_name;
 	}
+	
 	/**
 	 * Make Horn Predicate
 	 */
 	public SpacerFun mkHornPredicate(String name, ProverType[] argTypes) {
 		try {
-
 			SpacerFun fun = this.mkUnintFunction(this.replaceName(name), argTypes, this.getBooleanType());
 			this.fx.registerRelation(fun.getFun());
 			return fun;
@@ -1042,10 +1031,11 @@ public class SpacerProver implements Prover {
 	public String toString(){
 		return "spacer";
 	}
+	
+	
 	/**
 	 * Add Fact
 	 **/
-	
 	public void addFact(SpacerFun fact){
 		try {
 			this.fx.addFact(fact.getFun());
@@ -1066,8 +1056,8 @@ public class SpacerProver implements Prover {
 				
 				BoolExpr head = (BoolExpr) unpack(hc.getHead());
 				BoolExpr body = (BoolExpr) unpack(hc.getConstraint());
-//				System.out.println("Head -> " + head);
-//				System.out.println("Body -> " + body);
+				//System.out.println("Head -> " + head);
+				//System.out.println("Body -> " + body);
 				Set<Expr> freeVars = new HashSet<Expr>();
 				
 				freeVars.addAll(freeVariablesHead(head));
@@ -1103,6 +1093,8 @@ public class SpacerProver implements Prover {
 			}
 
 			this.fx.addRule(asrt, null);
+//			System.out.println(this.fx);
+//			System.out.println("----------------");
 		} catch (Exception e) {
 			throw new RuntimeException(e.getMessage());
 		}
@@ -1113,64 +1105,42 @@ public class SpacerProver implements Prover {
 	/**
 	 * Query Rechability
 	 */
-	public ProverResult query(ProverExpr tgt){
+	public ProverResult query(ProverExpr tgt, boolean isTimed){
 		try{
-			Status status = null;
-			BoolExpr asrt = (BoolExpr) unpack(tgt);
-			status = this.fx.query(asrt);
-			return this.translateResult(status);
+			if (isTimed){
+				return this.queryThread(tgt);
+			} else{
+				Status status = null;
+				BoolExpr asrt = (BoolExpr) unpack(tgt);
+				status = this.fx.query(asrt);
+				return this.translateResult(status);
+			}
 		} catch (Z3Exception e) {
 			throw new RuntimeException(e.getMessage());
 		}
 	}
 	
-//	public ProverResult query(ProverExpr relation){
-//		try {
-//			Status status = null;
-//			if (relation instanceof SpacerHornExpr) {
-//				SpacerHornExpr hc = (SpacerHornExpr) relation;
-//
-//				BoolExpr head = (BoolExpr) unpack(hc.getHead());
-//				BoolExpr body = (BoolExpr) unpack(hc.getConstraint());
-//
-//				Set<Expr> freeVars = new HashSet<Expr>();
-//				freeVars.addAll(freeVariables(head));
-//
-//				if (hc.getBody().length>0) {
-//					BoolExpr[] conj = new BoolExpr[hc.getBody().length];
-//					int i=0;
-//					for (Expr e : unpack(hc.getBody())) {
-//						freeVars.addAll(freeVariables(e));
-//						conj[i]=(BoolExpr)e;
-//						i++;
-//					}
-//					BoolExpr b = (conj.length==1) ? conj[0] : ctx.mkAnd(conj); 
-//					if (body.equals(ctx.mkTrue())) {
-//						body = b;
-//					} else {
-//						body = ctx.mkAnd(b, body);
-//					}
-//				} 
-//				//from Nikolajs example 			
-//				BoolExpr asrt;
-//				if (freeVars.size()>0) {				
-//					asrt =  ctx.mkForall(freeVars.toArray(new Expr[freeVars.size()]), ctx.mkImplies(body, head), 1, null, null, null, null);				
-//					this.solver.add(asrt);
-//				} else {
-//					asrt =  ctx.mkImplies(body, head);
-//				}
-//				status = this.fx.query(asrt);
-//			} else if (relation instanceof SpacerBoolExpr) {
-//				BoolExpr asrt = (BoolExpr) unpack(relation);
-//				status = this.fx.query(asrt);
-//					
-//			}
-//			return this.translateResult(status);
-//		} catch (Z3Exception e) {
-//			throw new RuntimeException(e.getMessage());
-//		}
-//	}
-
+	/**
+	 * A thread to query for reachability
+	 * @param tgt
+	 * @return
+	 */
+	private ProverResult queryThread(ProverExpr tgt) {
+		try {
+			if (future != null && !future.isDone()) {
+					throw new RuntimeException("Another check is still running.");
+				}
+				BoolExpr asrt = (BoolExpr) unpack(tgt);
+				this.executor = Executors.newSingleThreadExecutor();
+				this.thread = new SpacerSolverThread(this.fx, asrt);
+				//System.out.println(this.thread.toString());
+				this.future = executor.submit(this.thread);
+				return ProverResult.Running;
+		} catch (Exception e) {
+			throw new RuntimeException(e.getMessage());
+		}
+	}
+	
 	  /**
      * Retrieve satisfying instance or instances of solver, or definitions for
      * the recursive predicates that show unsatisfiability.
@@ -1304,7 +1274,6 @@ public class SpacerProver implements Prover {
     public void printRules() {
     	try{
     	BoolExpr[] rules = this.fx.getRules();
-    	
     	System.out.println("; Generated by JayHorn" );
     	System.out.println("; Number of rules:" + rules.length);
     	System.out.println(this.fx);
@@ -1317,12 +1286,6 @@ public class SpacerProver implements Prover {
     	throw new UnsupportedOperationException();
 	}
 
-
-	@Override
-//	public ProverType getTupleType(ProverType[] subTypes) {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
 
 	 public ProverType getTupleType(ProverType[] subTypes) {
 	        return new ProverTupleType(Arrays.copyOf(subTypes, subTypes.length));
