@@ -1,0 +1,182 @@
+{-
+The JayHorn Grammar. 
+
+A first attempt.
+You have to install cabal (a Haskell thingy) with apt-get or brew.
+Then you have to do:
+cabal install alex
+cabal install happy
+cabal install bnfc
+
+Then you can generate the parser using:
+mkdir parser
+bnfc -java jayhorn_bnf.bnfc -o parser/
+-}
+
+entrypoints ProgramFile;
+
+JhPrg. 	  ProgramFile ::= [Decl];
+
+TDecl.    Decl ::= "type" TypeName "{" [FieldDeclaration] "}";
+MDecl.    Decl ::= TypeNameList MethodDecl MethodBody;
+separator Decl "";
+
+TList1.   TypeNameList ::= TypeName ;
+TList2.   TypeNameList ::= "<" [TypeNames] ">";
+Types.    TypeNames ::= TypeName;
+separator nonempty TypeNames ",";
+
+Dvar.     FieldDeclaration ::= TypeName [VarDecl] ";";
+separator FieldDeclaration "";
+
+VDecl.    VarDecl ::= Ident;
+separator nonempty VarDecl ",";
+
+DeclName. DeclaratorName ::= Ident;
+Mth.      MethodDecl ::= DeclaratorName "(" [Parameter] ")";
+Param.    Parameter ::= TypeName DeclaratorName;
+Pfinal.   Parameter ::= "final" TypeName DeclaratorName;
+separator Parameter ",";
+
+
+-- Method Body
+IBody.  MethodBody ::= ";";
+MBody.  MethodBody ::= Body;
+XBody. Body ::= "{" [LVarStatement] "}";
+
+LVar.   LVarStatement ::= TypeName [VarDecl] ";";
+LVarf.    LVarStatement ::= "final" TypeName [VarDecl] ";";
+Statem.		LVarStatement ::= Stm;
+separator LVarStatement "";
+
+-- Statements
+Lbl.	Stm ::= Ident ":";
+Asg.    Stm ::= Ident "=" Exp ";";
+NewSt.  Stm ::= Ident "=" "new" TypeName ";";
+Cal.    Stm ::= [CommaIdentList] "=" Ident "(" [CommaExpList] ")" ";" ;
+LV.	    Stm ::= "{" [LVarStatement] "}";
+Grd.	  Stm ::= GuardStm;
+Jmp.	  Stm ::= JumpStm;
+Iter.	  Stm ::= IterStm;
+Sel.	  Stm ::= SelectionStm;
+Hps.    Stm ::= HeapStm;
+
+
+CommaExp.		   CommaExpList ::= Exp;
+separator nonempty CommaExpList ",";
+
+CommaId.		   CommaIdentList ::= Ident;
+separator nonempty CommaIdentList ",";
+
+-- Guard Statements
+Asrt.		GuardStm ::= "assert" "(" Exp ")" ";";
+Asme.		GuardStm ::= "assume" "(" Exp ")" ";";
+
+-- Jump Statements
+Glabel.		    JumpStm ::= "goto" [CommaIdentList] ";";
+Return.			  JumpStm ::= "return" ";";
+ReturnExp.		JumpStm ::= "return" [CommaExpList] ";";
+
+-- Iter Statements
+While.		IterStm ::= "while" "(" Exp ")" Stm;
+Do.		    IterStm ::= "do" Stm "while" "(" Exp ")";
+
+-- Selection Statements
+Ifone.		SelectionStm ::= "if" "(" Exp ")" Stm [Elseif];
+If.		    SelectionStm ::= "if" "(" Exp ")" Stm [Elseif] "else" Stm;
+EIf.		  Elseif ::= "else" "if" "(" Exp ")" Stm;
+terminator  Elseif "";
+
+-- Heap Statements (pull, push, havoc)
+
+PullSt.     HeapStm ::= [CommaIdentList] "=" "pull" "(" [CommaExpList] ")" ";" ;
+PushSt.     HeapStm ::= "push" "(" [CommaExpList] ")" ";" ;
+HavocSt.    HeapStm ::= "havoc" [CommaIdentList] ";" ;
+ 
+-- Literals 
+
+BuiltIn.    TypeName ::= BasicType;
+ClassType.  TypeName ::= Ident;
+
+-- Expression
+
+Etype. 		    Exp   ::= Exp14 "instanceof" TypeName;
+Econdition.  	Exp2  ::= Exp3 "?" Exp ":" Exp2;
+Elor.        	Exp3  ::= Exp3 "||" Exp4;
+Eland.       	Exp4  ::= Exp4 "&&" Exp5;
+Ebitor.      	Exp5  ::= Exp5 "|" Exp6;
+Ebitexor.    	Exp6  ::= Exp6 "^" Exp7;
+Ebitand.     	Exp7  ::= Exp7 "&" Exp8;
+Eeq.         	Exp8  ::= Exp8 "==" Exp9;
+Eneq.        	Exp8  ::= Exp8 "!=" Exp9;
+Elthen.      	Exp9  ::= Exp9 "<" Exp10;
+Egrthen.     	Exp9  ::= Exp9 ">" Exp10;
+Ele.         	Exp9  ::= Exp9 "<=" Exp10;
+Ege.         	Exp9  ::= Exp9 ">=" Exp10;
+Eleft.       	Exp10 ::= Exp10 "<<" Exp11;
+Eright.      	Exp10 ::= Exp10 ">>" Exp11;
+Etrip.       	Exp10 ::= Exp10 ">>>" Exp11;
+Eplus.       	Exp11 ::= Exp11 "+" Exp12;
+Eminus.      	Exp11 ::= Exp11 "-" Exp12;
+Etimes.      	Exp12 ::= Exp12 "*" Exp13;
+Ediv.        	Exp12 ::= Exp12 "/" Exp13;
+Emod.        	Exp12 ::= Exp12 "%" Exp13;
+Epreop.      	Exp14 ::= Unary_operator Exp15;
+Especname.	    Exp15 ::= SpecName;
+Efld.		    Exp15 ::= TupleAcc;
+Econst.      	Exp15 ::= Constant;
+Evar.		    Exp16 ::= Ident;
+
+coercions Exp 16;
+
+-- field access
+
+Tplvar.		TupleAcc ::= SpecExp "." Ident;
+
+Cep.		SpecExp ::= "(" Exp ")";
+Cnp.		SpecExp ::= SpecExpNP;
+Cthis.		SpecExp ::= SpecName;
+
+CNLit.		SpecExpNP ::= Constant;
+CNPfld.		SpecExpNP ::= TupleAcc;
+
+
+SSnull.		 SpecName ::= "null";
+
+-- basic types
+
+Tint.         BasicType ::= "int";
+Tlong.        BasicType ::= "long";
+Tfloat.       BasicType ::= "float";
+Tdouble.      BasicType ::= "double";
+TVoid.        BasicType ::= "void";
+Tboolean.     BasicType ::= "boolean";
+
+-- primitive constants
+
+Edouble.       Constant ::= Double;
+Eint.          Constant ::= Integer;  
+Etrue.	       Constant ::= "true";
+Efalse.	       Constant ::= "false";
+
+
+-- operators
+
+Plus.        Unary_operator ::= "+" ;
+Negative.    Unary_operator ::= "-" ;
+Complement.  Unary_operator ::= "~" ;
+Logicalneg.  Unary_operator ::= "!" ;
+
+
+{-
+  there is a problem with comments... 
+  the first 2 commented out directives fail to work.
+  some alex hacking is probably in order to get a full
+  java parser; i've noticed the unbalanced /*'s appear
+  enough to be annoying
+-}    
+--comment "/**" "*/" ;
+--comment "/*" "**/" ;
+comment "/**" "**/" ;
+comment "/*" "*/" ;
+comment "//";

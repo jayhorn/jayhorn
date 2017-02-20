@@ -294,6 +294,8 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 			}
 			try {
 				body.validate();
+			} catch (soot.validation.ValidationException e) {
+				throw e;				
 			} catch (RuntimeException e) {
 				throw e;
 			}

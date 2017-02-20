@@ -10,8 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.lang.model.type.NullType;
-
 import com.google.common.base.Verify;
 
 import soot.ArrayType;
@@ -233,7 +231,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 				return new TypeType();
 			}
 			return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)));
-		} else if (t instanceof NullType) {
+		} else if (t instanceof soot.NullType) {
 			return (ReferenceType) (new NullLiteral(null)).getType();
 		}
 		throw new UnsupportedOperationException("Unsupported type " + t.getClass());

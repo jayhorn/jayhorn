@@ -20,3 +20,30 @@ dependencies {
     testCompile 'junit:junit:4.12'
     //testCompile 'net.sourceforge.javydreamercsw:randoop:1.3.2'
 }
+
+
+task bnfc(type:Exec) {
+  group 'Parser Generator'
+  description 'Run parser generator.'
+    
+    println("Requires cabal, alex, happy, and bnfc to be installed.")
+
+    workingDir '.'
+    
+    commandLine 'bnfc', '-m', '-java1.5', '--jflex', '-p', 'soottocfg', 'bnfc/ast.bnfc', '-o', 'src/main/java/' 
+    
+    println("BNFC completed. Now Cup and JFlex.")
+    println("This step fails if JFlex is not in PATH.")
+    
+    workingDir 'src/main/java/'
+    
+    commandLine 'export', 'CLASSPATH=../../../lib/java-cup-11a.jar:../../../bnfc/jflex-1.6.1.jar'
+
+    commandLine 'make'
+
+    standardOutput = new ByteArrayOutputStream()
+    ext.output = {
+      return standardOutput.toString()
+    }    
+
+}

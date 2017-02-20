@@ -342,7 +342,7 @@ public class SootToCfg {
 							body.validate();
 						} catch (soot.validation.ValidationException e) {
 							System.out.println("Unable to validate method body. Possible NullPointerException?");
-							e.printStackTrace();
+							throw e;
 						}
 
 						try {
