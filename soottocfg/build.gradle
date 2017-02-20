@@ -22,28 +22,32 @@ dependencies {
 }
 
 
-task bnfc(type:Exec) {
+task bnfc {
   group 'Parser Generator'
   description 'Run parser generator.'
     
     println("Requires cabal, alex, happy, and bnfc to be installed.")
 
-    workingDir '.'
-    
+
+  doLast {
+    exec {
+
+    commandLine 'export', 'CLASSPATH=lib/java-cup-11a.jar:bnfc/jflex-1.6.1.jar'    
+    workingDir '.'    
     commandLine 'bnfc', '-m', '-java1.5', '--jflex', '-p', 'soottocfg', 'bnfc/ast.bnfc', '-o', 'src/main/java/' 
     
     println("BNFC completed. Now Cup and JFlex.")
-    println("This step fails if JFlex is not in PATH.")
-    
+    }
+   }
+
+  doLast {
+    exec {
+    println("This step fails if JFlex is not in PATH.") 
     workingDir 'src/main/java/'
-    
-    commandLine 'export', 'CLASSPATH=../../../lib/java-cup-11a.jar:../../../bnfc/jflex-1.6.1.jar'
-
+    environment 'CLASSPATH', '../../../lib/java-cup-11a.jar:../../../bnfc/jflex-1.6.1.jar'
     commandLine 'make'
+   }
+  }
 
-    standardOutput = new ByteArrayOutputStream()
-    ext.output = {
-      return standardOutput.toString()
-    }    
 
 }
