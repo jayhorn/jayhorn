@@ -3,7 +3,7 @@ class A {
   public static int i;
 };
 
-class SatStatic2 {
+class SatStatic3 {
   public static void main(String[] args)  {
 	/*
 	 * The problem here is that the first assert introduces
