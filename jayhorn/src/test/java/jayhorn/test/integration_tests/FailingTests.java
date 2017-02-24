@@ -91,7 +91,7 @@ public class FailingTests {
 //			soottocfg.Options.v().setMemPrecision(0);
 //			soottocfg.Options.v().setExcAsAssert(false);
 
-			soottocfg.Options.v().setPrintCFG(true);
+//			soottocfg.Options.v().setPrintCFG(true);
 //			soottocfg.Options.v().setArrayInv(true);
 //			soottocfg.Options.v().setExactArrayElements(0);
 			soot2cfg.run(classDir.getAbsolutePath(), null);

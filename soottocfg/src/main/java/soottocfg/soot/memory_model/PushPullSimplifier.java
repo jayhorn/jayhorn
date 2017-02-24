@@ -217,7 +217,7 @@ public class PushPullSimplifier {
 				PushStatement push = (PushStatement) stmts.get(i);
 				Statement s = stmts.get(i+1);
 				if (s instanceof AssignStatement || s instanceof AssertStatement || 
-						s instanceof NewStatement || s instanceof AssumeStatement) {
+						/*s instanceof NewStatement ||*/ s instanceof AssumeStatement) {
 						b.swapStatements(i, i+1);
 						if (debug)
 							System.out.println("Applied rule (VI); swapped " + push + " and " + s);
