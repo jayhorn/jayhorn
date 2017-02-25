@@ -9,20 +9,13 @@ public class UnsatIssue135 {
 
 	public void add() {
 		Node rootNode = this.mRootNode;
-		if (rootNode.mNumKeys >= 0) {
-			 assert(false);
-		} else {
-			++rootNode.mNumKeys;
-		}
+		//int test = rootNode.mNumKeys;
+		assert(rootNode.mNumKeys < 0);
 	}
 
 	public class Node {
 		public int mNumKeys;
 		public boolean mIsLeafNode;
-
-		public Node() {
-			this.mNumKeys = 0;
-		}
 	}
 
 	public static void main(String args[]) {

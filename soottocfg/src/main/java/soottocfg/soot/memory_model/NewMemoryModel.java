@@ -22,6 +22,7 @@ import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
+import soot.jimple.AssignStmt;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.JimpleBody;
@@ -165,8 +166,8 @@ public class NewMemoryModel extends BasicMemoryModel {
 			packedVars.add(new IdentifierExpression(loc, vars.get(i)));
 		}
 
-		this.statementSwitch
-				.push(new PushStatement(loc, classVar, new IdentifierExpression(loc, thisLocal), packedVars));
+		PushStatement push = new PushStatement(loc, classVar, new IdentifierExpression(loc, thisLocal), packedVars);
+		this.statementSwitch.push(push);
 	}
 
 	private boolean pushAt(Unit u, FieldRef fr) {
@@ -192,10 +193,10 @@ public class NewMemoryModel extends BasicMemoryModel {
 					// if it contains another write to 'this', stop exploring
 					// this path
 					Stmt s = (Stmt) unit;
-					if (s.containsFieldRef()) {
-						FieldRef fr2 = s.getFieldRef();
-						if (fr2 instanceof InstanceFieldRef) {
-							InstanceFieldRef ifr2 = (InstanceFieldRef) fr2;
+					if (s instanceof AssignStmt && s.containsFieldRef()) {
+						AssignStmt as = (AssignStmt) s;
+						if (as.getLeftOp() instanceof InstanceFieldRef) {
+							InstanceFieldRef ifr2 = (InstanceFieldRef) as.getLeftOp();
 							if (ifr2.getBase().equals(m.getActiveBody().getThisLocal()) && !u.equals(unit)) {
 								continue;
 							}
