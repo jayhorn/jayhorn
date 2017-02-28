@@ -1,5 +1,6 @@
 package soottocfg.soot.memory_model;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,6 +26,8 @@ import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.util.Dominators;
+import soottocfg.cfg.util.LoopFinder;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.SootToCfg;
@@ -32,6 +35,8 @@ import soottocfg.soot.SootToCfg;
 public class PushPullSimplifier {
 	
 	private static boolean debug = false;
+	
+	private HashMap<Method, Set<CfgBlock>> loopHeaders = new HashMap<Method, Set<CfgBlock>>();
 	
 	public boolean simplify(Program p) {
 		boolean change = false;
@@ -41,6 +46,14 @@ public class PushPullSimplifier {
 				System.out.println("Simplifying method " + m.getMethodName());
 				System.out.println(m);
 			}
+			
+			// find loop headers
+			if (!loopHeaders.containsKey(m)) {
+				Dominators<CfgBlock> doms = new Dominators<CfgBlock>(m, m.getSource());
+				LoopFinder<CfgBlock> lf = new LoopFinder<CfgBlock>(doms);
+				loopHeaders.put(m, lf.getLoopHeaders());
+			}
+			
 			Set<CfgBlock> blocks = m.vertexSet();
 			int simplifications;
 			do {
@@ -352,28 +365,31 @@ public class PushPullSimplifier {
 					
 					// only move up in CFG
 					if (m.distanceToSource(prev) < m.distanceToSource(b)) {
-						if (in.getLabel().isPresent() && 
-								!distinct(in.getLabel().get().getUseIdentifierExpressions(), pull.getIdentifierExpressions())) {
-							// edge label contains a ref to push object, do not move this push
-							if (debug)
-								System.out.println("Label not distinct: " + pull);
-							nothingMoves = true;
-							break;
-						}
+						
+						// Not sure why I added this before, but as labels are pure expressions, it's not needed
+//						if (in.getLabel().isPresent() &&
+//								!distinct(in.getLabel().get().getUseIdentifierExpressions(), pull.getIdentifierExpressions())) {
+//							// edge label contains a ref to pulled object, do not move this pull
+//							if (debug)
+//								System.out.println("Label not distinct: " + pull);
+//							nothingMoves = true;
+//							break;
+//						} 
+						
 						moveTo.add(prev);
-					} else if (!existsPath(b, prev)) {
-						/**
-						 * With the check that there does not exist a path, we accommodate the following case.
-						 * There is a loop and b is the header. We know this because the is a path from b
-						 * to prev, yet b is closer to the source.
-						 * In this case, we want to move the pull out of the loop into the other
-						 * predecessor nodes (note that these surely exist), yet not move it into
-						 * prev, as we would then be moving it around in circles.
+					} else if (loopHeaders.get(m).contains(b) && !in.getLabel().isPresent()) {
+						/*
+						 * In case this block is a loop header, we always allow the pull to be moved
+						 * up, out of the header. This case is to ignore the back-edge, as we do not
+						 * want to move the pull around in circles.
 						 */
+						if (debug)
+							System.out.println("Ignoring loop back-edge");
+					} else {
+						// if there is even just one predecessor which is further from 
+						// the source, don't move anything
 						nothingMoves = true;
 						break;
-					} else if (debug) {
-						System.out.println("Skipping the copy of " + pull + " from " + b + " to " + prev);
 					}
 				}
 				
@@ -399,6 +415,10 @@ public class PushPullSimplifier {
 		return moves;
 	}
 	
+	/*
+	 * We don't currently allow pushes to break out of loops. We might in the future
+	 * to improve precision, but we have to carefully establish the conditions for doing so.
+	 */
 	private int movePushesDownInCFG(Method m) {
 		int moves = 0;
 		for (CfgBlock b : m.vertexSet()) {
@@ -420,16 +440,20 @@ public class PushPullSimplifier {
 				for (CfgEdge out : outgoing) {
 					CfgBlock next = b.getMethod().getEdgeTarget(out);
 					
-					// only move down in source
-					if (m.distanceToSink(next) < m.distanceToSink(b)) {
-						if (out.getLabel().isPresent() && 
-							!distinct(out.getLabel().get().getUseIdentifierExpressions(), push.getIdentifierExpressions())) {
-							// edge label contains a ref to push object, do not move this push
-							if (debug)
-								System.out.println("Label not distinct: " + push);
-							nothingMoves = true;
-							break;
-						}
+					// only move down in source 
+					// and to the end of a loop, not back into the header
+					if (m.distanceToSink(next) < m.distanceToSink(b) && !loopHeaders.get(m).contains(next)) {
+						
+						// Not sure why I added this before, but as labels are pure expressions, it's not needed
+//						if (out.getLabel().isPresent() && 
+//							!distinct(out.getLabel().get().getUseIdentifierExpressions(), push.getIdentifierExpressions())) {
+//							// edge label contains a ref to push object, do not move this push
+//							if (debug)
+//								System.out.println("Label not distinct: " + push);
+//							nothingMoves = true;
+//							break;
+//						}
+						
 						if (!hasBeenPulledIn(push, next)) {
 							// object has not been pulled in successor block, do not move this push
 							if (debug)
@@ -438,14 +462,9 @@ public class PushPullSimplifier {
 							break;
 						}
 						moveTo.add(next);
-					} else if (!existsPath(next, b)) {
-						/**
-						 * Analogous to moving pulls up, we want to break pushes
-						 * from loops.
-						 */
+					} else {
 						nothingMoves = true;
-					} else if (debug) {
-						System.out.println("Skipping the copy of " + push + " from " + b + " to " + next);
+						break;
 					}
 				}
 				
@@ -589,26 +608,6 @@ public class PushPullSimplifier {
 				CfgBlock prev = cur.getMethod().getEdgeSource(in);
 				if (!done.contains(prev) && !q.contains(prev))
 					q.add(prev);
-			}
-		}
-		return false;
-	}
-	
-	private boolean existsPath(CfgBlock from, CfgBlock to) {
-		Set<CfgBlock> done = new HashSet<CfgBlock>();
-		Queue<CfgBlock> q = new LinkedList<CfgBlock>();
-		q.add(from);
-		while (!q.isEmpty()) {
-			CfgBlock cur = q.poll();
-			done.add(cur);
-			if (cur.equals(to))
-				return true;
-			
-			Set<CfgEdge> outgoing = cur.getMethod().outgoingEdgesOf(cur);
-			for (CfgEdge out : outgoing) {
-				CfgBlock next = cur.getMethod().getEdgeTarget(out);
-				if (!done.contains(next) && !q.contains(next))
-					q.add(next);
 			}
 		}
 		return false;
