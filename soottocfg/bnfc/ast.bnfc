@@ -17,16 +17,36 @@ entrypoints ProgramFile;
 
 JhPrg. 	  ProgramFile ::= [Decl];
 
-TDecl.    Decl ::= "type" TypeName "{" [FieldDeclaration] "}";
-MDecl.    Decl ::= TypeNameList MethodDecl MethodBody;
+-- Literals 
+
+BuiltIn.    Type ::= BasicType;
+ClassType.  Type ::= Ident;
+
+-- basic types
+
+Tint.         BasicType ::= "int";
+Tlong.        BasicType ::= "long";
+Tfloat.       BasicType ::= "float";
+Tdouble.      BasicType ::= "double";
+TVoid.        BasicType ::= "void";
+Tboolean.     BasicType ::= "boolean";
+
+-- Class decl
+
+TDecl.    Decl ::= "class" Ident "{" [FieldDeclaration] "}";
+TDecl2.    Decl ::= "class" Ident "<" [TupleEntry] ">" "{" [FieldDeclaration] "}";
+MDecl.    Decl ::= TypeList MethodDecl MethodBody;
 separator Decl "";
 
-TList1.   TypeNameList ::= TypeName ;
-TList2.   TypeNameList ::= "<" [TypeNames] ">";
-Types.    TypeNames ::= TypeName;
-separator nonempty TypeNames ",";
+NamedTpl.  TupleEntry ::= Ident ":" Type ;
+separator nonempty TupleEntry ",";
 
-Dvar.     FieldDeclaration ::= TypeName [VarDecl] ";";
+TList1.   TypeList ::= Type ;
+TList2.   TypeList ::= "<" [Types] ">";
+TNames.   Types ::= Type;
+separator nonempty Types ",";
+
+Dvar.     FieldDeclaration ::= Type [VarDecl] ";";
 separator FieldDeclaration "";
 
 VDecl.    VarDecl ::= Ident;
@@ -34,8 +54,9 @@ separator nonempty VarDecl ",";
 
 DeclName. DeclaratorName ::= Ident;
 Mth.      MethodDecl ::= DeclaratorName "(" [Parameter] ")";
-Param.    Parameter ::= TypeName DeclaratorName;
-Pfinal.   Parameter ::= "final" TypeName DeclaratorName;
+Mth2.      MethodDecl ::= DeclaratorName "(" [Parameter] ")" "implements" String ;
+Param.    Parameter ::= Type DeclaratorName;
+Pfinal.   Parameter ::= "final" Type DeclaratorName;
 separator Parameter ",";
 
 
@@ -44,15 +65,15 @@ IBody.  MethodBody ::= ";";
 MBody.  MethodBody ::= Body;
 XBody. Body ::= "{" [LVarStatement] "}";
 
-LVar.   LVarStatement ::= TypeName [VarDecl] ";";
-LVarf.    LVarStatement ::= "final" TypeName [VarDecl] ";";
+LVar.   LVarStatement ::= Type [VarDecl] ";";
+LVarf.    LVarStatement ::= "final" Type [VarDecl] ";";
 Statem.		LVarStatement ::= Stm;
 separator LVarStatement "";
 
 -- Statements
 Lbl.	Stm ::= Ident ":";
 Asg.    Stm ::= Ident "=" Exp ";";
-NewSt.  Stm ::= Ident "=" "new" TypeName ";";
+NewSt.  Stm ::= Ident "=" "new" Type ";";
 Cal.    Stm ::= [CommaIdentList] "=" Ident "(" [CommaExpList] ")" ";" ;
 LV.	    Stm ::= "{" [LVarStatement] "}";
 Grd.	  Stm ::= GuardStm;
@@ -93,14 +114,10 @@ PullSt.     HeapStm ::= [CommaIdentList] "=" "pull" "(" [CommaExpList] ")" ";" ;
 PushSt.     HeapStm ::= "push" "(" [CommaExpList] ")" ";" ;
 HavocSt.    HeapStm ::= "havoc" [CommaIdentList] ";" ;
  
--- Literals 
-
-BuiltIn.    TypeName ::= BasicType;
-ClassType.  TypeName ::= Ident;
 
 -- Expression
 
-Etype. 		    Exp   ::= Exp14 "instanceof" TypeName;
+Etype. 		    Exp   ::= Exp14 "instanceof" Type;
 Econdition.  	Exp2  ::= Exp3 "?" Exp ":" Exp2;
 Elor.        	Exp3  ::= Exp3 "||" Exp4;
 Eland.       	Exp4  ::= Exp4 "&&" Exp5;
@@ -143,14 +160,6 @@ CNPfld.		SpecExpNP ::= TupleAcc;
 
 SSnull.		 SpecName ::= "null";
 
--- basic types
-
-Tint.         BasicType ::= "int";
-Tlong.        BasicType ::= "long";
-Tfloat.       BasicType ::= "float";
-Tdouble.      BasicType ::= "double";
-TVoid.        BasicType ::= "void";
-Tboolean.     BasicType ::= "boolean";
 
 -- primitive constants
 

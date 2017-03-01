@@ -28,18 +28,15 @@ task bnfc {
     
     println("Requires cabal, alex, happy, and bnfc to be installed.")
 
-
+  
   doLast {
-    exec {
-
-    commandLine 'export', 'CLASSPATH=lib/java-cup-11a.jar:bnfc/jflex-1.6.1.jar'    
-    workingDir '.'    
-    commandLine 'bnfc', '-m', '-java1.5', '--jflex', '-p', 'soottocfg', 'bnfc/ast.bnfc', '-o', 'src/main/java/' 
-    
-    println("BNFC completed. Now Cup and JFlex.")
-    }
+    exec {        
+    workingDir '.'
+    environment 'CLASSPATH', 'lib/java-cup-11a.jar:bnfc/jflex-1.6.1.jar'    
+    commandLine 'bnfc', '-m', '-java1.5', '--jflex', '-p', 'soottocfg', 'bnfc/ast.bnfc', '-o', 'src/main/java/'  
    }
 
+  }
   doLast {
     exec {
     println("This step fails if JFlex is not in PATH.") 

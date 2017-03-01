@@ -1,0 +1,7 @@
+// lets use jh as ending.
+
+class Test {
+  int hello;
+  boolean world;
+  Test recursive;
+}

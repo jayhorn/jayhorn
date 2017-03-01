@@ -1,0 +1,7 @@
+// lets use jh as ending.
+
+class Test < mytuple : int, mytuple2 : Object> {
+  int hello;
+  boolean world;
+  Test recursive;
+}
