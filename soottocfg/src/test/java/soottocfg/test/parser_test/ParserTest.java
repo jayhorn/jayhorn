@@ -14,8 +14,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import soottocfg.cfg.Ast2Cfg;
 import soottocfg.cfg.Program;
+import soottocfg.cfg.ast2cfg.Ast2Cfg;
 
 
 /**
