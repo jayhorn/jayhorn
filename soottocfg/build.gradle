@@ -23,8 +23,7 @@ dependencies {
 
 
 tasks.withType(JavaCompile) {
-    options.compilerArgs << "-Werror" 
-    options.compilerArgs += '-Xlint:-deprecation'
+  options.deprecation = false
 }
 
 task wrapper(type: Wrapper) {
