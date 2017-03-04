@@ -46,10 +46,11 @@ public class S2H {
 	 */
 	public List<ProverHornClause> getTransitionRelationClause(){
 		List<ProverHornClause> clause = new LinkedList<ProverHornClause>();
-		for (Statement s : this.statToClause.keySet())
-			if (!(s instanceof AssertStatement)) {
-				clause.addAll(statToClause.get(s));
+		for (Entry<Statement, List<ProverHornClause>> entry : this.statToClause.entrySet()) {
+			if (!(entry.getKey() instanceof AssertStatement)) {
+				clause.addAll(entry.getValue());
 			}
+		}
 		return clause;
 	}
 	
@@ -58,10 +59,11 @@ public class S2H {
 	 */
 	public List<ProverHornClause> getPropertyClause(){
 		List<ProverHornClause> clause = new LinkedList<ProverHornClause>();
-		for (Statement s : this.statToClause.keySet())
-			if (s instanceof AssertStatement) {
-				clause.addAll(statToClause.get(s));
+		for (Entry<Statement, List<ProverHornClause>> entry : this.statToClause.entrySet()) {
+			if (entry.getKey() instanceof AssertStatement) {
+				clause.addAll(entry.getValue());
 			}
+		}
 		return clause;
 	}
 	

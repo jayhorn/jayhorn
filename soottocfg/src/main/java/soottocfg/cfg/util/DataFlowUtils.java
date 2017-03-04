@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.jgrapht.Graphs;
@@ -57,11 +58,11 @@ public class DataFlowUtils  {
 			sb.append("Reaching Definitions:");
 			sb.append(System.getProperty("line.separator"));
 			List<Statement> statementList = new LinkedList<Statement>(in.keySet());
-			for (Statement s : in.keySet()) {				 
-				sb.append(String.format("%1$5d:  %2$25s  ", statementList.indexOf(s), s));
+			for (Entry<Statement, Set<Statement>> entry : in.entrySet()) {				 
+				sb.append(String.format("%1$5d:  %2$25s  ", statementList.indexOf(entry.getKey()), entry.getKey()));
 				StringBuilder tmp = new StringBuilder();
 				String comma = "In: ";
-				for (Statement inS : in.get(s)) {
+				for (Statement inS : entry.getValue()) {
 					tmp.append(comma);
 					comma = ",";
 					tmp.append(statementList.indexOf(inS));
@@ -70,7 +71,7 @@ public class DataFlowUtils  {
 				
 				tmp = new StringBuilder();
 				comma = "Out: ";
-				for (Statement outS : out.get(s)) {
+				for (Statement outS : out.get(entry.getKey())) {
 					tmp.append(comma);
 					comma = ",";
 					tmp.append(statementList.indexOf(outS));

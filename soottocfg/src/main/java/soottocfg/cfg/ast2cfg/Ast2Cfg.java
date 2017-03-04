@@ -68,7 +68,7 @@ public class Ast2Cfg {
 		tree.<Boolean, Program>accept(new GlobalVisitor(), this.program);
 	}
 
-	public class GlobalVisitor implements ProgramFile.Visitor<Boolean, Program> {
+	public static class GlobalVisitor implements ProgramFile.Visitor<Boolean, Program> {
 
 		@Override
 		public Boolean visit(JhPrg p, Program arg) {
@@ -78,7 +78,7 @@ public class Ast2Cfg {
 			return true;
 		}
 
-		public class DeclVisitor implements Decl.Visitor<Boolean, Program> {
+		public static class DeclVisitor implements Decl.Visitor<Boolean, Program> {
 			@Override
 			public Boolean visit(soottocfg.ast.Absyn.TDecl p,
 					Program arg) { /* Code For TDecl Goes Here */
@@ -90,14 +90,17 @@ public class Ast2Cfg {
 			public Boolean visit(soottocfg.ast.Absyn.TDecl2 p,
 					Program arg) { /* Code For TDecl2 Goes Here */
 				for (TupleEntry x : p.listtupleentry_) {
-					/* ... */ }
+					/* ... */
+					System.err.println(x);
+				}
 				createClassType(p.ident_, p.listfielddeclaration_, arg);
 				return true;
 			}
-			
+
 			protected void createClassType(String name, ListFieldDeclaration fields, Program program) {
 				for (FieldDeclaration x : fields) {
-				/* ... */ }
+					System.err.println(x);
+					/* ... */ }
 			}
 
 			@Override
