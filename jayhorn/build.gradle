@@ -9,7 +9,7 @@ jar.archiveName = 'jayhorn.jar'
 compileJava.options.fork = true
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.4'
+    gradleVersion = '3.4.1'
 }
 
 tasks.withType(Test) {
