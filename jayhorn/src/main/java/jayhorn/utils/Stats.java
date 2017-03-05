@@ -32,9 +32,18 @@ public class Stats {
 	private Stats(){}
 	
 	public void printStats(){
-		for (Entry<String, String> entry: statsMap.entrySet()){
-			System.out.println(tag + entry.getKey() + " " + entry.getValue());
-		}
+		System.out.println(this.toString());
 	}
+	
+	@Override 
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for (Entry<String, String> entry: statsMap.entrySet()){
+			sb.append(tag + entry.getKey() + " " + entry.getValue());
+			sb.append("\n");
+		}	
+		return sb.toString();
+	}
+	
 
 }

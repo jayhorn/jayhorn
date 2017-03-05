@@ -33,8 +33,12 @@ Tboolean.     BasicType ::= "boolean";
 
 -- Class decl
 
-TDecl.    Decl ::= "class" Ident "{" [FieldDeclaration] "}";
-TDecl2.    Decl ::= "class" Ident "<" [TupleEntry] ">" "{" [FieldDeclaration] "}";
+TDecl.    Decl ::= "class" Ident DeclBody ;
+TDecl2.   Decl ::= "class" Ident "extends" Ident DeclBody ;
+
+TDeclBody.  DeclBody ::= "{" [FieldDeclaration] "}" ;
+TDeclBody2. DeclBody ::= "<" [TupleEntry] ">" "{" [FieldDeclaration] "}";
+
 MDecl.    Decl ::= TypeList MethodDecl MethodBody;
 separator Decl "";
 

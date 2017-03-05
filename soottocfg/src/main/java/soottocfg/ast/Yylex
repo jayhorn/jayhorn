@@ -62,24 +62,25 @@ IDENT = ({LETTER}|{DIGIT}|['_])
 <YYINITIAL>do { return new Symbol(sym._SYMB_35); }
 <YYINITIAL>double { return new Symbol(sym._SYMB_36); }
 <YYINITIAL>else { return new Symbol(sym._SYMB_37); }
-<YYINITIAL>false { return new Symbol(sym._SYMB_38); }
-<YYINITIAL>final { return new Symbol(sym._SYMB_39); }
-<YYINITIAL>float { return new Symbol(sym._SYMB_40); }
-<YYINITIAL>goto { return new Symbol(sym._SYMB_41); }
-<YYINITIAL>havoc { return new Symbol(sym._SYMB_42); }
-<YYINITIAL>if { return new Symbol(sym._SYMB_43); }
-<YYINITIAL>implements { return new Symbol(sym._SYMB_44); }
-<YYINITIAL>instanceof { return new Symbol(sym._SYMB_45); }
-<YYINITIAL>int { return new Symbol(sym._SYMB_46); }
-<YYINITIAL>long { return new Symbol(sym._SYMB_47); }
-<YYINITIAL>new { return new Symbol(sym._SYMB_48); }
-<YYINITIAL>null { return new Symbol(sym._SYMB_49); }
-<YYINITIAL>pull { return new Symbol(sym._SYMB_50); }
-<YYINITIAL>push { return new Symbol(sym._SYMB_51); }
-<YYINITIAL>return { return new Symbol(sym._SYMB_52); }
-<YYINITIAL>true { return new Symbol(sym._SYMB_53); }
-<YYINITIAL>void { return new Symbol(sym._SYMB_54); }
-<YYINITIAL>while { return new Symbol(sym._SYMB_55); }
+<YYINITIAL>extends { return new Symbol(sym._SYMB_38); }
+<YYINITIAL>false { return new Symbol(sym._SYMB_39); }
+<YYINITIAL>final { return new Symbol(sym._SYMB_40); }
+<YYINITIAL>float { return new Symbol(sym._SYMB_41); }
+<YYINITIAL>goto { return new Symbol(sym._SYMB_42); }
+<YYINITIAL>havoc { return new Symbol(sym._SYMB_43); }
+<YYINITIAL>if { return new Symbol(sym._SYMB_44); }
+<YYINITIAL>implements { return new Symbol(sym._SYMB_45); }
+<YYINITIAL>instanceof { return new Symbol(sym._SYMB_46); }
+<YYINITIAL>int { return new Symbol(sym._SYMB_47); }
+<YYINITIAL>long { return new Symbol(sym._SYMB_48); }
+<YYINITIAL>new { return new Symbol(sym._SYMB_49); }
+<YYINITIAL>null { return new Symbol(sym._SYMB_50); }
+<YYINITIAL>pull { return new Symbol(sym._SYMB_51); }
+<YYINITIAL>push { return new Symbol(sym._SYMB_52); }
+<YYINITIAL>return { return new Symbol(sym._SYMB_53); }
+<YYINITIAL>true { return new Symbol(sym._SYMB_54); }
+<YYINITIAL>void { return new Symbol(sym._SYMB_55); }
+<YYINITIAL>while { return new Symbol(sym._SYMB_56); }
 <YYINITIAL>"//"[^\n]*\n { /* BNFC single-line comment */ }
 <YYINITIAL>"/**" { yybegin(COMMENT); }
 <COMMENT>"**/" { yybegin(YYINITIAL); }

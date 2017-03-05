@@ -57,22 +57,35 @@ public class VisitSkel
     public R visit(soottocfg.ast.Absyn.TDecl p, A arg)
     { /* Code For TDecl Goes Here */
       //p.ident_;
-      for (FieldDeclaration x: p.listfielddeclaration_)
-      { /* ... */ }
+      p.declbody_.accept(new DeclBodyVisitor<R,A>(), arg);
       return null;
     }    public R visit(soottocfg.ast.Absyn.TDecl2 p, A arg)
     { /* Code For TDecl2 Goes Here */
-      //p.ident_;
-      for (TupleEntry x: p.listtupleentry_)
-      { /* ... */ }
-      for (FieldDeclaration x: p.listfielddeclaration_)
-      { /* ... */ }
+      //p.ident_1;
+      //p.ident_2;
+      p.declbody_.accept(new DeclBodyVisitor<R,A>(), arg);
       return null;
     }    public R visit(soottocfg.ast.Absyn.MDecl p, A arg)
     { /* Code For MDecl Goes Here */
       p.typelist_.accept(new TypeListVisitor<R,A>(), arg);
       p.methoddecl_.accept(new MethodDeclVisitor<R,A>(), arg);
       p.methodbody_.accept(new MethodBodyVisitor<R,A>(), arg);
+      return null;
+    }
+  }
+  public class DeclBodyVisitor<R,A> implements DeclBody.Visitor<R,A>
+  {
+    public R visit(soottocfg.ast.Absyn.TDeclBody p, A arg)
+    { /* Code For TDeclBody Goes Here */
+      for (FieldDeclaration x: p.listfielddeclaration_)
+      { /* ... */ }
+      return null;
+    }    public R visit(soottocfg.ast.Absyn.TDeclBody2 p, A arg)
+    { /* Code For TDeclBody2 Goes Here */
+      for (TupleEntry x: p.listtupleentry_)
+      { /* ... */ }
+      for (FieldDeclaration x: p.listfielddeclaration_)
+      { /* ... */ }
       return null;
     }
   }

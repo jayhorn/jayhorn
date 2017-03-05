@@ -83,6 +83,10 @@ public class Options {
 	public String getJavaInput() {
 		return this.javaInput;
 	}
+	
+	public void setJavaInput(String input) {
+		this.javaInput = input;
+	}
 
 	// /**
 	// * Print Horn clauses

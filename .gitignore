@@ -18,3 +18,7 @@ build/
 *.dot
 .shelf/
 jayhorn/spec_stuff/
+**/*.bak
+soottocfg/src/main/java/soottocfg/ast/Absyn/*.class
+soottocfg/src/main/java/soottocfg/ast/*.class
+soottocfg/src/main/java/Makefile

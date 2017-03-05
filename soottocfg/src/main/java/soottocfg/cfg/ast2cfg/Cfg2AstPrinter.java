@@ -12,6 +12,8 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map.Entry;
 
+import com.google.common.base.Verify;
+
 import soottocfg.cfg.Program;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
@@ -35,13 +37,14 @@ public class Cfg2AstPrinter {
 	public static String printProgramToString(Program program) {
 		StringBuilder sb = new StringBuilder();
 		for (ClassVariable cv : program.getClassVariables()) {
-			printClassVariable(cv, sb);
+			sb.append(printClassVariable(cv));
 			sb.append("\n");
 		}
 		return sb.toString();
 	}
 
-	protected static void printClassVariable(ClassVariable cv, StringBuilder sb) {
+	protected static String printClassVariable(ClassVariable cv) {
+		StringBuilder sb = new StringBuilder();
 		ReferenceType ref = new ReferenceType(cv);
 		sb.append("class ");
 		sb.append(cv.getName());
@@ -59,6 +62,13 @@ public class Cfg2AstPrinter {
 		} else {
 			throw new RuntimeException("Unexpected!");
 		}
+
+		if (!cv.getParents().isEmpty()) {
+			Verify.verify(cv.getParents().size()==1);
+			sb.append(" extends ");
+			sb.append(cv.getParents().iterator().next().getName());
+			sb.append(" ");
+		}
 		sb.append("{\n");
 		for (Variable v : cv.getAssociatedFields()) {
 			sb.append("\t");
@@ -68,6 +78,7 @@ public class Cfg2AstPrinter {
 			sb.append(";\n");
 		}
 		sb.append("}\n");
+		return sb.toString();
 	}
 
 }

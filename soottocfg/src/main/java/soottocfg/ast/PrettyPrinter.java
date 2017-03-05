@@ -123,6 +123,21 @@ public class PrettyPrinter
     buf_.delete(0,buf_.length());
     return temp;
   }
+  public static String print(soottocfg.ast.Absyn.DeclBody foo)
+  {
+    pp(foo, 0);
+    trim();
+    String temp = buf_.toString();
+    buf_.delete(0,buf_.length());
+    return temp;
+  }
+  public static String show(soottocfg.ast.Absyn.DeclBody foo)
+  {
+    sh(foo);
+    String temp = buf_.toString();
+    buf_.delete(0,buf_.length());
+    return temp;
+  }
   public static String print(soottocfg.ast.Absyn.ListDecl foo)
   {
     pp(foo, 0);
@@ -763,9 +778,7 @@ public class PrettyPrinter
        if (_i_ > 0) render(_L_PAREN);
        render("class");
        pp(_tdecl.ident_, 0);
-       render("{");
-       pp(_tdecl.listfielddeclaration_, 0);
-       render("}");
+       pp(_tdecl.declbody_, 0);
        if (_i_ > 0) render(_R_PAREN);
     }
     else     if (foo instanceof soottocfg.ast.Absyn.TDecl2)
@@ -773,13 +786,10 @@ public class PrettyPrinter
        soottocfg.ast.Absyn.TDecl2 _tdecl2 = (soottocfg.ast.Absyn.TDecl2) foo;
        if (_i_ > 0) render(_L_PAREN);
        render("class");
-       pp(_tdecl2.ident_, 0);
-       render("<");
-       pp(_tdecl2.listtupleentry_, 0);
-       render(">");
-       render("{");
-       pp(_tdecl2.listfielddeclaration_, 0);
-       render("}");
+       pp(_tdecl2.ident_1, 0);
+       render("extends");
+       pp(_tdecl2.ident_2, 0);
+       pp(_tdecl2.declbody_, 0);
        if (_i_ > 0) render(_R_PAREN);
     }
     else     if (foo instanceof soottocfg.ast.Absyn.MDecl)
@@ -789,6 +799,31 @@ public class PrettyPrinter
        pp(_mdecl.typelist_, 0);
        pp(_mdecl.methoddecl_, 0);
        pp(_mdecl.methodbody_, 0);
+       if (_i_ > 0) render(_R_PAREN);
+    }
+  }
+
+  private static void pp(soottocfg.ast.Absyn.DeclBody foo, int _i_)
+  {
+    if (foo instanceof soottocfg.ast.Absyn.TDeclBody)
+    {
+       soottocfg.ast.Absyn.TDeclBody _tdeclbody = (soottocfg.ast.Absyn.TDeclBody) foo;
+       if (_i_ > 0) render(_L_PAREN);
+       render("{");
+       pp(_tdeclbody.listfielddeclaration_, 0);
+       render("}");
+       if (_i_ > 0) render(_R_PAREN);
+    }
+    else     if (foo instanceof soottocfg.ast.Absyn.TDeclBody2)
+    {
+       soottocfg.ast.Absyn.TDeclBody2 _tdeclbody2 = (soottocfg.ast.Absyn.TDeclBody2) foo;
+       if (_i_ > 0) render(_L_PAREN);
+       render("<");
+       pp(_tdeclbody2.listtupleentry_, 0);
+       render(">");
+       render("{");
+       pp(_tdeclbody2.listfielddeclaration_, 0);
+       render("}");
        if (_i_ > 0) render(_R_PAREN);
     }
   }
@@ -1819,9 +1854,7 @@ public class PrettyPrinter
        render("(");
        render("TDecl");
        sh(_tdecl.ident_);
-       render("[");
-       sh(_tdecl.listfielddeclaration_);
-       render("]");
+       sh(_tdecl.declbody_);
        render(")");
     }
     if (foo instanceof soottocfg.ast.Absyn.TDecl2)
@@ -1829,13 +1862,9 @@ public class PrettyPrinter
        soottocfg.ast.Absyn.TDecl2 _tdecl2 = (soottocfg.ast.Absyn.TDecl2) foo;
        render("(");
        render("TDecl2");
-       sh(_tdecl2.ident_);
-       render("[");
-       sh(_tdecl2.listtupleentry_);
-       render("]");
-       render("[");
-       sh(_tdecl2.listfielddeclaration_);
-       render("]");
+       sh(_tdecl2.ident_1);
+       sh(_tdecl2.ident_2);
+       sh(_tdecl2.declbody_);
        render(")");
     }
     if (foo instanceof soottocfg.ast.Absyn.MDecl)
@@ -1846,6 +1875,33 @@ public class PrettyPrinter
        sh(_mdecl.typelist_);
        sh(_mdecl.methoddecl_);
        sh(_mdecl.methodbody_);
+       render(")");
+    }
+  }
+
+  private static void sh(soottocfg.ast.Absyn.DeclBody foo)
+  {
+    if (foo instanceof soottocfg.ast.Absyn.TDeclBody)
+    {
+       soottocfg.ast.Absyn.TDeclBody _tdeclbody = (soottocfg.ast.Absyn.TDeclBody) foo;
+       render("(");
+       render("TDeclBody");
+       render("[");
+       sh(_tdeclbody.listfielddeclaration_);
+       render("]");
+       render(")");
+    }
+    if (foo instanceof soottocfg.ast.Absyn.TDeclBody2)
+    {
+       soottocfg.ast.Absyn.TDeclBody2 _tdeclbody2 = (soottocfg.ast.Absyn.TDeclBody2) foo;
+       render("(");
+       render("TDeclBody2");
+       render("[");
+       sh(_tdeclbody2.listtupleentry_);
+       render("]");
+       render("[");
+       sh(_tdeclbody2.listfielddeclaration_);
+       render("]");
        render(")");
     }
   }

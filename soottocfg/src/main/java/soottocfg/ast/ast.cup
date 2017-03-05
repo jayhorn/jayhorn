@@ -26,6 +26,7 @@ nonterminal soottocfg.ast.Absyn.ProgramFile ProgramFile;
 nonterminal soottocfg.ast.Absyn.Type Type;
 nonterminal soottocfg.ast.Absyn.BasicType BasicType;
 nonterminal soottocfg.ast.Absyn.Decl Decl;
+nonterminal soottocfg.ast.Absyn.DeclBody DeclBody;
 nonterminal soottocfg.ast.Absyn.ListDecl ListDecl;
 nonterminal soottocfg.ast.Absyn.TupleEntry TupleEntry;
 nonterminal soottocfg.ast.Absyn.ListTupleEntry ListTupleEntry;
@@ -118,24 +119,25 @@ terminal _SYMB_34;    //   class
 terminal _SYMB_35;    //   do
 terminal _SYMB_36;    //   double
 terminal _SYMB_37;    //   else
-terminal _SYMB_38;    //   false
-terminal _SYMB_39;    //   final
-terminal _SYMB_40;    //   float
-terminal _SYMB_41;    //   goto
-terminal _SYMB_42;    //   havoc
-terminal _SYMB_43;    //   if
-terminal _SYMB_44;    //   implements
-terminal _SYMB_45;    //   instanceof
-terminal _SYMB_46;    //   int
-terminal _SYMB_47;    //   long
-terminal _SYMB_48;    //   new
-terminal _SYMB_49;    //   null
-terminal _SYMB_50;    //   pull
-terminal _SYMB_51;    //   push
-terminal _SYMB_52;    //   return
-terminal _SYMB_53;    //   true
-terminal _SYMB_54;    //   void
-terminal _SYMB_55;    //   while
+terminal _SYMB_38;    //   extends
+terminal _SYMB_39;    //   false
+terminal _SYMB_40;    //   final
+terminal _SYMB_41;    //   float
+terminal _SYMB_42;    //   goto
+terminal _SYMB_43;    //   havoc
+terminal _SYMB_44;    //   if
+terminal _SYMB_45;    //   implements
+terminal _SYMB_46;    //   instanceof
+terminal _SYMB_47;    //   int
+terminal _SYMB_48;    //   long
+terminal _SYMB_49;    //   new
+terminal _SYMB_50;    //   null
+terminal _SYMB_51;    //   pull
+terminal _SYMB_52;    //   push
+terminal _SYMB_53;    //   return
+terminal _SYMB_54;    //   true
+terminal _SYMB_55;    //   void
+terminal _SYMB_56;    //   while
 
 terminal String _STRING_;
 
@@ -153,16 +155,19 @@ ProgramFile ::= ListDecl:p_1  {: RESULT = new soottocfg.ast.Absyn.JhPrg(p_1); :}
 Type ::= BasicType:p_1  {: RESULT = new soottocfg.ast.Absyn.BuiltIn(p_1); :} 
   | _IDENT_:p_1  {: RESULT = new soottocfg.ast.Absyn.ClassType(p_1); :}
 ;
-BasicType ::= _SYMB_46  {: RESULT = new soottocfg.ast.Absyn.Tint(); :} 
-  | _SYMB_47  {: RESULT = new soottocfg.ast.Absyn.Tlong(); :}
-  | _SYMB_40  {: RESULT = new soottocfg.ast.Absyn.Tfloat(); :}
+BasicType ::= _SYMB_47  {: RESULT = new soottocfg.ast.Absyn.Tint(); :} 
+  | _SYMB_48  {: RESULT = new soottocfg.ast.Absyn.Tlong(); :}
+  | _SYMB_41  {: RESULT = new soottocfg.ast.Absyn.Tfloat(); :}
   | _SYMB_36  {: RESULT = new soottocfg.ast.Absyn.Tdouble(); :}
-  | _SYMB_54  {: RESULT = new soottocfg.ast.Absyn.TVoid(); :}
+  | _SYMB_55  {: RESULT = new soottocfg.ast.Absyn.TVoid(); :}
   | _SYMB_33  {: RESULT = new soottocfg.ast.Absyn.Tboolean(); :}
 ;
-Decl ::= _SYMB_34 _IDENT_:p_2 _SYMB_0 ListFieldDeclaration:p_4 _SYMB_1  {: RESULT = new soottocfg.ast.Absyn.TDecl(p_2,p_4); :} 
-  | _SYMB_34 _IDENT_:p_2 _SYMB_2 ListTupleEntry:p_4 _SYMB_3 _SYMB_0 ListFieldDeclaration:p_7 _SYMB_1  {: RESULT = new soottocfg.ast.Absyn.TDecl2(p_2,p_4,p_7); :}
+Decl ::= _SYMB_34 _IDENT_:p_2 DeclBody:p_3  {: RESULT = new soottocfg.ast.Absyn.TDecl(p_2,p_3); :} 
+  | _SYMB_34 _IDENT_:p_2 _SYMB_38 _IDENT_:p_4 DeclBody:p_5  {: RESULT = new soottocfg.ast.Absyn.TDecl2(p_2,p_4,p_5); :}
   | TypeList:p_1 MethodDecl:p_2 MethodBody:p_3  {: RESULT = new soottocfg.ast.Absyn.MDecl(p_1,p_2,p_3); :}
+;
+DeclBody ::= _SYMB_0 ListFieldDeclaration:p_2 _SYMB_1  {: RESULT = new soottocfg.ast.Absyn.TDeclBody(p_2); :} 
+  | _SYMB_2 ListTupleEntry:p_2 _SYMB_3 _SYMB_0 ListFieldDeclaration:p_5 _SYMB_1  {: RESULT = new soottocfg.ast.Absyn.TDeclBody2(p_2,p_5); :}
 ;
 ListDecl ::=  /* empty */  {: RESULT = new soottocfg.ast.Absyn.ListDecl(); :} 
   | ListDecl:p_1 Decl:p_2  {: RESULT = p_1; p_1.addLast(p_2); :}
@@ -193,10 +198,10 @@ ListVarDecl ::= VarDecl:p_1  {: RESULT = new soottocfg.ast.Absyn.ListVarDecl(); 
 DeclaratorName ::= _IDENT_:p_1  {: RESULT = new soottocfg.ast.Absyn.DeclName(p_1); :} 
 ;
 MethodDecl ::= DeclaratorName:p_1 _SYMB_7 ListParameter:p_3 _SYMB_8  {: RESULT = new soottocfg.ast.Absyn.Mth(p_1,p_3); :} 
-  | DeclaratorName:p_1 _SYMB_7 ListParameter:p_3 _SYMB_8 _SYMB_44 _STRING_:p_6  {: RESULT = new soottocfg.ast.Absyn.Mth2(p_1,p_3,p_6); :}
+  | DeclaratorName:p_1 _SYMB_7 ListParameter:p_3 _SYMB_8 _SYMB_45 _STRING_:p_6  {: RESULT = new soottocfg.ast.Absyn.Mth2(p_1,p_3,p_6); :}
 ;
 Parameter ::= Type:p_1 DeclaratorName:p_2  {: RESULT = new soottocfg.ast.Absyn.Param(p_1,p_2); :} 
-  | _SYMB_39 Type:p_2 DeclaratorName:p_3  {: RESULT = new soottocfg.ast.Absyn.Pfinal(p_2,p_3); :}
+  | _SYMB_40 Type:p_2 DeclaratorName:p_3  {: RESULT = new soottocfg.ast.Absyn.Pfinal(p_2,p_3); :}
 ;
 ListParameter ::=  /* empty */  {: RESULT = new soottocfg.ast.Absyn.ListParameter(); :} 
   | Parameter:p_1  {: RESULT = new soottocfg.ast.Absyn.ListParameter(); RESULT.addLast(p_1); :}
@@ -208,7 +213,7 @@ MethodBody ::= _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.IBody(); :}
 Body ::= _SYMB_0 ListLVarStatement:p_2 _SYMB_1  {: RESULT = new soottocfg.ast.Absyn.XBody(p_2); :} 
 ;
 LVarStatement ::= Type:p_1 ListVarDecl:p_2 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.LVar(p_1,p_2); :} 
-  | _SYMB_39 Type:p_2 ListVarDecl:p_3 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.LVarf(p_2,p_3); :}
+  | _SYMB_40 Type:p_2 ListVarDecl:p_3 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.LVarf(p_2,p_3); :}
   | Stm:p_1  {: RESULT = new soottocfg.ast.Absyn.Statem(p_1); :}
 ;
 ListLVarStatement ::=  /* empty */  {: RESULT = new soottocfg.ast.Absyn.ListLVarStatement(); :} 
@@ -216,7 +221,7 @@ ListLVarStatement ::=  /* empty */  {: RESULT = new soottocfg.ast.Absyn.ListLVar
 ;
 Stm ::= _IDENT_:p_1 _SYMB_4  {: RESULT = new soottocfg.ast.Absyn.Lbl(p_1); :} 
   | _IDENT_:p_1 _SYMB_9 Exp:p_3 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.Asg(p_1,p_3); :}
-  | _IDENT_:p_1 _SYMB_9 _SYMB_48 Type:p_4 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.NewSt(p_1,p_4); :}
+  | _IDENT_:p_1 _SYMB_9 _SYMB_49 Type:p_4 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.NewSt(p_1,p_4); :}
   | ListCommaIdentList:p_1 _SYMB_9 _IDENT_:p_3 _SYMB_7 ListCommaExpList:p_5 _SYMB_8 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.Cal(p_1,p_3,p_5); :}
   | _SYMB_0 ListLVarStatement:p_2 _SYMB_1  {: RESULT = new soottocfg.ast.Absyn.LV(p_2); :}
   | GuardStm:p_1  {: RESULT = new soottocfg.ast.Absyn.Grd(p_1); :}
@@ -238,26 +243,26 @@ ListCommaIdentList ::= CommaIdentList:p_1  {: RESULT = new soottocfg.ast.Absyn.L
 GuardStm ::= _SYMB_31 _SYMB_7 Exp:p_3 _SYMB_8 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.Asrt(p_3); :} 
   | _SYMB_32 _SYMB_7 Exp:p_3 _SYMB_8 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.Asme(p_3); :}
 ;
-JumpStm ::= _SYMB_41 ListCommaIdentList:p_2 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.Glabel(p_2); :} 
-  | _SYMB_52 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.Return(); :}
-  | _SYMB_52 ListCommaExpList:p_2 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.ReturnExp(p_2); :}
+JumpStm ::= _SYMB_42 ListCommaIdentList:p_2 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.Glabel(p_2); :} 
+  | _SYMB_53 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.Return(); :}
+  | _SYMB_53 ListCommaExpList:p_2 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.ReturnExp(p_2); :}
 ;
-IterStm ::= _SYMB_55 _SYMB_7 Exp:p_3 _SYMB_8 Stm:p_5  {: RESULT = new soottocfg.ast.Absyn.While(p_3,p_5); :} 
-  | _SYMB_35 Stm:p_2 _SYMB_55 _SYMB_7 Exp:p_5 _SYMB_8  {: RESULT = new soottocfg.ast.Absyn.Do(p_2,p_5); :}
+IterStm ::= _SYMB_56 _SYMB_7 Exp:p_3 _SYMB_8 Stm:p_5  {: RESULT = new soottocfg.ast.Absyn.While(p_3,p_5); :} 
+  | _SYMB_35 Stm:p_2 _SYMB_56 _SYMB_7 Exp:p_5 _SYMB_8  {: RESULT = new soottocfg.ast.Absyn.Do(p_2,p_5); :}
 ;
-SelectionStm ::= _SYMB_43 _SYMB_7 Exp:p_3 _SYMB_8 Stm:p_5 ListElseif:p_6  {: RESULT = new soottocfg.ast.Absyn.Ifone(p_3,p_5,p_6); :} 
-  | _SYMB_43 _SYMB_7 Exp:p_3 _SYMB_8 Stm:p_5 ListElseif:p_6 _SYMB_37 Stm:p_8  {: RESULT = new soottocfg.ast.Absyn.If(p_3,p_5,p_6,p_8); :}
+SelectionStm ::= _SYMB_44 _SYMB_7 Exp:p_3 _SYMB_8 Stm:p_5 ListElseif:p_6  {: RESULT = new soottocfg.ast.Absyn.Ifone(p_3,p_5,p_6); :} 
+  | _SYMB_44 _SYMB_7 Exp:p_3 _SYMB_8 Stm:p_5 ListElseif:p_6 _SYMB_37 Stm:p_8  {: RESULT = new soottocfg.ast.Absyn.If(p_3,p_5,p_6,p_8); :}
 ;
-Elseif ::= _SYMB_37 _SYMB_43 _SYMB_7 Exp:p_4 _SYMB_8 Stm:p_6  {: RESULT = new soottocfg.ast.Absyn.EIf(p_4,p_6); :} 
+Elseif ::= _SYMB_37 _SYMB_44 _SYMB_7 Exp:p_4 _SYMB_8 Stm:p_6  {: RESULT = new soottocfg.ast.Absyn.EIf(p_4,p_6); :} 
 ;
 ListElseif ::=  /* empty */  {: RESULT = new soottocfg.ast.Absyn.ListElseif(); :} 
   | ListElseif:p_1 Elseif:p_2  {: RESULT = p_1; p_1.addLast(p_2); :}
 ;
-HeapStm ::= ListCommaIdentList:p_1 _SYMB_9 _SYMB_50 _SYMB_7 ListCommaExpList:p_5 _SYMB_8 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.PullSt(p_1,p_5); :} 
-  | _SYMB_51 _SYMB_7 ListCommaExpList:p_3 _SYMB_8 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.PushSt(p_3); :}
-  | _SYMB_42 ListCommaIdentList:p_2 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.HavocSt(p_2); :}
+HeapStm ::= ListCommaIdentList:p_1 _SYMB_9 _SYMB_51 _SYMB_7 ListCommaExpList:p_5 _SYMB_8 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.PullSt(p_1,p_5); :} 
+  | _SYMB_52 _SYMB_7 ListCommaExpList:p_3 _SYMB_8 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.PushSt(p_3); :}
+  | _SYMB_43 ListCommaIdentList:p_2 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.HavocSt(p_2); :}
 ;
-Exp ::= Exp14:p_1 _SYMB_45 Type:p_3  {: RESULT = new soottocfg.ast.Absyn.Etype(p_1,p_3); :} 
+Exp ::= Exp14:p_1 _SYMB_46 Type:p_3  {: RESULT = new soottocfg.ast.Absyn.Etype(p_1,p_3); :} 
   | Exp1:p_1  {: RESULT = p_1; :}
 ;
 Exp2 ::= Exp3:p_1 _SYMB_10 Exp:p_3 _SYMB_4 Exp2:p_5  {: RESULT = new soottocfg.ast.Absyn.Econdition(p_1,p_3,p_5); :} 
@@ -326,12 +331,12 @@ SpecExp ::= _SYMB_7 Exp:p_2 _SYMB_8  {: RESULT = new soottocfg.ast.Absyn.Cep(p_2
 SpecExpNP ::= Constant:p_1  {: RESULT = new soottocfg.ast.Absyn.CNLit(p_1); :} 
   | TupleAcc:p_1  {: RESULT = new soottocfg.ast.Absyn.CNPfld(p_1); :}
 ;
-SpecName ::= _SYMB_49  {: RESULT = new soottocfg.ast.Absyn.SSnull(); :} 
+SpecName ::= _SYMB_50  {: RESULT = new soottocfg.ast.Absyn.SSnull(); :} 
 ;
 Constant ::= _DOUBLE_:p_1  {: RESULT = new soottocfg.ast.Absyn.Edouble(p_1); :} 
   | _INTEGER_:p_1  {: RESULT = new soottocfg.ast.Absyn.Eint(p_1); :}
-  | _SYMB_53  {: RESULT = new soottocfg.ast.Absyn.Etrue(); :}
-  | _SYMB_38  {: RESULT = new soottocfg.ast.Absyn.Efalse(); :}
+  | _SYMB_54  {: RESULT = new soottocfg.ast.Absyn.Etrue(); :}
+  | _SYMB_39  {: RESULT = new soottocfg.ast.Absyn.Efalse(); :}
 ;
 Unary_operator ::= _SYMB_23  {: RESULT = new soottocfg.ast.Absyn.Plus(); :} 
   | _SYMB_24  {: RESULT = new soottocfg.ast.Absyn.Negative(); :}

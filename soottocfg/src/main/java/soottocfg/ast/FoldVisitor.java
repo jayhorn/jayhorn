@@ -60,13 +60,32 @@ public abstract class FoldVisitor<R,A> implements AllVisitor<R,A> {
 /* Decl */
     public R visit(soottocfg.ast.Absyn.TDecl p, A arg) {
       R r = leaf(arg);
+      r = combine(p.declbody_.accept(this, arg), r, arg);
+      return r;
+    }
+    public R visit(soottocfg.ast.Absyn.TDecl2 p, A arg) {
+      R r = leaf(arg);
+      r = combine(p.declbody_.accept(this, arg), r, arg);
+      return r;
+    }
+    public R visit(soottocfg.ast.Absyn.MDecl p, A arg) {
+      R r = leaf(arg);
+      r = combine(p.typelist_.accept(this, arg), r, arg);
+      r = combine(p.methoddecl_.accept(this, arg), r, arg);
+      r = combine(p.methodbody_.accept(this, arg), r, arg);
+      return r;
+    }
+
+/* DeclBody */
+    public R visit(soottocfg.ast.Absyn.TDeclBody p, A arg) {
+      R r = leaf(arg);
       for (FieldDeclaration x : p.listfielddeclaration_)
       {
         r = combine(x.accept(this, arg), r, arg);
       }
       return r;
     }
-    public R visit(soottocfg.ast.Absyn.TDecl2 p, A arg) {
+    public R visit(soottocfg.ast.Absyn.TDeclBody2 p, A arg) {
       R r = leaf(arg);
       for (TupleEntry x : p.listtupleentry_)
       {
@@ -76,13 +95,6 @@ public abstract class FoldVisitor<R,A> implements AllVisitor<R,A> {
       {
         r = combine(x.accept(this, arg), r, arg);
       }
-      return r;
-    }
-    public R visit(soottocfg.ast.Absyn.MDecl p, A arg) {
-      R r = leaf(arg);
-      r = combine(p.typelist_.accept(this, arg), r, arg);
-      r = combine(p.methoddecl_.accept(this, arg), r, arg);
-      r = combine(p.methodbody_.accept(this, arg), r, arg);
       return r;
     }
 

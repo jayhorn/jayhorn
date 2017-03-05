@@ -33,8 +33,9 @@ public class Main {
      * Safety Analysis with JayHorn
      * @param options
      * @param factory
+     * @return true if safe, otherwise false
      */
-    public static void safetyAnalysis(ProverFactory factory){
+    public static boolean safetyAnalysis(ProverFactory factory){
     	Log.info("Building CFG  ... ");
   		SootToCfg soot2cfg = new SootToCfg();
   		soottocfg.Options.v().setBuiltInSpecs(Options.v().useSpecs);
@@ -56,7 +57,7 @@ public class Main {
   		
   		Log.info("Safety Verification ... ");
 
-  		boolean result;
+  		boolean result=false;
   		if ("spacer".equals(Options.v().getSolver())){
   			SpacerChecker spacer = new SpacerChecker(factory);
   			result = spacer.checkProgram(program);
@@ -72,6 +73,7 @@ public class Main {
 		}else{
 			System.out.println(prettyResult);
 		}
+		return result;
       }
     
 	public static void main(String[] args) {

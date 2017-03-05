@@ -8,6 +8,7 @@ public class ComposVisitor<A> implements
   soottocfg.ast.Absyn.Type.Visitor<soottocfg.ast.Absyn.Type,A>,
   soottocfg.ast.Absyn.BasicType.Visitor<soottocfg.ast.Absyn.BasicType,A>,
   soottocfg.ast.Absyn.Decl.Visitor<soottocfg.ast.Absyn.Decl,A>,
+  soottocfg.ast.Absyn.DeclBody.Visitor<soottocfg.ast.Absyn.DeclBody,A>,
   soottocfg.ast.Absyn.TupleEntry.Visitor<soottocfg.ast.Absyn.TupleEntry,A>,
   soottocfg.ast.Absyn.TypeList.Visitor<soottocfg.ast.Absyn.TypeList,A>,
   soottocfg.ast.Absyn.Types.Visitor<soottocfg.ast.Absyn.Types,A>,
@@ -80,15 +81,32 @@ public class ComposVisitor<A> implements
     public Decl visit(soottocfg.ast.Absyn.TDecl p, A arg)
     {
       String ident_ = p.ident_;
+      DeclBody declbody_ = p.declbody_.accept(this, arg);
+      return new soottocfg.ast.Absyn.TDecl(ident_, declbody_);
+    }    public Decl visit(soottocfg.ast.Absyn.TDecl2 p, A arg)
+    {
+      String ident_1 = p.ident_1;
+      String ident_2 = p.ident_2;
+      DeclBody declbody_ = p.declbody_.accept(this, arg);
+      return new soottocfg.ast.Absyn.TDecl2(ident_1, ident_2, declbody_);
+    }    public Decl visit(soottocfg.ast.Absyn.MDecl p, A arg)
+    {
+      TypeList typelist_ = p.typelist_.accept(this, arg);
+      MethodDecl methoddecl_ = p.methoddecl_.accept(this, arg);
+      MethodBody methodbody_ = p.methodbody_.accept(this, arg);
+      return new soottocfg.ast.Absyn.MDecl(typelist_, methoddecl_, methodbody_);
+    }
+/* DeclBody */
+    public DeclBody visit(soottocfg.ast.Absyn.TDeclBody p, A arg)
+    {
       ListFieldDeclaration listfielddeclaration_ = new ListFieldDeclaration();
       for (FieldDeclaration x : p.listfielddeclaration_)
       {
         listfielddeclaration_.add(x.accept(this,arg));
       }
-      return new soottocfg.ast.Absyn.TDecl(ident_, listfielddeclaration_);
-    }    public Decl visit(soottocfg.ast.Absyn.TDecl2 p, A arg)
+      return new soottocfg.ast.Absyn.TDeclBody(listfielddeclaration_);
+    }    public DeclBody visit(soottocfg.ast.Absyn.TDeclBody2 p, A arg)
     {
-      String ident_ = p.ident_;
       ListTupleEntry listtupleentry_ = new ListTupleEntry();
       for (TupleEntry x : p.listtupleentry_)
       {
@@ -99,13 +117,7 @@ public class ComposVisitor<A> implements
       {
         listfielddeclaration_.add(x.accept(this,arg));
       }
-      return new soottocfg.ast.Absyn.TDecl2(ident_, listtupleentry_, listfielddeclaration_);
-    }    public Decl visit(soottocfg.ast.Absyn.MDecl p, A arg)
-    {
-      TypeList typelist_ = p.typelist_.accept(this, arg);
-      MethodDecl methoddecl_ = p.methoddecl_.accept(this, arg);
-      MethodBody methodbody_ = p.methodbody_.accept(this, arg);
-      return new soottocfg.ast.Absyn.MDecl(typelist_, methoddecl_, methodbody_);
+      return new soottocfg.ast.Absyn.TDeclBody2(listtupleentry_, listfielddeclaration_);
     }
 /* TupleEntry */
     public TupleEntry visit(soottocfg.ast.Absyn.NamedTpl p, A arg)

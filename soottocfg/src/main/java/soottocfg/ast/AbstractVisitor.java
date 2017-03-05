@@ -30,6 +30,12 @@ public class AbstractVisitor<R,A> implements AllVisitor<R,A> {
     public R visitDefault(soottocfg.ast.Absyn.Decl p, A arg) {
       throw new IllegalArgumentException(this.getClass().getName() + ": " + p);
     }
+/* DeclBody */
+    public R visit(soottocfg.ast.Absyn.TDeclBody p, A arg) { return visitDefault(p, arg); }
+    public R visit(soottocfg.ast.Absyn.TDeclBody2 p, A arg) { return visitDefault(p, arg); }
+    public R visitDefault(soottocfg.ast.Absyn.DeclBody p, A arg) {
+      throw new IllegalArgumentException(this.getClass().getName() + ": " + p);
+    }
 /* TupleEntry */
     public R visit(soottocfg.ast.Absyn.NamedTpl p, A arg) { return visitDefault(p, arg); }
     public R visitDefault(soottocfg.ast.Absyn.TupleEntry p, A arg) {

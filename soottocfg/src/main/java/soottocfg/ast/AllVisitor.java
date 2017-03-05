@@ -8,6 +8,7 @@ public interface AllVisitor<R,A> extends
   soottocfg.ast.Absyn.Type.Visitor<R,A>,
   soottocfg.ast.Absyn.BasicType.Visitor<R,A>,
   soottocfg.ast.Absyn.Decl.Visitor<R,A>,
+  soottocfg.ast.Absyn.DeclBody.Visitor<R,A>,
   soottocfg.ast.Absyn.TupleEntry.Visitor<R,A>,
   soottocfg.ast.Absyn.TypeList.Visitor<R,A>,
   soottocfg.ast.Absyn.Types.Visitor<R,A>,
