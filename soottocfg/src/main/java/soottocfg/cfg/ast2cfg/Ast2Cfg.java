@@ -206,6 +206,7 @@ public class Ast2Cfg {
 					bodyVariables.add(new Variable(name, cfgType, true, isUnique));
 				}
 			}
+			cv.addFields(bodyVariables);
 		}
 
 		private soottocfg.cfg.type.Type resolveAstTyple(soottocfg.ast.Absyn.Type astType, Program prog,
@@ -220,6 +221,8 @@ public class Ast2Cfg {
 					return IntType.instance();
 				} else if (bt instanceof Tlong) {
 				} else if (bt instanceof TVoid) {
+				} else {
+					throw new RuntimeException();
 				}
 			} else if (astType instanceof ClassType) {
 				ClassVariable cv = resolveType(((ClassType) astType).ident_, prog, declMap, resolvedTypes, processed);
