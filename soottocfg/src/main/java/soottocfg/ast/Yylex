@@ -79,8 +79,9 @@ IDENT = ({LETTER}|{DIGIT}|['_])
 <YYINITIAL>push { return new Symbol(sym._SYMB_52); }
 <YYINITIAL>return { return new Symbol(sym._SYMB_53); }
 <YYINITIAL>true { return new Symbol(sym._SYMB_54); }
-<YYINITIAL>void { return new Symbol(sym._SYMB_55); }
-<YYINITIAL>while { return new Symbol(sym._SYMB_56); }
+<YYINITIAL>unique { return new Symbol(sym._SYMB_55); }
+<YYINITIAL>void { return new Symbol(sym._SYMB_56); }
+<YYINITIAL>while { return new Symbol(sym._SYMB_57); }
 <YYINITIAL>"//"[^\n]*\n { /* BNFC single-line comment */ }
 <YYINITIAL>"/**" { yybegin(COMMENT); }
 <COMMENT>"**/" { yybegin(YYINITIAL); }

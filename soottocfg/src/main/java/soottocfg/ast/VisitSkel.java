@@ -96,6 +96,11 @@ public class VisitSkel
       //p.ident_;
       p.type_.accept(new TypeVisitor<R,A>(), arg);
       return null;
+    }    public R visit(soottocfg.ast.Absyn.UNamedTpl p, A arg)
+    { /* Code For UNamedTpl Goes Here */
+      //p.ident_;
+      p.type_.accept(new TypeVisitor<R,A>(), arg);
+      return null;
     }
   }
   public class TypeListVisitor<R,A> implements TypeList.Visitor<R,A>
@@ -123,6 +128,12 @@ public class VisitSkel
   {
     public R visit(soottocfg.ast.Absyn.Dvar p, A arg)
     { /* Code For Dvar Goes Here */
+      p.type_.accept(new TypeVisitor<R,A>(), arg);
+      for (VarDecl x: p.listvardecl_)
+      { /* ... */ }
+      return null;
+    }    public R visit(soottocfg.ast.Absyn.UDvar p, A arg)
+    { /* Code For UDvar Goes Here */
       p.type_.accept(new TypeVisitor<R,A>(), arg);
       for (VarDecl x: p.listvardecl_)
       { /* ... */ }

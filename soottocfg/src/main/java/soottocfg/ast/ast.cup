@@ -136,8 +136,9 @@ terminal _SYMB_51;    //   pull
 terminal _SYMB_52;    //   push
 terminal _SYMB_53;    //   return
 terminal _SYMB_54;    //   true
-terminal _SYMB_55;    //   void
-terminal _SYMB_56;    //   while
+terminal _SYMB_55;    //   unique
+terminal _SYMB_56;    //   void
+terminal _SYMB_57;    //   while
 
 terminal String _STRING_;
 
@@ -159,7 +160,7 @@ BasicType ::= _SYMB_47  {: RESULT = new soottocfg.ast.Absyn.Tint(); :}
   | _SYMB_48  {: RESULT = new soottocfg.ast.Absyn.Tlong(); :}
   | _SYMB_41  {: RESULT = new soottocfg.ast.Absyn.Tfloat(); :}
   | _SYMB_36  {: RESULT = new soottocfg.ast.Absyn.Tdouble(); :}
-  | _SYMB_55  {: RESULT = new soottocfg.ast.Absyn.TVoid(); :}
+  | _SYMB_56  {: RESULT = new soottocfg.ast.Absyn.TVoid(); :}
   | _SYMB_33  {: RESULT = new soottocfg.ast.Absyn.Tboolean(); :}
 ;
 Decl ::= _SYMB_34 _IDENT_:p_2 DeclBody:p_3  {: RESULT = new soottocfg.ast.Absyn.TDecl(p_2,p_3); :} 
@@ -173,6 +174,7 @@ ListDecl ::=  /* empty */  {: RESULT = new soottocfg.ast.Absyn.ListDecl(); :}
   | ListDecl:p_1 Decl:p_2  {: RESULT = p_1; p_1.addLast(p_2); :}
 ;
 TupleEntry ::= _IDENT_:p_1 _SYMB_4 Type:p_3  {: RESULT = new soottocfg.ast.Absyn.NamedTpl(p_1,p_3); :} 
+  | _IDENT_:p_1 _SYMB_4 _SYMB_55 Type:p_4  {: RESULT = new soottocfg.ast.Absyn.UNamedTpl(p_1,p_4); :}
 ;
 ListTupleEntry ::= TupleEntry:p_1  {: RESULT = new soottocfg.ast.Absyn.ListTupleEntry(); RESULT.addLast(p_1); :} 
   | TupleEntry:p_1 _SYMB_5 ListTupleEntry:p_3  {: RESULT = p_3; p_3.addFirst(p_1); :}
@@ -186,6 +188,7 @@ ListTypes ::= Types:p_1  {: RESULT = new soottocfg.ast.Absyn.ListTypes(); RESULT
   | Types:p_1 _SYMB_5 ListTypes:p_3  {: RESULT = p_3; p_3.addFirst(p_1); :}
 ;
 FieldDeclaration ::= Type:p_1 ListVarDecl:p_2 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.Dvar(p_1,p_2); :} 
+  | _SYMB_55 Type:p_2 ListVarDecl:p_3 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.UDvar(p_2,p_3); :}
 ;
 ListFieldDeclaration ::=  /* empty */  {: RESULT = new soottocfg.ast.Absyn.ListFieldDeclaration(); :} 
   | ListFieldDeclaration:p_1 FieldDeclaration:p_2  {: RESULT = p_1; p_1.addLast(p_2); :}
@@ -247,8 +250,8 @@ JumpStm ::= _SYMB_42 ListCommaIdentList:p_2 _SYMB_6  {: RESULT = new soottocfg.a
   | _SYMB_53 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.Return(); :}
   | _SYMB_53 ListCommaExpList:p_2 _SYMB_6  {: RESULT = new soottocfg.ast.Absyn.ReturnExp(p_2); :}
 ;
-IterStm ::= _SYMB_56 _SYMB_7 Exp:p_3 _SYMB_8 Stm:p_5  {: RESULT = new soottocfg.ast.Absyn.While(p_3,p_5); :} 
-  | _SYMB_35 Stm:p_2 _SYMB_56 _SYMB_7 Exp:p_5 _SYMB_8  {: RESULT = new soottocfg.ast.Absyn.Do(p_2,p_5); :}
+IterStm ::= _SYMB_57 _SYMB_7 Exp:p_3 _SYMB_8 Stm:p_5  {: RESULT = new soottocfg.ast.Absyn.While(p_3,p_5); :} 
+  | _SYMB_35 Stm:p_2 _SYMB_57 _SYMB_7 Exp:p_5 _SYMB_8  {: RESULT = new soottocfg.ast.Absyn.Do(p_2,p_5); :}
 ;
 SelectionStm ::= _SYMB_44 _SYMB_7 Exp:p_3 _SYMB_8 Stm:p_5 ListElseif:p_6  {: RESULT = new soottocfg.ast.Absyn.Ifone(p_3,p_5,p_6); :} 
   | _SYMB_44 _SYMB_7 Exp:p_3 _SYMB_8 Stm:p_5 ListElseif:p_6 _SYMB_37 Stm:p_8  {: RESULT = new soottocfg.ast.Absyn.If(p_3,p_5,p_6,p_8); :}

@@ -1,6 +1,6 @@
 // lets use jh as ending.
 
-class Test < mytuple : int, mytuple2 : Object> {
+class Test < mytuple : int, mytuple2 : boolean> {
   int hello;
   boolean world;
   Test recursive;

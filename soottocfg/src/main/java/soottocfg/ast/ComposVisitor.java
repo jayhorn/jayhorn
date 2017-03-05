@@ -125,6 +125,11 @@ public class ComposVisitor<A> implements
       String ident_ = p.ident_;
       Type type_ = p.type_.accept(this, arg);
       return new soottocfg.ast.Absyn.NamedTpl(ident_, type_);
+    }    public TupleEntry visit(soottocfg.ast.Absyn.UNamedTpl p, A arg)
+    {
+      String ident_ = p.ident_;
+      Type type_ = p.type_.accept(this, arg);
+      return new soottocfg.ast.Absyn.UNamedTpl(ident_, type_);
     }
 /* TypeList */
     public TypeList visit(soottocfg.ast.Absyn.TList1 p, A arg)
@@ -156,6 +161,15 @@ public class ComposVisitor<A> implements
         listvardecl_.add(x.accept(this,arg));
       }
       return new soottocfg.ast.Absyn.Dvar(type_, listvardecl_);
+    }    public FieldDeclaration visit(soottocfg.ast.Absyn.UDvar p, A arg)
+    {
+      Type type_ = p.type_.accept(this, arg);
+      ListVarDecl listvardecl_ = new ListVarDecl();
+      for (VarDecl x : p.listvardecl_)
+      {
+        listvardecl_.add(x.accept(this,arg));
+      }
+      return new soottocfg.ast.Absyn.UDvar(type_, listvardecl_);
     }
 /* VarDecl */
     public VarDecl visit(soottocfg.ast.Absyn.VDecl p, A arg)

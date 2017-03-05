@@ -851,6 +851,16 @@ public class PrettyPrinter
        pp(_namedtpl.type_, 0);
        if (_i_ > 0) render(_R_PAREN);
     }
+    else     if (foo instanceof soottocfg.ast.Absyn.UNamedTpl)
+    {
+       soottocfg.ast.Absyn.UNamedTpl _unamedtpl = (soottocfg.ast.Absyn.UNamedTpl) foo;
+       if (_i_ > 0) render(_L_PAREN);
+       pp(_unamedtpl.ident_, 0);
+       render(":");
+       render("unique");
+       pp(_unamedtpl.type_, 0);
+       if (_i_ > 0) render(_R_PAREN);
+    }
   }
 
   private static void pp(soottocfg.ast.Absyn.ListTupleEntry foo, int _i_)
@@ -916,6 +926,16 @@ public class PrettyPrinter
        if (_i_ > 0) render(_L_PAREN);
        pp(_dvar.type_, 0);
        pp(_dvar.listvardecl_, 0);
+       render(";");
+       if (_i_ > 0) render(_R_PAREN);
+    }
+    else     if (foo instanceof soottocfg.ast.Absyn.UDvar)
+    {
+       soottocfg.ast.Absyn.UDvar _udvar = (soottocfg.ast.Absyn.UDvar) foo;
+       if (_i_ > 0) render(_L_PAREN);
+       render("unique");
+       pp(_udvar.type_, 0);
+       pp(_udvar.listvardecl_, 0);
        render(";");
        if (_i_ > 0) render(_R_PAREN);
     }
@@ -1927,6 +1947,15 @@ public class PrettyPrinter
        sh(_namedtpl.type_);
        render(")");
     }
+    if (foo instanceof soottocfg.ast.Absyn.UNamedTpl)
+    {
+       soottocfg.ast.Absyn.UNamedTpl _unamedtpl = (soottocfg.ast.Absyn.UNamedTpl) foo;
+       render("(");
+       render("UNamedTpl");
+       sh(_unamedtpl.ident_);
+       sh(_unamedtpl.type_);
+       render(")");
+    }
   }
 
   private static void sh(soottocfg.ast.Absyn.ListTupleEntry foo)
@@ -1993,6 +2022,17 @@ public class PrettyPrinter
        sh(_dvar.type_);
        render("[");
        sh(_dvar.listvardecl_);
+       render("]");
+       render(")");
+    }
+    if (foo instanceof soottocfg.ast.Absyn.UDvar)
+    {
+       soottocfg.ast.Absyn.UDvar _udvar = (soottocfg.ast.Absyn.UDvar) foo;
+       render("(");
+       render("UDvar");
+       sh(_udvar.type_);
+       render("[");
+       sh(_udvar.listvardecl_);
        render("]");
        render(")");
     }

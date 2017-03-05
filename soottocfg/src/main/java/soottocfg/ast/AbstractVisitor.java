@@ -38,6 +38,7 @@ public class AbstractVisitor<R,A> implements AllVisitor<R,A> {
     }
 /* TupleEntry */
     public R visit(soottocfg.ast.Absyn.NamedTpl p, A arg) { return visitDefault(p, arg); }
+    public R visit(soottocfg.ast.Absyn.UNamedTpl p, A arg) { return visitDefault(p, arg); }
     public R visitDefault(soottocfg.ast.Absyn.TupleEntry p, A arg) {
       throw new IllegalArgumentException(this.getClass().getName() + ": " + p);
     }
@@ -54,6 +55,7 @@ public class AbstractVisitor<R,A> implements AllVisitor<R,A> {
     }
 /* FieldDeclaration */
     public R visit(soottocfg.ast.Absyn.Dvar p, A arg) { return visitDefault(p, arg); }
+    public R visit(soottocfg.ast.Absyn.UDvar p, A arg) { return visitDefault(p, arg); }
     public R visitDefault(soottocfg.ast.Absyn.FieldDeclaration p, A arg) {
       throw new IllegalArgumentException(this.getClass().getName() + ": " + p);
     }

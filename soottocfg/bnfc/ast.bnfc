@@ -22,6 +22,7 @@ JhPrg. 	  ProgramFile ::= [Decl];
 BuiltIn.    Type ::= BasicType;
 ClassType.  Type ::= Ident;
 
+
 -- basic types
 
 Tint.         BasicType ::= "int";
@@ -43,6 +44,7 @@ MDecl.    Decl ::= TypeList MethodDecl MethodBody;
 separator Decl "";
 
 NamedTpl.  TupleEntry ::= Ident ":" Type ;
+UNamedTpl.  TupleEntry ::= Ident ":" "unique" Type ;
 separator nonempty TupleEntry ",";
 
 TList1.   TypeList ::= Type ;
@@ -51,6 +53,7 @@ TNames.   Types ::= Type;
 separator nonempty Types ",";
 
 Dvar.     FieldDeclaration ::= Type [VarDecl] ";";
+UDvar.    FieldDeclaration ::= "unique" Type [VarDecl] ";";
 separator FieldDeclaration "";
 
 VDecl.    VarDecl ::= Ident;

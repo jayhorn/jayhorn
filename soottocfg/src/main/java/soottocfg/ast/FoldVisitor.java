@@ -104,6 +104,11 @@ public abstract class FoldVisitor<R,A> implements AllVisitor<R,A> {
       r = combine(p.type_.accept(this, arg), r, arg);
       return r;
     }
+    public R visit(soottocfg.ast.Absyn.UNamedTpl p, A arg) {
+      R r = leaf(arg);
+      r = combine(p.type_.accept(this, arg), r, arg);
+      return r;
+    }
 
 /* TypeList */
     public R visit(soottocfg.ast.Absyn.TList1 p, A arg) {
@@ -129,6 +134,15 @@ public abstract class FoldVisitor<R,A> implements AllVisitor<R,A> {
 
 /* FieldDeclaration */
     public R visit(soottocfg.ast.Absyn.Dvar p, A arg) {
+      R r = leaf(arg);
+      r = combine(p.type_.accept(this, arg), r, arg);
+      for (VarDecl x : p.listvardecl_)
+      {
+        r = combine(x.accept(this, arg), r, arg);
+      }
+      return r;
+    }
+    public R visit(soottocfg.ast.Absyn.UDvar p, A arg) {
       R r = leaf(arg);
       r = combine(p.type_.accept(this, arg), r, arg);
       for (VarDecl x : p.listvardecl_)
