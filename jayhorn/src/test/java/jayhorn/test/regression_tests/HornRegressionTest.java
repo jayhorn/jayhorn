@@ -68,7 +68,7 @@ public class HornRegressionTest {
 	}
 
 
-//	@Test
+	@Test
 	public void testWithPrincess() {
 		PrincessProverFactory factory = new PrincessProverFactory();
 		Program program = getCFG(factory);
@@ -82,7 +82,7 @@ public class HornRegressionTest {
 		}
 	}
 
-	@Test
+//	@Test
 	public void testWithSpacer() {
 		SpacerProverFactory factory = new SpacerProverFactory();
 		Program program = getCFG(factory);
