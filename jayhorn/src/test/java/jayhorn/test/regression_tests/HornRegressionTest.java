@@ -68,7 +68,7 @@ public class HornRegressionTest {
 	}
 
 
-	@Test
+//	@Test
 	public void testWithPrincess() {
 		PrincessProverFactory factory = new PrincessProverFactory();
 		Program program = getCFG(factory);
@@ -82,7 +82,7 @@ public class HornRegressionTest {
 		}
 	}
 
-	//@Test
+	@Test
 	public void testWithSpacer() {
 		SpacerProverFactory factory = new SpacerProverFactory();
 		Program program = getCFG(factory);
@@ -104,12 +104,12 @@ public class HornRegressionTest {
 		try {
 //			jayhorn.Options.v().setInlineCount(15);
 //			jayhorn.Options.v().setInlineMaxSize(50);			
-			soottocfg.Options.v().setMemPrecision(1);
+//			soottocfg.Options.v().setMemPrecision(1);
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
 //			soottocfg.Options.v().setPrintCFG(true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
-//			jayhorn.Options.v().setPrintHorn(true);
+			jayhorn.Options.v().setPrintHorn(true);
 
 		
 			return soot2cfg.getProgram();

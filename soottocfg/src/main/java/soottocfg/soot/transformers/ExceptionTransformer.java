@@ -39,6 +39,7 @@ import soot.jimple.CastExpr;
 import soot.jimple.CaughtExceptionRef;
 import soot.jimple.ConditionExpr;
 import soot.jimple.DefinitionStmt;
+import soot.jimple.DivExpr;
 import soot.jimple.ExitMonitorStmt;
 import soot.jimple.IdentityRef;
 import soot.jimple.IfStmt;
@@ -53,6 +54,7 @@ import soot.jimple.JimpleBody;
 import soot.jimple.LengthExpr;
 import soot.jimple.NullConstant;
 import soot.jimple.Ref;
+import soot.jimple.RemExpr;
 import soot.jimple.ReturnStmt;
 import soot.jimple.StaticFieldRef;
 import soot.jimple.Stmt;
@@ -74,7 +76,8 @@ import soottocfg.util.Pair;
 public class ExceptionTransformer extends AbstractSceneTransformer {
 
 	protected final SootClass exceptionClass, runtimeExceptionClass, nullPointerExceptionClass,
-			arrayIndexOutOfBoundsExceptionClass, classCastExceptionClass, errorExceptionClass, throwableClass;
+			arrayIndexOutOfBoundsExceptionClass, classCastExceptionClass, errorExceptionClass, 
+			throwableClass, arithmeticExceptionClass;
 	private final Hierarchy hierarchy;
 
 	private boolean treatUncaughtExceptionsAsAssertions;
@@ -102,6 +105,7 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 		nullPointerExceptionClass = Scene.v().getSootClass("java.lang.NullPointerException");
 		arrayIndexOutOfBoundsExceptionClass = Scene.v().getSootClass("java.lang.ArrayIndexOutOfBoundsException");
 		classCastExceptionClass = Scene.v().getSootClass("java.lang.ClassCastException");
+		arithmeticExceptionClass = Scene.v().getSootClass("java.lang.ArithmeticException");
 		errorExceptionClass = Scene.v().getSootClass("java.lang.Error");
 		hierarchy = Scene.v().getActiveHierarchy();
 	}
@@ -764,6 +768,15 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 //						+ ". This should be done by the compiler.");
 			}
 			return result;
+		} else if (exception == arithmeticExceptionClass) {
+			if (negated) {
+				result.add(new Pair<Value, List<Unit>>(jimpleEqZero(val),
+						new LinkedList<Unit>()));
+			} else {
+				result.add(new Pair<Value, List<Unit>>(jimpleNeZero(val),
+					new LinkedList<Unit>()));
+			}
+			return result;
 		}
 		throw new RuntimeException("not implemented");
 	}
@@ -873,6 +886,13 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 	private void collectPossibleExceptions(Unit u, Value v) {
 		if (v instanceof BinopExpr) {
 			BinopExpr e = (BinopExpr) v;
+			if (e instanceof DivExpr || e instanceof RemExpr) {
+				// check for division by 0
+				Value divisor = e.getOp2();
+				if (!isNonZeroConstant(divisor)) {
+					registerRuntimeException(u, divisor, arithmeticExceptionClass);
+				}
+			}			
 			// precedence says left before right.
 			collectPossibleExceptions(u, e.getOp1());
 			collectPossibleExceptions(u, e.getOp2());
@@ -921,6 +941,15 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 		} else {
 			throw new RuntimeException("Not handling " + v + " of type " + v.getClass());
 		}
+	}
+	
+	private boolean isNonZeroConstant(Value divisor) {
+		if (divisor instanceof IntConstant) {
+			IntConstant divint = (IntConstant) divisor;
+			if (divint.value != 0)
+				return true;
+		}
+		return false;
 	}
 
 	private void refMayThrowException(Unit u, Ref r) {

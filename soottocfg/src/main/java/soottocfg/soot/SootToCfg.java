@@ -147,7 +147,7 @@ public class SootToCfg {
 		}
 		
 		boolean changed = true;
-		while(changed) {			
+		while(changed) {
 			changed = applyPullPushSimplification();
 			changed = applyDataFlowSimplifications() ? true : changed;
 		}

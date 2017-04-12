@@ -195,7 +195,7 @@ public abstract class AbstractDominators<V> {
 					// of the intersection problem
 					// but it should work
 					if (forward) {
-						Verify.verify(graph.inDegreeOf(b) != 0, "Unexpected indegree of 0 for " + b);
+						//Verify.verify(graph.inDegreeOf(b) != 0, "Unexpected indegree of 0 for " + b);
 						for (V inBlock : Graphs.predecessorListOf(graph, b)) {
 							newDom.retainAll(dominators.get(inBlock));
 						}
