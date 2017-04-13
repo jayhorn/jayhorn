@@ -248,6 +248,13 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 			List<SootClass> possibleExceptions = new LinkedList<SootClass>();
 			// first, add everything in the throws clause.
 			possibleExceptions.addAll(ivk.getMethod().getExceptions());
+			
+			possibleExceptions.add(nullPointerExceptionClass);
+			possibleExceptions.add(arrayIndexOutOfBoundsExceptionClass);
+			possibleExceptions.add(classCastExceptionClass);
+			possibleExceptions.add(arithmeticExceptionClass);
+			possibleExceptions.add(errorExceptionClass);
+			
 			// now get all caught exceptions of type RuntimeException or Error
 			List<Trap> surroundingTraps = getTrapsGuardingUnit(u, body);
 			for (Trap t : surroundingTraps) {

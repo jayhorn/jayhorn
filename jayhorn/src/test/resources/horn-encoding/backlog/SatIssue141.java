@@ -1,8 +1,10 @@
 public class SatIssue141 {
 
     public static void sort(Object[] a) {
-        Object[] aux = (Object[]) a.clone();
-        mergeSort(aux);
+        try {
+        	Object[] aux = (Object[]) a.clone();
+        	mergeSort(aux);
+	} catch (ClassCastException e) { }
     }
 
     private static void mergeSort(Object[] src) {
@@ -17,7 +19,6 @@ public class SatIssue141 {
         for (int i = 0; i < N; i++) {
             data[i] = r.nextInt(); 
         }
-
         sort(data);
     }
 
