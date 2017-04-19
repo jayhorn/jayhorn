@@ -87,8 +87,8 @@ public class FailingTests {
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
 
-//			soottocfg.Options.v().setMemPrecision(0);
-//			soottocfg.Options.v().setExcAsAssert(false);
+			soottocfg.Options.v().setMemPrecision(3);
+			soottocfg.Options.v().setExcAsAssert(true);
 
 			soottocfg.Options.v().setPrintCFG(true);
 //			soottocfg.Options.v().setArrayInv(true);
@@ -98,7 +98,7 @@ public class FailingTests {
 			
 
 			jayhorn.Options.v().setTimeout(30);
-			jayhorn.Options.v().setPrintHorn(false);	
+//			jayhorn.Options.v().setPrintHorn(true);	
 //			jayhorn.Options.v().setOut("/tmp/SatArrayInit");
 	  		EldaricaChecker hornChecker = new EldaricaChecker(factory);
 

@@ -195,7 +195,7 @@ public class InterProceduralPullPushOrdering {
 	 */
 	protected boolean mayAlias(PushStatement push, PullStatement pull) {
 		FlowBasedPointsToAnalysis pta = SootToCfg.getPointsToAnalysis();
-		if (pta != null)
+		if (pta != null) 
 			return pta.mayAlias(pull.getObject(), push.getObject());
 		return canAffectPull(push, pull);
 	}

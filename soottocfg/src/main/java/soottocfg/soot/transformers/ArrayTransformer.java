@@ -47,6 +47,7 @@ import soottocfg.soot.util.SootTranslationHelpers;
 /**
  * @author schaef
  * @author rodykers
+ * 
  *         The ArrayTransformer iterates over all classes in the Scene
  *         and replaces Java arrays by generated JayArrays.
  *         For each array type A[] we generate a corresponding JayArray type:
@@ -85,6 +86,8 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 
 	private final static String AElem = "_arElem";
 
+	private final Map<Type, RefType> arrayTypeMap = new HashMap<Type, RefType>();
+	
 	// private static final int NumberOfModeledElements = 0;
 
 	public static boolean isArrayClass(SootClass sc) {
@@ -99,6 +102,12 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 	private final Map<String, SootMethod> methodSubstitutionMap = new HashMap<String, SootMethod>();
 
 	public void applyTransformation() {
+		
+		// make sure we have the Object[] replacement for this dimension
+		ArrayType objAr = ArrayType.v(Scene.v().getSootClass("java.lang.Object").getType(), 1);
+		RefType objArRepl = getArrayReplacementType(objAr);
+		
+		
 		/*
 		 * We have to do two passes. In the first pass, we update all fields and
 		 * method signatures
@@ -202,6 +211,11 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 					// check if its an array write or read.
 					if (u instanceof DefinitionStmt && ((DefinitionStmt) u).getLeftOp() instanceof ArrayRef) {
 						// replace the a[i]=x by a.set(i,x);
+						
+						// bit of a hack...
+						if (! refType.getSootClass().declaresMethodByName(arraySetName))
+							refType = objArRepl;
+						
 						SootMethod am = refType.getSootClass().getMethodByName(arraySetName);
 						Stmt ivk = Jimple.v().newInvokeStmt(Jimple.v().newVirtualInvokeExpr((Local) aref.getBase(),
 								am.makeRef(),
@@ -211,6 +225,11 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 						body.getUnits().insertAfter(ivk, u);
 						body.getUnits().remove(u);
 					} else {
+						
+						// bit of a hack...
+						if (! refType.getSootClass().declaresMethodByName(arrayGetName))
+							refType = objArRepl;
+						
 						SootMethod am = refType.getSootClass().getMethodByName(arrayGetName);
 						// replace the x = a[i] by x = a.get(i)
 						Value ivk = Jimple.v().newVirtualInvokeExpr((Local) aref.getBase(), am.makeRef(),
@@ -256,8 +275,14 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 				} else if (u instanceof DefinitionStmt && ((DefinitionStmt) u).getRightOp() instanceof LengthExpr) {
 					LengthExpr le = (LengthExpr) ((DefinitionStmt) u).getRightOp();
 					SootClass arrayClass = ((RefType) le.getOp().getType()).getSootClass();
+					
+					// bit of a hack...
+					if (! arrayClass.declaresMethodByName(arraySetName))
+						arrayClass = objArRepl.getSootClass();
+					
+					SootField lenField = arrayClass.getFieldByName(SootTranslationHelpers.lengthFieldName);
 					Value fieldRef = Jimple.v().newInstanceFieldRef(le.getOp(),
-							arrayClass.getFieldByName(SootTranslationHelpers.lengthFieldName).makeRef());
+							lenField.makeRef());
 					((DefinitionStmt) u).getRightOpBox().setValue(fieldRef);
 				} else if (u instanceof DefinitionStmt && ((DefinitionStmt) u).getRightOp() instanceof InstanceOfExpr) {
 					InstanceOfExpr ioe = (InstanceOfExpr) ((DefinitionStmt) u).getRightOp();
@@ -300,7 +325,6 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 				throw e;
 			}
 		}
-		
 	}
 
 	protected Type arrayTypeToRefType(Type t) {
@@ -310,7 +334,6 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		return t;
 	}
 
-	private final Map<Type, RefType> arrayTypeMap = new HashMap<Type, RefType>();
 
 	protected RefType getArrayReplacementType(ArrayType t) {
 		Type base = arrayTypeToRefType(t.getElementType());
@@ -327,252 +350,308 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 				arrayTypeName + "_" + elementType.toString().replace(".", "_").replace("$", "D"),
 				Modifier.PUBLIC | Modifier.FINAL);
 
-		// set the superclass to object
-		arrayClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
+		// set the superclass to object for now (there will be a pass to fix this later
+		SootClass objCls = Scene.v().getSootClass("java.lang.Object");
+		Type objType = objCls.getType();
 
+		if (elementType instanceof RefType 
+				&& !elementType.equals(objType) 
+				&& !elementType.toString().contains("java_lang_Object")
+				) {
+
+			// super class is JayArray_java_lang_Object
+			SootClass objReplCls = this.arrayTypeMap.get(objType).getSootClass();
+			arrayClass.setSuperclass(objReplCls);
+
+			// Build constructor
+
+			List<Type> argTypes = new ArrayList<Type>(Collections.nCopies(numDimensions, IntType.v()));
+			SootMethod constructor = new SootMethod(SootMethod.constructorName, argTypes, VoidType.v(),
+					Modifier.PUBLIC);
+			// add the constructor to the class.
+			arrayClass.addMethod(constructor);
+
+			JimpleBody body = Jimple.v().newBody(constructor);
+			// add a local for the first param
+			body.insertIdentityStmts();
+
+			// Add call to superclass constructor
+			ArrayType objAr = ArrayType.v(Scene.v().getSootClass("java.lang.Object").getType(), numDimensions);
+			SootClass objArrayClass = getArrayReplacementType(objAr).getSootClass();
+			SootMethod superConstructor = objArrayClass.getMethod(SootMethod.constructorName, argTypes);
+			body.getUnits().add(Jimple.v().newInvokeStmt(
+					Jimple.v().newSpecialInvokeExpr(body.getThisLocal(),
+							superConstructor.makeRef(), 
+							body.getParameterLocals())));
+
+			Stmt retStmt = Jimple.v().newReturnVoidStmt();
+
+			// set the element type
+			RefType objArReplacement = getArrayReplacementType(objAr);
+			SootField elemTypeField = objArReplacement.getSootClass().getFieldByName(
+					SootTranslationHelpers.arrayElementTypeFieldName);
+			String elementTypeName = ((RefType) elementType).getSootClass().getJavaStyleName();
+			elementTypeName = elementTypeName.replace('.', '/');
+			body.getUnits().add(Jimple.v().newAssignStmt(
+					Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemTypeField.makeRef()),
+					ClassConstant.v(elementTypeName)));
+
+			body.getUnits().add(retStmt);
+			body.validate();
+			constructor.setActiveBody(body);
+
+		} else {
+
+			// super class is java.lang.Object
+			arrayClass.setSuperclass(objCls);
+
+			// add a field for array.length
+			SootField lengthField = new SootField(SootTranslationHelpers.lengthFieldName, IntType.v(),
+					Modifier.PUBLIC | Modifier.FINAL);
+			arrayClass.addField(lengthField);
+
+			// type of the array elements (e.g., float for float[])
+			SootField elemTypeField = new SootField(SootTranslationHelpers.arrayElementTypeFieldName,
+					RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC | Modifier.FINAL);
+			arrayClass.addField(elemTypeField);
+
+			// number of exactly modeled elements
+			int num_exact = soottocfg.Options.v().exactArrayElements();
+			if (num_exact < 0)
+				num_exact = 0;
+
+			/**
+			 * New array model stuff
+			 */
+			if (numDimensions <= 1 && elementType instanceof RefType)
+				elementType = Scene.v().getSootClass("java.lang.Object").getType();
+			SootField elemField = new SootField(AElem, elementType);
+			if (soottocfg.Options.v().arrayInv()) {
+				arrayClass.addField(elemField);
+			}
+
+			// create one field for the first N elements of the array which we
+			// model precisely:
+			SootField[] arrFields = new SootField[num_exact];
+			for (int i = 0; i < num_exact; i++) {
+				arrFields[i] = new SootField(ArrayTransformer.arrayElementPrefix + "_" + i, elementType, Modifier.PUBLIC);
+				arrayClass.addField(arrFields[i]);
+			}
+
+			/**
+			 * GET METHOD
+			 */
+
+			SootMethod getElement = new SootMethod(arrayGetName, Arrays.asList(new Type[] { IntType.v() }), elementType,
+					Modifier.PUBLIC);
+			arrayClass.addMethod(getElement);
+			JimpleBody body = Jimple.v().newBody(getElement);
+			body.insertIdentityStmts();
+			Local retLocal = Jimple.v().newLocal("retVal", elementType);
+			body.getLocals().add(retLocal);
+			List<Unit> retStmts = new LinkedList<Unit>();
+
+			for (int i = 0; i < num_exact; i++) {
+				Unit ret = Jimple.v().newAssignStmt(retLocal,
+						Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[i].makeRef()));
+				retStmts.add(ret);
+				retStmts.add(Jimple.v().newReturnStmt(retLocal));
+				Value cond = Jimple.v().newEqExpr(body.getParameterLocal(0), IntConstant.v(i));
+				body.getUnits().add(Jimple.v().newIfStmt(cond, ret));
+			}
+
+			/**
+			 * New array model stuff
+			 */
+			if (soottocfg.Options.v().arrayInv()) {
+				// ret = element; return ret;
+				Unit ret = Jimple.v().newAssignStmt(retLocal,
+						Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()));
+				body.getUnits().add(ret);
+				body.getUnits().add(Jimple.v().newReturnStmt(retLocal));
+			} else {
+				// if none of the modeled fields was requested, add return havoc as
+				// fall
+				// through case.
+				// ret = havoc; return ret;
+				//			body.getUnits().add(Jimple.v().newAssignStmt(retLocal,
+				//					Jimple.v().newStaticInvokeExpr(SootTranslationHelpers.v().getHavocMethod(elementType).makeRef())));
+				//			body.getUnits().add(Jimple.v().newReturnStmt(retLocal));
+				throw new RuntimeException("Let's stick to the new Array model");
+			}
+
+			// now add all the return statements
+			body.getUnits().addAll(retStmts);
+
+			body.validate();
+			getElement.setActiveBody(body);
+
+			/**
+			 * SET METHOD
+			 */
+
+			SootMethod setElement = new SootMethod(arraySetName, Arrays.asList(new Type[] { IntType.v(), elementType }),
+					VoidType.v(), Modifier.PUBLIC);
+			arrayClass.addMethod(setElement);
+			body = Jimple.v().newBody(setElement);
+			body.insertIdentityStmts();
+
+			List<Unit> updates = new LinkedList<Unit>();
+			for (int i = 0; i < num_exact; i++) {
+				Unit asn = Jimple.v().newAssignStmt(
+						Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[i].makeRef()),
+						body.getParameterLocal(1));
+				updates.add(asn);
+				updates.add(Jimple.v().newReturnVoidStmt());
+				Value cond = Jimple.v().newEqExpr(body.getParameterLocal(0), IntConstant.v(i));
+				body.getUnits().add(Jimple.v().newIfStmt(cond, asn));
+			}
+
+			/**
+			 * New array model stuff
+			 */
+			if (soottocfg.Options.v().arrayInv()) {
+				Unit asn = Jimple.v().newAssignStmt(
+						Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()),
+						body.getParameterLocal(1));
+				body.getUnits().add(asn);
+			}
+
+			body.getUnits().add(Jimple.v().newReturnVoidStmt());
+			body.getUnits().addAll(updates);
+
+			body.validate();
+			setElement.setActiveBody(body);
+
+			/**
+			 * CONSTRUCTOR
+			 */
+			/*
+			 * Assume you have an:
+			 * int[][][] arr;
+			 * you can initialize that with
+			 * arr = new int[1][][];
+			 * arr = new int[1][2][];
+			 * or
+			 * arr = new int[1][2][3];
+			 * so you need to create one constructor for each dimension ...
+			 * a bit annoying, but sound.
+			 * 
+			 */
+			if (numDimensions > 1 && !elementType.toString().contains("_java_"))
+			{
+				System.err.println("[WARNING] Multi-dimensional arrays not supported. Result will be unsound.");
+			}
+
+			// Now create constructors that takes the array size as input
+			// For int[][][] we have to create 3 constructors since one
+			// could create new int[1][][], new int[1][2][], or new int[1][2][3]
+
+			// first, add the signatures for all constructors to the class.
+			// this is necessary, because the constructors call each other.
+			SootMethod[] constructors = new SootMethod[numDimensions];
+			for (int i = 0; i < numDimensions; i++) {
+				List<Type> argTypes = new ArrayList<Type>(Collections.nCopies(i + 1, IntType.v()));
+				SootMethod constructor = new SootMethod(SootMethod.constructorName, argTypes, VoidType.v(),
+						Modifier.PUBLIC);
+				// add the constructor to the class.
+				arrayClass.addMethod(constructor);
+				constructors[i] = constructor;
+			}
+
+			/*
+			 * Now create the bodies for all constructors. Note that this
+			 * loop starts from 1 not from 0.
+			 * For simple arrays, we initialize all elements to default values
+			 * (i.e., zero or null). For multi arrays, we may have to initialize
+			 * the elements to new arrays. E.g.,
+			 * for new int[1][2] we create a constructor call
+			 * <init>(1, 2) which contains one element of type int[] and
+			 * we have to initialize this to a new array int[2] instead of null.
+			 */
+			for (int i = 1; i <= numDimensions; i++) {
+				SootMethod constructor = constructors[i - 1];
+				body = Jimple.v().newBody(constructor);
+				// add a local for the first param
+				body.insertIdentityStmts();
+
+				Local newElement = Jimple.v().newLocal("elem", elementType);
+				body.getLocals().add(newElement);
+
+				Stmt retStmt = Jimple.v().newReturnVoidStmt();
+
+				// create the assignment for the length field, so we can jump back to it
+				Stmt lengthSet = Jimple.v().newAssignStmt(
+						Jimple.v().newInstanceFieldRef(body.getThisLocal(), lengthField.makeRef()),
+						body.getParameterLocal(0));
+
+				// set the length field.
+				body.getUnits().add(lengthSet);
+
+				// set the element type
+				String elementTypeName = elementType.toString();
+				if (elementType instanceof RefType) {
+					elementTypeName = ((RefType) elementType).getSootClass().getJavaStyleName();
+				}
+				elementTypeName = elementTypeName.replace('.', '/');
+				body.getUnits().add(Jimple.v().newAssignStmt(
+						Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemTypeField.makeRef()),
+						ClassConstant.v(elementTypeName)));
+
+				// set element to default value
+				Unit def = Jimple.v().newAssignStmt(
+						Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()),
+						SootTranslationHelpers.v().getDefaultValue(elemField.getType()));
+				body.getUnits().add(def);
+
+				// initialize inner arrays if multi-dimensional
+				if (i > 1) {
+					initializeMultiArrayVars(elementType, elemField, newElement,
+							body, setElement, constructor, retStmt);
+				}	
+
+				// pull element if multi-dim or set to default value else
+				if (i > 1) {
+					// TODO exactly modeled fields
+
+					// for new array model
+					Unit asn1 = Jimple.v().newAssignStmt(
+							newElement,
+							Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()));
+					body.getUnits().add(asn1);
+					//				Unit asn = Jimple.v().newAssignStmt(
+					//						Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()),
+					//						newElement);
+					//				body.getUnits().add(asn);
+				} else {
+					// for exactly modeled fields
+					for (int j = 0; j < num_exact; j++) {
+						Unit asn = Jimple.v().newAssignStmt(
+								Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[j].makeRef()),
+								SootTranslationHelpers.v().getDefaultValue(arrFields[j].getType()));
+						body.getUnits().add(asn);
+					}
+
+					// for new array model
+					if (soottocfg.Options.v().arrayInv()) {
+						Unit asn = Jimple.v().newAssignStmt(
+								Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()),
+								SootTranslationHelpers.v().getDefaultValue(elemField.getType()));
+						body.getUnits().add(asn);
+					}
+				}
+
+				body.getUnits().add(retStmt);
+				body.validate();
+				constructor.setActiveBody(body);
+			}
+		}
+		
 		// add the new class to the scene
 		Scene.v().addClass(arrayClass);
 		arrayClass.setResolvingLevel(SootClass.BODIES);
 		arrayClass.setApplicationClass();
 
-		// add a field for array.length
-		SootField lengthField = new SootField(SootTranslationHelpers.lengthFieldName, IntType.v(),
-				Modifier.PUBLIC | Modifier.FINAL);
-		arrayClass.addField(lengthField);
-
-		// type of the array elements (e.g., float for float[])
-		SootField elemTypeField = new SootField(SootTranslationHelpers.arrayElementTypeFieldName,
-				RefType.v(Scene.v().getSootClass("java.lang.Class")), Modifier.PUBLIC | Modifier.FINAL);
-		arrayClass.addField(elemTypeField);
-
-		// number of exactly modeled elements
-		int num_exact = soottocfg.Options.v().exactArrayElements();
-		if (num_exact < 0)
-			num_exact = 0;
-
-		/**
-		 * New array model stuff
-		 */
-		SootField elemField = new SootField(AElem, elementType);
-		if (soottocfg.Options.v().arrayInv()) {
-			arrayClass.addField(elemField);
-		}
-
-		// create one field for the first N elements of the array which we
-		// model precisely:
-		SootField[] arrFields = new SootField[num_exact];
-		for (int i = 0; i < num_exact; i++) {
-			arrFields[i] = new SootField(ArrayTransformer.arrayElementPrefix + "_" + i, elementType, Modifier.PUBLIC);
-			arrayClass.addField(arrFields[i]);
-		}
-
-		/**
-		 * GET METHOD
-		 */
-
-		SootMethod getElement = new SootMethod(arrayGetName, Arrays.asList(new Type[] { IntType.v() }), elementType,
-				Modifier.PUBLIC);
-		arrayClass.addMethod(getElement);
-		JimpleBody body = Jimple.v().newBody(getElement);
-		body.insertIdentityStmts();
-		Local retLocal = Jimple.v().newLocal("retVal", elementType);
-		body.getLocals().add(retLocal);
-		List<Unit> retStmts = new LinkedList<Unit>();
-
-		for (int i = 0; i < num_exact; i++) {
-			Unit ret = Jimple.v().newAssignStmt(retLocal,
-					Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[i].makeRef()));
-			retStmts.add(ret);
-			retStmts.add(Jimple.v().newReturnStmt(retLocal));
-			Value cond = Jimple.v().newEqExpr(body.getParameterLocal(0), IntConstant.v(i));
-			body.getUnits().add(Jimple.v().newIfStmt(cond, ret));
-		}
-
-		/**
-		 * New array model stuff
-		 */
-		if (soottocfg.Options.v().arrayInv()) {
-			// ret = element; return ret;
-			Unit ret = Jimple.v().newAssignStmt(retLocal,
-					Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()));
-			body.getUnits().add(ret);
-			body.getUnits().add(Jimple.v().newReturnStmt(retLocal));
-		} else {
-			// if none of the modeled fields was requested, add return havoc as
-			// fall
-			// through case.
-			// ret = havoc; return ret;
-//			body.getUnits().add(Jimple.v().newAssignStmt(retLocal,
-//					Jimple.v().newStaticInvokeExpr(SootTranslationHelpers.v().getHavocMethod(elementType).makeRef())));
-//			body.getUnits().add(Jimple.v().newReturnStmt(retLocal));
-			throw new RuntimeException("Let's stick to the new Array model");
-		}
-
-		// now add all the return statements
-		body.getUnits().addAll(retStmts);
-
-		body.validate();
-		getElement.setActiveBody(body);
-
-		/**
-		 * SET METHOD
-		 */
-
-		SootMethod setElement = new SootMethod(arraySetName, Arrays.asList(new Type[] { IntType.v(), elementType }),
-				VoidType.v(), Modifier.PUBLIC);
-		arrayClass.addMethod(setElement);
-		body = Jimple.v().newBody(setElement);
-		body.insertIdentityStmts();
-
-		List<Unit> updates = new LinkedList<Unit>();
-		for (int i = 0; i < num_exact; i++) {
-			Unit asn = Jimple.v().newAssignStmt(
-					Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[i].makeRef()),
-					body.getParameterLocal(1));
-			updates.add(asn);
-			updates.add(Jimple.v().newReturnVoidStmt());
-			Value cond = Jimple.v().newEqExpr(body.getParameterLocal(0), IntConstant.v(i));
-			body.getUnits().add(Jimple.v().newIfStmt(cond, asn));
-		}
-
-		/**
-		 * New array model stuff
-		 */
-		if (soottocfg.Options.v().arrayInv()) {
-			Unit asn = Jimple.v().newAssignStmt(
-					Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()),
-					body.getParameterLocal(1));
-			body.getUnits().add(asn);
-		}
-
-		body.getUnits().add(Jimple.v().newReturnVoidStmt());
-		body.getUnits().addAll(updates);
-
-		body.validate();
-		setElement.setActiveBody(body);
-
-		/**
-		 * CONSTRUCTOR
-		 */
-		/*
-		 * Assume you have an:
-		 * int[][][] arr;
-		 * you can initialize that with
-		 * arr = new int[1][][];
-		 * arr = new int[1][2][];
-		 * or
-		 * arr = new int[1][2][3];
-		 * so you need to create one constructor for each dimension ...
-		 * a bit annoying, but sound.
-		 * 
-		 */
-		if (numDimensions > 1 && !elementType.toString().contains("_java_"))
-		{
-			System.err.println("[WARNING] Multi-dimensional arrays not supported. Result will be unsound.");
-		}
-
-		// Now create constructors that takes the array size as input
-		// For int[][][] we have to create 3 constructors since one
-		// could create new int[1][][], new int[1][2][], or new int[1][2][3]
-
-		// first, add the signatures for all constructors to the class.
-		// this is necessary, because the constructors call each other.
-		SootMethod[] constructors = new SootMethod[numDimensions];
-		for (int i = 0; i < numDimensions; i++) {
-			List<Type> argTypes = new ArrayList<Type>(Collections.nCopies(i + 1, IntType.v()));
-			SootMethod constructor = new SootMethod(SootMethod.constructorName, argTypes, VoidType.v(),
-					Modifier.PUBLIC);
-			// add the constructor to the class.
-			arrayClass.addMethod(constructor);
-			constructors[i] = constructor;
-		}
-
-		/*
-		 * Now create the bodies for all constructors. Note that this
-		 * loop starts from 1 not from 0.
-		 * For simple arrays, we initialize all elements to default values
-		 * (i.e., zero or null). For multi arrays, we may have to initialize
-		 * the elements to new arrays. E.g.,
-		 * for new int[1][2] we create a constructor call
-		 * <init>(1, 2) which contains one element of type int[] and
-		 * we have to initialize this to a new array int[2] instead of null.
-		 */
-		for (int i = 1; i <= numDimensions; i++) {
-			SootMethod constructor = constructors[i - 1];
-			body = Jimple.v().newBody(constructor);
-			// add a local for the first param
-			body.insertIdentityStmts();
-			
-			Local newElement = Jimple.v().newLocal("elem", elementType);
-			body.getLocals().add(newElement);
-
-			Stmt retStmt = Jimple.v().newReturnVoidStmt();
-			
-			// create the assignment for the length field, so we can jump back to it
-			Stmt lengthSet = Jimple.v().newAssignStmt(
-					Jimple.v().newInstanceFieldRef(body.getThisLocal(), lengthField.makeRef()),
-					body.getParameterLocal(0));
-			
-			// set the length field.
-			body.getUnits().add(lengthSet);
-
-			// set the element type
-			String elementTypeName = elementType.toString();
-			if (elementType instanceof RefType) {
-				elementTypeName = ((RefType) elementType).getSootClass().getJavaStyleName();
-			}
-			elementTypeName = elementTypeName.replace('.', '/');
-			body.getUnits().add(Jimple.v().newAssignStmt(
-					Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemTypeField.makeRef()),
-					ClassConstant.v(elementTypeName)));
-			
-			// set element to default value
-			Unit def = Jimple.v().newAssignStmt(
-					Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()),
-					SootTranslationHelpers.v().getDefaultValue(elemField.getType()));
-			body.getUnits().add(def);
-
-			// initialize inner arrays if multi-dimensional
-			if (i > 1) {
-				initializeMultiArrayVars(elementType, elemField, newElement,
-						body, setElement, constructor, retStmt);
-			}	
-
-			// pull element if multi-dim or set to default value else
-			if (i > 1) {
-				// TODO exactly modeled fields
-				
-				// for new array model
-				Unit asn1 = Jimple.v().newAssignStmt(
-						newElement,
-						Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()));
-				body.getUnits().add(asn1);
-//				Unit asn = Jimple.v().newAssignStmt(
-//						Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()),
-//						newElement);
-//				body.getUnits().add(asn);
-			} else {
-				// for exactly modeled fields
-				for (int j = 0; j < num_exact; j++) {
-					Unit asn = Jimple.v().newAssignStmt(
-							Jimple.v().newInstanceFieldRef(body.getThisLocal(), arrFields[j].makeRef()),
-							SootTranslationHelpers.v().getDefaultValue(arrFields[j].getType()));
-					body.getUnits().add(asn);
-				}
-
-				// for new array model
-				if (soottocfg.Options.v().arrayInv()) {
-					Unit asn = Jimple.v().newAssignStmt(
-							Jimple.v().newInstanceFieldRef(body.getThisLocal(), elemField.makeRef()),
-							SootTranslationHelpers.v().getDefaultValue(elemField.getType()));
-					body.getUnits().add(asn);
-				}
-			}
-
-			body.getUnits().add(retStmt);
-			body.validate();
-			constructor.setActiveBody(body);
-		}
 		return arrayClass;
 	}
 
@@ -623,5 +702,46 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 		body.getUnits().add(Jimple.v().newAssignStmt(counter, Jimple.v().newAddExpr(counter, IntConstant.v(1))));
 		body.getUnits().add(Jimple.v().newGotoStmt(loopHead));
 	}
+	
+//	private void fixSubtypingRelation() {
+//		for (Map.Entry<Type, RefType> t : this.arrayTypeMap.entrySet()) {
+//			for (int numDimensions : this.arrayDimensionMap.get(t.getValue())) {
+//			
+//				Type elementType = t.getKey();
+//				SootClass arrayClass = t.getValue().getSootClass();
+//
+//				// if elements are of ref type T extends S, set super class to S[]
+//				if (elementType instanceof RefType) {
+//					SootClass superCls = getRefArraySuperClass((RefType) elementType, numDimensions);
+////					System.out.println("Superclass of " + arrayClass.getName() + " set to " + superCls.getName());
+//					arrayClass.setSuperclass(superCls);
+//				}
+//			}
+//		}
+//	}
+//	
+//	private SootClass getRefArraySuperClass(RefType elType, int numDimensions) {
+//		SootClass obj = Scene.v().getSootClass("java.lang.Object");
+//		RefType objType = obj.getType();
+//		
+//		// try to find array superclass
+//		// e.g. see if there is a jayhorn equivalent of Number[] for Integer[]
+//		SootClass cur = elType.getSootClass();
+//		while (!cur.equals(obj) && cur.resolvingLevel() >= SootClass.HIERARCHY) {
+//			ArrayType at = ArrayType.v(cur.getType(), numDimensions);
+//			if (this.arrayTypeMap.containsKey(at)) {
+//				return this.arrayTypeMap.get(at).getSootClass();
+//			}
+//			cur = cur.getSuperclass();
+//		}
+//		
+//		// else return Object[] jayarray if it exists
+//		if (!elType.equals(objType) && this.arrayTypeMap.containsKey(objType)) {
+//			return this.arrayTypeMap.get(objType).getSootClass();
+//		}
+//		
+//		// else superclass is java.lang.Object
+//		return obj;
+//	}
 
 }

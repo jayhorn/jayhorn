@@ -20,8 +20,6 @@ import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.Variable;
-import soottocfg.soot.memory_model.NewMemoryModel;
-import soottocfg.soot.transformers.ArrayTransformer;
 
 /**
  * @author rodykers
@@ -46,7 +44,6 @@ public class FlowBasedPointsToAnalysis {
 		}
 		
 		// then propagate point to sets until we reach a fixpoint
-//		InterProceduralPullPushOrdering ordering = new InterProceduralPullPushOrdering(program.getEntryPoint());
 		int changes;
 		do {
 			changes = 0;
@@ -88,14 +85,6 @@ public class FlowBasedPointsToAnalysis {
 									changes += rightIntoLeft(right, left);
 								}
 							}
-//						} else if (s instanceof PullStatement) {
-//							PullStatement pull = (PullStatement) s;
-//							Variable left = variableFromExpression(pull.getObject());
-//							Set<PushStatement> pushes = ordering.getPushsInfluencing(pull);
-//							for (PushStatement push : pushes) {
-//								Variable right = variableFromExpression(push.getObject());
-//								changes += rightIntoLeft(right, left);
-//							}
 						}
 					}
 				}
@@ -177,17 +166,7 @@ public class FlowBasedPointsToAnalysis {
 	
 	private Set<Integer> getPointsToSet(Variable v) {
 		if (!this.pointsTo.containsKey(v))
-			this.pointsTo.put(v, new HashSet<Integer>());
-		
-		// bit of a hack to get this to work with the Jayhorn classes
-		if (v.getType().toString().startsWith(NewMemoryModel.GlobalsClassName)
-				|| v.getType().toString().startsWith(ArrayTransformer.arrayTypeName)) {
-			Set<Integer> pointsto = new HashSet<Integer>();
-			int ptid = -v.getType().hashCode();
-			pointsto.add(ptid);
-			return pointsto;
-		}
-		
+			this.pointsTo.put(v, new HashSet<Integer>());	
 		return this.pointsTo.get(v);
 	}
 	

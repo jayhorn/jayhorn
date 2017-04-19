@@ -24,7 +24,7 @@ public class ClassVariable extends Variable  {
 	private List<Variable> associatedFields, inlineableFields;
 
 	public ClassVariable(String name, Collection<ClassVariable> parents) {
-		super(name, new TypeType(), true, true); //TODO, its actually not reference type.	
+		super(name, new TypeType(), true, true); //TODO, its actually not reference type.
 		parentConstants = new HashSet<ClassVariable>();
 		parentConstants.addAll(parents);
 		associatedFields = new LinkedList<Variable>();

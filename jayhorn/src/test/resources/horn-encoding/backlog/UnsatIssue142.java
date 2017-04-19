@@ -12,7 +12,7 @@ public class UnsatIssue142 {
         final int N = r.nextInt(100);
         if (N < 1) return;
 
-        Integer data[] = new Integer[N];
+        Object data[] = new Integer[N];
         for (int i = 0; i < N; i++) {
             data[i] = r.nextInt(); 
         }
