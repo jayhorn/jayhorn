@@ -62,6 +62,20 @@ jar {
     from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
 }
 
+task createRunScript {
+    description 'Create run script to run from same directory as jayhorn.jar. Can be packaged up with jayhorn.jar when distributing the tool'
+    doLast {
+        file("build/libs/jayhorn").text = """
+#!/bin/sh
+java -jar jayhorn.jar "\$@"
+"""
+        project.exec {
+            commandLine('chmod',  '+x', 'build/libs/jayhorn')
+        }
+    }
+}
+assemble.dependsOn createRunScript
+
 task inferCheck {
   group 'Verification'
   description 'Run Facebook Infer on this project.'
