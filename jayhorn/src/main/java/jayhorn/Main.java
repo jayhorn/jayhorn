@@ -83,6 +83,12 @@ public class Main {
 		try {
 			// parse command-line arguments
 			parser.parseArgument(args);
+
+			if (Options.v().version) {
+				System.out.println(getVersion());
+				return;
+			}
+
 			options.updateSootToCfgOptions();
 			ProverFactory factory = null;
 			if ("spacer".equals(Options.v().getSolver())) {
@@ -120,5 +126,15 @@ public class Main {
 			soot.G.reset();
 		}
 	}
-	
+
+	private static String getVersion() {
+	final Package[] packages = Package.getPackages();
+		for (final Package pkg : packages)
+		{
+			if ("JayHorn".equals(pkg.getImplementationTitle()))
+				return pkg.getImplementationVersion();
+		}
+		return "n/a";
+	}
+
 }
