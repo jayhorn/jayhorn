@@ -101,7 +101,7 @@ public class Main {
 
 			if (Options.v().verbose) Log.v().setLevel(Level.INFO);
 			
-			Log.info("\t\t ---   JAYHORN : Static Analayzer for Java Programs ---- ");
+			Log.info("\t\t ---   JAYHORN : Static Analyzer for Java Programs ---- ");
 			Log.info("\t Verification : " + Options.v().getChecker());
 			Log.info("\t Solver : " + Options.v().getSolver());
 			
