@@ -65,9 +65,42 @@ jar {
 task createRunScript {
     description 'Create run script to run from same directory as jayhorn.jar. Can be packaged up with jayhorn.jar when distributing the tool'
     doLast {
-        file("build/libs/jayhorn").text = """
-#!/bin/sh
-java -jar jayhorn.jar "\$@"
+        file("build/libs/jayhorn").text = """#!/bin/bash
+
+# parse arguments
+BENCHMARK=""
+PROPERTY_FILE=""
+WITNESS_FILE=""
+
+while [ -n "\$1" ] ; do
+  case "\$1" in
+    --propertyfile) PROPERTY_FILE="\$2" ; shift 2 ;;
+    --graphml-witness) WITNESS_FILE="\$2" ; shift 2 ;;
+    --version) java -jar jayhorn.jar -version ; exit 0 ;;
+    *) BENCHMARK="\$1" ; shift 1 ;;
+  esac
+done
+
+# SV-COMP mode (if there is no property file)
+# In this mode JayHorn is run from benchexec/tools/jayhorn.py
+# (https://github.com/sosy-lab/benchexec)
+if [[ "\$PROPERTY_FILE" != "" ]]; then
+  LD_LIBRARY_PATH=`pwd`:\$LD_LIBRARY_PATH
+
+  DIR=`mktemp -d -t jayhorn-benchmark.XXXXXX`
+  trap "rm -rf \$DIR" EXIT
+
+  # we ignore the property file (there is only one property at the moment)
+  # we ignore the witness file (not used yet)
+  # we unpack the benchmark zip file, build it and analyze it
+  unzip \$BENCHMARK -d \$DIR
+  make -C \$DIR
+  java -jar jayhorn.jar -j \$DIR/target/classes "\$@"
+
+# normal mode
+else
+  java -jar jayhorn.jar \$BENCHMARK "\$@"
+fi
 """
         project.exec {
             commandLine('chmod',  '+x', 'build/libs/jayhorn')
