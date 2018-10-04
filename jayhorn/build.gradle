@@ -22,17 +22,18 @@ configurations{
 
 repositories {
     mavenCentral()
+    maven {
+          url "http://logicrunch.research.it.uu.se/maven/"
+    }        
 }
 
 dependencies {    
     compile 'args4j:args4j:2.32'    
     compile 'log4j:log4j:1.2.17'
     compile 'com.google.code.findbugs:annotations:3.0.0'
-    compile 'org.scala-lang:scala-actors:2.11.7'
-    compile 'org.scala-lang:scala-library:2.11.7'
     compile fileTree(dir: 'lib', include: '*.jar')
     compile project(':soottocfg')
-
+    compile 'uuverifiers:eldarica_2.11:2.0-alpha2'
     testCompile "junit:junit:4.12"  // Or whatever version
     testCompile group: 'com.google.code.gson', name: 'gson', version: '2.8.0'
 }

@@ -20,7 +20,7 @@ import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.solver.spacer.SpacerProverFactory;
 import jayhorn.test.Util;
-import scala.actors.threadpool.Arrays;
+import java.util.Arrays;
 import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
 

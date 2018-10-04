@@ -46,7 +46,7 @@ public class Options {
 	// /**
 	// * JAR file
 	// */
-	@Option(name = "-version", usage = "Print version", required = false, help = true)
+	@Option(name = "-version", usage = "Print version", required = false)
 	public boolean version = false;
 
 	@Option(name = "-checker", usage = "Select a checker [inconsistency, or safety]", required = false)
