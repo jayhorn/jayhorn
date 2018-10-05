@@ -66,7 +66,7 @@ jar {
 task createRunScript {
     description 'Create run script to run from same directory as jayhorn.jar. Can be packaged up with jayhorn.jar when distributing the tool'
     doLast {
-        file("build/libs/jayhorn").text = """#!/bin/bash
+        new File("build/libs/jayhorn").text = """#!/bin/bash
 
 # parse arguments
 BENCHMARK=""
@@ -104,7 +104,7 @@ else
 fi
 """
         project.exec {
-            commandLine('chmod',  '+x', 'build/libs/jayhorn')
+            commandLine('chmod',  '+x', '../build/libs/jayhorn')
         }
     }
 }
