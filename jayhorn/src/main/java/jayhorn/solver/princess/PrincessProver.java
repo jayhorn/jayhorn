@@ -420,7 +420,8 @@ public class PrincessProver implements Prover {
                                     scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
                                     Options.v().getSolverOptions().contains("abstract"),
                                     Options.v().getSolverOptions().contains("debug"),
-                                    Options.v().dotCEX);
+                                    Options.v().dotCEX,
+                                    Options.v().getSolverOptions().contains("abstractPO"));
             
             if (result.isLeft()) {
                 StringBuffer sol = new StringBuffer();
@@ -490,7 +491,8 @@ public class PrincessProver implements Prover {
             if (SimpleWrapper.isSat(clauses,
                                     scala.collection.immutable.Map$.MODULE$.<Predicate, Seq<IFormula>> empty(),
                                     Options.v().getSolverOptions().contains("abstract"),
-                                    Options.v().getSolverOptions().contains("debug")))
+                                    Options.v().getSolverOptions().contains("debug"),
+                                    Options.v().getSolverOptions().contains("abstractPO")))
                 return ProverResult.Sat;
             else
                 return ProverResult.Unsat;

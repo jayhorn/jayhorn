@@ -66,7 +66,7 @@ public class Options {
 	}
 	
 
-	@Option(name = "-solverOptions", usage = "Options for the solver [eldarica: abstract, debug]", required = false)
+	@Option(name = "-solverOptions", usage = "Options for the solver [eldarica: abstract, abstractPO, debug]", required = false)
 	private String solverOptions = "";
 
 	public List<String> getSolverOptions() {
