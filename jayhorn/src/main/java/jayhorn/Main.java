@@ -26,7 +26,8 @@ public class Main {
     	if (result){
 			return "SAFE";
 		}else{
-			return "UNSAFE";
+    		//@TODO Implement Philipp's idea
+			return "UNKNOWN";
 		}
     }
     /**
