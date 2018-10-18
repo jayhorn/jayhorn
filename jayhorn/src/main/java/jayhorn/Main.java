@@ -51,7 +51,12 @@ public class Main {
   		}
   	
   		Stopwatch sootTocfgTimer = Stopwatch.createStarted();
-  		soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());	
+  		try {
+            soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());
+        } catch (soot.validation.ValidationException e) {
+  		    Log.info("Unsafe; byte code rejected by bytecode verifier:\n\t" + e.toString());
+  		    return false;
+        }
   	
   		Program program = soot2cfg.getProgram();
   	    Stats.stats().add("SootToCFG", String.valueOf(sootTocfgTimer.stop()));
@@ -100,7 +105,7 @@ public class Main {
 				throw new RuntimeException("Don't know solver " + Options.v().getSolver() + ". Using Eldarica instead.");
 			}
 
-			if (Options.v().verbose) Log.v().setLevel(Level.INFO);
+			if (Options.v().verbose) Log.v().setLevel(Level.DEBUG);
 			
 			Log.info("\t\t ---   JAYHORN : Static Analyzer for Java Programs ---- ");
 			Log.info("\t Verification : " + Options.v().getChecker());

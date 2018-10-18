@@ -13,6 +13,7 @@ import java.util.Map;
 
 import com.google.common.base.Verify;
 
+import com.google.common.collect.ImmutableList;
 import soot.ArrayType;
 import soot.IntType;
 import soot.Local;
@@ -136,7 +137,7 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 					}
 				}
 
-				for (SootMethod sm : sc.getMethods()) {
+				for (SootMethod sm : ImmutableList.copyOf(sc.getMethods())) {
 					final String oldSignature = sm.getSignature();
 					// we also have to update the refs in the EntryPoint list.
 					boolean wasMain = sm.isEntryMethod();

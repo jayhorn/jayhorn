@@ -341,7 +341,6 @@ public class SootToCfg {
 						try {
 							body.validate();
 						} catch (soot.validation.ValidationException e) {
-							System.out.println("Unable to validate method body. Possible NullPointerException?");
 							throw e;
 						}
 
@@ -396,7 +395,6 @@ public class SootToCfg {
 
 			// TODO: use this guy in instead.
 			// jbody.insertIdentityStmts();
-
 			Set<SootField> instanceFields = new LinkedHashSet<SootField>();
 			for (SootField f : containingClass.getFields()) {
 				if (!f.isStatic()) {

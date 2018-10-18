@@ -362,11 +362,12 @@ public class SootRunner {
 
 		SootMethod staticInitializer = new SootMethod(SootMethod.staticInitializerName, Arrays.asList(new Type[] {}),
 				VoidType.v(), Modifier.PUBLIC | Modifier.STATIC);
+        sClass.addMethod(staticInitializer);
 		body = Jimple.v().newBody(staticInitializer);
 		staticInitializer.setActiveBody(body);
 		body.insertIdentityStmts();
 		body.getUnits().add(Jimple.v().newReturnVoidStmt());
-		sClass.addMethod(staticInitializer);
+
 
 		Scene.v().addClass(sClass);
 		sClass.setApplicationClass();
