@@ -19,11 +19,11 @@ public class Addition_true {
 		Random randomGenerator = new Random();
 		int m = randomGenerator.nextInt(10000);
 		if (m < 0 || m > 2147483647) {
-	        assert false;
+	        return;
 	    }
 	    int n = randomGenerator.nextInt(10000);
 	    if (n < 0 || n > 2147483647) {
-	        assert false;
+	        return;
 	    }
 	    int result = addition(m,n);
 	    assert (result == m + n);

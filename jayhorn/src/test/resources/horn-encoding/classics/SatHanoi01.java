@@ -40,7 +40,7 @@ public class SatHanoi01 {
 		applyHanoi(n, 1, 3, 2);
 		int result = hanoi(n);
 		// result and the counter should be the same!
-		if (result < counter) {
+		if (result <= counter) {
 			return;
 		} else {
 			assert false;
