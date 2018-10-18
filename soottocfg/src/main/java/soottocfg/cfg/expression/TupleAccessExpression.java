@@ -95,8 +95,9 @@ public class TupleAccessExpression extends Expression {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
+                sb.append("(");
 		sb.append(this.tupleVariable);
-		sb.append("#");
+		sb.append(")#");
 		sb.append(keyPos);
 		return sb.toString();
 	}
