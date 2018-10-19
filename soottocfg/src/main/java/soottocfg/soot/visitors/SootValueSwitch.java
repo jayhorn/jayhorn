@@ -224,8 +224,17 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseClassConstant(ClassConstant arg0) {
-		this.expressionStack.add(
-				new IdentifierExpression(statementSwitch.getCurrentLoc(), this.memoryModel.lookupClassVariable(arg0)));
+            ClassConstant c;
+            String name = arg0.getValue();
+            if (name.charAt(0) == 'L' && name.charAt(name.length() - 1) == ';')
+                // class name in the L<name>; notation,
+                // strip the first and last character
+                c = ClassConstant.v(name.substring(1, name.length() - 1));
+            else
+                c = arg0;
+            this.expressionStack.add(
+                   new IdentifierExpression(statementSwitch.getCurrentLoc(),
+                                            this.memoryModel.lookupClassVariable(c)));
 	}
 
 	@Override
