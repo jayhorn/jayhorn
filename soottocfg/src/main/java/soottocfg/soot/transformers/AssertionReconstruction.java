@@ -17,6 +17,7 @@ import soot.BooleanType;
 import soot.Local;
 import soot.Unit;
 import soot.Value;
+import soot.VoidType;
 import soot.jimple.AssignStmt;
 import soot.jimple.ClassConstant;
 import soot.jimple.GotoStmt;
@@ -26,6 +27,8 @@ import soot.jimple.InvokeStmt;
 import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
 import soot.jimple.NewExpr;
+import soot.jimple.ReturnStmt;
+import soot.jimple.ReturnVoidStmt;
 import soot.jimple.StaticFieldRef;
 import soot.jimple.Stmt;
 import soot.jimple.ThrowStmt;
@@ -286,9 +289,24 @@ public class AssertionReconstruction extends AbstractSceneTransformer {
 			unitsToRemove.add(entry.getKey());
 		}
 
+		boolean needToAddReturn = unitsToRemove.contains(body.getUnits().getLast());
 		body.getUnits().removeAll(unitsToRemove);
+
+		if (needToAddReturn) {
+            addMissingReturn(body);
+        }
+
 		body.validate();
 	}
+
+    private void addMissingReturn(final Body body) {
+        Unit last = body.getUnits().getLast();
+        if (!(last instanceof ReturnStmt) && body.getMethod().getReturnType() == VoidType.v()) {
+            final ReturnVoidStmt returnStmt = Jimple.v().newReturnVoidStmt();
+            body.getUnits().addLast(returnStmt);
+        }
+    }
+
 
 	/**
 	 * Checks if u has been created from a Java assert statement and is of the
