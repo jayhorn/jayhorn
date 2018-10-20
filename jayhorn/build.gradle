@@ -99,11 +99,11 @@ if [[ "\$PROPERTY_FILE" != "" ]]; then
   # we unpack the benchmark zip file, build it and analyze it
   unzip \$BENCHMARK -d \$DIR
   make -C \$DIR
-  java -jar \$JAYHORN -j \$DIR/target/classes "\$@"
+  java -Xss20000k -jar \$JAYHORN -j \$DIR/target/classes "\$@"
 
 # normal mode
 else
-  java -jar \$JAYHORN \$BENCHMARK "\$@"
+  java -Xss20000k -jar \$JAYHORN \$BENCHMARK "\$@"
 fi
 """
         project.exec {
