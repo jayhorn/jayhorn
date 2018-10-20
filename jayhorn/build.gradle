@@ -111,7 +111,6 @@ fi
         }
     }
 }
-assemble.dependsOn createRunScript
 
 task inferCheck {
   group 'Verification'
