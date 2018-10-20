@@ -8,11 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.BitSet;
 
 import com.google.common.base.Verify;
 
 import jayhorn.Log;
 import jayhorn.solver.Prover;
+import jayhorn.solver.ProverType;
 import jayhorn.utils.GhostRegister;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.method.Method;
@@ -20,8 +22,12 @@ import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.util.GraphUtil;
+import soottocfg.cfg.util.CfgScanner;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.cfg.statement.PullStatement;
+import soottocfg.cfg.statement.PushStatement;
+import soottocfg.cfg.statement.Statement;
 import soottocfg.soot.transformers.ArrayTransformer;
 
 /**
@@ -50,7 +56,17 @@ public class HornEncoderContext {
 	private Map<ClassVariable, Map<Long, HornPredicate>> invariantPredicates =
           new HashMap<ClassVariable, Map<Long, HornPredicate>>(); 
 	private Map<Method, MethodContract> methodContracts = new LinkedHashMap<Method, MethodContract>();
+
+        private static final int explicitHeapSize = -1;
 	
+        // List of prover types that covers all fields to be stored for any
+        // class
+        private final List<ProverType> unifiedClassFieldTypes =
+          new ArrayList<ProverType> ();
+        private final Map<ClassVariable, List<Integer>> classFieldTypeIndexes =
+          new HashMap<ClassVariable, List<Integer>> ();
+        private final ProverType unifiedClassType;
+
 	public HornEncoderContext(Prover p, Program prog) {
 		this.program = prog;
 		this.p = p;		
@@ -59,8 +75,82 @@ public class HornEncoderContext {
 			//same number as the null constant
 			typeIds.put(var, typeIds.size()+1);
 		}
+
 		mkMethodContract(program, p);
-	}
+                if (explicitHeapSize > 0) {
+                    mkUnifiedFieldTypes();
+                    unifiedClassType =
+                        p.getTupleType(unifiedClassFieldTypes
+                                       .toArray(new ProverType [0]));
+                } else {
+                    unifiedClassType = null;
+                }
+        }
+
+    /**
+     * Scan the program for push/pull statements, and add the fields of
+     * each pulled/pushed class to <code>unifiedClassFieldTypes</code>
+     */
+    private void mkUnifiedFieldTypes() {
+        final FieldTypeScanner scanner = new FieldTypeScanner();
+        for (Method method : program.getMethods())
+            scanner.scanMethod(method);
+                    
+        Log.info("unified class field types: " + unifiedClassFieldTypes);
+        Log.info("field indexes: " + classFieldTypeIndexes);
+    }
+
+    private class FieldTypeScanner extends CfgScanner {
+	@Override
+	protected Statement processStatement(PullStatement s) { 
+            addFieldsFor(s.getClassSignature());
+            return s;
+        }
+	@Override
+	protected Statement processStatement(PushStatement s) {
+            addFieldsFor(s.getClassSignature());
+            return s;
+        }
+    }
+
+    /**
+     * Add fields for the given class to <code>unifiedClassFieldTypes</code>
+     */
+    private void addFieldsFor(ClassVariable var) {
+            Log.info("adding fields of class " + var);
+
+            final List<Variable> fields = getInvariantArgs(var);
+
+            // we know that the first field is the actual object reference,
+            // which does not have to be recorded
+            fields.remove(0);
+
+            final List<Integer> indexes = new ArrayList<Integer>();
+            final BitSet usedTypes = new BitSet();
+
+            for (Variable field : fields) {
+                final ProverType t = 
+                    HornHelper.hh().getProverType(p, field.getType());
+                boolean found = false;
+                for (int i = 0;
+                     !found && i < unifiedClassFieldTypes.size();
+                     ++i)
+                    if (!usedTypes.get(i) &&
+                        unifiedClassFieldTypes.get(i).equals(t)) {
+                        indexes.add(i);
+                        usedTypes.set(i);
+                        found = true;
+                    }
+                if (!found) {
+                    final int n = unifiedClassFieldTypes.size();
+                    unifiedClassFieldTypes.add(t);
+                    indexes.add(n);
+                    usedTypes.set(n);
+                }
+            }
+            
+            classFieldTypeIndexes.put(var, indexes);
+    }
 
 	/**
 	 * Get the invariant predicates for each class. This is for debugging only.
@@ -129,34 +219,42 @@ public class HornEncoderContext {
                 final Map<Long, HornPredicate> subMap =
                   invariantPredicates.get(sig);
                 if (!subMap.containsKey(pushId)) {
-			List<Variable> args = new ArrayList<Variable>();
-			args.add(new Variable("ref", new ReferenceType(sig)));
-			
-			//add variables for the ghost fields
-			//used by pull and push.
-			for (Entry<String, Type> entry : GhostRegister.v().ghostVariableMap.entrySet()) {
-				args.add(new Variable(entry.getKey(), entry.getValue()));
-			}
-			
-			if (soottocfg.Options.v().arrayInv() && 
-					(sig.getName().contains(ArrayTransformer.arrayTypeName))) {
-				args.add(new Variable("array_index", IntType.instance()));
-			}
-			
-			for (Variable v : sig.getAssociatedFields()) {
-				args.add(v);
-			}
+                    List<Variable> args = getInvariantArgs(sig);
 				
-            String name = "inv_" + sig.getName();
-            if (pushId >= 0)
-            	name = name + "_" + pushId;
-			subMap.put(pushId, new HornPredicate(p, name, args));
-			
-
+                    String name = "inv_" + sig.getName();
+                    if (pushId >= 0)
+                        name = name + "_" + pushId;
+                    subMap.put(pushId, new HornPredicate(p, name, args));
 		}
 		return subMap.get(pushId);
 	}
 	
+    /**
+     * Determine the arguments to be included in the invariant of the given
+     * class.
+     */
+    private List<Variable> getInvariantArgs(ClassVariable sig) {
+            List<Variable> args = new ArrayList<Variable>();
+            args.add(new Variable("ref", new ReferenceType(sig)));
+			
+            //add variables for the ghost fields
+            //used by pull and push.
+            for (Entry<String, Type> entry : GhostRegister.v().ghostVariableMap.entrySet()) {
+                args.add(new Variable(entry.getKey(), entry.getValue()));
+            }
+			
+            if (soottocfg.Options.v().arrayInv() && 
+                (sig.getName().contains(ArrayTransformer.arrayTypeName))) {
+                args.add(new Variable("array_index", IntType.instance()));
+            }
+			
+            for (Variable v : sig.getAssociatedFields()) {
+                args.add(v);
+            }
+
+            return args;
+        }
+
 	/**
 	 * Maps a ClassVariable to a unique integer.
 	 * @param var
