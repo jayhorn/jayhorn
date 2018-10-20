@@ -54,7 +54,7 @@ public class Main {
   		try {
             soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());
         } catch (soot.validation.ValidationException e) {
-  		    Log.info("Unsafe; byte code rejected by bytecode verifier:\n\t" + e.toString());
+  		    Log.info("UNSAFE; byte code rejected by bytecode verifier:\n\t" + e.toString());
   		    return false;
         }
   	
@@ -125,8 +125,12 @@ public class Main {
 		} catch (Throwable t) {
 			Log.error(t.toString());
 			Stats.stats().add("Result", "UNKNOWN");
-			if (Options.v().stats){ Stats.stats().printStats(); }
-			throw t;	
+			if (Options.v().stats) {
+                           Stats.stats().printStats();
+                        } else {
+                           System.out.println("UNKNOWN");
+                        }
+//			throw t;	
 		} finally {
 			Options.resetInstance();
 			soot.G.reset();
