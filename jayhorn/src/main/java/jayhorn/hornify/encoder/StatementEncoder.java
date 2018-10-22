@@ -295,9 +295,12 @@ public class StatementEncoder {
 
 		List<Variable> inParams = new LinkedList<Variable>(calledMethod.getInParams());
 
-		Verify.verify(inParams.size() == callArgs.size(), inParams.size() + "!=" + callArgs.size());
+		Verify.verify(inParams.size() == callArgs.size(),
+                              "inconsistent argument number: " + inParams.size() + "!=" +
+                              callArgs.size());
 		Verify.verify(inParams.size() == contract.precondition.variables.size(),
-				inParams.size() + "!=" + contract.precondition.variables.size());
+                              "inconsistent argument number: " + inParams.size() + "!=" +
+                              contract.precondition.variables.size());
 
 		final List<Variable> receiverVars = new ArrayList<Variable>();
 		for (Expression e : cs.getReceiver()) {

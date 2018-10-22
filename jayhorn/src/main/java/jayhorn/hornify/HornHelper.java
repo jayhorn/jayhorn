@@ -65,6 +65,8 @@ public class HornHelper {
 			}
 			return p.getTupleType(subTypes);
 		}
+                if (t instanceof WrappedProverType)
+                    return ((WrappedProverType)t).getProverType();
 		if (t instanceof TypeType) {
 			return p.getIntType();
 		}
@@ -119,18 +121,7 @@ public class HornHelper {
 
 	public ProverExpr createVariable(Prover p, Variable v) {
 		ProverType pt = getProverType(p, v.getType());
-		if (pt instanceof ProverTupleType) {
-			ProverTupleType ptt = (ProverTupleType) pt;
-			ProverExpr[] subExprs = new ProverExpr[ptt.getArity()];
-			Verify.verify(v.getType() instanceof ReferenceType);
-			for (int i = 0; i < ptt.getArity(); i++) {
-				subExprs[i] = createVariable(p,
-						new Variable(v.getName() + "#" + i, ((ReferenceType) v.getType()).getElementTypeList().get(i)));
-			}
-			return p.mkTuple(subExprs);
-		} else {
-			return p.mkHornVariable(v.getName() + "_" + newVarNum(), pt);
-		}
+		return p.mkHornVariable(v.getName() + "_" + newVarNum(), pt);
 	}
 
 	public ProverExpr createVariable(Prover p, String prefix, Type tp) {

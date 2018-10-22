@@ -67,6 +67,16 @@ public class HornEncoderContext {
           new HashMap<ClassVariable, List<Integer>> ();
         private final ProverType unifiedClassType;
 
+        // Additional arguments that should be included in the generated
+        // predicates. By convention, each state predicate will include
+        // the extraPredicateArgs, each method pre-condition will include the
+        // extraPredicatePreArgs, and each method post-condition will include
+        // both extraPredicateArgs and extraPredicatePreArgs.
+        private final List<Variable> extraPredicateArgs =
+          new ArrayList<Variable> ();
+        private final List<Variable> extraPredicatePreArgs =
+          new ArrayList<Variable> ();
+
 	public HornEncoderContext(Prover p, Program prog) {
 		this.program = prog;
 		this.p = p;		
@@ -76,15 +86,25 @@ public class HornEncoderContext {
 			typeIds.put(var, typeIds.size()+1);
 		}
 
-		mkMethodContract(program, p);
                 if (explicitHeapSize > 0) {
                     mkUnifiedFieldTypes();
                     unifiedClassType =
                         p.getTupleType(unifiedClassFieldTypes
                                        .toArray(new ProverType [0]));
+                    final Type wrappedType =
+                        new WrappedProverType(unifiedClassType);
+                    for (int i = 0; i < explicitHeapSize; ++i)
+                        extraPredicateArgs.add(new Variable("object" + i,
+                                                            wrappedType));
                 } else {
                     unifiedClassType = null;
                 }
+
+                for (Variable v : extraPredicateArgs)
+                    extraPredicatePreArgs.add(
+                      new Variable(v.getName() + "_in", v.getType()));
+
+		mkMethodContract(program, p);
         }
 
     /**
@@ -168,10 +188,12 @@ public class HornEncoderContext {
 	private void mkMethodContract(Program program, Prover p) {
 		for (Method method : program.getMethods()) {
 			final List<Variable> inParams = new ArrayList<Variable>(method.getInParams());
+                        inParams.addAll(extraPredicatePreArgs);
 			final List<Variable> postParams = new ArrayList<Variable>();
 
 			postParams.addAll(inParams);
-			
+                        postParams.addAll(extraPredicateArgs);
+
 			if (!method.getOutParams().isEmpty()) {
 				Verify.verify(method.getOutParams().size()==method.getReturnType().size(), 
 						method.getOutParams().size()+"!="+method.getReturnType().size());
@@ -220,6 +242,7 @@ public class HornEncoderContext {
                   invariantPredicates.get(sig);
                 if (!subMap.containsKey(pushId)) {
                     List<Variable> args = getInvariantArgs(sig);
+                    args.addAll(extraPredicateArgs);
 				
                     String name = "inv_" + sig.getName();
                     if (pushId >= 0)

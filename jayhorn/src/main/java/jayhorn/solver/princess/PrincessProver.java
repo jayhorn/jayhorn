@@ -728,7 +728,7 @@ public class PrincessProver implements Prover {
             final ProverTupleType tt = (ProverTupleType)type;
             final ProverExpr[] res = new ProverExpr[tt.getArity()];
             for (int i = 0; i < tt.getArity(); ++i)
-                res[i] = mkHornVariable(name + "_" + i, tt.getSubType(i));
+                res[i] = mkHornVariable(name + "#" + i, tt.getSubType(i));
             return mkTuple(res);
         } else {
             // always use terms as Horn variables/arguments
