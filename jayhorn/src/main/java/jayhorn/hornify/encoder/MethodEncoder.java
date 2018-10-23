@@ -36,6 +36,8 @@ public class MethodEncoder {
 	private final List<ProverHornClause> tsClauses = new LinkedList<ProverHornClause>(); // keep track of 
 	private final ExpressionEncoder expEnc;
 
+        private final HornEncoderContext hornContext;
+
 	public MethodEncoder(Prover p, Method method, HornEncoderContext hornContext) {
 		this.p = p;
 		this.method = method;
@@ -44,6 +46,7 @@ public class MethodEncoder {
 		this.precondition = mc.precondition;
 		this.postcondition = mc.postcondition;		
 		this.expEnc = new ExpressionEncoder(p, hornContext);
+                this.hornContext = hornContext;
 	}
 
 	/**
@@ -94,6 +97,12 @@ public class MethodEncoder {
 		// add an entry clause connecting with the precondition
 		Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
 		final ProverExpr preAtom = precondition.instPredicate(varMap);		
+                // duplicate the extra arguments, so that the pre-variables have
+                // the same values as the local variables
+                for (int i = 0; i < hornContext.getExtraPredicateArgs().size(); ++i)
+                  varMap.put(hornContext.getExtraPredicateArgs().get(i),
+                             varMap.get(hornContext.getExtraPredicatePreArgs().get(i)));
+
 		final ProverExpr entryAtom = blockPredicates.get(method.getSource()).instPredicate(varMap);
 		final ProverHornClause clause = p.mkHornClause(entryAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true));
 		tsClauses.add(clause);
@@ -131,7 +140,7 @@ public class MethodEncoder {
 	
 	/**
 	 * Creates a fresh HornPredicate with arity of
-	 * |precondition.variables| + |sortedVars|.
+	 * |precondition.variables| + |sortedVars| + 2*|extraPredicateArgs|.
 	 * 
 	 * This is because we need to move the precondition variables through
 	 * all Horn clauses until the exit.
@@ -144,7 +153,9 @@ public class MethodEncoder {
 		// are later needed for the post-conditions
 		final List<Variable> allArgs = new LinkedList<Variable>();
 		allArgs.addAll(precondition.variables);
+                allArgs.addAll(hornContext.getExtraPredicatePreArgs());
 		allArgs.addAll(sortedVars);
+                allArgs.addAll(hornContext.getExtraPredicateArgs());
 		return new HornPredicate(p, name, allArgs);
 	}
 

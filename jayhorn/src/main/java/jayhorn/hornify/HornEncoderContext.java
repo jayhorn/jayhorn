@@ -77,6 +77,14 @@ public class HornEncoderContext {
         private final List<Variable> extraPredicatePreArgs =
           new ArrayList<Variable> ();
 
+        public List<Variable> getExtraPredicateArgs() {
+          return extraPredicateArgs;
+        }
+
+        public List<Variable> getExtraPredicatePreArgs() {
+          return extraPredicatePreArgs;
+        }
+
 	public HornEncoderContext(Prover p, Program prog) {
 		this.program = prog;
 		this.p = p;		
@@ -192,7 +200,6 @@ public class HornEncoderContext {
 			final List<Variable> postParams = new ArrayList<Variable>();
 
 			postParams.addAll(inParams);
-                        postParams.addAll(extraPredicateArgs);
 
 			if (!method.getOutParams().isEmpty()) {
 				Verify.verify(method.getOutParams().size()==method.getReturnType().size(), 
@@ -204,6 +211,8 @@ public class HornEncoderContext {
 					postParams.add(new Variable("resultVar" + (ctr++), tp));
 				}
 			}
+
+                        postParams.addAll(extraPredicateArgs);
 
 			Log.debug("method: " + method.getMethodName());
 			Log.debug("pre: " + inParams);
