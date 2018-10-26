@@ -59,6 +59,8 @@ public class HeapCounterTransformer {
 	private void insertGlobalHeapCounter(Program p) {
 
 		// start from 1 because zero is reserved for main.
+                // PR: actually, start at 0, because each time we allocate a new object
+                // the counter is incremented first
 		SourceLocation loc;
 
 		for (Method m : p.getMethods()) {
@@ -77,7 +79,7 @@ public class HeapCounterTransformer {
 			if (m.isProgramEntryPoint()) {
 				IdentifierExpression outExp = new IdentifierExpression(loc, outCounter);
 				m.getSource().getStatements().add(0, new AssignStatement(m.getLocation(),
-						outExp, new IntegerLiteral(loc, 1)));
+						outExp, new IntegerLiteral(loc, 0)));
 				// Adding Heap Count bound checks
 				int bound = Options.v().getHeapLimit();
 				if (bound > -1) {

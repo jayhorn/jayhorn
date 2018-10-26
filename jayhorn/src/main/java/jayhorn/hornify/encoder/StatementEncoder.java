@@ -246,9 +246,11 @@ public class StatementEncoder {
 		ReferenceType rightType = new ReferenceType(ns.getClassVariable());
 		ProverExpr[] tupleElements = new ProverExpr[rightType.getElementTypeList().size()];
 
+                final ProverExpr heapCounter =
+                  expEncoder.exprToProverExpr(
+                    new IdentifierExpression(ns.getSourceLocation(), ns.getCounterVar()), varMap);
 		int offset = 0;
-		tupleElements[offset++] = expEncoder
-				.exprToProverExpr(new IdentifierExpression(ns.getSourceLocation(), ns.getCounterVar()), varMap);
+		tupleElements[offset++] = heapCounter;
 		tupleElements[offset++] = p.mkLiteral(hornContext.getTypeID(ns.getClassVariable()));
 
 		if (soottocfg.Options.v().useAllocationSiteTupleElement) {
@@ -269,7 +271,8 @@ public class StatementEncoder {
 		// varMap.put(idLhs.getVariable(), ctr);
 
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
-		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
+		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom },
+                            hornContext.validHeapCounterConstraint(heapCounter)));
 
 		return clauses;
 	}

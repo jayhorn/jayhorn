@@ -15,6 +15,7 @@ import com.google.common.base.Verify;
 import jayhorn.Log;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverType;
+import jayhorn.solver.ProverExpr;
 import jayhorn.utils.GhostRegister;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.method.Method;
@@ -251,7 +252,6 @@ public class HornEncoderContext {
                   invariantPredicates.get(sig);
                 if (!subMap.containsKey(pushId)) {
                     List<Variable> args = getInvariantArgs(sig);
-                    args.addAll(extraPredicateArgs);
 				
                     String name = "inv_" + sig.getName();
                     if (pushId >= 0)
@@ -286,6 +286,18 @@ public class HornEncoderContext {
 
             return args;
         }
+
+    /**
+     * Generate a constraint stating that the current heap counter has not
+     * exceeded the heap size bound.
+     */
+    public ProverExpr validHeapCounterConstraint(ProverExpr heapCounter) {
+      if (explicitHeapSize >= 0)
+        // we assume that the heap counter starts at 1
+        return p.mkLeq(heapCounter, p.mkLiteral(explicitHeapSize));
+      else
+        return p.mkLiteral(true);
+    }
 
 	/**
 	 * Maps a ClassVariable to a unique integer.
