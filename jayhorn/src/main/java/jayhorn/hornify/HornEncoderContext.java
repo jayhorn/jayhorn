@@ -86,6 +86,14 @@ public class HornEncoderContext {
           return extraPredicatePreArgs;
         }
 
+        public boolean useExplicitHeap() {
+          return explicitHeapSize >= 0;
+        }
+
+        public List<Variable> getExplicitHeapVariables() {
+          return extraPredicateArgs;
+        }
+    
 	public HornEncoderContext(Prover p, Program prog) {
 		this.program = prog;
 		this.p = p;		
@@ -299,6 +307,34 @@ public class HornEncoderContext {
         return p.mkLiteral(true);
     }
 
+    /**
+     * Embed the fields of an object in the unified class type, resulting in
+     * a tuple of the right arity.
+     */
+    public ProverExpr toUnifiedClassType(ClassVariable sig,
+                                         HornPredicate invPredicate,
+                                         Map<Variable, ProverExpr> varMap,
+                                         ProverExpr defaultValues) {
+        final ProverExpr[] invArgs = invPredicate.compileArguments(varMap);
+        final List<Integer> fieldIndexes = classFieldTypeIndexes.get(sig);
+
+        Verify.verify(invArgs.length == fieldIndexes.size() + 1,
+                      "Inconsistent number of class fields");
+
+        final ProverExpr[] unifiedArgs =
+            new ProverExpr[unifiedClassFieldTypes.size()];
+        for (int i = 0; i < fieldIndexes.size(); ++i)
+            unifiedArgs[fieldIndexes.get(i)] = invArgs[i + 1];
+
+        for (int i = 0; i < unifiedArgs.length; ++i)
+            if (unifiedArgs[i] == null)
+                unifiedArgs[i] = p.mkTupleSelect(defaultValues, i);
+                                 //p.mkHornVariable("field_" + i,
+                                 //                 unifiedClassFieldTypes.get(i));
+
+        return p.mkTuple(unifiedArgs);
+    }
+    
 	/**
 	 * Maps a ClassVariable to a unique integer.
 	 * @param var

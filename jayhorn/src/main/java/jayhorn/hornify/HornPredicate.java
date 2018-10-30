@@ -30,6 +30,10 @@ public class HornPredicate {
 	}
 
 	public ProverExpr instPredicate(Map<Variable, ProverExpr> varMap) {
+            return predicate.mkExpr(compileArguments(varMap));
+	}
+
+    public ProverExpr[] compileArguments(Map<Variable, ProverExpr> varMap) {
 		List<ProverExpr> allArgs = HornHelper.hh().findOrCreateProverVar(p, variables, varMap);
 		ProverExpr[] exprs = allArgs.toArray(new ProverExpr[allArgs.size()]);
 		/*
@@ -62,11 +66,8 @@ public class HornPredicate {
 				}
 			}
 		}
-		
-		return predicate.mkExpr(exprs);
 
-		
-	}
-
+                return exprs;
+    }
 	
 }

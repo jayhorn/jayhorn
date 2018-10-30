@@ -633,13 +633,37 @@ public class StatementEncoder {
 //			System.out.println("invariantArgs = " + invariantArgs.get(i));
 //			System.out.println(invariant.variables.get(i)+ " = "+varMap.get(invariant.variables.get(i)) + "\n");
 		}
-		final ProverExpr invAtom = invariant.instPredicate(varMap);
-		clauses.add(p.mkHornClause(invAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
-		
-//		System.err.println("Invariant for " + ps + ": " + invAtom);
 
-		final ProverExpr postAtom = postPred.instPredicate(varMap);
-		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
+                if (hornContext.useExplicitHeap()) {
+                    final ProverExpr objectRef =
+                        p.mkTupleSelect(varMap.get(invariant.variables.get(0)), 0);
+                    int objectNum = 1;
+                    for (Variable v : hornContext.getExplicitHeapVariables()) {
+                        final ProverExpr formalArg = varMap.get(v);
+                        final ProverExpr objectTuple =
+                            hornContext.toUnifiedClassType(sig, invariant, varMap, formalArg);
+                        varMap.put(v, objectTuple);
+                        final ProverExpr postAtom = postPred.instPredicate(varMap);
+                        clauses.add(p.mkHornClause(postAtom,
+                                                   new ProverExpr[] { preAtom },
+                                                   p.mkEq(objectRef, p.mkLiteral(objectNum))));
+                        ++objectNum;
+                        varMap.put(v, formalArg);
+                    }
+                } else {
+                    final ProverExpr invAtom = invariant.instPredicate(varMap);
+                    clauses.add(p.mkHornClause(invAtom,
+                                               new ProverExpr[] { preAtom },
+                                               p.mkLiteral(true)));
+		
+//		      System.err.println("Invariant for " + ps + ": " + invAtom);
+
+                    final ProverExpr postAtom = postPred.instPredicate(varMap);
+                    clauses.add(p.mkHornClause(postAtom,
+                                               new ProverExpr[] { preAtom },
+                                               p.mkLiteral(true)));
+                }
+                
 		return clauses;
 	}
 }
