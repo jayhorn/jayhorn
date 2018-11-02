@@ -58,8 +58,14 @@ public class HornEncoderContext {
           new HashMap<ClassVariable, Map<Long, HornPredicate>>(); 
 	private Map<Method, MethodContract> methodContracts = new LinkedHashMap<Method, MethodContract>();
 
+        public static enum GeneratedAssertions {
+            SAFETY, HEAP_BOUNDS, ALL
+        }
+
         private static final int explicitHeapSize = -1;
-	
+    
+        private static final GeneratedAssertions genAssertions = GeneratedAssertions.ALL;
+
         // List of prover types that covers all fields to be stored for any
         // class
         private final List<ProverType> unifiedClassFieldTypes =
@@ -92,6 +98,34 @@ public class HornEncoderContext {
 
         public List<Variable> getExplicitHeapVariables() {
           return extraPredicateArgs;
+        }
+
+        public boolean genSafetyAssertions() {
+            if (!useExplicitHeap())
+                return true;
+
+            switch (genAssertions) {
+            case SAFETY:
+            case ALL:
+                return true;
+
+            default:
+                return false;
+            }
+        }
+    
+        public boolean genHeapBoundAssertions() {
+            if (!useExplicitHeap())
+                return false;
+
+            switch (genAssertions) {
+            case HEAP_BOUNDS:
+            case ALL:
+                return true;
+
+            default:
+                return false;
+            }
         }
     
 	public HornEncoderContext(Prover p, Program prog) {
@@ -334,7 +368,30 @@ public class HornEncoderContext {
 
         return p.mkTuple(unifiedArgs);
     }
-    
+
+    /**
+     * Read the values of fields of a <code>sig</code> from the given
+     * <code>unifiedObjectFields</code>.
+     */
+    public ProverExpr createFieldEquations(ClassVariable sig,
+                                           HornPredicate invPredicate,
+                                           Map<Variable, ProverExpr> varMap,
+                                           ProverExpr unifiedObjectFields) {
+        final ProverExpr[] invArgs = invPredicate.compileArguments(varMap);
+        final List<Integer> fieldIndexes = classFieldTypeIndexes.get(sig);
+
+        Verify.verify(invArgs.length == fieldIndexes.size() + 1,
+                      "Inconsistent number of class fields");
+
+        ProverExpr res = p.mkLiteral(true);
+        for (int i = 0; i < fieldIndexes.size(); ++i)
+            res = p.mkAnd(res,
+                          p.mkEq(invArgs[i + 1],
+                                 p.mkTupleSelect(unifiedObjectFields, fieldIndexes.get(i))));
+
+        return res;
+    }
+        
 	/**
 	 * Maps a ClassVariable to a unique integer.
 	 * @param var

@@ -156,21 +156,28 @@ public class StatementEncoder {
 	public List<ProverHornClause> assertToClause(AssertStatement as, HornPredicate postPred, ProverExpr preAtom,
 			Map<Variable, ProverExpr> varMap) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
-		final ProverExpr cond = expEncoder.exprToProverExpr(as.getExpression(), varMap); 
 
-		final ProverExpr errorState; // For now depending on the solver we use false or a predicate
-		String tag = "ErrorState@line" + as.getJavaSourceLine();
-		final ProverFun errorPredicate = p.mkHornPredicate(tag, new ProverType[] {});
-	
-		if (p.toString().equals("spacer")){
-			errorState = errorPredicate.mkExpr(new ProverExpr[]{});
-			S2H.sh().setErrorState(errorState, as.getJavaSourceLine());
-		}else{
-			errorState = p.mkLiteral(false);
-		}
-		clauses.add(p.mkHornClause(errorState, new ProverExpr[] { preAtom }, p.mkNot(cond)));
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
-		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
+                clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, p.mkLiteral(true)));
+
+                if (hornContext.genSafetyAssertions()) {
+                    final ProverExpr cond = expEncoder.exprToProverExpr(as.getExpression(), varMap); 
+
+                    final ProverExpr errorState; // For now depending on the solver we use false or a predicate
+                    String tag = "ErrorState@line" + as.getJavaSourceLine();
+                    final ProverFun errorPredicate = p.mkHornPredicate(tag, new ProverType[] {});
+                    errorState = errorPredicate.mkExpr(new ProverExpr[]{});
+	
+                    if (p.toString().equals("spacer")){
+                        S2H.sh().setErrorState(errorState, as.getJavaSourceLine());
+                    } else {
+                        clauses.add(p.mkHornClause(p.mkLiteral(false),
+                                                   new ProverExpr[] { errorState },
+                                                   p.mkLiteral(true)));
+                    }
+                    clauses.add(p.mkHornClause(errorState, new ProverExpr[] { preAtom }, p.mkNot(cond)));
+                }
+                
 		return clauses;
 	}
 	/**
@@ -271,9 +278,16 @@ public class StatementEncoder {
 		// varMap.put(idLhs.getVariable(), ctr);
 
 		final ProverExpr postAtom = postPred.instPredicate(varMap);
+                final ProverExpr validHeapCounter =
+                    hornContext.validHeapCounterConstraint(heapCounter);
+                
 		clauses.add(p.mkHornClause(postAtom, new ProverExpr[] { preAtom },
-                            hornContext.validHeapCounterConstraint(heapCounter)));
+                                           validHeapCounter));
 
+                if (hornContext.genHeapBoundAssertions())
+                    clauses.add(p.mkHornClause(p.mkLiteral(false), new ProverExpr[] { preAtom },
+                                               p.mkNot(validHeapCounter)));
+                
 		return clauses;
 	}
 
@@ -460,20 +474,47 @@ public class StatementEncoder {
 		Set<PushStatement> affecting = pull.getAffectingPushes();
 		Verify.verify(!affecting.isEmpty(),
 				"The set of pushes affecting this pull is empty, this would create an assume false");
-		Set<Long> done = new HashSet<Long>();
-		for (PushStatement push : pull.getAffectingPushes()) {
-			ClassVariable sig = push.getClassSignature();
+
+                if (hornContext.useExplicitHeap()) {
+                    ClassVariable sig = pull.getClassSignature();
+                    HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, -1);
+                    instantiateInvArguments(pull, varMap, invariant, m);
+
+                    final ProverExpr objectRef =
+                        p.mkTupleSelect(varMap.get(invariant.variables.get(0)), 0);
+                    final ProverExpr postAtom = postPred.instPredicate(varMap);
+
+                    int objectNum = 1;
+                    for (Variable v : hornContext.getExplicitHeapVariables()) {
+                        final ProverExpr objectRefEq = p.mkEq(objectRef, p.mkLiteral(objectNum));
+                        ++objectNum;
+
+                        final ProverExpr formalArg = varMap.get(v);
+                        final ProverExpr readObjectEqs =
+                            hornContext.createFieldEquations(sig, invariant, varMap, formalArg);
+                        
+                        final ProverHornClause clause =
+                            p.mkHornClause(postAtom, new ProverExpr[] { preAtom },
+                                           p.mkAnd(objectRefEq, readObjectEqs));
+
+                        clauses.add(clause);
+                    }
+                } else {
+                    Set<Long> done = new HashSet<Long>();
+                    for (PushStatement push : pull.getAffectingPushes()) {
+                        ClassVariable sig = push.getClassSignature();
 			if (sig.subclassOf(pull.getClassSignature())) {
-				long pushid = -1;
-				if (soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH)
-					pushid = push.getID();
-				if (!done.contains(pushid)) {
-					HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, pushid);
-					clauses.addAll(pullToIndividualClause(pull, postPred, preAtom, varMap, invariant, m));
-					done.add(pushid);
-				}
+                            long pushid = -1;
+                            if (soottocfg.Options.v().memPrecision() >= soottocfg.Options.MEMPREC_LASTPUSH)
+                                pushid = push.getID();
+                            if (!done.contains(pushid)) {
+                                HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, pushid);
+                                clauses.addAll(pullToIndividualClause(pull, postPred, preAtom, varMap, invariant, m));
+                                done.add(pushid);
+                            }
 			}
-		}
+                    }
+                }
 		return clauses;
 	}
 
@@ -481,6 +522,22 @@ public class StatementEncoder {
 			ProverExpr preAtom, Map<Variable, ProverExpr> varMap, HornPredicate invariant, Method m) {
 		List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
+                instantiateInvArguments(pull, varMap, invariant, m);
+
+		// now we can instantiate the invariant.
+		final ProverExpr invAtom = invariant.instPredicate(varMap);
+//		System.err.println("Invariant for " + pull + ": " + invAtom);
+		final ProverExpr postAtom = postPred.instPredicate(varMap);
+		final ProverHornClause clause = p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom },
+				p.mkLiteral(true));
+		clauses.add(clause);
+		return clauses;
+	}
+
+        private void instantiateInvArguments(PullStatement pull,
+                                             Map<Variable, ProverExpr> varMap,
+                                             HornPredicate invariant,
+                                             Method m) {
 		// the first argument is always the reference
 		// to the object
 
@@ -538,17 +595,8 @@ public class StatementEncoder {
 			 * arguments.
 			 */
 		}
-
-		// now we can instantiate the invariant.
-		final ProverExpr invAtom = invariant.instPredicate(varMap);
-//		System.err.println("Invariant for " + pull + ": " + invAtom);
-		final ProverExpr postAtom = postPred.instPredicate(varMap);
-		final ProverHornClause clause = p.mkHornClause(postAtom, new ProverExpr[] { preAtom, invAtom },
-				p.mkLiteral(true));
-		clauses.add(clause);
-		return clauses;
-	}
-
+        }
+    
 	/**
 	 * Works like an assert of the invariant of the type that is
 	 * being pushed.
