@@ -59,7 +59,12 @@ public class HornEncoderContext {
 	private Map<Method, MethodContract> methodContracts = new LinkedHashMap<Method, MethodContract>();
 
         public static enum GeneratedAssertions {
-            SAFETY, HEAP_BOUNDS, ALL
+            SAFETY,        // only include actual safety assertions; this will under-approximate
+                           // (you can trust result UNSAFE, but not SAFE)
+            HEAP_BOUNDS,   // only include assertions about heap size; this will only tell you
+                           // whether the heap is big enough
+            ALL            // both safety and heap bound assertions; this will over-approximate
+                           // (you can trust result SAFE, but not UNSAFE)
         }
 
         private static final int explicitHeapSize = -1;
