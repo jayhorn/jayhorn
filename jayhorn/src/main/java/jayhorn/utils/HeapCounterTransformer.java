@@ -79,7 +79,7 @@ public class HeapCounterTransformer {
 			if (m.isProgramEntryPoint()) {
 				IdentifierExpression outExp = new IdentifierExpression(loc, outCounter);
 				m.getSource().getStatements().add(0, new AssignStatement(m.getLocation(),
-						outExp, new IntegerLiteral(loc, 0)));
+						outExp, new IntegerLiteral(loc, 1)));
 				// Adding Heap Count bound checks
 				int bound = Options.v().getHeapLimit();
 				if (bound > -1) {

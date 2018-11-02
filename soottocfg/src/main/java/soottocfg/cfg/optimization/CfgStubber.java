@@ -193,7 +193,7 @@ public class CfgStubber {
 					TupleAccessExpression tae = new TupleAccessExpression(loc, argsParam,
 							SootTranslationHelpers.lengthFieldName);
 					AssumeStatement asm = new AssumeStatement(loc,
-							new BinaryExpression(loc, BinaryOperator.Ge, tae, IntegerLiteral.zero()));
+							new BinaryExpression(loc, BinaryOperator.Eq, tae, IntegerLiteral.one()));
 					entry.addStatement(0, asm);
 
 					// push(JayHornArr12, r0, [JayHornArr12.$length,

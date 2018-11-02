@@ -685,18 +685,26 @@ public class StatementEncoder {
                 if (hornContext.useExplicitHeap()) {
                     final ProverExpr objectRef =
                         p.mkTupleSelect(varMap.get(invariant.variables.get(0)), 0);
-                    int objectNum = 1;
-                    for (Variable v : hornContext.getExplicitHeapVariables()) {
-                        final ProverExpr formalArg = varMap.get(v);
-                        final ProverExpr objectTuple =
-                            hornContext.toUnifiedClassType(sig, invariant, varMap, formalArg);
-                        varMap.put(v, objectTuple);
-                        final ProverExpr postAtom = postPred.instPredicate(varMap);
-                        clauses.add(p.mkHornClause(postAtom,
-                                                   new ProverExpr[] { preAtom },
-                                                   p.mkEq(objectRef, p.mkLiteral(objectNum))));
-                        ++objectNum;
-                        varMap.put(v, formalArg);
+                    if (hornContext.getExplicitHeapVariables().isEmpty()) {
+                        if (hornContext.genHeapBoundAssertions())
+                            // for soundness, in this case we should not push
+                            clauses.add(p.mkHornClause(p.mkLiteral(false),
+                                                       new ProverExpr[] { preAtom },
+                                                       p.mkLiteral(true)));
+                    } else {
+                        int objectNum = 1;
+                        for (Variable v : hornContext.getExplicitHeapVariables()) {
+                            final ProverExpr formalArg = varMap.get(v);
+                            final ProverExpr objectTuple =
+                                hornContext.toUnifiedClassType(sig, invariant, varMap, formalArg);
+                            varMap.put(v, objectTuple);
+                            final ProverExpr postAtom = postPred.instPredicate(varMap);
+                            clauses.add(p.mkHornClause(postAtom,
+                                                       new ProverExpr[] { preAtom },
+                                                       p.mkEq(objectRef, p.mkLiteral(objectNum))));
+                            ++objectNum;
+                            varMap.put(v, formalArg);
+                        }
                     }
                 } else {
                     final ProverExpr invAtom = invariant.instPredicate(varMap);

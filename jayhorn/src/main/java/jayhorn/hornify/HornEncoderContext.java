@@ -137,7 +137,7 @@ public class HornEncoderContext {
 			typeIds.put(var, typeIds.size()+1);
 		}
 
-                if (explicitHeapSize > 0) {
+                if (useExplicitHeap()) {
                     mkUnifiedFieldTypes();
                     unifiedClassType =
                         p.getTupleType(unifiedClassFieldTypes
@@ -334,7 +334,7 @@ public class HornEncoderContext {
      * exceeded the heap size bound.
      */
     public ProverExpr validHeapCounterConstraint(ProverExpr heapCounter) {
-      if (explicitHeapSize >= 0)
+      if (useExplicitHeap())
         // we assume that the heap counter starts at 1
         return p.mkLeq(heapCounter, p.mkLiteral(explicitHeapSize));
       else
