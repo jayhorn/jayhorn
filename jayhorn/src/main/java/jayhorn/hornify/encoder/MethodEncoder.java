@@ -152,8 +152,7 @@ public class MethodEncoder {
 		// add types for the method arguments, which
 		// are later needed for the post-conditions
 		final List<Variable> allArgs = new LinkedList<Variable>();
-		allArgs.addAll(precondition.variables);
-                allArgs.addAll(hornContext.getExtraPredicatePreArgs());
+		allArgs.addAll(precondition.variables); // note that this includes ExtraPredicatePreArgs
 		allArgs.addAll(sortedVars);
                 allArgs.addAll(hornContext.getExtraPredicateArgs());
 		return new HornPredicate(p, name, allArgs);
