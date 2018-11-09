@@ -473,33 +473,49 @@ public class StatementEncoder {
 
 		Set<PushStatement> affecting = pull.getAffectingPushes();
 		Verify.verify(!affecting.isEmpty(),
-				"The set of pushes affecting this pull is empty, this would create an assume false");
+				"The set of pushes affecting this pull is empty, " +
+                                "this would create an assume false");
 
                 if (hornContext.useExplicitHeap()) {
+
                     ClassVariable sig = pull.getClassSignature();
                     HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, -1);
                     instantiateInvArguments(pull, varMap, invariant, m);
 
-                    final ProverExpr objectRef =
-                        p.mkTupleSelect(varMap.get(invariant.variables.get(0)), 0);
                     final ProverExpr postAtom = postPred.instPredicate(varMap);
 
-                    int objectNum = 1;
-                    for (Variable v : hornContext.getExplicitHeapVariables()) {
-                        final ProverExpr objectRefEq = p.mkEq(objectRef, p.mkLiteral(objectNum));
-                        ++objectNum;
+                    if (hornContext.isStaticFieldsClass(sig)) {
 
-                        final ProverExpr formalArg = varMap.get(v);
-                        final ProverExpr readObjectEqs =
-                            hornContext.createFieldEquations(sig, invariant, varMap, formalArg);
-                        
+                        final ProverExpr eqs =
+                            hornContext.createStaticFieldEquations(sig, invariant, varMap);
                         final ProverHornClause clause =
-                            p.mkHornClause(postAtom, new ProverExpr[] { preAtom },
-                                           p.mkAnd(objectRefEq, readObjectEqs));
-
+                            p.mkHornClause(postAtom, new ProverExpr[] { preAtom }, eqs);
                         clauses.add(clause);
+
+                    } else {
+
+                        final ProverExpr objectRef =
+                            p.mkTupleSelect(varMap.get(invariant.variables.get(0)), 0);
+
+                        int objectNum = 1;
+                        for (Variable v : hornContext.getExplicitHeapObjectVariables()) {
+                            final ProverExpr objectRefEq = p.mkEq(objectRef, p.mkLiteral(objectNum));
+                            ++objectNum;
+
+                            final ProverExpr formalArg = varMap.get(v);
+                            final ProverExpr readObjectEqs =
+                                hornContext.createFieldEquations(sig, invariant, varMap, formalArg);
+                        
+                            final ProverHornClause clause =
+                                p.mkHornClause(postAtom, new ProverExpr[] { preAtom },
+                                               p.mkAnd(objectRefEq, readObjectEqs));
+
+                            clauses.add(clause);
+                        }
                     }
+
                 } else {
+
                     Set<Long> done = new HashSet<Long>();
                     for (PushStatement push : pull.getAffectingPushes()) {
                         ClassVariable sig = push.getClassSignature();
@@ -514,6 +530,7 @@ public class StatementEncoder {
                             }
 			}
                     }
+
                 }
 		return clauses;
 	}
@@ -682,10 +699,27 @@ public class StatementEncoder {
 //			System.out.println(invariant.variables.get(i)+ " = "+varMap.get(invariant.variables.get(i)) + "\n");
 		}
 
-                if (hornContext.useExplicitHeap()) {
+                if (hornContext.useExplicitHeap() && hornContext.isStaticFieldsClass(sig)) {
+
+                    // explicit handling of static fields
+
+                    hornContext.assignStaticVars(sig, invariant, varMap);
+
+                    final ProverExpr postAtom =
+                        postPred.instPredicate(varMap);
+                    final ProverHornClause clause =
+                        p.mkHornClause(postAtom,
+                                       new ProverExpr[] { preAtom },
+                                       p.mkLiteral(true));
+                    clauses.add(clause);
+
+                } else if (hornContext.useExplicitHeap()) {
+
+                    // explicit handling of object fields
+
                     final ProverExpr objectRef =
                         p.mkTupleSelect(varMap.get(invariant.variables.get(0)), 0);
-                    if (hornContext.getExplicitHeapVariables().isEmpty()) {
+                    if (hornContext.getExplicitHeapObjectVariables().isEmpty()) {
                         if (hornContext.genHeapBoundAssertions())
                             // for soundness, in this case we should not push
                             clauses.add(p.mkHornClause(p.mkLiteral(false),
@@ -693,7 +727,7 @@ public class StatementEncoder {
                                                        p.mkLiteral(true)));
                     } else {
                         int objectNum = 1;
-                        for (Variable v : hornContext.getExplicitHeapVariables()) {
+                        for (Variable v : hornContext.getExplicitHeapObjectVariables()) {
                             final ProverExpr formalArg = varMap.get(v);
                             final ProverExpr objectTuple =
                                 hornContext.toUnifiedClassType(sig, invariant, varMap, formalArg);
@@ -706,7 +740,9 @@ public class StatementEncoder {
                             varMap.put(v, formalArg);
                         }
                     }
+
                 } else {
+
                     final ProverExpr invAtom = invariant.instPredicate(varMap);
                     clauses.add(p.mkHornClause(invAtom,
                                                new ProverExpr[] { preAtom },
@@ -718,6 +754,7 @@ public class StatementEncoder {
                     clauses.add(p.mkHornClause(postAtom,
                                                new ProverExpr[] { preAtom },
                                                p.mkLiteral(true)));
+
                 }
                 
 		return clauses;

@@ -89,6 +89,14 @@ public class HornEncoderContext {
         private final List<Variable> extraPredicatePreArgs =
           new ArrayList<Variable> ();
 
+        // Extra variables representing objects on the heap
+        private final List<Variable> explicitHeapObjectVars =
+          new ArrayList<Variable> ();
+
+        // Extra representation of static fields
+        private final Map<ClassVariable, List<Variable>> explicitHeapStaticVars =
+          new LinkedHashMap<> ();
+
         public List<Variable> getExtraPredicateArgs() {
           return extraPredicateArgs;
         }
@@ -101,8 +109,8 @@ public class HornEncoderContext {
           return explicitHeapSize >= 0;
         }
 
-        public List<Variable> getExplicitHeapVariables() {
-          return extraPredicateArgs;
+        public List<Variable> getExplicitHeapObjectVariables() {
+          return explicitHeapObjectVars;
         }
 
         public boolean genSafetyAssertions() {
@@ -144,14 +152,20 @@ public class HornEncoderContext {
 
                 if (useExplicitHeap()) {
                     mkUnifiedFieldTypes();
+
+                    for (List<Variable> fields : explicitHeapStaticVars.values())
+                        extraPredicateArgs.addAll(fields);
+                    
                     unifiedClassType =
                         p.getTupleType(unifiedClassFieldTypes
                                        .toArray(new ProverType [0]));
                     final Type wrappedType =
                         new WrappedProverType(unifiedClassType);
                     for (int i = 0; i < explicitHeapSize; ++i)
-                        extraPredicateArgs.add(new Variable("object" + i,
-                                                            wrappedType));
+                        explicitHeapObjectVars.add(new Variable("object" + i,
+                                                                wrappedType));
+
+                    extraPredicateArgs.addAll(explicitHeapObjectVars);
                 } else {
                     unifiedClassType = null;
                 }
@@ -190,9 +204,19 @@ public class HornEncoderContext {
     }
 
     /**
+     * Determine whether the given type is a class representing static fields.
+     */
+    public boolean isStaticFieldsClass(ClassVariable var) {
+        return var.getName().startsWith("$StaticFields_");
+    }
+
+    /**
      * Add fields for the given class to <code>unifiedClassFieldTypes</code>
      */
     private void addFieldsFor(ClassVariable var) {
+            if (classFieldTypeIndexes.containsKey(var) ||
+                explicitHeapStaticVars.containsKey(var))
+                return;
             Log.info("adding fields of class " + var);
 
             final List<Variable> fields = getInvariantArgs(var);
@@ -200,6 +224,14 @@ public class HornEncoderContext {
             // we know that the first field is the actual object reference,
             // which does not have to be recorded
             fields.remove(0);
+
+            if (isStaticFieldsClass(var)) {
+                final List<Variable> extraVars = new ArrayList<> ();
+                for (Variable v : fields)
+                    extraVars.add(new Variable(v.getName() + "_static", v.getType()));
+                explicitHeapStaticVars.put(var, extraVars);
+                return;
+            }
 
             final List<Integer> indexes = new ArrayList<Integer>();
             final BitSet usedTypes = new BitSet();
@@ -374,6 +406,24 @@ public class HornEncoderContext {
         return p.mkTuple(unifiedArgs);
     }
 
+
+    /**
+     * Update <code>varMap</code> to contain the values of static fields
+     * referred to by the invariant.
+     */
+    public void assignStaticVars(ClassVariable sig,
+                                 HornPredicate invPredicate,
+                                 Map<Variable, ProverExpr> varMap) {
+        final ProverExpr[] invArgs = invPredicate.compileArguments(varMap);
+        final List<Variable> staticVars = explicitHeapStaticVars.get(sig);
+
+        Verify.verify(invArgs.length == staticVars.size() + 1,
+                      "Inconsistent number of static class fields");
+
+        for (int i = 0; i < staticVars.size(); ++i)
+            varMap.put(staticVars.get(i), invArgs[i + 1]);
+    }
+
     /**
      * Read the values of fields of a <code>sig</code> from the given
      * <code>unifiedObjectFields</code>.
@@ -393,6 +443,27 @@ public class HornEncoderContext {
             res = p.mkAnd(res,
                           p.mkEq(invArgs[i + 1],
                                  p.mkTupleSelect(unifiedObjectFields, fieldIndexes.get(i))));
+
+        return res;
+    }
+        
+    /**
+     * Read the values of static fields of a <code>sig</code>.
+     */
+    public ProverExpr createStaticFieldEquations(ClassVariable sig,
+                                                 HornPredicate invPredicate,
+                                                 Map<Variable, ProverExpr> varMap) {
+        final ProverExpr[] invArgs = invPredicate.compileArguments(varMap);
+        final List<Variable> staticVars = explicitHeapStaticVars.get(sig);
+
+        Verify.verify(invArgs.length == staticVars.size() + 1,
+                      "Inconsistent number of static class fields");
+
+        ProverExpr res = p.mkLiteral(true);
+        for (int i = 0; i < staticVars.size(); ++i)
+            res = p.mkAnd(res,
+                          p.mkEq(invArgs[i + 1],
+                                 varMap.get(staticVars.get(i))));
 
         return res;
     }
