@@ -37,15 +37,22 @@ public class Hornify {
 		this.factory = fac;	
 	}
 
+
+    public HornEncoderContext toHorn(Program program){
+        return toHorn(program, -1, HornEncoderContext.GeneratedAssertions.ALL);
+    }
+
 	/**
 	 * Main method to encode into Horn
 	 * @param program
 	 */
-	public HornEncoderContext toHorn(Program program){
+	public HornEncoderContext toHorn(Program program,
+                                     int explicitHeapSize,
+                                     HornEncoderContext.GeneratedAssertions generatedAssertions){
 		prover = factory.spawn();
 		prover.setHornLogic(true);
 		
-		HornEncoderContext hornContext = new HornEncoderContext(prover, program);
+		HornEncoderContext hornContext = new HornEncoderContext(prover, program, explicitHeapSize, generatedAssertions);
 
 		Log.info("Transform Program Methods into Horn Clauses ... ");
 

@@ -149,8 +149,7 @@ public class Options {
 	 */
 	@Option(name = "-array-exact", usage = "Number of exactly modeled array elements", required = false)
 	private int exactArrayElements = 0;
-	
-	
+
 	// /**
 	// * Output intermediate representations
 	// */
@@ -190,16 +189,10 @@ public class Options {
 	@Option(name = "-inline_size", usage = "Inline everything with less than N stmts", required = false)
 	private int inlineMaxSize = -1;
 
-	/**
-	 * @return the inlineMinSize
-	 */
 	public int getInlineMaxSize() {
 		return inlineMaxSize;
 	}
 
-	/**
-	 * @param inlineMinSize the inlineMinSize to set
-	 */
 	public void setInlineMaxSize(int inlineMaxSize) {
 		this.inlineMaxSize = inlineMaxSize;
 		soottocfg.Options.v().setInlineMaxSize(inlineMaxSize);
@@ -258,9 +251,26 @@ public class Options {
 	public int getHeapLimit(){
 		return heapLimit;
 	}
-	
 
-	
+
+    @Option(name = "-boundedHeapSize", usage = "Verify up to a bounded heapsize", required = false)
+    private int boundedHeapSize = -1;
+	public int getBoundedHeapSize() {
+	    return boundedHeapSize;
+    }
+
+    @Option(name = "-initialHeapSize", usage = "Start value for -boundedHeapSize", required = false)
+    private int initialHeapSize = 1;
+    public int getInitialHeapSize() {
+        return initialHeapSize;
+    }
+
+    @Option(name = "-stepHeapSize", usage = "Step size for -boundedHeapSize", required = false)
+    private int stepHeapSize = 1;
+    public int getStepHeapSize() {
+        return stepHeapSize;
+    }
+
 	/**
 	 * Determines, whether Joogie has an additional classpath
 	 * 
