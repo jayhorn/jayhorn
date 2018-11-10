@@ -85,12 +85,14 @@ public class EldaricaChecker extends Checker {
             for (int k = offset; k <= max; k += step) {
                 Log.info("Round " + (k - offset + 1) + ": heap size " + k);
                 // try to verify program with heap size k and only safety assertions
+                Log.info("Checking safety ...");
                 result = generateAndCheckHornClauses(program, k, HornEncoderContext.GeneratedAssertions.SAFETY);
                 if (result == ProverResult.Unsat) {
                     // definitely unsafe: found counterexample with bounded heap
                     return false;
                 } else {
                     // try to verify program with heap size k and only heap bound assertions
+                    Log.info("Checking heap bounds ...");
                     result = generateAndCheckHornClauses(program, k, HornEncoderContext.GeneratedAssertions.HEAP_BOUNDS);
                     if (result == ProverResult.Sat) {
                         return true;
