@@ -429,6 +429,7 @@ public class HornEncoderContext {
      * Read the values of fields of a <code>sig</code> from the given
      * <code>unifiedObjectFields</code>.
      */
+/*
     public ProverExpr createFieldEquations(ClassVariable sig,
                                            HornPredicate invPredicate,
                                            Map<Variable, ProverExpr> varMap,
@@ -447,10 +448,34 @@ public class HornEncoderContext {
 
         return res;
     }
+*/
+
+    /**
+     * Read the values of fields of a <code>sig</code> from the given
+     * <code>unifiedObjectFields</code>.
+     */
+    public void substObjectFields(ClassVariable sig,
+                                  HornPredicate invPredicate,
+                                  Map<Variable, ProverExpr> varMap,
+                                  ProverExpr unifiedObjectFields) {
+        final ProverExpr[] invArgs = invPredicate.compileArguments(varMap);
+        final List<Integer> fieldIndexes = classFieldTypeIndexes.get(sig);
+
+        Verify.verify(invArgs.length == fieldIndexes.size() + 1,
+                      "Inconsistent number of class fields");
+
+        final Map<ProverExpr, ProverExpr> subst = new HashMap<> ();
+
+        for (int i = 0; i < fieldIndexes.size(); ++i)
+            subst.put(invArgs[i + 1], p.mkTupleSelect(unifiedObjectFields, fieldIndexes.get(i)));
+
+        HornHelper.hh().substitute(varMap, subst);
+    }
 
     /**
      * Read the values of static fields of a <code>sig</code>.
      */
+/*
     public ProverExpr createStaticFieldEquations(ClassVariable sig,
                                                  HornPredicate invPredicate,
                                                  Map<Variable, ProverExpr> varMap) {
@@ -467,6 +492,28 @@ public class HornEncoderContext {
                                  varMap.get(staticVars.get(i))));
 
         return res;
+    }
+*/
+
+    /**
+     * Read the values of static fields of a <code>sig</code>, and put them in the
+     * <code>varMap</code>.
+     */
+    public void substStaticFields(ClassVariable sig,
+                                  HornPredicate invPredicate,
+                                  Map<Variable, ProverExpr> varMap) {
+        final ProverExpr[] invArgs = invPredicate.compileArguments(varMap);
+        final List<Variable> staticVars = explicitHeapStaticVars.get(sig);
+
+        Verify.verify(invArgs.length == staticVars.size() + 1,
+                      "Inconsistent number of static class fields");
+
+        final Map<ProverExpr, ProverExpr> subst = new HashMap<> ();
+
+        for (int i = 0; i < staticVars.size(); ++i)
+            subst.put(invArgs[i + 1], varMap.get(staticVars.get(i)));
+
+        HornHelper.hh().substitute(varMap, subst);
     }
 
     /**

@@ -44,8 +44,6 @@ public class EldaricaChecker extends Checker {
         this.factory = factory;
     }
 
-    private List<ProverHornClause> allClauses = new LinkedList<ProverHornClause>();
-
     public boolean checkProgram(Program program) {
         Preconditions.checkNotNull(program.getEntryPoint(),
                                    "The program has no entry points and thus is trivially verified.");
@@ -112,6 +110,7 @@ public class EldaricaChecker extends Checker {
     private ProverResult generateAndCheckHornClauses(final Program program,
                                                      int explicitHeapSize,
                                                      HornEncoderContext.GeneratedAssertions generatedAssertions) {
+        List<ProverHornClause> allClauses = new LinkedList<ProverHornClause>();
         Log.info("Hornify  ... ");
         Hornify hf = new Hornify(factory);
         Stopwatch toHornTimer = Stopwatch.createStarted();

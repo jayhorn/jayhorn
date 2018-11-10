@@ -104,6 +104,17 @@ public class HornHelper {
 		return varNum++;
 	}
 
+        /**
+         * Apply a substitution to the values of a variable map. This will only
+         * check for complete matches, i.e., it won't substitute any sub-expressions
+         */
+        public void substitute(Map<Variable, ProverExpr> varMap,
+                               Map<ProverExpr, ProverExpr> subst) {
+            for (Map.Entry<Variable, ProverExpr> e : varMap.entrySet())
+                if (subst.containsKey(e.getValue()))
+                    e.setValue(subst.get(e.getValue()));
+        }
+
 	public List<ProverExpr> findOrCreateProverVar(Prover p, List<Variable> cfgVars, Map<Variable, ProverExpr> varMap) {
 		List<ProverExpr> res = new LinkedList<ProverExpr>();
 		for (Variable v : cfgVars) {

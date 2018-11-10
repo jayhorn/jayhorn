@@ -480,14 +480,13 @@ public class StatementEncoder {
             HornPredicate invariant = this.hornContext.lookupInvariantPredicate(sig, -1);
             instantiateInvArguments(pull, varMap, invariant, m);
 
-            final ProverExpr postAtom = postPred.instPredicate(varMap);
-
             if (hornContext.isStaticFieldsClass(sig)) {
 
-                final ProverExpr eqs =
-                    hornContext.createStaticFieldEquations(sig, invariant, varMap);
+                hornContext.substStaticFields(sig, invariant, varMap);
+
+                final ProverExpr postAtom = postPred.instPredicate(varMap);
                 final ProverHornClause clause =
-                    p.mkHornClause(postAtom, new ProverExpr[]{preAtom}, eqs);
+                    p.mkHornClause(postAtom, new ProverExpr[]{preAtom}, p.mkLiteral(true));
                 clauses.add(clause);
 
             } else {
@@ -501,13 +500,12 @@ public class StatementEncoder {
                     ++objectNum;
 
                     final ProverExpr formalArg = varMap.get(v);
-                    final ProverExpr readObjectEqs =
-                        hornContext.createFieldEquations(sig, invariant, varMap, formalArg);
+                    hornContext.substObjectFields(sig, invariant, varMap, formalArg);
 
+                    final ProverExpr postAtom = postPred.instPredicate(varMap);
                     final ProverHornClause clause =
                         p.mkHornClause(postAtom, new ProverExpr[]{preAtom},
-                                       p.mkAnd(objectRefEq, readObjectEqs));
-
+                                       objectRefEq);
                     clauses.add(clause);
                 }
             }
