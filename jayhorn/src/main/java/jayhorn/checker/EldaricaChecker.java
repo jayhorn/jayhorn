@@ -44,7 +44,7 @@ public class EldaricaChecker extends Checker {
         this.factory = factory;
     }
 
-    public boolean checkProgram(Program program) {
+    public CheckerResult checkProgram(Program program) {
         Preconditions.checkNotNull(program.getEntryPoint(),
                                    "The program has no entry points and thus is trivially verified.");
 
@@ -74,6 +74,11 @@ public class EldaricaChecker extends Checker {
                                                  -1,
                                                  HornEncoderContext.GeneratedAssertions.ALL);
 
+            if (result == ProverResult.Sat)
+                return CheckerResult.SAFE;
+            if (result == ProverResult.Unsat)
+                Log.info("Prover code " + result);
+            return CheckerResult.UNKNOWN;
         } else {
             final int offset = Options.v().getInitialHeapSize();
             final int step = Options.v().getStepHeapSize();
@@ -87,24 +92,19 @@ public class EldaricaChecker extends Checker {
                 result = generateAndCheckHornClauses(program, k, HornEncoderContext.GeneratedAssertions.SAFETY);
                 if (result == ProverResult.Unsat) {
                     // definitely unsafe: found counterexample with bounded heap
-                    return false;
+                    return CheckerResult.UNSAFE;
                 } else {
                     // try to verify program with heap size k and only heap bound assertions
                     Log.info("Checking heap bounds ...");
                     result = generateAndCheckHornClauses(program, k, HornEncoderContext.GeneratedAssertions.HEAP_BOUNDS);
                     if (result == ProverResult.Sat) {
-                        return true;
+                        return CheckerResult.SAFE;
                     }
                 }
             }
-            throw new RuntimeException("Failed to verify the program with max heap size " + max);
+            Log.info("Failed to verify the program with max heap size " + max);
+            return CheckerResult.UNKNOWN;
         }
-        if (result == ProverResult.Sat) {
-            return true;
-        } else if (result == ProverResult.Unsat) {
-            return false;
-        }
-        throw new RuntimeException("Verification failed with prover code " + result);
     }
 
     private ProverResult generateAndCheckHornClauses(final Program program,

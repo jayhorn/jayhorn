@@ -133,7 +133,7 @@ public class BigSoundnessTests {
 
 				Program program = soot2cfg.getProgram();
 				EldaricaChecker hornChecker = new EldaricaChecker(factory);
-				result = hornChecker.checkProgram(program);
+				result = hornChecker.checkProgram(program) == EldaricaChecker.CheckerResult.SAFE;
 
 				
 				if (expected == result) {

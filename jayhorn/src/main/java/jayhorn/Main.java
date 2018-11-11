@@ -11,6 +11,7 @@ import com.google.common.base.Stopwatch;
 
 import jayhorn.checker.EldaricaChecker;
 import jayhorn.checker.SpacerChecker;
+import jayhorn.checker.Checker;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.solver.spacer.SpacerProverFactory;
@@ -21,21 +22,25 @@ import soottocfg.soot.SootToCfg.MemModel;
 
 public class Main {
 	
-    private static String parseResult(String solver, boolean result)
+    private static String parseResult(String solver, Checker.CheckerResult result)
     {
-    	if (result){
-			return "SAFE";
-		}else{
-			return "UNSAFE";
-		}
+    	switch (result) {
+        case SAFE:
+            return "SAFE";
+        case UNSAFE:
+            return "UNSAFE";
+        default:
+            return "UNKNOWN";
+        }
     }
+
     /**
      * Safety Analysis with JayHorn
      * @param options
      * @param factory
      * @return true if safe, otherwise false
      */
-    public static boolean safetyAnalysis(ProverFactory factory){
+    public static Checker.CheckerResult safetyAnalysis(ProverFactory factory) {
     	Log.info("Building CFG  ... ");
   		SootToCfg soot2cfg = new SootToCfg();
   		soottocfg.Options.v().setBuiltInSpecs(Options.v().useSpecs);
@@ -57,7 +62,7 @@ public class Main {
   		
   		Log.info("Safety Verification ... ");
 
-  		boolean result=false;
+  		Checker.CheckerResult result = Checker.CheckerResult.UNKNOWN;
   		if ("spacer".equals(Options.v().getSolver())){
   			SpacerChecker spacer = new SpacerChecker(factory);
   			result = spacer.checkProgram(program);

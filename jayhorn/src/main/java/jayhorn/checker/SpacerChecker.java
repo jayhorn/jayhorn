@@ -52,7 +52,7 @@ public class SpacerChecker extends Checker{
 		return prover;
 	}
 	
-	public boolean checkProgram(Program program) {
+	public CheckerResult checkProgram(Program program) {
 		Preconditions.checkNotNull(program.getEntryPoint(),
 				"The program has no entry points and thus is trivially verified.");	
 
@@ -127,7 +127,7 @@ public class SpacerChecker extends Checker{
 			Stopwatch satTimer = Stopwatch.createStarted();
 			if (S2H.sh().getErrorState().isEmpty()){
 				Stats.stats().add("Warning", "No assertions found.");
-				return true;
+				return CheckerResult.SAFE;
 			}
 			
 
@@ -168,13 +168,13 @@ public class SpacerChecker extends Checker{
 
 		for (ProverResult res : results.values()) {
 			if (res == ProverResult.Sat){
-				return false;
+				return CheckerResult.UNSAFE;
 			}else if(res != ProverResult.Unsat){
 				throw new RuntimeException("Verification failed with prover code " + result);
 			}
 		}
 
-		return true;
+		return CheckerResult.SAFE;
 	}
 
 	private void cex(){

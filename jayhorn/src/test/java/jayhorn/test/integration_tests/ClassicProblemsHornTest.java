@@ -92,7 +92,7 @@ public class ClassicProblemsHornTest {
 			
 			Program program = soot2cfg.getProgram();
 	  		EldaricaChecker hornChecker = new EldaricaChecker(factory);
-	  		boolean result = hornChecker.checkProgram(program);
+	  		boolean result = hornChecker.checkProgram(program) == EldaricaChecker.CheckerResult.SAFE;
 
 //			Checker checker = new Checker(factory);
 //			boolean result = checker.checkProgram(soot2cfg.getProgram());

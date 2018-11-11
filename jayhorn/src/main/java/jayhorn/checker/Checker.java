@@ -17,8 +17,12 @@ public abstract class Checker {
 		S2H.resetInstance();
 		HornHelper.resetInstance();
 	}
+
+        public static enum CheckerResult {
+          SAFE, UNSAFE, UNKNOWN
+        }
 	
-	public abstract boolean checkProgram(Program program);
+	public abstract CheckerResult checkProgram(Program program);
 }
 
 

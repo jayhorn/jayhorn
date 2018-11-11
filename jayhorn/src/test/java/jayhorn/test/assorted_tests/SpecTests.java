@@ -91,7 +91,7 @@ public class SpecTests {
 			
 			Program program = soot2cfg.getProgram();
 	  		EldaricaChecker hornChecker = new EldaricaChecker(factory);
-	  		boolean result = hornChecker.checkProgram(program);
+	  		boolean result = hornChecker.checkProgram(program) == EldaricaChecker.CheckerResult.SAFE;
 	  		
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);

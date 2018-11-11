@@ -82,7 +82,7 @@ public class FailingNumericTests {
 			jayhorn.Options.v().setTimeout(5);
 			jayhorn.Options.v().setPrintHorn(true);
 			EldaricaChecker checker = new EldaricaChecker(factory);
-			boolean result = checker.checkProgram(soot2cfg.getProgram());
+			boolean result = checker.checkProgram(soot2cfg.getProgram()) == EldaricaChecker.CheckerResult.SAFE;
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
 

@@ -74,7 +74,7 @@ public class SimpleHornTest {
 		Program program = getCFG(factory);
 		if (program != null){
 			EldaricaChecker eldarica = new EldaricaChecker(factory);
-			boolean result = eldarica.checkProgram(program);
+			boolean result = eldarica.checkProgram(program) == EldaricaChecker.CheckerResult.SAFE;
 			boolean expected = this.sourceFile.getName().startsWith("Sat");
 			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
 		} else {
@@ -88,7 +88,7 @@ public class SimpleHornTest {
 	Program program = getCFG(factory);
 	SpacerChecker spacer = new SpacerChecker(factory);
 	if (program != null){		
-		boolean result = spacer.checkProgram(program);
+		boolean result = spacer.checkProgram(program) == EldaricaChecker.CheckerResult.SAFE;
 		boolean expected = this.sourceFile.getName().startsWith("Sat");
 		Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
 	} else {
