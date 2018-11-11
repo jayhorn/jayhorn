@@ -31,10 +31,12 @@ import soot.Body;
 import soot.Local;
 import soot.PatchingChain;
 import soot.RefType;
+import soot.IntType;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
+import soot.jimple.Jimple;
 import soot.jimple.AnyNewExpr;
 import soot.jimple.AssignStmt;
 import soot.jimple.BreakpointStmt;
@@ -621,7 +623,27 @@ public class SootStmtSwitch implements StmtSwitch {
 
 			}
 
+		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetInt()>")) {
+                    /**
+                     * Method nondetInt() of the Verifier class used to formula SV-COMP problems
+                     * Replace this method with a simple havoc.
+                     */
+                    StaticInvokeExpr sivk = (StaticInvokeExpr) call;
+                    Verify.verify(call.getArgCount() == 0);
+
+                    if (optionalLhs != null) {
+                        final InvokeExpr newInvokeExpr =
+                            Jimple.v().newStaticInvokeExpr(
+                              SootTranslationHelpers.v().getHavocMethod(IntType.v()).makeRef());
+                        final Unit stmt =
+                            Jimple.v().newAssignStmt(optionalLhs, newInvokeExpr);
+                        translateMethodInvokation(stmt, optionalLhs, newInvokeExpr);
+                    }
+
+                    return true;
 		}
+
+//System.out.println(call.getMethod().getSignature());
 
 		return false;
 	}
