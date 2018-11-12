@@ -245,7 +245,7 @@ public class Options {
 	/*
 	 * Check Heap Limit 
 	 */
-	@Option(name = "-heap-limit", usage = "Max Heap allocation", required = false)
+	@Option(name = "-heap-limit", usage = "Max Heap allocation (for Spacer)", required = false)
 	private int heapLimit = -1;
 	
 	public int getHeapLimit(){
@@ -253,16 +253,24 @@ public class Options {
 	}
 
 
-    @Option(name = "-boundedHeapSize", usage = "Verify up to a bounded heapsize", required = false)
+    @Option(name = "-boundedHeapSize", usage = "Verify up to a bounded heapsize (-1 for unbounded)", required = false)
     private int boundedHeapSize = -1;
 	public int getBoundedHeapSize() {
 	    return boundedHeapSize;
+    }
+
+    public void setBoundedHeapSize(int s) {
+        boundedHeapSize = s;
     }
 
     @Option(name = "-initialHeapSize", usage = "Start value for -boundedHeapSize", required = false)
     private int initialHeapSize = 1;
     public int getInitialHeapSize() {
         return initialHeapSize;
+    }
+
+    public void setInitialHeapSize(int s) {
+        initialHeapSize = s;
     }
 
     @Option(name = "-stepHeapSize", usage = "Step size for -boundedHeapSize", required = false)

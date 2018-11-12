@@ -32,10 +32,16 @@ import soot.Local;
 import soot.PatchingChain;
 import soot.RefType;
 import soot.IntType;
+import soot.ByteType;
+import soot.CharType;
+import soot.ShortType;
+import soot.LongType;
+import soot.BooleanType;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
+import soot.Type;
 import soot.jimple.Jimple;
 import soot.jimple.AnyNewExpr;
 import soot.jimple.AssignStmt;
@@ -623,23 +629,23 @@ public class SootStmtSwitch implements StmtSwitch {
 
 			}
 
+		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetBoolean()>")) {
+                    translateVerifierNondet(BooleanType.v(), optionalLhs, call);
+                    return true;
+		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetByte()>")) {
+                    translateVerifierNondet(ByteType.v(), optionalLhs, call);
+                    return true;
+		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetChar()>")) {
+                    translateVerifierNondet(CharType.v(), optionalLhs, call);
+                    return true;
+		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetShort()>")) {
+                    translateVerifierNondet(ShortType.v(), optionalLhs, call);
+                    return true;
 		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetInt()>")) {
-                    /**
-                     * Method nondetInt() of the Verifier class used to formula SV-COMP problems
-                     * Replace this method with a simple havoc.
-                     */
-                    StaticInvokeExpr sivk = (StaticInvokeExpr) call;
-                    Verify.verify(call.getArgCount() == 0);
-
-                    if (optionalLhs != null) {
-                        final InvokeExpr newInvokeExpr =
-                            Jimple.v().newStaticInvokeExpr(
-                              SootTranslationHelpers.v().getHavocMethod(IntType.v()).makeRef());
-                        final Unit stmt =
-                            Jimple.v().newAssignStmt(optionalLhs, newInvokeExpr);
-                        translateMethodInvokation(stmt, optionalLhs, newInvokeExpr);
-                    }
-
+                    translateVerifierNondet(IntType.v(), optionalLhs, call);
+                    return true;
+		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetLong()>")) {
+                    translateVerifierNondet(LongType.v(), optionalLhs, call);
                     return true;
 		}
 
@@ -647,6 +653,23 @@ public class SootStmtSwitch implements StmtSwitch {
 
 		return false;
 	}
+
+        /**
+         * Method nondet*() of the Verifier class used to formula SV-COMP problems.
+         * Replace those method with a simple havoc.
+         */
+        private void translateVerifierNondet(Type t, Value optionalLhs, InvokeExpr call) {
+            Verify.verify(call.getArgCount() == 0);
+
+            if (optionalLhs != null) {
+                final InvokeExpr newInvokeExpr =
+                    Jimple.v().newStaticInvokeExpr(
+                      SootTranslationHelpers.v().getHavocMethod(t).makeRef());
+                final Unit stmt =
+                    Jimple.v().newAssignStmt(optionalLhs, newInvokeExpr);
+                translateMethodInvokation(stmt, optionalLhs, newInvokeExpr);
+            }
+        }
 
 	private void translateDefinitionStmt(DefinitionStmt def) {
 
