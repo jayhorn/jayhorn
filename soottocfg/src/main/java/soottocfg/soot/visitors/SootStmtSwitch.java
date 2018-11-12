@@ -629,22 +629,22 @@ public class SootStmtSwitch implements StmtSwitch {
 
 			}
 
-		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetBoolean()>")) {
+		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: boolean nondetBoolean()>")) {
                     translateVerifierNondet(BooleanType.v(), optionalLhs, call);
                     return true;
-		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetByte()>")) {
+		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: byte nondetByte()>")) {
                     translateVerifierNondet(ByteType.v(), optionalLhs, call);
                     return true;
-		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetChar()>")) {
+		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: char nondetChar()>")) {
                     translateVerifierNondet(CharType.v(), optionalLhs, call);
                     return true;
-		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetShort()>")) {
+		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: short nondetShort()>")) {
                     translateVerifierNondet(ShortType.v(), optionalLhs, call);
                     return true;
 		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetInt()>")) {
                     translateVerifierNondet(IntType.v(), optionalLhs, call);
                     return true;
-		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetLong()>")) {
+		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: long nondetLong()>")) {
                     translateVerifierNondet(LongType.v(), optionalLhs, call);
                     return true;
 		}
