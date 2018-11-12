@@ -161,7 +161,10 @@ public class StatementEncoder {
             final ProverExpr cond = expEncoder.exprToProverExpr(as.getExpression(), varMap);
 
             final ProverExpr errorState; // For now depending on the solver we use false or a predicate
-            String tag = "ErrorState@line" + as.getJavaSourceLine();
+            String tag =
+                "ErrorState_" +
+                as.getSourceLocation().getSourceFileName() +
+                "_line" + as.getJavaSourceLine();
             final ProverFun errorPredicate = p.mkHornPredicate(tag, new ProverType[]{});
             errorState = errorPredicate.mkExpr(new ProverExpr[]{});
 
