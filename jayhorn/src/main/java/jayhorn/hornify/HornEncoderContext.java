@@ -110,6 +110,10 @@ public class HornEncoderContext {
         return explicitHeapSize >= 0;
     }
 
+    public int getModelledArraySize() {
+        return explicitHeapSize; // currently we just use the same size
+    }
+
     public List<Variable> getExplicitHeapObjectVariables() {
         return explicitHeapObjectVars;
     }
@@ -221,9 +225,30 @@ public class HornEncoderContext {
         if (classFieldTypeIndexes.containsKey(var) ||
             explicitHeapStaticVars.containsKey(var))
             return;
-        Log.info("adding fields of class " + var);
-
         final List<Variable> fields = getInvariantArgs(var);
+
+        if (isArrayInv(var)) {
+            Log.info("adding array type " + var);
+
+            Variable elemVar = null;
+            for (Variable v : fields)
+                if (v.getName().equals(ArrayTransformer.AElem))
+                    elemVar = v;
+            if (elemVar == null)
+                throw new RuntimeException(
+                            "could not determine array element type");
+
+            final List<Variable> arrayFields = new ArrayList<> ();
+            
+            for (int i = 0; i < getModelledArraySize(); ++i)
+                arrayFields.add(elemVar);
+
+            addFieldTypeIndexes(var, arrayFields);
+
+            return;
+        }
+
+        Log.info("adding fields of class " + var + ": " + fields);
 
         // we know that the first field is the actual object reference,
         // which does not have to be recorded
@@ -237,6 +262,10 @@ public class HornEncoderContext {
             return;
         }
 
+        addFieldTypeIndexes(var, fields);
+    }
+
+    private void addFieldTypeIndexes(ClassVariable var, List<Variable> fields) {
         final List<Integer> indexes = new ArrayList<Integer>();
         final BitSet usedTypes = new BitSet();
 
@@ -342,6 +371,15 @@ public class HornEncoderContext {
     }
 
     /**
+     * Check whether the given class results from the array transformation
+     */
+    public boolean isArrayInv(ClassVariable sig) {
+      return
+          soottocfg.Options.v().arrayInv() &&
+          (sig.getName().contains(ArrayTransformer.arrayTypeName));
+    }
+
+    /**
      * Determine the arguments to be included in the invariant of the given
      * class.
      */
@@ -355,8 +393,7 @@ public class HornEncoderContext {
             args.add(new Variable(entry.getKey(), entry.getValue()));
         }
 
-        if (soottocfg.Options.v().arrayInv() &&
-            (sig.getName().contains(ArrayTransformer.arrayTypeName))) {
+        if (isArrayInv(sig)) {
             args.add(new Variable("array_index", IntType.instance()));
         }
 
@@ -401,12 +438,58 @@ public class HornEncoderContext {
         for (int i = 0; i < unifiedArgs.length; ++i)
             if (unifiedArgs[i] == null)
                 unifiedArgs[i] = p.mkTupleSelect(defaultValues, i);
-        //p.mkHornVariable("field_" + i,
-        //                 unifiedClassFieldTypes.get(i));
 
         return p.mkTuple(unifiedArgs);
     }
 
+    /**
+     * Initialise all fields of an array represented explicitly
+     */
+    public ProverExpr initUnifiedArrayType(ClassVariable sig,
+                                           ProverExpr elemValue,
+                                           ProverExpr defaultValues) {
+        Verify.verify(isArrayInv(sig),
+                      "method only works for array invariants, not for " +
+                      sig);
+
+        final List<Integer> fieldIndexes = classFieldTypeIndexes.get(sig);
+
+        final ProverExpr[] unifiedArgs =
+            new ProverExpr[unifiedClassFieldTypes.size()];
+        for (int i = 0; i < fieldIndexes.size(); ++i)
+            unifiedArgs[fieldIndexes.get(i)] = elemValue;
+
+        for (int i = 0; i < unifiedArgs.length; ++i)
+            if (unifiedArgs[i] == null)
+                unifiedArgs[i] = p.mkTupleSelect(defaultValues, i);
+
+        return p.mkTuple(unifiedArgs);
+    }
+
+    /**
+     * Assign a value to some element of an array represented explicitly
+     */
+    public ProverExpr setUnifiedArrayField(ClassVariable sig,
+                                           int index,
+                                           ProverExpr elemValue,
+                                           ProverExpr defaultValues) {
+        Verify.verify(isArrayInv(sig),
+                      "method only works for array invariants, not for " +
+                      sig);
+
+        final List<Integer> fieldIndexes = classFieldTypeIndexes.get(sig);
+        final int unifiedIndex = fieldIndexes.get(index);
+
+        final ProverExpr[] unifiedArgs =
+            new ProverExpr[unifiedClassFieldTypes.size()];
+        unifiedArgs[unifiedIndex] = elemValue;
+
+        for (int i = 0; i < unifiedArgs.length; ++i)
+            if (unifiedArgs[i] == null)
+                unifiedArgs[i] = p.mkTupleSelect(defaultValues, i);
+
+        return p.mkTuple(unifiedArgs);
+    }
 
     /**
      * Update <code>varMap</code> to contain the values of static fields
@@ -424,31 +507,6 @@ public class HornEncoderContext {
         for (int i = 0; i < staticVars.size(); ++i)
             varMap.put(staticVars.get(i), invArgs[i + 1]);
     }
-
-    /**
-     * Read the values of fields of a <code>sig</code> from the given
-     * <code>unifiedObjectFields</code>.
-     */
-/*
-    public ProverExpr createFieldEquations(ClassVariable sig,
-                                           HornPredicate invPredicate,
-                                           Map<Variable, ProverExpr> varMap,
-                                           ProverExpr unifiedObjectFields) {
-        final ProverExpr[] invArgs = invPredicate.compileArguments(varMap);
-        final List<Integer> fieldIndexes = classFieldTypeIndexes.get(sig);
-
-        Verify.verify(invArgs.length == fieldIndexes.size() + 1,
-                      "Inconsistent number of class fields");
-
-        ProverExpr res = p.mkLiteral(true);
-        for (int i = 0; i < fieldIndexes.size(); ++i)
-            res = p.mkAnd(res,
-                          p.mkEq(invArgs[i + 1],
-                                 p.mkTupleSelect(unifiedObjectFields, fieldIndexes.get(i))));
-
-        return res;
-    }
-*/
 
     /**
      * Read the values of fields of a <code>sig</code> from the given
@@ -473,27 +531,24 @@ public class HornEncoderContext {
     }
 
     /**
-     * Read the values of static fields of a <code>sig</code>.
+     * Read the value of an array element from the given
+     * <code>unifiedObjectFields</code>.
      */
-/*
-    public ProverExpr createStaticFieldEquations(ClassVariable sig,
-                                                 HornPredicate invPredicate,
-                                                 Map<Variable, ProverExpr> varMap) {
-        final ProverExpr[] invArgs = invPredicate.compileArguments(varMap);
-        final List<Variable> staticVars = explicitHeapStaticVars.get(sig);
+    public void substArrayElem(ClassVariable sig,
+                               int index,
+                               ProverExpr elemTargetExpr,
+                               Map<Variable, ProverExpr> varMap,
+                               ProverExpr unifiedObjectFields) {
+        final List<Integer> fieldIndexes = classFieldTypeIndexes.get(sig);
+        final int unifiedIndex = fieldIndexes.get(index);
 
-        Verify.verify(invArgs.length == staticVars.size() + 1,
-                      "Inconsistent number of static class fields");
+        final Map<ProverExpr, ProverExpr> subst = new HashMap<> ();
 
-        ProverExpr res = p.mkLiteral(true);
-        for (int i = 0; i < staticVars.size(); ++i)
-            res = p.mkAnd(res,
-                          p.mkEq(invArgs[i + 1],
-                                 varMap.get(staticVars.get(i))));
+        subst.put(elemTargetExpr,
+                  p.mkTupleSelect(unifiedObjectFields, unifiedIndex));
 
-        return res;
+        HornHelper.hh().substitute(varMap, subst);
     }
-*/
 
     /**
      * Read the values of static fields of a <code>sig</code>, and put them in the

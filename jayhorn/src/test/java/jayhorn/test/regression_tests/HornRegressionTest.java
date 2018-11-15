@@ -84,7 +84,6 @@ public class HornRegressionTest {
 
 	@Test
 	public void testWithPrincessBounded() {
-            if (!"UnsatArray2.java".equals(this.sourceFile.getName())) { // TODO!
 		PrincessProverFactory factory = new PrincessProverFactory();
 		Program program = getCFG(factory, 1, 5);
 		if (program != null){
@@ -99,7 +98,6 @@ public class HornRegressionTest {
 		} else {
 			Assert.fail();
 		}
-            }
 	}
 
 //	@Test

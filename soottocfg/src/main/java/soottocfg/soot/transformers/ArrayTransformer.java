@@ -84,7 +84,7 @@ public class ArrayTransformer extends AbstractSceneTransformer {
 	public static final String arrayTypeName = "JayArray";
 	public static final String arrayElementPrefix = "atIndex";
 
-	private final static String AElem = "_arElem";
+	public final static String AElem = "$arElem";
 
 	private final Map<Type, RefType> arrayTypeMap = new HashMap<Type, RefType>();
 	

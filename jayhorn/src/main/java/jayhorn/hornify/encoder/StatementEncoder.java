@@ -492,6 +492,52 @@ public class StatementEncoder {
                     p.mkHornClause(postAtom, new ProverExpr[]{preAtom}, p.mkLiteral(true));
                 clauses.add(clause);
 
+            } else if (hornContext.isArrayInv(sig)) {
+
+                Verify.verify(m.isArraySet() || m.isArrayGet(),
+                              "array pull only works inside a get or set method");
+
+                final ProverExpr objectRef =
+                    p.mkTupleSelect(varMap.get(invariant.variables.get(0)), 0);
+
+                final Variable arIndex = m.getInParam(1);
+                final ProverExpr indexValue = varMap.get(arIndex);
+
+                final ProverExpr[] invArgs = invariant.compileArguments(varMap);
+                final ProverExpr elemTargetExpr = invArgs[invArgs.length - 1];
+
+                if (hornContext.genHeapBoundAssertions()) {
+                    final ProverExpr indexInRange =
+                        p.mkLt(indexValue, p.mkLiteral(hornContext.getModelledArraySize()));
+                    clauses.add(p.mkHornClause(p.mkLiteral(false),
+                                               new ProverExpr[]{preAtom},
+                                               p.mkNot(indexInRange)));
+                }
+
+                int objectNum = 1;
+                for (Variable v : hornContext.getExplicitHeapObjectVariables()) {
+                    final ProverExpr objectEq = p.mkEq(objectRef, p.mkLiteral(objectNum));
+                    ++objectNum;
+
+                    final ProverExpr formalArg = varMap.get(v);
+
+                    for (int index = 0;
+                         index < hornContext.getModelledArraySize();
+                         ++index) {
+                        final ProverExpr indexEq =
+                            p.mkEq(indexValue, p.mkLiteral(index));
+
+                        final Map<Variable, ProverExpr> tempVarMap = new HashMap<> (varMap);
+                        hornContext.substArrayElem(sig, index, elemTargetExpr, tempVarMap, formalArg);
+
+                        final ProverExpr postAtom = postPred.instPredicate(tempVarMap);
+                        final ProverHornClause clause =
+                            p.mkHornClause(postAtom, new ProverExpr[]{preAtom},
+                                           p.mkAnd(objectEq, indexEq));
+                        clauses.add(clause);
+                    }
+                }
+
             } else {
 
                 final ProverExpr objectRef =
@@ -503,9 +549,10 @@ public class StatementEncoder {
                     ++objectNum;
 
                     final ProverExpr formalArg = varMap.get(v);
-                    hornContext.substObjectFields(sig, invariant, varMap, formalArg);
+                    final Map<Variable, ProverExpr> tempVarMap = new HashMap<> (varMap);
+                    hornContext.substObjectFields(sig, invariant, tempVarMap, formalArg);
 
-                    final ProverExpr postAtom = postPred.instPredicate(varMap);
+                    final ProverExpr postAtom = postPred.instPredicate(tempVarMap);
                     final ProverHornClause clause =
                         p.mkHornClause(postAtom, new ProverExpr[]{preAtom},
                                        objectRefEq);
@@ -698,46 +745,126 @@ public class StatementEncoder {
 //			System.out.println(invariant.variables.get(i)+ " = "+varMap.get(invariant.variables.get(i)) + "\n");
         }
 
-        if (hornContext.useExplicitHeap() && hornContext.isStaticFieldsClass(sig)) {
+        if (hornContext.useExplicitHeap()) {
 
-            // explicit handling of static fields
+            if (hornContext.isStaticFieldsClass(sig)) {
 
-            hornContext.assignStaticVars(sig, invariant, varMap);
+                // explicit handling of static fields
 
-            final ProverExpr postAtom =
-                postPred.instPredicate(varMap);
-            final ProverHornClause clause =
-                p.mkHornClause(postAtom,
-                               new ProverExpr[]{preAtom},
-                               p.mkLiteral(true));
-            clauses.add(clause);
+                hornContext.assignStaticVars(sig, invariant, varMap);
 
-        } else if (hornContext.useExplicitHeap()) {
+                final ProverExpr postAtom =
+                    postPred.instPredicate(varMap);
+                final ProverHornClause clause =
+                    p.mkHornClause(postAtom,
+                                   new ProverExpr[]{preAtom},
+                                   p.mkLiteral(true));
+                clauses.add(clause);
 
-            // explicit handling of object fields
+            } else if (hornContext.isArrayInv(sig)) {
 
-            final ProverExpr objectRef =
-                p.mkTupleSelect(varMap.get(invariant.variables.get(0)), 0);
-            if (hornContext.getExplicitHeapObjectVariables().isEmpty()) {
-                if (hornContext.genHeapBoundAssertions())
-                    // for soundness, in this case we should not push
-                    clauses.add(p.mkHornClause(p.mkLiteral(false),
+                // explicit handling of an array write access
+
+                final ProverExpr objectRef =
+                    p.mkTupleSelect(varMap.get(invariant.variables.get(0)), 0);
+
+                final ProverExpr[] proverArgs = invariant.compileArguments(varMap);
+                final ProverExpr elemValue = proverArgs[proverArgs.length - 1];
+
+                if (m.isArraySet()) {
+                    // then we update just one of the array elements
+
+                    Verify.verify(m.isArraySet(),
+                                  "array push only works inside a set method");
+                    
+                    // this is super-ugly, we have to rethink the way array-set/get are
+                    // represented
+                    final Variable arIndex = m.getInParam(1);
+                    final ProverExpr indexValue = varMap.get(arIndex);
+                    
+                    if (hornContext.genHeapBoundAssertions()) {
+                        final ProverExpr indexInRange =
+                            p.mkLt(indexValue, p.mkLiteral(hornContext.getModelledArraySize()));
+                        clauses.add(p.mkHornClause(p.mkLiteral(false),
+                                                   new ProverExpr[]{preAtom},
+                                                   p.mkNot(indexInRange)));
+                    }
+
+                    int objectNum = 1;
+                    for (Variable v : hornContext.getExplicitHeapObjectVariables()) {
+                        final ProverExpr formalArg = varMap.get(v);
+                        final ProverExpr objectEq = p.mkEq(objectRef, p.mkLiteral(objectNum));
+                        ++objectNum;
+
+                        for (int index = 0;
+                             index < hornContext.getModelledArraySize();
+                             ++index) {
+                            final ProverExpr indexEq =
+                                p.mkEq(indexValue, p.mkLiteral(index));
+                            final ProverExpr objectTuple =
+                                hornContext.setUnifiedArrayField(sig, index, elemValue, formalArg);
+                            varMap.put(v, objectTuple);
+                            final ProverExpr postAtom = postPred.instPredicate(varMap);
+                            final ProverHornClause clause =
+                                p.mkHornClause(postAtom,
                                                new ProverExpr[]{preAtom},
-                                               p.mkLiteral(true)));
-            } else {
-                int objectNum = 1;
-                for (Variable v : hornContext.getExplicitHeapObjectVariables()) {
-                    final ProverExpr formalArg = varMap.get(v);
-                    final ProverExpr objectTuple =
-                        hornContext.toUnifiedClassType(sig, invariant, varMap, formalArg);
-                    varMap.put(v, objectTuple);
-                    final ProverExpr postAtom = postPred.instPredicate(varMap);
-                    clauses.add(p.mkHornClause(postAtom,
-                                               new ProverExpr[]{preAtom},
-                                               p.mkEq(objectRef, p.mkLiteral(objectNum))));
-                    ++objectNum;
-                    varMap.put(v, formalArg);
+                                               p.mkAnd(objectEq, indexEq));
+                            clauses.add(clause);
+                            varMap.put(v, formalArg);
+                        }
+                    }
+
+                } else { //  if (m.isArrayConstructor()) {
+                         // but this can also be the first push of the main method
+
+                    // then we set all array elements to the initial value
+
+                    int objectNum = 1;
+                    for (Variable v : hornContext.getExplicitHeapObjectVariables()) {
+                        final ProverExpr formalArg = varMap.get(v);
+                        final ProverExpr objectTuple =
+                            hornContext.initUnifiedArrayType(sig, elemValue, formalArg);
+                        varMap.put(v, objectTuple);
+                        final ProverExpr postAtom = postPred.instPredicate(varMap);
+                        final ProverHornClause clause =
+                            p.mkHornClause(postAtom,
+                                           new ProverExpr[]{preAtom},
+                                           p.mkEq(objectRef, p.mkLiteral(objectNum)));
+                        clauses.add(clause);
+                        ++objectNum;
+                        varMap.put(v, formalArg);
+                    }
+
                 }
+
+            } else {
+
+                // explicit handling of object fields
+
+                final ProverExpr objectRef =
+                    p.mkTupleSelect(varMap.get(invariant.variables.get(0)), 0);
+                if (hornContext.getExplicitHeapObjectVariables().isEmpty()) {
+                    if (hornContext.genHeapBoundAssertions())
+                        // for soundness, in this case we should not push
+                        clauses.add(p.mkHornClause(p.mkLiteral(false),
+                                                   new ProverExpr[]{preAtom},
+                                                   p.mkLiteral(true)));
+                } else {
+                    int objectNum = 1;
+                    for (Variable v : hornContext.getExplicitHeapObjectVariables()) {
+                        final ProverExpr formalArg = varMap.get(v);
+                        final ProverExpr objectTuple =
+                            hornContext.toUnifiedClassType(sig, invariant, varMap, formalArg);
+                        varMap.put(v, objectTuple);
+                        final ProverExpr postAtom = postPred.instPredicate(varMap);
+                        clauses.add(p.mkHornClause(postAtom,
+                                                   new ProverExpr[]{preAtom},
+                                                   p.mkEq(objectRef, p.mkLiteral(objectNum))));
+                        ++objectNum;
+                        varMap.put(v, formalArg);
+                    }
+                }
+
             }
 
         } else {
