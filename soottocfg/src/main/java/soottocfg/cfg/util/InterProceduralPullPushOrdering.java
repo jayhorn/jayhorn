@@ -28,6 +28,7 @@ import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.soot.SootToCfg;
 import soottocfg.soot.util.FlowBasedPointsToAnalysis;
+import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.util.Pair;
 
 /**
@@ -221,6 +222,10 @@ public class InterProceduralPullPushOrdering {
 	 * @return true if push shadows all preceding pushs that may affect pull. False otherwise.
 	 */
 	protected boolean mustShadow(PushStatement push, PullStatement pull) {
+                // the standard check does not work for arrays, where we
+                // also have to take indexes into account
+                if (push.getObject().getType().toString().startsWith(ArrayTransformer.arrayTypeName))
+                        return false;
 		FlowBasedPointsToAnalysis pta = SootToCfg.getPointsToAnalysis();
 		if (pta != null)
 			return pta.mustAlias(pull.getObject(), push.getObject());
