@@ -14,6 +14,7 @@ import jayhorn.hornify.HornEncoderContext;
 import jayhorn.hornify.HornHelper;
 import jayhorn.hornify.HornPredicate;
 import jayhorn.hornify.MethodContract;
+import jayhorn.Log;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFun;
@@ -314,6 +315,13 @@ public class StatementEncoder {
         List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
         final Method calledMethod = cs.getCallTarget();
+
+        if (calledMethod.isStub() && hornContext.elimOverApprox()) {
+            Log.info("Dropping call to over-approximated " +
+                     calledMethod.getMethodName());
+            return clauses;
+        }
+
         final MethodContract contract = hornContext.getMethodContract(calledMethod);
 
         List<Expression> callArgs =
