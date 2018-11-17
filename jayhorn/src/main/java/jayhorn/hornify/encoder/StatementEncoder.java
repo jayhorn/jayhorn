@@ -104,6 +104,8 @@ public class StatementEncoder {
         final ProverExpr preAtom = prePred.instPredicate(varMap);
         HornHelper.hh().findOrCreateProverVar(p, postPred.variables, varMap);
 
+        try {
+
         if (s instanceof AssertStatement) {
             List<ProverHornClause> clause = assertToClause((AssertStatement) s, postPred, preAtom, varMap);
             //System.out.println("Assert " + clause);
@@ -133,6 +135,11 @@ public class StatementEncoder {
             List<ProverHornClause> clause = pushToClause((PushStatement) s, postPred, preAtom, varMap, m);
             S2H.sh().addClause(s, clause);
             return clause;
+        }
+
+        } catch (ExpressionEncoder.OverApproxException e) {
+            Log.info("Dropping imprecisely handled statement " + s);
+            return new ArrayList<> ();
         }
 
         throw new RuntimeException("Statement type " + s + " not implemented!");

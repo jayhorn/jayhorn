@@ -45,6 +45,8 @@ public class ExpressionEncoder {
 		return this.hornContext;
 	}
 
+        public static class OverApproxException extends RuntimeException {}
+
 	/**
 	 * TODO: this is a hack!
 	 * 
@@ -178,6 +180,8 @@ public class ExpressionEncoder {
 			case BAnd:
 			case BOr:
 			case Xor:
+                                if (hornContext.elimOverApprox())
+                                    throw new OverApproxException();
 				return p.mkVariable("HACK_FreeVar" + HornHelper.hh().newVarNum(), p.getIntType());
 			// Verify.verify(left.getType()==p.getIntType() &&
 			// right.getType()==p.getIntType());

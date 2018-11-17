@@ -95,8 +95,10 @@ public class HornRegressionTest {
 			EldaricaChecker.CheckerResult expected;
                         if (this.sourceFile.getName().startsWith("Sat"))
                             expected = EldaricaChecker.CheckerResult.SAFE;
-                        else
+                        else if (this.sourceFile.getName().startsWith("Unsat"))
                             expected = EldaricaChecker.CheckerResult.UNSAFE;
+                        else
+                            expected = EldaricaChecker.CheckerResult.UNKNOWN;
 			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
 		} else {
 			Assert.fail();
