@@ -195,6 +195,8 @@ public class Options {
 	}
 
 	private int inlineCount = -1;
+
+	public boolean printJimple = false;
 	
 	/*
 	 * Singleton

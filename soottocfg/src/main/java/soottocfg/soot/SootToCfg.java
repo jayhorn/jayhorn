@@ -48,6 +48,7 @@ import soottocfg.soot.memory_model.PushIdentifierAdder;
 import soottocfg.soot.memory_model.PushPullSimplifier;
 import soottocfg.soot.transformers.ArrayTransformer;
 import soottocfg.soot.transformers.AssertionReconstruction;
+import soottocfg.soot.transformers.EnumSimplifyTransformer;
 import soottocfg.soot.transformers.ExceptionTransformer;
 import soottocfg.soot.transformers.SpecClassTransformer;
 import soottocfg.soot.transformers.StaticInitializerTransformer;
@@ -116,9 +117,21 @@ public class SootToCfg {
 		 */
 		final SootMethod mainMethod = Scene.v().getMainMethod();
 		performBehaviorPreservingTransformations();
-		performAbstractionTransformations();
 
-		constructCfg();
+		if (Options.v().printJimple) {
+            for (SootClass sc : Scene.v().getApplicationClasses()) {
+                for (SootMethod sm : sc.getMethods()) {
+                    System.out.println(sm.getSignature());
+                    if (sm.hasActiveBody()) {
+                        System.out.println(sm.retrieveActiveBody());
+                    }
+                }
+            }
+        }
+
+        performAbstractionTransformations();
+
+        constructCfg();
 
 		// now set the entry points.
 		Method m = program.lookupMethod(mainMethod.getSignature());
@@ -369,15 +382,21 @@ public class SootToCfg {
 		}
 		AssertionReconstruction ar = new AssertionReconstruction();
 		ar.applyTransformation();
-		ExceptionTransformer em = new ExceptionTransformer(Options.v().excAsAssert());
+
+        EnumSimplifyTransformer enumSimplifyTransformer = new EnumSimplifyTransformer();
+        enumSimplifyTransformer.applyTransformation();
+
+
+        ExceptionTransformer em = new ExceptionTransformer(Options.v().excAsAssert());
 		em.applyTransformation();
 		SwitchStatementRemover so = new SwitchStatementRemover();
 		so.applyTransformation();
-		if (Options.v().resolveVirtualCalls()) {
+
+        if (Options.v().resolveVirtualCalls()) {
 			VirtualCallResolver vc = new VirtualCallResolver();
 			vc.applyTransformation();
 		}
-	}
+    }
 
 	// apply some standard Soot optimizations
 	private void performSootOptimizations(Body body) {

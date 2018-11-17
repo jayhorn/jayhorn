@@ -130,8 +130,11 @@ public class Options {
 	public boolean useCallIDs = false;
 
 
-	
-	/*
+    @Option(name = "-jimple", usage = "Prints the jimple of the transformed bytecode", required = false)
+    public boolean printJimple = false;
+
+
+    /*
 	 * Memory precision
 	 */
 	@Option(name = "-mem-prec", usage = "Precision of memory model", required = false)
