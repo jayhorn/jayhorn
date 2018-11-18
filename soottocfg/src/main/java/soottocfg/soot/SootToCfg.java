@@ -383,9 +383,10 @@ public class SootToCfg {
 		AssertionReconstruction ar = new AssertionReconstruction();
 		ar.applyTransformation();
 
-        EnumSimplifyTransformer enumSimplifyTransformer = new EnumSimplifyTransformer();
-        enumSimplifyTransformer.applyTransformation();
-
+        if (Options.v().enumHack) {
+            EnumSimplifyTransformer enumSimplifyTransformer = new EnumSimplifyTransformer();
+            enumSimplifyTransformer.applyTransformation();
+        }
 
         ExceptionTransformer em = new ExceptionTransformer(Options.v().excAsAssert());
 		em.applyTransformation();

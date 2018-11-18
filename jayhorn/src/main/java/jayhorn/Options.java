@@ -133,6 +133,8 @@ public class Options {
     @Option(name = "-jimple", usage = "Prints the jimple of the transformed bytecode", required = false)
     public boolean printJimple = false;
 
+    @Option(name = "-enumhack", usage = "Prints the jimple of the transformed bytecode", required = false)
+    public boolean enumHack = false;
 
     /*
 	 * Memory precision

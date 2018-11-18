@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import soot.Body;
+import soot.IntType;
+import soot.IntegerType;
 import soot.Local;
 import soot.RefType;
 import soot.Scene;
@@ -26,12 +28,17 @@ import soot.Type;
 import soot.Unit;
 import soot.Value;
 import soot.ValueBox;
+import soot.jimple.BinopExpr;
 import soot.jimple.DefinitionStmt;
+import soot.jimple.FieldRef;
+import soot.jimple.IdentityStmt;
+import soot.jimple.IfStmt;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.IntConstant;
 import soot.jimple.InvokeExpr;
 import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
+import soot.jimple.StaticFieldRef;
 import soot.jimple.Stmt;
 import soot.jimple.StringConstant;
 
@@ -89,6 +96,7 @@ public class EnumSimplifyTransformer extends AbstractSceneTransformer {
 
         // todo, go through all static initializers and remove the switch map.
         usingMethods.forEach(s -> removeSwitchMapRelatedUnits(s, enumClass));
+        removeSwitchMapRelatedUnits(method, enumClass);
         // find all uses of the switch map and create an ite stmt using the enumReplacementMap
 
         replaceAllValueSwitches(enumClass);
@@ -181,14 +189,14 @@ public class EnumSimplifyTransformer extends AbstractSceneTransformer {
                     final Map<SootField, Local> enumLocals = new HashMap<>();
                     int i = 0;
                     for (SootField sf : enumReplacementMap.keySet()) {
-                        final Unit firstNonIdentiyStmt = ((JimpleBody) body).getFirstNonIdentityStmt();
+                        final Unit firstNonIdentityStmt = ((JimpleBody) body).getFirstNonIdentityStmt();
                         final Local l = Jimple.v().newLocal("enumLocal" + (++i) + "_" + enumClass.getName(),
                                                             RefType.v(enumClass));
                         enumLocals.put(sf, l);
                         body.getLocals().add(l);
 
                         final Stmt stmt = Jimple.v().newAssignStmt(l, Jimple.v().newStaticFieldRef(sf.makeRef()));
-                        body.getUnits().insertAfter(stmt, firstNonIdentiyStmt);
+                        body.getUnits().insertAfter(stmt, firstNonIdentityStmt);
                     }
 
                     switchVars.forEach(md -> {
@@ -213,7 +221,7 @@ public class EnumSimplifyTransformer extends AbstractSceneTransformer {
             final Stmt ifStmt = Jimple.v().newIfStmt(cond, target);
             final Stmt assign = Jimple.v().newAssignStmt(switchStmtMetaData.switchFieldLocal,
                                                          IntConstant.v(enumReplacementMap.get(el.getKey())));
-            body.getUnits().insertAfter(ImmutableList.of(ifStmt,assign), switchStmtMetaData.preSwitchStmt);
+            body.getUnits().insertAfter(ImmutableList.of(ifStmt, assign), switchStmtMetaData.preSwitchStmt);
             target = ifStmt;
         }
     }
@@ -229,7 +237,7 @@ public class EnumSimplifyTransformer extends AbstractSceneTransformer {
             currentSize = unitsToRemove.size();
             for (Unit u : body.getUnits()) {
                 if (u instanceof Stmt) {
-                    Stmt s = (Stmt) u;
+                    final Stmt s = (Stmt) u;
                     boolean callsEnum = false;
                     if (s.containsInvokeExpr()
                         && (s.getInvokeExpr().getMethod().getName().equals("ordinal")
@@ -249,6 +257,17 @@ public class EnumSimplifyTransformer extends AbstractSceneTransformer {
                                                     .filter(v -> v instanceof SootField)
                                                     .filter(v -> ((SootField) v).getDeclaringClass().equals(enumClass))
                                                     .findAny().isPresent();
+
+                    if (s instanceof DefinitionStmt && ((DefinitionStmt) s).getRightOp() instanceof FieldRef) {
+                        boolean isLeftoverLocal = ((StaticFieldRef) ((DefinitionStmt) s).getRightOp())
+                            .getField().getType().equals(RefType.v(enumClass));
+                        if (isLeftoverLocal) {
+                            localsToRemove.add((Local) ((DefinitionStmt) s).getLeftOp());
+                            unitsToRemove.add(u);
+                        }
+                    }
+
+
                     final boolean containsAny = usedLocals.stream().anyMatch(localsToRemove::contains);
                     if (callsEnum || referencesEnum || containsAny) {
                         unitsToRemove.add(u);
@@ -266,6 +285,7 @@ public class EnumSimplifyTransformer extends AbstractSceneTransformer {
      * Cleans up a static initializer of a class that uses a switch over an enum.
      * In the bytecode, an array called $SwtichMap$Enum name is created an populated.
      * Instead, we add a bunch of ITE-statements to methods where the switch is used.
+     *
      * @param valuesMethod
      * @param staticInit
      */
@@ -308,7 +328,7 @@ public class EnumSimplifyTransformer extends AbstractSceneTransformer {
                 if (sm.hasActiveBody()) {
                     for (Unit u : sm.retrieveActiveBody().getUnits()) {
                         if (u instanceof Stmt) {
-                            Stmt st = (Stmt) u;
+                            final Stmt st = (Stmt) u;
                             if (st.containsInvokeExpr() && methods.contains(st.getInvokeExpr().getMethod())) {
                                 usedInMethods.add(sm);
                             }
@@ -319,4 +339,40 @@ public class EnumSimplifyTransformer extends AbstractSceneTransformer {
         }
         return usedInMethods;
     }
+
+//    private void replaceStaticEnumFieldRefsByIntegers(final Body body) {
+//
+//        Map<Unit, Unit> replaceMap = new HashMap<>();
+//
+//        for (Unit u : body.getUnits()) {
+//            if (u instanceof Stmt) {
+//                final Stmt s = (Stmt) u;
+//                if (s.containsFieldRef() && enumReplacementMap.containsKey(s.getFieldRef().getField())) {
+//                    final SootField staticEnumField = s.getFieldRef().getField();
+//                    final IntConstant enumValue = IntConstant.v(enumReplacementMap.get(staticEnumField));
+//                    if (s instanceof DefinitionStmt && ((((DefinitionStmt) s).getRightOp())) instanceof StaticFieldRef) {
+//                        final Local lhs = (Local) ((DefinitionStmt) s).getLeftOp();
+//                        lhs.setType(IntType.v());
+//                        if (s instanceof IdentityStmt) {
+//                            replaceMap.put(u, Jimple.v().newIdentityStmt(lhs, enumValue));
+//                        } else {
+//                            replaceMap.put(u, Jimple.v().newAssignStmt(lhs, enumValue));
+//                        }
+//                    } else if (s instanceof IfStmt && ((IfStmt) s).getCondition() instanceof BinopExpr) {
+//                        final BinopExpr binopExpr = (BinopExpr) ((IfStmt) s).getCondition();
+//                        if ((binopExpr.getOp1() instanceof StaticFieldRef) &&
+//                            ((StaticFieldRef) binopExpr.getOp1()).getField().equals(staticEnumField)) {
+//                            binopExpr.getOp1Box().setValue(enumValue);
+//                        } else if ((binopExpr.getOp2() instanceof StaticFieldRef) &&
+//                                   ((StaticFieldRef) binopExpr.getOp2()).getField().equals(staticEnumField)) {
+//                            binopExpr.getOp1Box().setValue(enumValue);
+//                        }
+//
+//                    }
+//
+//                }
+//            }
+//        }
+//    }
+
 }
