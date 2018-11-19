@@ -110,12 +110,10 @@ public class ExpressionEncoder {
 			// }
 
 			if (be.getLeft() instanceof NullLiteral && be.getRight() instanceof IdentifierExpression) {
-				ProverTupleType ptt = (ProverTupleType)right.getType();
-				left = HornHelper.hh().mkNullExpression(p, ptt.getSubTypes());
+				right = p.mkTupleSelect(right, 0);
 			}
 			if (be.getRight() instanceof NullLiteral && be.getLeft() instanceof IdentifierExpression) {
-				ProverTupleType ptt = (ProverTupleType)left.getType();
-				right = HornHelper.hh().mkNullExpression(p, ptt.getSubTypes());
+				left = p.mkTupleSelect(left, 0);
 			}
 
 			// TODO: the following choices encode Java semantics

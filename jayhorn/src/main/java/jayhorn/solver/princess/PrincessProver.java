@@ -78,7 +78,7 @@ public class PrincessProver implements Prover {
 
 	public PrincessProver() {
 		ap.util.Debug.enableAllAssertions(false);
-		api = SimpleAPI.spawn();
+		api = SimpleAPI.spawnNoSanitise();
 		// api = SimpleAPI.spawnWithScalaLog();
 		// api = SimpleAPI.spawnWithAssertions();
 	}
