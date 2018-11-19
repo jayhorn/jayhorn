@@ -12,6 +12,7 @@ import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverTupleExpr;
 import jayhorn.solver.ProverTupleType;
+import soottocfg.cfg.Program;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
@@ -64,9 +65,9 @@ public class ExpressionEncoder {
 			Variable var = ((IdentifierExpression) e).getVariable();
 			if (var instanceof ClassVariable) {
 				return typeIdToProverExpr(hornContext.getTypeID((ClassVariable) var));
-				// return p.mkLiteral(hornContext.getTypeID((ClassVariable)
-				// var));
 			} else {
+                                if (hornContext.elimOverApprox() && Program.isAbstractedVariable(var))
+                                    throw new OverApproxException();
 				if (hornContext.getProgram().getGlobalVariables().contains(var)) {
 					/*
 					 * For globals, we just use an integer number.
