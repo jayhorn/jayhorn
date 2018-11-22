@@ -68,6 +68,8 @@ public enum SootTranslationHelpers {
 	public static final String HavocClassName = "Havoc_Class";
 	public static final String HavocMethodName = "havoc_";
 
+	public static final String AbstractedVariablePrefix = "$abstract_";
+
 	private static boolean initialized = false;
 	
 	/**

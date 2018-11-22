@@ -62,6 +62,7 @@ import soot.jimple.SwitchStmt;
 import soot.jimple.ThrowStmt;
 import soot.jimple.UnopExpr;
 import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
+import soot.jimple.internal.AbstractNewArrayExpr;
 import soot.tagkit.Host;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -77,7 +78,7 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 
 	protected final SootClass exceptionClass, runtimeExceptionClass, nullPointerExceptionClass,
 			arrayIndexOutOfBoundsExceptionClass, classCastExceptionClass, errorExceptionClass, 
-			throwableClass, arithmeticExceptionClass;
+			throwableClass, arithmeticExceptionClass, negativeArraySizeExceptionClass;
 	private final Hierarchy hierarchy;
 
 	private boolean treatUncaughtExceptionsAsAssertions;
@@ -104,6 +105,7 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 		runtimeExceptionClass = Scene.v().getSootClass("java.lang.RuntimeException");
 		nullPointerExceptionClass = Scene.v().getSootClass("java.lang.NullPointerException");
 		arrayIndexOutOfBoundsExceptionClass = Scene.v().getSootClass("java.lang.ArrayIndexOutOfBoundsException");
+		negativeArraySizeExceptionClass = Scene.v().getSootClass("java.lang.NegativeArraySizeException");
 		classCastExceptionClass = Scene.v().getSootClass("java.lang.ClassCastException");
 		arithmeticExceptionClass = Scene.v().getSootClass("java.lang.ArithmeticException");
 		errorExceptionClass = Scene.v().getSootClass("java.lang.Error");
@@ -251,6 +253,7 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 			
 			possibleExceptions.add(nullPointerExceptionClass);
 			possibleExceptions.add(arrayIndexOutOfBoundsExceptionClass);
+			possibleExceptions.add(negativeArraySizeExceptionClass);
 			possibleExceptions.add(classCastExceptionClass);
 			possibleExceptions.add(arithmeticExceptionClass);
 			possibleExceptions.add(errorExceptionClass);
@@ -752,6 +755,21 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 
 			return result;
 
+		} else if (exception == negativeArraySizeExceptionClass) {
+			List<Unit> helperStatements = new LinkedList<Unit>();
+			
+			// size >= 0
+//			Local left = getFreshLocal(body, IntType.v());
+//			Unit helperStmt = assignStmtFor(left, val, createdFrom);
+//			helperStatements.add(helperStmt);
+			ConditionExpr guard = Jimple.v().newLeExpr(IntConstant.v(0), val);
+			if (negated) {
+				guard = ConditionFlipper.flip(guard);
+			}
+			result.add(new Pair<Value, List<Unit>>(guard, helperStatements));
+
+			return result;
+
 		} else if (exception == classCastExceptionClass) {
 			CastExpr e = (CastExpr) val;
 			// e instanceof t
@@ -942,7 +960,11 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 			refMayThrowException(u, (Ref) v);
 		} else if (v instanceof LengthExpr) {
 			LengthExpr le = (LengthExpr)v;
-			registerRuntimeException(u, le.getOp(), nullPointerExceptionClass);			
+			registerRuntimeException(u, le.getOp(), nullPointerExceptionClass);
+                } else if (v instanceof AbstractNewArrayExpr) {
+                        AbstractNewArrayExpr nae = (AbstractNewArrayExpr)v;
+			collectPossibleExceptions(u, nae.getSize());
+			registerRuntimeException(u, nae.getSize(), negativeArraySizeExceptionClass);
 		} else if (v instanceof AnyNewExpr || v instanceof Immediate) {
 			// ignore
 		} else {

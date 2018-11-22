@@ -212,9 +212,14 @@ public class MethodEncoder {
                     if (!todo.contains(succ) && !done.contains(succ)) {
                         todo.add(succ);
                     }
-                    final ProverExpr exitCondExpr;
+                    ProverExpr exitCondExpr;
                     if (edge.getLabel().isPresent()) {
-                        exitCondExpr = expEnc.exprToProverExpr(edge.getLabel().get(), varMap);
+                        try {
+                            exitCondExpr = expEnc.exprToProverExpr(edge.getLabel().get(), varMap);
+                        } catch (ExpressionEncoder.OverApproxException e) {
+                            Log.info("Removing imprecisely handled block transition");
+                            exitCondExpr = p.mkLiteral(false);
+                        }
                     } else {
                         exitCondExpr = p.mkLiteral(true);
                     }

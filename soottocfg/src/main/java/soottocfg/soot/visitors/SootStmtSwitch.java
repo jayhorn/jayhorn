@@ -502,7 +502,8 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 			return true;
 		}
-		if (call.getMethod().getSignature().contains("<java.lang.System: void exit(int)>")) {
+		if (call.getMethod().getSignature().contains("<java.lang.System: void exit(int)>") ||
+                    call.getMethod().getSignature().contains("<java.lang.Runtime: void halt(int)>")) {
 			// TODO: this is not sufficient for interprocedural analysis.
 			currentBlock = null;
 			return true;

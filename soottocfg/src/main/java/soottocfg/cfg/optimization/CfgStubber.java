@@ -39,6 +39,19 @@ import soottocfg.soot.util.SootTranslationHelpers;
  */
 public class CfgStubber {
 
+        /**
+         * White-list some cases where the stub is not an over-approximation
+         */
+        private boolean isActualStub(Method method) {
+            String name = method.getMethodName();
+            if (name.contains("Havoc_Class:") ||
+                // this might be too broad
+                name.contains("void <init>()") ||
+                name.contains("java.io.PrintStream: void println"))
+                return false;
+            return true;
+        }
+
 	public void stubUnboundFieldsAndMethods(Program program) {
 		Queue<Method> todo = new LinkedList<Method>();
 		todo.addAll(Arrays.asList(program.getMethods()));
@@ -46,7 +59,8 @@ public class CfgStubber {
 			Method method = todo.remove();
 
 			if (method.getSource() == null) {
-				method.setStub(true);
+				method.setStub(isActualStub(method));
+
 				/*
 				 * If the method does not have a body, we just add a non-det
 				 * assignment to the

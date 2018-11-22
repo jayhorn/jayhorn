@@ -23,6 +23,7 @@ import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
  * @author schaef
@@ -32,6 +33,14 @@ public class Program {
 
 	private final Map<String, Variable> globalVariables = new LinkedHashMap<String, Variable>();
 	private final Map<String, Method> methods = new LinkedHashMap<String, Method>();
+
+        /**
+         * Check whether this variable originated from some more complex expression that
+         * could not be handled precise (i.e., whether something is over-approximated)
+         */
+        public static boolean isAbstractedVariable(Variable v) {
+            return v.getName().startsWith(SootTranslationHelpers.AbstractedVariablePrefix);
+        }
 
 	private Method entryPoint;
 

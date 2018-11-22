@@ -12,6 +12,7 @@ import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverTupleExpr;
 import jayhorn.solver.ProverTupleType;
+import soottocfg.cfg.Program;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
@@ -45,6 +46,8 @@ public class ExpressionEncoder {
 		return this.hornContext;
 	}
 
+        public static class OverApproxException extends RuntimeException {}
+
 	/**
 	 * TODO: this is a hack!
 	 * 
@@ -62,9 +65,9 @@ public class ExpressionEncoder {
 			Variable var = ((IdentifierExpression) e).getVariable();
 			if (var instanceof ClassVariable) {
 				return typeIdToProverExpr(hornContext.getTypeID((ClassVariable) var));
-				// return p.mkLiteral(hornContext.getTypeID((ClassVariable)
-				// var));
 			} else {
+                                if (hornContext.elimOverApprox() && Program.isAbstractedVariable(var))
+                                    throw new OverApproxException();
 				if (hornContext.getProgram().getGlobalVariables().contains(var)) {
 					/*
 					 * For globals, we just use an integer number.
@@ -107,12 +110,10 @@ public class ExpressionEncoder {
 			// }
 
 			if (be.getLeft() instanceof NullLiteral && be.getRight() instanceof IdentifierExpression) {
-				ProverTupleType ptt = (ProverTupleType)right.getType();
-				left = HornHelper.hh().mkNullExpression(p, ptt.getSubTypes());
+				right = p.mkTupleSelect(right, 0);
 			}
 			if (be.getRight() instanceof NullLiteral && be.getLeft() instanceof IdentifierExpression) {
-				ProverTupleType ptt = (ProverTupleType)left.getType();
-				right = HornHelper.hh().mkNullExpression(p, ptt.getSubTypes());
+				left = p.mkTupleSelect(left, 0);
 			}
 
 			// TODO: the following choices encode Java semantics
@@ -178,6 +179,8 @@ public class ExpressionEncoder {
 			case BAnd:
 			case BOr:
 			case Xor:
+                                if (hornContext.elimOverApprox())
+                                    throw new OverApproxException();
 				return p.mkVariable("HACK_FreeVar" + HornHelper.hh().newVarNum(), p.getIntType());
 			// Verify.verify(left.getType()==p.getIntType() &&
 			// right.getType()==p.getIntType());
