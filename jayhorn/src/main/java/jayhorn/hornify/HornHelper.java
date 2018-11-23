@@ -152,14 +152,8 @@ public class HornHelper {
 		return res;
 	}
 	
-	
-	public ProverExpr findOrCreateUniqueVariable(Prover p, Variable v, Map<Variable, ProverExpr> varMap, int uniqueNumber) {
-		if (!varMap.containsKey(v)) {
-			varMap.put(v, createVariable(p, v));
-		}
-		return varMap.get(v);
-	}	
-	public ProverExpr createUniqueVariable(Prover p, Variable v, int number) {
+        public ProverExpr makeUniqueReference(Prover p, Variable v,
+                                              ProverExpr fullRef, int number) {
 		ProverType pt = getProverType(p, v.getType());
 		if (pt instanceof ProverTupleType) {
 			ProverTupleType ptt = (ProverTupleType) pt;
@@ -167,15 +161,15 @@ public class HornHelper {
 			Verify.verify(v.getType() instanceof ReferenceType);
 			subExprs[0] = p.mkLiteral(number);
 			for (int i = 1; i < ptt.getArity(); i++) {
-				subExprs[i] = createVariable(p,
-						new Variable(v.getName() + "#" + i, ((ReferenceType) v.getType()).getElementTypeList().get(i)));
+				subExprs[i] = p.mkTupleSelect(fullRef, i);
 			}
 			return p.mkTuple(subExprs);
 		} else if (pt instanceof jayhorn.solver.IntType) {
 			return p.mkLiteral(number);
 		} else {
-			return p.mkHornVariable(v.getName() + "_" + newVarNum(), pt);
+			Verify.verify(false);
+                        return fullRef;
 		}
-	}
+        }
 
 }

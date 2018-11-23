@@ -68,6 +68,7 @@ public class ExpressionEncoder {
 			} else {
                                 if (hornContext.elimOverApprox() && Program.isAbstractedVariable(var))
                                     throw new OverApproxException();
+                                final ProverExpr proverVar = HornHelper.hh().findOrCreateProverVar(p, var, varMap);
 				if (hornContext.getProgram().getGlobalVariables().contains(var)) {
 					/*
 					 * For globals, we just use an integer number.
@@ -75,12 +76,12 @@ public class ExpressionEncoder {
 					 * from Null.
 					 */
 					int idx = hornContext.getProgram().getGlobalVariables().indexOf(var);
-					return HornHelper.hh().findOrCreateUniqueVariable(p, var, varMap, idx);
+                                        return HornHelper.hh().makeUniqueReference(p, var, proverVar, idx + 1);
 
 //					return p.mkLiteral(hornContext.getProgram().getGlobalVariables().indexOf(var));
-				} else {
-					return HornHelper.hh().findOrCreateProverVar(p, var, varMap);
 				}
+
+                                return proverVar;
 			}
 		} else if (e instanceof TupleAccessExpression) {
 			TupleAccessExpression tae = (TupleAccessExpression) e;
