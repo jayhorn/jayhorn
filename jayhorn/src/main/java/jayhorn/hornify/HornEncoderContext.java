@@ -178,7 +178,7 @@ public class HornEncoderContext {
         this.explicitHeapSize = explicitHeapSize;
         this.genAssertions = generatedAssertions;
         for (ClassVariable var : program.getTypeGraph().vertexSet()) {
-            //add +1 to make sure that no type is the
+            //add +1 to make sure that no type gets the
             //same number as the null constant
             typeIds.put(var, typeIds.size() + 1);
         }

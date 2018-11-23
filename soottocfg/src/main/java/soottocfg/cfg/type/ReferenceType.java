@@ -46,7 +46,7 @@ public class ReferenceType extends Type {
 		if (this.elementTypes==null) {
 			/*
 			 * Compute element types on the fly to avoid problems
-			 * with recurive definitions.
+			 * with recursive definitions.
 			 */			
 			elementTypes = new LinkedHashMap<String, Type>();
 			elementTypes.put(RefFieldName, IntType.instance() );

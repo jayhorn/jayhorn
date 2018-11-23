@@ -204,10 +204,14 @@ public class CfgStubber {
 					/*
 					 * The length field is now part of the tuple.
 					 */
-					TupleAccessExpression tae = new TupleAccessExpression(loc, argsParam,
+					TupleAccessExpression typeExpr = new TupleAccessExpression(loc, argsParam,
+							ReferenceType.TypeFieldName);
+					TupleAccessExpression lenExpr = new TupleAccessExpression(loc, argsParam,
 							SootTranslationHelpers.lengthFieldName);
 					AssumeStatement asm = new AssumeStatement(loc,
-							new BinaryExpression(loc, BinaryOperator.Ge, tae, IntegerLiteral.zero()));
+                                          new BinaryExpression(loc, BinaryOperator.And,
+                                            SootTranslationHelpers.createInstanceOfExpression(typeExpr, c),
+                                            new BinaryExpression(loc, BinaryOperator.Ge, lenExpr, IntegerLiteral.zero())));
 					entry.addStatement(0, asm);
 
 					// push(JayHornArr12, r0, [JayHornArr12.$length,
