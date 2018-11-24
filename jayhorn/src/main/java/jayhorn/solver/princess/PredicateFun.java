@@ -59,7 +59,7 @@ class PredicateFun implements ProverFun {
 
     public String toSMTLIBDeclaration() {
         StringBuffer res = new StringBuffer();
-        res.append("(declare-fun " + pred.name() + "(");
+        res.append("(declare-fun |" + pred.name() + "| (");
         String sep = "";
         for (int i = 0; i < pred.arity(); ++i) {
             res.append(sep);

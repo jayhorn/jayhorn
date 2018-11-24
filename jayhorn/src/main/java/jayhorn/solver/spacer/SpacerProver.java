@@ -1300,6 +1300,19 @@ public class SpacerProver implements Prover {
         ProverTupleExpr ttuple = (ProverTupleExpr)tuple;
         return ttuple.getSubExpr(index);
     }
+
+    public ProverExpr mkTupleUpdate(ProverExpr tuple, int index, ProverExpr newVal) {
+        ProverTupleType ptt = (ProverTupleType)tuple.getType();
+        ProverExpr[] subExprs = new ProverExpr[ptt.getArity()];
+        for (int i = 0; i < ptt.getArity(); i++) {
+            if (i == index)
+                subExprs[i] = newVal;
+            else
+                subExprs[i] = mkTupleSelect(tuple, i);
+        }
+        return mkTuple(subExprs);
+    }
+
 }
 
 

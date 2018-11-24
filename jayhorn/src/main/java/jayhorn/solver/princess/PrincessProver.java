@@ -78,7 +78,7 @@ public class PrincessProver implements Prover {
 
 	public PrincessProver() {
 		ap.util.Debug.enableAllAssertions(false);
-		api = SimpleAPI.spawn();
+		api = SimpleAPI.spawnNoSanitise();
 		// api = SimpleAPI.spawnWithScalaLog();
 		// api = SimpleAPI.spawnWithAssertions();
 	}
@@ -341,6 +341,18 @@ public class PrincessProver implements Prover {
     public ProverExpr mkTupleSelect(ProverExpr tuple, int index) {
         ProverTupleExpr ttuple = (ProverTupleExpr)tuple;
         return ttuple.getSubExpr(index);
+    }
+
+    public ProverExpr mkTupleUpdate(ProverExpr tuple, int index, ProverExpr newVal) {
+        ProverTupleType ptt = (ProverTupleType)tuple.getType();
+        ProverExpr[] subExprs = new ProverExpr[ptt.getArity()];
+        for (int i = 0; i < ptt.getArity(); i++) {
+            if (i == index)
+                subExprs[i] = newVal;
+            else
+                subExprs[i] = mkTupleSelect(tuple, i);
+        }
+        return mkTuple(subExprs);
     }
 
     ////////////////////////////////////////////////////////////////////////////

@@ -60,12 +60,21 @@ public class HornEncoderContext {
     private Map<Method, MethodContract> methodContracts = new LinkedHashMap<Method, MethodContract>();
 
     public static enum GeneratedAssertions {
-        SAFETY,        // only include actual safety assertions; this will under-approximate
+        // only include actual safety assertions; this will under-approximate,
+        // and turn every over-approximated statement into an assume(false)
         // (you can trust result UNSAFE, but not SAFE)
-        HEAP_BOUNDS,   // only include assertions about heap size; this will only tell you
-        // whether the heap is big enough
-        ALL            // both safety and heap bound assertions; this will over-approximate
+        SAFETY_UNDER_APPROX,
+        // only include actual safety assertions, but keep all over-approximated
+        // statements
+        // (you can trust result SAFE, but not UNSAFE, assuming that HEAP_BOUNDS
+        // succeeded)
+        SAFETY_OVER_APPROX,
+        // only include assertions about heap size; this will only tell you
+        // whether the heap is big enough (also include over-approximated statements)
+        HEAP_BOUNDS,
+        // both safety and heap bound assertions; this will over-approximate
         // (you can trust result SAFE, but not UNSAFE)
+        ALL
     }
 
     private final int explicitHeapSize;
@@ -123,7 +132,8 @@ public class HornEncoderContext {
             return true;
 
         switch (genAssertions) {
-            case SAFETY:
+            case SAFETY_UNDER_APPROX:
+            case SAFETY_OVER_APPROX:
             case ALL:
                 return true;
 
@@ -146,13 +156,29 @@ public class HornEncoderContext {
         }
     }
 
+    /**
+     * Should over-approximated statements be kept, or turned into
+     * assume(false)?
+     */
+    public boolean elimOverApprox() {
+        if (!useExplicitHeap())
+            return false;
+
+        switch (genAssertions) {
+            case SAFETY_UNDER_APPROX:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     public HornEncoderContext(Prover p, Program prog, int explicitHeapSize, GeneratedAssertions generatedAssertions) {
         this.program = prog;
         this.p = p;
         this.explicitHeapSize = explicitHeapSize;
         this.genAssertions = generatedAssertions;
         for (ClassVariable var : program.getTypeGraph().vertexSet()) {
-            //add +1 to make sure that no type is the
+            //add +1 to make sure that no type gets the
             //same number as the null constant
             typeIds.put(var, typeIds.size() + 1);
         }
@@ -193,8 +219,8 @@ public class HornEncoderContext {
         for (Method method : program.getMethods())
             scanner.scanMethod(method);
 
-        Log.info("unified class field types: " + unifiedClassFieldTypes);
-        Log.info("field indexes: " + classFieldTypeIndexes);
+        Log.debug("unified class field types: " + unifiedClassFieldTypes);
+        Log.debug("field indexes: " + classFieldTypeIndexes);
     }
 
     private class FieldTypeScanner extends CfgScanner {
@@ -228,7 +254,7 @@ public class HornEncoderContext {
         final List<Variable> fields = getInvariantArgs(var);
 
         if (isArrayInv(var)) {
-            Log.info("adding array type " + var);
+            Log.debug("adding array type " + var);
 
             Variable elemVar = null;
             for (Variable v : fields)
@@ -248,7 +274,7 @@ public class HornEncoderContext {
             return;
         }
 
-        Log.info("adding fields of class " + var + ": " + fields);
+        Log.debug("adding fields of class " + var + ": " + fields);
 
         // we know that the first field is the actual object reference,
         // which does not have to be recorded

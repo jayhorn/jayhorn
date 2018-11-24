@@ -86,19 +86,39 @@ public class EldaricaChecker extends Checker {
 
             Log.info("Trying to verify with max explicit heap size " + max);
             for (int k = offset; k <= max; k += step) {
-                Log.info("Round " + (k - offset + 1) + ": heap size " + k);
+                Log.info("======== Round " + (k - offset + 1) + ": heap size " + k);
                 // try to verify program with heap size k and only safety assertions
-                Log.info("Checking safety ...");
-                result = generateAndCheckHornClauses(program, k, HornEncoderContext.GeneratedAssertions.SAFETY);
+                Log.info("- Searching for counterexamples ...");
+                result =
+                    generateAndCheckHornClauses(program, k,
+                                HornEncoderContext.GeneratedAssertions.SAFETY_UNDER_APPROX);
                 if (result == ProverResult.Unsat) {
                     // definitely unsafe: found counterexample with bounded heap
+                    Log.info("- found one!");
                     return CheckerResult.UNSAFE;
                 } else {
                     // try to verify program with heap size k and only heap bound assertions
-                    Log.info("Checking heap bounds ...");
-                    result = generateAndCheckHornClauses(program, k, HornEncoderContext.GeneratedAssertions.HEAP_BOUNDS);
+                    Log.info("- no counterexamples, checking heap bounds ...");
+                    result =
+                        generateAndCheckHornClauses(program, k,
+                                    HornEncoderContext.GeneratedAssertions.HEAP_BOUNDS);
                     if (result == ProverResult.Sat) {
-                        return CheckerResult.SAFE;
+                        Log.info("- program is bounded, checking full safety ...");
+                        // TODO: this check can be skipped if the
+                        // program does not actually contain any
+                        // over-approximated statements!
+                        result =
+                            generateAndCheckHornClauses(program, k,
+                                     HornEncoderContext.GeneratedAssertions.SAFETY_OVER_APPROX);
+                        if (result == ProverResult.Sat) {
+                            Log.info("- safe!");
+                            return CheckerResult.SAFE;
+                        } else {
+                            Log.info("- could not prove safety, giving up");
+                            return CheckerResult.UNKNOWN;
+                        }
+                    } else {
+                        Log.info("- insufficient heap, increasing size");
                     }
                 }
             }

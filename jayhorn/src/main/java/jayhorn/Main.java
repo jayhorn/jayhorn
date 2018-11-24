@@ -20,6 +20,8 @@ import soottocfg.cfg.Program;
 import soottocfg.soot.SootToCfg;
 import soottocfg.soot.SootToCfg.MemModel;
 
+import soot.validation.ValidationException;
+
 public class Main {
 	
     private static String parseResult(String solver, Checker.CheckerResult result)
@@ -57,21 +59,28 @@ public class Main {
   		}
   	
   		Stopwatch sootTocfgTimer = Stopwatch.createStarted();
-  		soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());	
-  	
-  		Program program = soot2cfg.getProgram();
-  	    Stats.stats().add("SootToCFG", String.valueOf(sootTocfgTimer.stop()));
-  		
-  		Log.info("Safety Verification ... ");
+                Checker.CheckerResult result = Checker.CheckerResult.UNKNOWN;
+                try {
+                    soot2cfg.run(Options.v().getJavaInput(), Options.v().getClasspath());
 
-  		Checker.CheckerResult result = Checker.CheckerResult.UNKNOWN;
-  		if ("spacer".equals(Options.v().getSolver())){
+                    Program program = soot2cfg.getProgram();
+                    Stats.stats().add("SootToCFG", String.valueOf(sootTocfgTimer.stop()));
+  		
+                    Log.info("Safety Verification ... ");
+
+                    if ("spacer".equals(Options.v().getSolver())){
   			SpacerChecker spacer = new SpacerChecker(factory);
   			result = spacer.checkProgram(program);
-  		} else{
+                    } else{
   			EldaricaChecker eldarica = new EldaricaChecker(factory);
   			result = eldarica.checkProgram(program);
-  		}
+                    }
+
+                } catch (ValidationException e) {
+                    Log.info("Byte code rejected by bytecode verifier:\n\t" + e.toString());
+                    result = Checker.CheckerResult.UNKNOWN;
+                }
+  	
   		String prettyResult = parseResult(Options.v().getSolver(), result);
   		Stats.stats().add("FinalResult", prettyResult);
 

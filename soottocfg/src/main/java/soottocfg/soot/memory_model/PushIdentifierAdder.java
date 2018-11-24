@@ -8,14 +8,19 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
+import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.util.InterProceduralPullPushOrdering;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.cfg.variable.ClassVariable;
 
 /**
  * @author Rody Kersten
@@ -24,6 +29,13 @@ import soottocfg.cfg.variable.Variable;
 public class PushIdentifierAdder {
 
 	private static boolean debug = false;
+
+        // TODO: this should be handled in a more systematic way,
+        // probably using specification classes
+        private boolean canAssumeInitialisedFields(ClassVariable var) {
+            final String name = var.getName();
+            return "$StaticFields_java.lang.System".equals(name);
+        }
 
 	public void addIDs(Program p) {
 		InterProceduralPullPushOrdering ordering = new InterProceduralPullPushOrdering(p.getEntryPoint());
@@ -54,6 +66,7 @@ public class PushIdentifierAdder {
 							if (debug)
 								System.out.println("Adding push on the fly for " + pull.getObject());
 							ReferenceType rt = (ReferenceType) pull.getObject().getType();
+                                                        final boolean assumeInit = canAssumeInitialisedFields(rt.getClassVariable());
 							SourceLocation loc = pull.getSourceLocation();
 							IdentifierExpression id = (IdentifierExpression) pull.getObject();
 
@@ -65,7 +78,16 @@ public class PushIdentifierAdder {
 //									rhs.add(new IdentifierExpression(loc, rt.getClassVariable()));
 //								} else {
 									Variable undefLocal = new Variable("undef_" + id + "_" + (n++), v.getType());
-									rhs.add(new IdentifierExpression(loc, undefLocal));
+                                                                        Expression undefExpr = new IdentifierExpression(loc, undefLocal);
+                                                                        if (assumeInit && (v.getType() instanceof ReferenceType)) {
+                                                                            // then we can assume that the field holds a non-null value
+                                                                            final AssumeStatement asmNotNull =
+                                                                                new AssumeStatement(loc,
+                                                                                  new BinaryExpression(loc, BinaryOperator.Ne,
+                                                                                                       undefExpr, new NullLiteral(loc)));
+                                                                            b.addStatement(i++, asmNotNull);
+                                                                        }
+									rhs.add(undefExpr);
 //								}					
 							}
 							PushStatement push = new PushStatement(loc, rt.getClassVariable(), id, rhs);

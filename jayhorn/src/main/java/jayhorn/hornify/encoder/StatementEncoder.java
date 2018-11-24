@@ -14,6 +14,7 @@ import jayhorn.hornify.HornEncoderContext;
 import jayhorn.hornify.HornHelper;
 import jayhorn.hornify.HornPredicate;
 import jayhorn.hornify.MethodContract;
+import jayhorn.Log;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFun;
@@ -103,6 +104,8 @@ public class StatementEncoder {
         final ProverExpr preAtom = prePred.instPredicate(varMap);
         HornHelper.hh().findOrCreateProverVar(p, postPred.variables, varMap);
 
+        try {
+
         if (s instanceof AssertStatement) {
             List<ProverHornClause> clause = assertToClause((AssertStatement) s, postPred, preAtom, varMap);
             //System.out.println("Assert " + clause);
@@ -132,6 +135,11 @@ public class StatementEncoder {
             List<ProverHornClause> clause = pushToClause((PushStatement) s, postPred, preAtom, varMap, m);
             S2H.sh().addClause(s, clause);
             return clause;
+        }
+
+        } catch (ExpressionEncoder.OverApproxException e) {
+            Log.info("Dropping imprecisely handled statement " + s);
+            return new ArrayList<> ();
         }
 
         throw new RuntimeException("Statement type " + s + " not implemented!");
@@ -314,6 +322,37 @@ public class StatementEncoder {
         List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
         final Method calledMethod = cs.getCallTarget();
+
+        if (calledMethod.isStub() && hornContext.elimOverApprox()) {
+            Log.info("Dropping call to over-approximated " +
+                     calledMethod.getMethodName());
+            return clauses;
+        }
+
+/*
+        if (calledMethod.getMethodName().contains("<init>")) {
+            // HACK: check whether this is constructor of an enum object,
+            // in which case we just skip it
+            final Type objType = cs.getArguments().get(0).getType();
+            if (objType instanceof ReferenceType) {
+                final ClassVariable objClass =
+                    ((ReferenceType)objType).getClassVariable();
+                for (ClassVariable par : objClass.getParents())
+                    if (par.getName().equals("java/lang/Enum")) {
+                        Log.info("Skipping " + objType + " constructor");
+                        final ProverExpr postAtom =
+                            postPred.instPredicate(varMap);
+                        final ProverHornClause postClause =
+                            p.mkHornClause(postAtom,
+                                           new ProverExpr[]{preAtom},
+                                           p.mkLiteral(true));
+                        clauses.add(postClause);
+                        return clauses;
+                    }
+            }
+        }
+*/
+
         final MethodContract contract = hornContext.getMethodContract(calledMethod);
 
         List<Expression> callArgs =
