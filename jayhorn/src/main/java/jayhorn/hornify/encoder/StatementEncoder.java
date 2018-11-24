@@ -329,6 +329,30 @@ public class StatementEncoder {
             return clauses;
         }
 
+/*
+        if (calledMethod.getMethodName().contains("<init>")) {
+            // HACK: check whether this is constructor of an enum object,
+            // in which case we just skip it
+            final Type objType = cs.getArguments().get(0).getType();
+            if (objType instanceof ReferenceType) {
+                final ClassVariable objClass =
+                    ((ReferenceType)objType).getClassVariable();
+                for (ClassVariable par : objClass.getParents())
+                    if (par.getName().equals("java/lang/Enum")) {
+                        Log.info("Skipping " + objType + " constructor");
+                        final ProverExpr postAtom =
+                            postPred.instPredicate(varMap);
+                        final ProverHornClause postClause =
+                            p.mkHornClause(postAtom,
+                                           new ProverExpr[]{preAtom},
+                                           p.mkLiteral(true));
+                        clauses.add(postClause);
+                        return clauses;
+                    }
+            }
+        }
+*/
+
         final MethodContract contract = hornContext.getMethodContract(calledMethod);
 
         List<Expression> callArgs =
