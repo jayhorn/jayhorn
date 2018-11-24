@@ -151,25 +151,4 @@ public class HornHelper {
 		}
 		return res;
 	}
-	
-        public ProverExpr makeUniqueReference(Prover p, Variable v,
-                                              ProverExpr fullRef, int number) {
-		ProverType pt = getProverType(p, v.getType());
-		if (pt instanceof ProverTupleType) {
-			ProverTupleType ptt = (ProverTupleType) pt;
-			ProverExpr[] subExprs = new ProverExpr[ptt.getArity()];
-			Verify.verify(v.getType() instanceof ReferenceType);
-			subExprs[0] = p.mkLiteral(number);
-			for (int i = 1; i < ptt.getArity(); i++) {
-				subExprs[i] = p.mkTupleSelect(fullRef, i);
-			}
-			return p.mkTuple(subExprs);
-		} else if (pt instanceof jayhorn.solver.IntType) {
-			return p.mkLiteral(number);
-		} else {
-			Verify.verify(false);
-                        return fullRef;
-		}
-        }
-
 }

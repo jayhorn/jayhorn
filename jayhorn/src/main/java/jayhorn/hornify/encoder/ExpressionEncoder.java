@@ -6,11 +6,14 @@ package jayhorn.hornify.encoder;
 import java.math.BigInteger;
 import java.util.Map;
 
+import com.google.common.base.Verify;
+
 import jayhorn.hornify.HornEncoderContext;
 import jayhorn.hornify.HornHelper;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverTupleExpr;
+import jayhorn.solver.ProverType;
 import jayhorn.solver.ProverTupleType;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.expression.BinaryExpression;
@@ -22,6 +25,7 @@ import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
+import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 
@@ -58,34 +62,34 @@ public class ExpressionEncoder {
 		return p.mkLiteral(id);
 	}
 	
-	
-	
+        private ProverExpr varToProverExpr(Variable var, Map<Variable, ProverExpr> varMap) {
+            if (var instanceof ClassVariable) {
+                return typeIdToProverExpr(hornContext.getTypeID((ClassVariable) var));
+            } else {
+                if (hornContext.elimOverApprox() && Program.isAbstractedVariable(var))
+                    throw new OverApproxException();
+                final ProverExpr proverVar = HornHelper.hh().findOrCreateProverVar(p, var, varMap);
+                if (hornContext.getProgram().getGlobalVariables().contains(var)) {
+                    /*
+                     * For globals, we just use an integer number.
+                     * NOTE: The translation guarantees that this number is unique and different
+                     * from Null.
+                     */
+                    int idx = hornContext.getProgram().getGlobalVariables().indexOf(var);
+                    return makeUniqueReference(p, var, proverVar, -idx - 1);
+                }
+                
+                return proverVar;
+            }
+        }
+
 	public ProverExpr exprToProverExpr(Expression e, Map<Variable, ProverExpr> varMap) {
 		if (e instanceof IdentifierExpression) {
 			Variable var = ((IdentifierExpression) e).getVariable();
-			if (var instanceof ClassVariable) {
-				return typeIdToProverExpr(hornContext.getTypeID((ClassVariable) var));
-			} else {
-                                if (hornContext.elimOverApprox() && Program.isAbstractedVariable(var))
-                                    throw new OverApproxException();
-                                final ProverExpr proverVar = HornHelper.hh().findOrCreateProverVar(p, var, varMap);
-				if (hornContext.getProgram().getGlobalVariables().contains(var)) {
-					/*
-					 * For globals, we just use an integer number.
-					 * NOTE: The translation guarantees that this number is unique and different
-					 * from Null.
-					 */
-					int idx = hornContext.getProgram().getGlobalVariables().indexOf(var);
-                                        return HornHelper.hh().makeUniqueReference(p, var, proverVar, idx + 1);
-
-//					return p.mkLiteral(hornContext.getProgram().getGlobalVariables().indexOf(var));
-				}
-
-                                return proverVar;
-			}
+                        return varToProverExpr(var, varMap);
 		} else if (e instanceof TupleAccessExpression) {
 			TupleAccessExpression tae = (TupleAccessExpression) e;
-			ProverExpr tuple = varMap.get(tae.getVariable());
+			ProverExpr tuple = varToProverExpr(tae.getVariable(), varMap);
 			return p.mkTupleSelect(tuple, tae.getAccessPosition());
 			// return p.mkVariable("HACK_FreeVar" + HornHelper.hh().newVarNum(),
 			// HornHelper.hh().getProverType(p, tae.getType()));
@@ -138,6 +142,8 @@ public class ExpressionEncoder {
 		            ProverTupleExpr tRight = (ProverTupleExpr)right;
 		            //TODO: this is sound if we assume that the first
 		            //element of a tuple is the sound identifier.
+                            // TODO: does this make sense? it should be advantageous
+                            // to use the other tuple components to differentiate objects
 		            return p.mkEq(tLeft.getSubExpr(0), tRight.getSubExpr(0));
 		        }
 				return p.mkEq(left, right);
@@ -215,5 +221,33 @@ public class ExpressionEncoder {
 		}
 		throw new RuntimeException("Expression type " + e + " not implemented!");
 	}
+
+	
+        /**
+         * For variables representing global constants, generate a unique reference
+         * based on the index of the variable.
+         */
+        private ProverExpr makeUniqueReference(Prover p, Variable v,
+                                               ProverExpr fullRef, int number) {
+		ProverType pt = HornHelper.hh().getProverType(p, v.getType());
+		if (pt instanceof ProverTupleType) {
+                        Verify.verify(v.getType() instanceof ReferenceType);
+                        final ClassVariable classVar =
+                            ((ReferenceType)v.getType()).getClassVariable();
+                        final ProverExpr classId =
+                            typeIdToProverExpr(hornContext.getTypeID(classVar));
+                        return
+                            p.mkTupleUpdate(
+                            p.mkTupleUpdate(fullRef,
+                                            0, p.mkLiteral(number)),
+                                            1, classId);
+		} else if (pt instanceof jayhorn.solver.IntType) {
+			return p.mkLiteral(number);
+		} else {
+			Verify.verify(false);
+                        return fullRef;
+		}
+        }
+
 
 }
