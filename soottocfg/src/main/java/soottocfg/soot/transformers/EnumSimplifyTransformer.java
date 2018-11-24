@@ -39,6 +39,7 @@ import soot.jimple.InvokeExpr;
 import soot.jimple.Jimple;
 import soot.jimple.JimpleBody;
 import soot.jimple.StaticFieldRef;
+import soot.jimple.StaticInvokeExpr;
 import soot.jimple.Stmt;
 import soot.jimple.StringConstant;
 
@@ -49,6 +50,7 @@ import soot.jimple.StringConstant;
 public class EnumSimplifyTransformer extends AbstractSceneTransformer {
 
     final Map<SootField, Integer> enumReplacementMap = new HashMap<>();
+    final Set<SootField> switchMapFields = new HashSet<>();
 
     public void applyTransformation() {
         for (JimpleBody body : this.getSceneBodies()) {
@@ -100,6 +102,38 @@ public class EnumSimplifyTransformer extends AbstractSceneTransformer {
         // find all uses of the switch map and create an ite stmt using the enumReplacementMap
 
         replaceAllValueSwitches(enumClass);
+        unstable_removeSwitchMapClasses();
+    }
+
+    // HACK!
+    private void unstable_removeSwitchMapClasses() {
+        switchMapFields.forEach(sf -> {
+            if (Scene.v().getClasses().contains(sf.getDeclaringClass())) {
+                System.err.println("Deleting switchmap class " + sf.getDeclaringClass());
+                Scene.v().removeClass(sf.getDeclaringClass());
+            }
+        });
+        final Set<SootClass> switchMapClasses = switchMapFields.stream().map(SootField::getDeclaringClass).collect(Collectors.toSet());
+        for (SootClass sc : Scene.v().getApplicationClasses()) {
+            for (SootMethod sm : sc.getMethods()) {
+                if (sm.hasActiveBody()) {
+                    Set<Unit> unitsToRemove = new HashSet<>();
+                    for (Unit u : sm.retrieveActiveBody().getUnits()) {
+                        if (u instanceof Stmt) {
+                            final Stmt stmt = (Stmt) u;
+                            if (stmt.containsInvokeExpr() && stmt.getInvokeExpr() instanceof StaticInvokeExpr) {
+                                final SootClass s_ = stmt.getInvokeExpr().getMethod().getDeclaringClass();
+                                if (switchMapClasses.contains(s_)) {
+                                    unitsToRemove.add(u);
+                                    System.err.println("Removing call " + u + " in " + sm.getSignature());
+                                }
+                            }
+                        }
+                    }
+                    sm.getActiveBody().getUnits().removeAll(unitsToRemove);
+                }
+            }
+        }
     }
 
     public static class SwitchStmtMetaData {
@@ -144,6 +178,8 @@ public class EnumSimplifyTransformer extends AbstractSceneTransformer {
                                 localsToRemove.add(switchMapLocal);
                                 unitsToRemove.add(u);
                                 switchMap = stmt.getFieldRef().getField();
+
+                                switchMapFields.add(switchMap);
                             } else if (stmt.containsInvokeExpr()
                                        && stmt.getInvokeExpr().getMethod().getName().contains("ordinal")) {
                                 final InvokeExpr ordinalCall = stmt.getInvokeExpr();

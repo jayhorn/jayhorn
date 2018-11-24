@@ -250,6 +250,9 @@ public class Method extends AbstractBaseGraph<CfgBlock, CfgEdge> implements Node
 		if (sink == null) {
 			for (CfgBlock b : vertexSet()) {
 				if (outDegreeOf(b) == 0) {
+				    if (sink!=null) {
+				        System.err.println("Found more than one sink " + sink.label + " and " + b.label);
+                    }
 					Verify.verify(sink == null, "More than one sink in graph for "+this.methodName);
 					sink = b;
 				}

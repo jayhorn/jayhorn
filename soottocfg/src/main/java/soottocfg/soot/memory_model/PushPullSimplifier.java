@@ -420,6 +420,9 @@ public class PushPullSimplifier {
 	 * to improve precision, but we have to carefully establish the conditions for doing so.
 	 */
 	private int movePushesDownInCFG(Method m) {
+
+	    Verify.verify(m.getExitBlocks().size() == 1, m.getMethodName() + " has exit node " + m.getExitBlocks().size());
+
 		int moves = 0;
 		for (CfgBlock b : m.vertexSet()) {
 			if (debug)
