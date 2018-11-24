@@ -113,9 +113,11 @@ public interface Prover {
 
 	ProverExpr mkStore(ProverExpr ar, ProverExpr[] indexes, ProverExpr value);
 
-    ProverExpr mkTuple(ProverExpr[] subExprs);
+        ProverExpr mkTuple(ProverExpr[] subExprs);
 
-    ProverExpr mkTupleSelect(ProverExpr tuple, int index);
+        ProverExpr mkTupleSelect(ProverExpr tuple, int index);
+
+        ProverExpr mkTupleUpdate(ProverExpr tuple, int index, ProverExpr newVal);
 
 	// Maintain assertion stack (affects assertions and variable declarations)
 	void push();

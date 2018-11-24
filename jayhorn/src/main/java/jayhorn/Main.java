@@ -77,8 +77,8 @@ public class Main {
                     }
 
                 } catch (ValidationException e) {
-                    Log.info("Unsafe; byte code rejected by bytecode verifier:\n\t" + e.toString());
-                    result = Checker.CheckerResult.UNSAFE;
+                    Log.info("Byte code rejected by bytecode verifier:\n\t" + e.toString());
+                    result = Checker.CheckerResult.UNKNOWN;
                 }
   	
   		String prettyResult = parseResult(Options.v().getSolver(), result);
