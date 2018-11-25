@@ -32,7 +32,6 @@ import soottocfg.soot.transformers.ArrayTransformer;
  * @author schaef
  */
 public class CfgCallInliner {
-
     private int freshInt = 0;
 
     /*
