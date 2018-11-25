@@ -134,6 +134,7 @@ public class HornRegressionTest {
 //			jayhorn.Options.v().setInlineCount(15);
 //			jayhorn.Options.v().setInlineMaxSize(50);			
 //			soottocfg.Options.v().setMemPrecision(1);
+                        soottocfg.Options.v().enumHack = jayhorn.Options.v().enumHack;
                         jayhorn.Options.v().setInitialHeapSize(initialHeapSize);
                         jayhorn.Options.v().setBoundedHeapSize(boundedHeapSize);
 			classDir = Util.compileJavaFile(this.sourceFile);
