@@ -82,7 +82,7 @@ public class AssertionReconstruction extends AbstractSceneTransformer {
 					final String c = body.getMethod().getDeclaringClass().getName().replace('.', '/');
 					// search for $r0 = class
 					// "translation_tests/TranslationTest01";
-					if (rhs.getValue().equals(c)) {
+					if (c.startsWith(rhs.getValue())) {
 						unitsToRemove.add(u);
 						final int lookAhead = 6;
 						Stmt[] uslessBlock = new Stmt[lookAhead];
