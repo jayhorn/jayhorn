@@ -83,12 +83,26 @@ public class HornRegressionTest {
 	}
 
 	@Test
+	public void testWithPrincessInlined() {
+		PrincessProverFactory factory = new PrincessProverFactory();
+		Program program = getCFG(factory, 1, -1, 100);
+		if (program != null){
+			EldaricaChecker eldarica = new EldaricaChecker(factory);
+			boolean result = eldarica.checkProgram(program) == EldaricaChecker.CheckerResult.SAFE;
+			boolean expected = this.sourceFile.getName().startsWith("Sat");
+			Assert.assertTrue("For "+this.sourceFile.getName()+": expected "+expected + " but got "+result, expected==result);
+		} else {
+			Assert.fail();
+		}
+	}
+
+	@Test
 	public void testWithPrincessBounded() {
                 if (this.sourceFile.getName().equals("UnsatObjectFromLib.java"))
                     return;
 
 		PrincessProverFactory factory = new PrincessProverFactory();
-		Program program = getCFG(factory, 1, 5);
+		Program program = getCFG(factory, 1, 5, -1);
 		if (program != null){
 			EldaricaChecker eldarica = new EldaricaChecker(factory);
 			EldaricaChecker.CheckerResult result = eldarica.checkProgram(program);
@@ -121,17 +135,18 @@ public class HornRegressionTest {
 	}
 	
 	protected Program getCFG(ProverFactory factory) {
-            return getCFG(factory, 1, -1);
+            return getCFG(factory, 1, -1, -1);
         }
 	
 	protected Program getCFG(ProverFactory factory,
                                  int initialHeapSize,
-                                 int boundedHeapSize) {
+                                 int boundedHeapSize,
+                                 int inline_size) {
 		jayhorn.Options.v().setTimeout(60);
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
-//			jayhorn.Options.v().setInlineCount(15);
+			jayhorn.Options.v().setInlineCount(inline_size);
 //			jayhorn.Options.v().setInlineMaxSize(50);			
 //			soottocfg.Options.v().setMemPrecision(1);
                         jayhorn.Options.v().setInitialHeapSize(initialHeapSize);

@@ -102,14 +102,24 @@ public class PushPullSimplifier {
 		int removed = 0;
 		List<Statement> stmts = b.getStatements();
 		for (int i = 0; i+1 < stmts.size(); i++) {
-			if (	(stmts.get(i) instanceof PullStatement || isConstructorCall(stmts.get(i)))
-					&& stmts.get(i+1) instanceof PullStatement) {
-				Statement pull1 = stmts.get(i);
-				Statement pull2 = stmts.get(i+1);
-				if (getObject(pull1).sameVariable(getObject(pull2))) {
+			if ((stmts.get(i) instanceof PullStatement /* || isConstructorCall(stmts.get(i)) */)
+                            && stmts.get(i+1) instanceof PullStatement) {
+				PullStatement pull1 = (PullStatement)stmts.get(i);
+				PullStatement pull2 = (PullStatement)stmts.get(i+1);
+				if (getObject(pull1).sameVariable(getObject(pull2)) &&
+                                    pull1.getLeft().size() == pull2.getLeft().size()) {
 					if (debug)
 						System.out.println("Applied rule (I); removed " + pull2);
-					b.removeStatement(pull2);
+					b.removeStatement(i+1);
+                                        List<IdentifierExpression> left1 = pull1.getLeft();
+                                        List<IdentifierExpression> left2 = pull2.getLeft();
+                                        for (int j = 0; j < left1.size(); ++j) {
+                                            IdentifierExpression var1 = left1.get(j);
+                                            IdentifierExpression var2 = left2.get(j);
+                                            if (!var1.equals(var2))
+                                                b.addStatement(i+1, new AssignStatement(pull2.getSourceLocation(),
+                                                                                        var2, var1));
+                                        }
 					removed++;
 				}
 			}
