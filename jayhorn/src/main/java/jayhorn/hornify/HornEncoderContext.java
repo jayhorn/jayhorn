@@ -59,6 +59,12 @@ public class HornEncoderContext {
         new HashMap<ClassVariable, Map<Long, HornPredicate>>();
     private Map<Method, MethodContract> methodContracts = new LinkedHashMap<Method, MethodContract>();
 
+    private int assertionCnt = 0;
+
+    public int getUniqueAssertionId() {
+        return assertionCnt++;
+    }
+
     public static enum GeneratedAssertions {
         // only include actual safety assertions; this will under-approximate,
         // and turn every over-approximated statement into an assume(false)
