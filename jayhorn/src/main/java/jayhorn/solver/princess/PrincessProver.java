@@ -469,6 +469,7 @@ public class PrincessProver implements Prover {
                                 return new Tuple2(fun, ProverTupleExpr.unflatten(flatArgs, types));
                             }
                         });
+/*
                 final Dag<String> prettyCEX =
                     lastCEXAr[0].map(new scala.runtime.AbstractFunction1<Tuple2<ProverFun, ProverExpr[]>,
                                    String>() {
@@ -497,6 +498,7 @@ public class PrincessProver implements Prover {
                                      return 0;
                                  }
                              }));
+*/
                 return ProverResult.Unsat;
             }
         } else {

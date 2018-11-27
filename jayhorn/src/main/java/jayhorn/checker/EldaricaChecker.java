@@ -23,6 +23,7 @@ import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
+import jayhorn.solver.princess.PrincessProver;
 import jayhorn.utils.GhostRegister;
 import jayhorn.utils.HeapCounterTransformer;
 import jayhorn.utils.Stats;
@@ -176,7 +177,12 @@ public class EldaricaChecker extends Checker {
                 result = prover.checkSat(true);
             }
             if (Options.v().solution) {
-                Log.info(printHeapInvariants(hornContext));
+                if (result == ProverResult.Sat) {
+                    Log.info(printHeapInvariants(hornContext));
+                } else if (result == ProverResult.Unsat) {
+                    Log.info("Possible violation at " +
+                             ((PrincessProver)prover).getLastCEX().apply(1).productElement(0));
+                }
             }
             Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));
 
@@ -233,8 +239,10 @@ public class EldaricaChecker extends Checker {
             for (Entry<ClassVariable, TreeMap<Long, String>> entry : heapInvariants.entrySet()) {
                 sb.append(entry.getKey());
                 sb.append("\n  ");
+                String comma = "";
                 for (Variable v : entry.getKey().getAssociatedFields()) {
-                    sb.append(", ");
+                    sb.append(comma);
+                    comma = ", ";
                     sb.append(v.getName());
                 }
                 sb.append(":\n");
@@ -248,7 +256,7 @@ public class EldaricaChecker extends Checker {
                 sb.append("--\n");
             }
             sb.append("----\n");
-            System.err.println(sb.toString());
+//            System.err.println(sb.toString());
         }
         return sb.toString();
     }

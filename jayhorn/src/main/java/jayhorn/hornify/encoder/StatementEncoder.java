@@ -55,6 +55,8 @@ public class StatementEncoder {
     public final static String AI = "_ai";
     private int nextAI = 0;
 
+    private int assertionCnt = 0;
+
     public StatementEncoder(Prover p, ExpressionEncoder expEnc) {
         this.p = p;
         this.expEncoder = expEnc;
@@ -170,9 +172,10 @@ public class StatementEncoder {
 
             final ProverExpr errorState; // For now depending on the solver we use false or a predicate
             String tag =
-                "ErrorState_" +
+                "Assert #" + assertionCnt + ": " +
                 as.getSourceLocation().getSourceFileName() +
-                "_line" + as.getJavaSourceLine();
+                ", line " + as.getJavaSourceLine();
+            ++assertionCnt;
             final ProverFun errorPredicate = p.mkHornPredicate(tag, new ProverType[]{});
             errorState = errorPredicate.mkExpr(new ProverExpr[]{});
 

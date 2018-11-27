@@ -48,7 +48,7 @@ class PrincessFun implements ProverFun {
 	}
 
 	public String toString() {
-		return fun.toString();
+		return fun.name();
 	}
 
     public int hashCode() {

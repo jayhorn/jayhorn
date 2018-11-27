@@ -54,7 +54,7 @@ class PredicateFun implements ProverFun {
     }
 
     public String toString() {
-        return pred.toString();
+        return pred.name();
     }
 
     public String toSMTLIBDeclaration() {
