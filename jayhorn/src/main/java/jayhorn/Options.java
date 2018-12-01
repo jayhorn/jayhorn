@@ -66,7 +66,7 @@ public class Options {
 	}
 	
 
-	@Option(name = "-solverOptions", usage = "Options for the solver [eldarica: abstract, abstractPO, debug]", required = false)
+	@Option(name = "-solver-options", usage = "Options for the solver [eldarica: abstract, abstractPO, debug]", required = false)
 	private String solverOptions = "";
 
 	public List<String> getSolverOptions() {
@@ -186,7 +186,7 @@ public class Options {
 	/*
 	 * Memory precision
 	 */
-	@Option(name = "-inline_size", usage = "Inline everything with less than N stmts", required = false)
+	@Option(name = "-inline-size", usage = "Inline everything with less than N stmts", required = false)
 	private int inlineMaxSize = -1;
 
 	public int getInlineMaxSize() {
@@ -213,7 +213,7 @@ public class Options {
 		soottocfg.Options.v().setInlineCount(inlineCount);
 	}
 
-	@Option(name = "-inline_count", usage = "Inline everything that's called less than N times", required = false)
+	@Option(name = "-inline-count", usage = "Inline everything that's called less than N times", required = false)
 	private int inlineCount = -1;
 
 	
@@ -252,9 +252,27 @@ public class Options {
 		return heapLimit;
 	}
 
+    public static enum HeapMode {
+        // only verify with unbounded heap encoding
+        unbounded,
+        // only verify with bounded heap encoding
+        bounded,
+        // use a combination of unbounded and bounded heap encoding
+        auto
+    }
 
-    @Option(name = "-boundedHeapSize", usage = "Verify up to a bounded heapsize (-1 for unbounded)", required = false)
-    private int boundedHeapSize = -1;
+    @Option(name = "-heap-mode", usage = "Choose the heap encoding", required = false)
+    private HeapMode heapMode = HeapMode.auto;
+	public HeapMode getHeapMode() {
+	    return heapMode;
+    }
+
+    public void setHeapMode(HeapMode m) {
+        heapMode = m;
+    }
+
+    @Option(name = "-bounded-heap-size", usage = "Verify up to a bounded heap size", required = false)
+    private int boundedHeapSize = 10;
 	public int getBoundedHeapSize() {
 	    return boundedHeapSize;
     }
@@ -263,7 +281,7 @@ public class Options {
         boundedHeapSize = s;
     }
 
-    @Option(name = "-initialHeapSize", usage = "Start value for -boundedHeapSize", required = false)
+    @Option(name = "-initial-heap-size", usage = "Start value for -bounded-heap-size", required = false)
     private int initialHeapSize = 1;
     public int getInitialHeapSize() {
         return initialHeapSize;
@@ -273,7 +291,7 @@ public class Options {
         initialHeapSize = s;
     }
 
-    @Option(name = "-stepHeapSize", usage = "Step size for -boundedHeapSize", required = false)
+    @Option(name = "-step-heap-size", usage = "Step size for -bounded-heap-size", required = false)
     private int stepHeapSize = 1;
     public int getStepHeapSize() {
         return stepHeapSize;

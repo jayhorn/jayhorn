@@ -70,62 +70,80 @@ public class EldaricaChecker extends Checker {
         }
 
         ProverResult result = ProverResult.Unknown;
-        if (Options.v().getBoundedHeapSize() == -1) {
-            result = generateAndCheckHornClauses(program,
-                                                 -1,
-                                                 HornEncoderContext.GeneratedAssertions.ALL);
 
+        switch(Options.v().getHeapMode()) {
+        case auto:
+        case unbounded:
+            Log.info("Trying to verify with unbounded heap");
+            result =
+                generateAndCheckHornClauses(program, -1,
+                  HornEncoderContext.GeneratedAssertions.ALL);
+
+            Log.info("Prover code " + result);
             if (result == ProverResult.Sat)
                 return CheckerResult.SAFE;
-            if (result == ProverResult.Unsat)
-                Log.info("Prover code " + result);
-            return CheckerResult.UNKNOWN;
-        } else {
-            final int offset = Options.v().getInitialHeapSize();
-            final int step = Options.v().getStepHeapSize();
-            final int max = Options.v().getBoundedHeapSize();
+            break;
+        default:
+            break;
+        }
 
-            Log.info("Trying to verify with max explicit heap size " + max);
-            for (int k = offset; k <= max; k += step) {
-                Log.info("======== Round " + (k - offset + 1) + ": heap size " + k);
-                // try to verify program with heap size k and only safety assertions
-                Log.info("- Searching for counterexamples ...");
+        switch(Options.v().getHeapMode()) {
+        case auto:
+        case bounded:
+            return boundedChecking(program,
+                                   Options.v().getInitialHeapSize(),
+                                   Options.v().getStepHeapSize(),
+                                   Options.v().getBoundedHeapSize());
+        default:
+            break;
+        }
+
+        return CheckerResult.UNKNOWN;
+    }
+
+    private CheckerResult boundedChecking(Program program,
+                                          int offset, int step, int max) {
+        Log.info("Trying to verify with max explicit heap size " + max);
+        ProverResult result = ProverResult.Unknown;
+        for (int k = offset; k <= max; k += step) {
+            Log.info("======== Round " + (k - offset + 1) + ": heap size " + k);
+            // try to verify program with heap size k and only safety assertions
+            Log.info("- Searching for counterexamples ...");
+            result =
+                generateAndCheckHornClauses(program, k,
+                  HornEncoderContext.GeneratedAssertions.SAFETY_UNDER_APPROX);
+            if (result == ProverResult.Unsat) {
+                // definitely unsafe: found counterexample with bounded heap
+                Log.info("- found one!");
+                return CheckerResult.UNSAFE;
+            } else {
+                // try to verify program with heap size k and only heap bound assertions
+                Log.info("- no counterexamples, checking heap bounds ...");
                 result =
                     generateAndCheckHornClauses(program, k,
-                                HornEncoderContext.GeneratedAssertions.SAFETY_UNDER_APPROX);
-                if (result == ProverResult.Unsat) {
-                    // definitely unsafe: found counterexample with bounded heap
-                    Log.info("- found one!");
-                    return CheckerResult.UNSAFE;
-                } else {
-                    // try to verify program with heap size k and only heap bound assertions
-                    Log.info("- no counterexamples, checking heap bounds ...");
+                      HornEncoderContext.GeneratedAssertions.HEAP_BOUNDS);
+                if (result == ProverResult.Sat) {
+                    Log.info("- program is bounded, checking full safety ...");
+                    // TODO: this check can be skipped if the
+                    // program does not actually contain any
+                    // over-approximated statements!
                     result =
                         generateAndCheckHornClauses(program, k,
-                                    HornEncoderContext.GeneratedAssertions.HEAP_BOUNDS);
+                          HornEncoderContext.GeneratedAssertions.SAFETY_OVER_APPROX);
                     if (result == ProverResult.Sat) {
-                        Log.info("- program is bounded, checking full safety ...");
-                        // TODO: this check can be skipped if the
-                        // program does not actually contain any
-                        // over-approximated statements!
-                        result =
-                            generateAndCheckHornClauses(program, k,
-                                     HornEncoderContext.GeneratedAssertions.SAFETY_OVER_APPROX);
-                        if (result == ProverResult.Sat) {
-                            Log.info("- safe!");
-                            return CheckerResult.SAFE;
-                        } else {
-                            Log.info("- could not prove safety, giving up");
-                            return CheckerResult.UNKNOWN;
-                        }
+                        Log.info("- safe!");
+                        return CheckerResult.SAFE;
                     } else {
-                        Log.info("- insufficient heap, increasing size");
+                        Log.info("- could not prove safety, giving up");
+                        return CheckerResult.UNKNOWN;
                     }
+                } else {
+                    Log.info("- insufficient heap, increasing size");
                 }
             }
-            Log.info("Failed to verify the program with max heap size " + max);
-            return CheckerResult.UNKNOWN;
         }
+        Log.info("Failed to verify the program with max heap size " + max);
+        return CheckerResult.UNKNOWN;
     }
 
     private ProverResult generateAndCheckHornClauses(final Program program,

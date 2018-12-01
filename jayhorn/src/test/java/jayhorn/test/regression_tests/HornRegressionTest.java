@@ -146,6 +146,10 @@ public class HornRegressionTest {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
+			jayhorn.Options.v().setHeapMode(
+                          boundedHeapSize >= 0 ?
+                          jayhorn.Options.HeapMode.bounded :
+                          jayhorn.Options.HeapMode.unbounded);
 			jayhorn.Options.v().setInlineCount(inline_size);
 //			jayhorn.Options.v().setInlineMaxSize(50);			
 //			soottocfg.Options.v().setMemPrecision(1);
