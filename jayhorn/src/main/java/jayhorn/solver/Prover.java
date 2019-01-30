@@ -20,8 +20,19 @@ public interface Prover {
 
 	ProverType getArrayType(ProverType[] argTypes, ProverType resType);
 
-    ProverType getTupleType(ProverType[] subTypes);
+	ProverType getTupleType(ProverType[] subTypes);
 
+	// Define an algebraic data-type with the given sort, constructor,
+	// and selector names and types
+	ProverADT mkADT(String[]       typeNames,
+                        String[]       ctorNames,
+                        int[]          ctorTypes,
+                        ProverType[][] ctorArgTypes,
+                        String[][]     selectorNames);
+
+	// Temporary type representing the n'th ADT type; this is only used
+	// for defining ADTs
+	ProverType getADTTempType(int n);
 
 	// Variables
 	ProverExpr mkBoundVariable(int deBruijnIndex, ProverType type);

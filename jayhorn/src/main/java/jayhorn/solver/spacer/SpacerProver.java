@@ -48,6 +48,7 @@ import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverTupleExpr;
 import jayhorn.solver.ProverTupleType;
 import jayhorn.solver.ProverType;
+import jayhorn.solver.ProverADT;
 
 /**
  * @author teme
@@ -223,6 +224,20 @@ public class SpacerProver implements Prover {
 	private ArraySort lookupArraySort(Sort idx, Sort val) throws Z3Exception{
 		return this.ctx.mkArraySort(idx, val);
 	}
+
+	@Override
+	public ProverADT mkADT(String[]       typeNames,
+                               String[]       ctorNames,
+                               int[]          ctorTypes,
+                               ProverType[][] ctorArgTypes,
+                               String[][]     selectorNames) {
+            throw new UnsupportedOperationException();
+        }
+
+	@Override
+	public ProverType getADTTempType(int n) {
+            throw new UnsupportedOperationException();
+        }
 
 	@Override
 	public ProverExpr mkBoundVariable(int deBruijnIndex, ProverType type) {

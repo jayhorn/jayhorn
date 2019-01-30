@@ -25,7 +25,7 @@ class TermExpr extends PrincessProverExpr {
 
     @Override
     public String toString() {
-        if (type == IntType.INSTANCE) {
+        if (type == IntType.INSTANCE || (type instanceof PrincessADTType)) {
             return SimpleAPI$.MODULE$.pp(term);
         } else if (type == BoolType.INSTANCE) {
             if (term.equals(new IIntLit(IdealInt$.MODULE$.apply(0))))
