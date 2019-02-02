@@ -45,6 +45,18 @@ import ap.parser.PredicateSubstVisitor$;
 import ap.parser.SymbolCollector$;
 import ap.terfor.ConstantTerm;
 import ap.terfor.preds.Predicate;
+import ap.theories.ADT;
+import ap.theories.ADT$;
+import ap.theories.ADT.ADTProxySort;
+import ap.theories.ADT.TermMeasure$;
+import ap.theories.ADT.CtorSignature;
+import ap.theories.ADT.CtorArgSort;
+import ap.theories.ADT.OtherSort;
+import ap.theories.ADT.ADTSort;
+import ap.theories.SimpleArray.ArraySort;
+import ap.types.Sort;
+import ap.types.Sort$;
+import ap.types.Sort.Integer$;
 import jayhorn.Log;
 import jayhorn.Options;
 import jayhorn.solver.ArrayType;
@@ -59,6 +71,8 @@ import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverTupleExpr;
 import jayhorn.solver.ProverTupleType;
 import jayhorn.solver.ProverType;
+import jayhorn.solver.ADTTempType;
+import jayhorn.solver.ProverADT;
 import lazabs.horn.bottomup.HornClauses;
 import lazabs.horn.bottomup.HornClauses.Clause;
 import lazabs.horn.bottomup.SimpleWrapper;
@@ -101,6 +115,51 @@ public class PrincessProver implements Prover {
 		return new ArrayType(argTypes.length);
 	}
 
+	public ProverADT mkADT(String[]       typeNames,
+                               String[]       ctorNames,
+                               int[]          ctorTypes,
+                               ProverType[][] ctorArgTypes,
+                               String[][]     selectorNames) {
+            assert(ctorNames.length == ctorTypes.length &&
+                   ctorNames.length == ctorArgTypes.length &&
+                   ctorNames.length == selectorNames.length);
+
+            final ArrayBuffer<String> sortNames = new ArrayBuffer<> ();
+            for (int i = 0; i < typeNames.length; ++i)
+                sortNames.$plus$eq(typeNames[i]);
+
+            final ArrayBuffer<Tuple2<String, CtorSignature>> ctors =
+                new ArrayBuffer<> ();
+            for (int i = 0; i < ctorNames.length; ++i) {
+                assert(ctorArgTypes[i].length == selectorNames[i].length);
+
+                final ADTSort resSort = new ADTSort(ctorTypes[i]);
+
+                final ArrayBuffer<Tuple2<String, CtorArgSort>> args =
+                    new ArrayBuffer<> ();
+                for (int j = 0; j < ctorArgTypes[i].length; ++j) {
+                    final ProverType type = ctorArgTypes[i][j];
+                    final CtorArgSort argSort;
+                    if (type instanceof ADTTempType)
+                        argSort = new ADTSort(((ADTTempType)type).typeIndex);
+                    else
+                        argSort = new OtherSort(type2Sort(type));
+                    args.$plus$eq(new Tuple2 (selectorNames[i][j], argSort));
+                }
+
+                ctors.$plus$eq(new Tuple2 (ctorNames[i],
+                                           new CtorSignature(args, resSort)));
+            }
+
+            final ADT adt =
+                new ADT (sortNames, ctors, TermMeasure$.MODULE$.Size());
+            return new PrincessADT(adt);
+        }
+
+	public ProverType getADTTempType(int n) {
+            return new ADTTempType(n);
+        }
+
     public ProverType getTupleType(ProverType[] subTypes) {
         return new ProverTupleType(Arrays.copyOf(subTypes, subTypes.length));
     }
@@ -115,6 +174,28 @@ public class PrincessProver implements Prover {
 		}
 	}
 
+    protected static ProverType sort2Type(Sort sort) {
+        if (sort == Sort.Integer$.MODULE$) {
+            return IntType.INSTANCE;
+        } else if (sort instanceof ADTProxySort) {
+            return new PrincessADTType((ADTProxySort)sort);
+        } else if (sort instanceof ArraySort) {
+            return new ArrayType(((ArraySort)sort).arity());
+        }
+        throw new IllegalArgumentException();
+    }
+
+    protected static Sort type2Sort(ProverType type) {
+        if (type == IntType.INSTANCE) {
+            return Sort.Integer$.MODULE$;
+        } else if (type instanceof PrincessADTType) {
+            return ((PrincessADTType)type).sort;
+        } else if (type instanceof ArrayType) {
+            return new ArraySort (((ArrayType)type).arity);
+        }
+        throw new IllegalArgumentException();
+    }
+
     public ProverExpr mkVariable(String name, ProverType type) {
         if (type.equals(getIntType())) {
             return new TermExpr(api.createConstant(name), type);
@@ -126,11 +207,10 @@ public class PrincessProver implements Prover {
             for (int i = 0; i < tt.getArity(); ++i)
                 res[i] = mkVariable(name + "_" + i, tt.getSubType(i));
             return mkTuple(res);
-        } else if (type instanceof ArrayType) {
-            return new TermExpr(api.createConstant(name), type);
+        } else {
+            return new TermExpr(api.createConstant(name, type2Sort(type)),
+                                type);
         }
-
-        throw new IllegalArgumentException();
     }
 
 	public ProverFun mkUnintFunction(String name, ProverType[] argTypes, ProverType resType) {
@@ -630,13 +710,17 @@ public class PrincessProver implements Prover {
 		throw new RuntimeException();
 	}
 
-	public ProverExpr evaluate(ProverExpr expr) {
-		if (((PrincessProverExpr) expr).isBoolean())
-			return new FormulaExpr(new IBoolLit(api.eval(((PrincessProverExpr) expr).toFormula())));
-		else
-			return new TermExpr(new IIntLit(api.eval(((PrincessProverExpr) expr).toTerm())),
-					((TermExpr) expr).getType());
-	}
+    public ProverExpr evaluate(ProverExpr expr) {
+        if (((PrincessProverExpr) expr).isBoolean()) {
+            return new FormulaExpr(
+                     new IBoolLit(
+                       api.eval(((PrincessProverExpr) expr).toFormula())));
+        } else {
+            return new TermExpr(
+                     api.evalToTerm(((PrincessProverExpr) expr).toTerm()),
+                     ((TermExpr) expr).getType());
+        }
+    }
 
 	public ProverExpr[] freeVariables(ProverExpr expr) {
 		final ArrayList<ProverExpr> res = new ArrayList<ProverExpr>();
@@ -711,6 +795,9 @@ public class PrincessProver implements Prover {
 
 	public void reset() {
 		api.reset();
+                assertedClauses.clear();
+                assertedClausesStack.clear();
+                fullHornTypes.clear();
 	}
 
 	@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "DM_DEFAULT_ENCODING")

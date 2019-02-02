@@ -97,7 +97,6 @@ public class Main {
 		System.out.println(p.checkSat(true));
 
 		p.pop();
-
 	}
 	
 	
@@ -184,8 +183,8 @@ public class Main {
 	}
 
 	public void testHorn(Prover p) {
-		p.setHornLogic(true);
-		System.out.println("Running Horn test..");
+            p.setHornLogic(true);
+            System.out.println("Running Horn test ...");
             final ProverFun r =
                 p.mkHornPredicate("r", new ProverType[] { p.getIntType() });
             final ProverFun s =
@@ -238,9 +237,114 @@ public class Main {
             p.setHornLogic(false);
         }
 
+        private ProverADT mkListADT(Prover p) {
+            return 
+                p.mkADT(new String[]       { "List" },
+                        new String[]       { "nil", "cons" },
+                        new int[]          { 0, 0 },
+                        new ProverType[][] { {}, { p.getIntType(),
+                                                   p.getADTTempType(0) } },
+                        new String[][]     { {}, { "head", "tail" } });
+        }
+
+        public void testADT(Prover p) {
+            System.out.println("Running ADT test ...");
+            final ProverADT listADT = mkListADT(p);
+
+            ProverExpr x = p.mkVariable("x", listADT.getType(0));
+            ProverExpr y = p.mkVariable("y", listADT.getType(0));
+
+            p.addAssertion(listADT.mkTestExpr(1, x));             // x is cons
+            p.addAssertion(listADT.mkTestExpr(1, y));             // y is cons
+            p.addAssertion(p.mkEq(y, listADT.mkSelExpr(1, 1, x)));// y == x.tail
+
+            if (p.checkSat(true)!=ProverResult.Sat) {
+            	throw new RuntimeException("Solver failed.");
+            }
+
+            System.out.println("" + x + " = " + p.evaluate(x));
+            System.out.println("" + y + " = " + p.evaluate(y));
+
+            p.addAssertion(p.mkEq(listADT.mkSizeExpr(x),
+                                  p.mkLiteral(1)));               // size(x) = 1
+
+            if (p.checkSat(true)!=ProverResult.Unsat) {
+            	throw new RuntimeException("Solver failed.");
+            }
+        }
+
+        public void testADTHorn(Prover p) {
+            p.setHornLogic(true);
+            System.out.println("Running ADT Horn test ...");
+
+            final ProverADT listADT = mkListADT(p);
+
+            ProverExpr x = p.mkVariable("x", listADT.getType(0));
+            ProverExpr y = p.mkVariable("y", p.getIntType());
+            
+            final ProverFun r =
+                p.mkHornPredicate("r", new ProverType[] { listADT.getType(0) });
+
+            final ProverHornClause c =
+                p.mkHornClause(r.mkExpr(new ProverExpr[] {
+                                    listADT.mkCtorExpr(0, new ProverExpr[0])}),
+                               new ProverExpr[0],
+                               p.mkLiteral(true));
+            final ProverHornClause d =
+                p.mkHornClause(r.mkExpr(new ProverExpr[] {
+                                    listADT.mkCtorExpr(1,
+                                      new ProverExpr[] { y, x })}),
+                               new ProverExpr[] {
+                                   r.mkExpr(new ProverExpr[] {x})
+                               },
+                               p.mkGt(y, p.mkLiteral(10)));
+            final ProverHornClause d2 =
+                p.mkHornClause(r.mkExpr(new ProverExpr[] {
+                                    listADT.mkCtorExpr(1,
+                                      new ProverExpr[] { y, x })}),
+                               new ProverExpr[] {
+                                   r.mkExpr(new ProverExpr[] {x})
+                               },
+                               p.mkLiteral(true));
+            final ProverHornClause a =
+                p.mkHornClause(p.mkLiteral(false),
+                               new ProverExpr[] {
+                                   r.mkExpr(new ProverExpr[] {x})
+                               },
+                               p.mkAnd(listADT.mkTestExpr(1, x),
+                                       p.mkLt(listADT.mkSelExpr(1, 0, x),
+                                              p.mkLiteral(0))));
+            
+            p.addAssertion(c);
+            p.addAssertion(d);
+            p.addAssertion(a);
+            
+            ProverResult res = p.checkSat(true);
+            System.out.println(res);
+
+            if (res != ProverResult.Sat) {
+            	throw new RuntimeException("Solver failed.");
+            }
+
+            p.addAssertion(d2);
+
+            res = p.checkSat(true);
+            System.out.println(res);
+
+            if (res != ProverResult.Unsat) {
+            	throw new RuntimeException("Solver failed.");
+            }
+
+            p.setHornLogic(false);
+        }
+
 	public void runTests(ProverFactory factory) {
 		final Prover p = factory.spawn();
 		
+		testADT(p);
+		p.reset();
+		testADTHorn(p);
+		p.reset();
 		test01(p);
 		p.reset();
 		test02(p);
@@ -279,7 +383,6 @@ public class Main {
 		}
 		return var;
 	}
-
 
 	public void testSpacer(){
 		System.out.print("Testing Spacer\n");
@@ -360,96 +463,3 @@ public class Main {
 	}
 	
 }
-
-/*
- * final ProverExpr n0 = p.mkVariable("n0", p.getIntType()); final ProverExpr n1
- * = p.mkVariable("n1", p.getIntType()); final ProverExpr m0 =
- * p.mkVariable("m0", p.getIntType()); final ProverExpr m1 = p.mkVariable("m1",
- * p.getIntType()); final ProverExpr zero = p.mkLiteral(0); final ProverExpr one
- * = p.mkLiteral(1); final ProverExpr ten = p.mkLiteral(10);
- * 
- * List<ProverExpr> unrolled = new ArrayList<ProverExpr>();
- * 
- * int loops = 1; for(int i = 0; i < loops; i++){ ProverExpr m =
- * p.mkVariable("m" + i, p.getIntType()); ProverExpr mNext = p.mkVariable("m" +
- * (i+1), p.getIntType()); ProverExpr n = p.mkVariable("n" + i, p.getIntType());
- * ProverExpr nNext = p.mkVariable("n" + (i+1), p.getIntType()); ProverExpr
- * ands[] = { p.mkLeq(m,p.mkLiteral(10)), p.mkEq(nNext,p.mkPlus(n, one)),
- * p.mkEq(mNext, p.mkPlus(m,one)), }; unrolled.add(p.mkAnd(ands)); }
- * 
- * final ProverExpr finalM = p.mkVariable("m" + loops, p.getIntType()); final
- * ProverExpr finalN = p.mkVariable("n" + loops, p.getIntType());
- * 
- * unrolled.add(p.mkGt(finalM, ten));
- * 
- * 
- * final ProverExpr left = p.mkAnd(unrolled.toArray(new
- * ProverExpr[unrolled.size()])); final ProverExpr right =
- * p.mkNot(p.mkEq(finalN,p.mkLiteral(0))); ;
- * 
- * System.out.println("Tying to explain: " + right);
- * System.out.println("Given: " + left);
- * 
- * ProverExpr[] toAvoid = {finalN,finalM}; for(ProverExpr e : toAvoid){
- * System.out.println("To avoid: " + e); }
- * 
- * //ProverExpr[] explanations = ((PrincessProver)p).explain(left, right);
- * 
- * ProverExpr[] explanations = ((PrincessProver)p).explainSimply(left,
- * right,toAvoid); System.out.println("Size of explanation array is: " +
- * explanations.length); for(ProverExpr e : explanations){
- * System.out.println("Explanation: " + e); } if(false){
- * p.setPartitionNumber(0); //p.addAssertion(explanations[0]);
- * p.addAssertion(p.mkNot(p.mkEq(n0, p.mkLiteral(-1))));
- * 
- * p.setPartitionNumber(1); p.addAssertion(left);
- * 
- * p.setPartitionNumber(2); p.addAssertion(p.mkNot(right));
- * System.out.println("Checking the implication " + p.checkSat(true));
- * ProverExpr[] interpolants = p.interpolate(new int[][] { new int[] { 0 }, new
- * int[] { 1 } }); for (ProverExpr e : interpolants){
- * System.out.println("Interpolant 0-1 is " + e); }
- * 
- * interpolants = p.interpolate(new int[][] { new int[] { 1 }, new int[] { 2 }
- * }); for (ProverExpr e : interpolants){
- * System.out.println("Interpolant 1-2 is " + e); } } } }
- * 
- * boolean old = false; if(old){ final ProverExpr n0 = p.mkVariable("n0",
- * p.getIntType()); final ProverExpr n1 = p.mkVariable("n1", p.getIntType());
- * final ProverExpr n1NotZero = p.mkNot(p.mkEq(n1,p.mkLiteral(0))); final
- * ProverExpr m0 = p.mkVariable("m0", p.getIntType()); final ProverExpr m1 =
- * p.mkVariable("m1", p.getIntType()); final ProverExpr zero = p.mkLiteral(0);
- * final ProverExpr one = p.mkLiteral(1); final ProverExpr ten =
- * p.mkLiteral(10);
- * 
- * final ProverExpr ands[] = { p.mkLeq(m0,p.mkLiteral(10)),
- * p.mkEq(n1,p.mkPlus(n0, one)), p.mkEq(m1, p.mkPlus(m0,one)), p.mkGt(m1, ten),
- * }; final ProverExpr left = p.mkAnd(ands); final ProverExpr right = n1NotZero;
- * 
- * System.out.println("Tying to explain: " + right);
- * System.out.println("Given: " + left);
- * 
- * ProverExpr[] toAvoid = {n1,m1}; for(ProverExpr e : toAvoid){
- * System.out.println("To avoid: " + e); } //ProverExpr[] explanations =
- * ((PrincessProver)p).explain(left, right);
- * 
- * ProverExpr[] explanations = ((PrincessProver)p).explainSimply(left,
- * right,toAvoid); for(ProverExpr e : explanations){
- * System.out.println("Explanation: " + e); } /* p.setPartitionNumber(0);
- * //p.addAssertion(explanations[0]); p.addAssertion(p.mkNot(p.mkEq(n0,
- * p.mkLiteral(-1))));
- * 
- * p.setPartitionNumber(1); p.addAssertion(left);
- * 
- * p.setPartitionNumber(2); p.addAssertion(p.mkNot(right));
- * System.out.println("Checking the implication " + p.checkSat(true));
- * ProverExpr[] interpolants = p.interpolate(new int[][] { new int[] { 0 }, new
- * int[] { 1 } }); for (ProverExpr e : interpolants){
- * System.out.println("Interpolant 0-1 is " + e); }
- * 
- * interpolants = p.interpolate(new int[][] { new int[] { 1 }, new int[] { 2 }
- * }); for (ProverExpr e : interpolants){
- * System.out.println("Interpolant 1-2 is " + e); }
- * 
- * } else {
- */
