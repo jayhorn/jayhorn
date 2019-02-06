@@ -32,14 +32,12 @@ import soot.jimple.StringConstant;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
+import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.CallStatement;
-import soottocfg.cfg.type.BoolType;
-import soottocfg.cfg.type.IntType;
-import soottocfg.cfg.type.ReferenceType;
-import soottocfg.cfg.type.Type;
-import soottocfg.cfg.type.TypeType;
+import soottocfg.cfg.type.*;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -107,11 +105,14 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkStringLengthExpr(Value arg0) {
-		//TODO
-		Variable v = SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
-                                SootTranslationHelpers.AbstractedVariablePrefix +
-				"TODO" + constantDictionary.size(), IntType.instance());
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),v);
+		if (arg0 instanceof StringConstant) {
+			return new IntegerLiteral(this.statementSwitch.getCurrentLoc(), ((StringConstant)arg0).value.length());
+		} else {
+			Variable v = SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
+					SootTranslationHelpers.AbstractedVariablePrefix +
+							"TODO" + constantDictionary.size(), IntType.instance());
+			return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), v);
+		}
 	}
 
 	/*
@@ -132,11 +133,12 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkStringConstant(StringConstant arg0) {
+		// TODO: What about distinct string literals having same value? (currently they are assumed being different objects)
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
 					"$string" + constantDictionary.size(), lookupType(arg0.getType())));
 		}
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
+		return new StringLiteral(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0), arg0.value);
 	}
 
 	/*
@@ -184,7 +186,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 * (non-Javadoc)
 	 * 
 	 * @see soottocfg.soot.memory_model.MemoryModel#lookupType(soot.Type)
-	 * TODO: check which types to use for Short, Lond, Double, and Float.
+	 * TODO: check which types to use for Short, Long, Double, and Float.
 	 */
 	@Override
 	public Type lookupType(soot.Type t) {

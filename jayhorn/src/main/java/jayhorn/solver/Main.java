@@ -237,19 +237,9 @@ public class Main {
             p.setHornLogic(false);
         }
 
-        private ProverADT mkListADT(Prover p) {
-            return 
-                p.mkADT(new String[]       { "List" },
-                        new String[]       { "nil", "cons" },
-                        new int[]          { 0, 0 },
-                        new ProverType[][] { {}, { p.getIntType(),
-                                                   p.getADTTempType(0) } },
-                        new String[][]     { {}, { "head", "tail" } });
-        }
-
         public void testADT(Prover p) {
             System.out.println("Running ADT test ...");
-            final ProverADT listADT = mkListADT(p);
+            final ProverADT listADT = p.mkListADT(p.getIntType());
 
             ProverExpr x = p.mkVariable("x", listADT.getType(0));
             ProverExpr y = p.mkVariable("y", listADT.getType(0));
@@ -277,7 +267,7 @@ public class Main {
             p.setHornLogic(true);
             System.out.println("Running ADT Horn test ...");
 
-            final ProverADT listADT = mkListADT(p);
+            final ProverADT listADT = p.mkListADT(p.getIntType());
 
             ProverExpr x = p.mkVariable("x", listADT.getType(0));
             ProverExpr y = p.mkVariable("y", p.getIntType());

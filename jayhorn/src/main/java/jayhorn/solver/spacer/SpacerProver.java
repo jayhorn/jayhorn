@@ -231,8 +231,13 @@ public class SpacerProver implements Prover {
                                int[]          ctorTypes,
                                ProverType[][] ctorArgTypes,
                                String[][]     selectorNames) {
-            throw new UnsupportedOperationException();
-        }
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public ProverADT mkListADT(ProverType pt) {
+		throw new UnsupportedOperationException();
+	}
 
 	@Override
 	public ProverType getADTTempType(int n) {
@@ -470,6 +475,11 @@ public class SpacerProver implements Prover {
 		} catch (Exception e) {
 			throw new RuntimeException(e.getMessage());
 		}
+	}
+
+	@Override
+	public ProverExpr mkString(String value) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

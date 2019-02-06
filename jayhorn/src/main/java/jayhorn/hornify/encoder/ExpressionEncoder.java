@@ -10,11 +10,7 @@ import com.google.common.base.Verify;
 
 import jayhorn.hornify.HornEncoderContext;
 import jayhorn.hornify.HornHelper;
-import jayhorn.solver.Prover;
-import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverTupleExpr;
-import jayhorn.solver.ProverType;
-import jayhorn.solver.ProverTupleType;
+import jayhorn.solver.*;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
@@ -25,6 +21,7 @@ import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
+import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
@@ -62,29 +59,31 @@ public class ExpressionEncoder {
 		return p.mkLiteral(id);
 	}
 	
-        private ProverExpr varToProverExpr(Variable var, Map<Variable, ProverExpr> varMap) {
-            if (var instanceof ClassVariable) {
-                return typeIdToProverExpr(hornContext.getTypeID((ClassVariable) var));
-            } else {
-                if (hornContext.elimOverApprox() && Program.isAbstractedVariable(var))
-                    throw new OverApproxException();
-                final ProverExpr proverVar = HornHelper.hh().findOrCreateProverVar(p, var, varMap);
-                if (hornContext.getProgram().getGlobalVariables().contains(var)) {
-                    /*
-                     * For globals, we just use an integer number.
-                     * NOTE: The translation guarantees that this number is unique and different
-                     * from Null.
-                     */
-                    int idx = hornContext.getProgram().getGlobalVariables().indexOf(var);
-                    return makeUniqueReference(p, var, proverVar, -idx - 1);
-                }
-                
-                return proverVar;
-            }
-        }
+	private ProverExpr varToProverExpr(Variable var, Map<Variable, ProverExpr> varMap) {
+		if (var instanceof ClassVariable) {
+			return typeIdToProverExpr(hornContext.getTypeID((ClassVariable) var));
+		} else {
+			if (hornContext.elimOverApprox() && Program.isAbstractedVariable(var))
+				throw new OverApproxException();
+			final ProverExpr proverVar = HornHelper.hh().findOrCreateProverVar(p, var, varMap);
+			if (hornContext.getProgram().getGlobalVariables().contains(var)) {
+				/*
+				 * For globals, we just use an integer number.
+				 * NOTE: The translation guarantees that this number is unique and different
+				 * from Null.
+				 */
+				int idx = hornContext.getProgram().getGlobalVariables().indexOf(var);
+				return makeUniqueReference(p, var, proverVar, -idx - 1);
+			}
+
+			return proverVar;
+		}
+	}
 
 	public ProverExpr exprToProverExpr(Expression e, Map<Variable, ProverExpr> varMap) {
-		if (e instanceof IdentifierExpression) {
+		if (e instanceof StringLiteral) {
+			return p.mkString(((StringLiteral)e).getValue());
+		} else if (e instanceof IdentifierExpression) {
 			Variable var = ((IdentifierExpression) e).getVariable();
                         return varToProverExpr(var, varMap);
 		} else if (e instanceof TupleAccessExpression) {

@@ -2,6 +2,7 @@ package soottocfg.cfg.optimization;
 
 import com.google.common.base.Optional;
 
+import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
@@ -13,6 +14,7 @@ import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
+import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.variable.Variable;
 //import soottocfg.cfg.type.ReferenceType;
 
@@ -58,6 +60,8 @@ public class ExpressionEvaluator {
 			int b = ((BooleanLiteral)right).getValue() ? 1 : 0;
 			int res = evalBinop(e.getOp(), a, b);
 			return new BooleanLiteral(e.getSourceLocation(), res==1);
+		} else if (left instanceof StringLiteral && right instanceof StringLiteral) {
+			return evalStringBinop(e, (StringLiteral)left, (StringLiteral)right);
 		} else if (left instanceof IdentifierExpression && right instanceof IdentifierExpression) {
 			Variable leftVar = ((IdentifierExpression)left).getVariable();
 			Variable rightVar = ((IdentifierExpression)right).getVariable();
@@ -124,6 +128,23 @@ public class ExpressionEvaluator {
 			return a >>> b;
 		case Xor:
 			return a ^ b;
+		default:
+			break;
+		}
+		throw new RuntimeException("Not implemented: "+op);
+	}
+
+	private static Expression evalStringBinop(BinaryExpression e, StringLiteral left, StringLiteral right) {
+		BinaryOperator op = e.getOp();
+		SourceLocation loc = e.getSourceLocation();
+		String a = left.getValue();
+		String b = right.getValue();
+		switch (op) {
+		case Eq:
+		case Ne:
+			return new BinaryExpression(loc, op, left, right);
+		case Plus:
+			return e;
 		default:
 			break;
 		}

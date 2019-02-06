@@ -30,6 +30,8 @@ public interface Prover {
                         ProverType[][] ctorArgTypes,
                         String[][]     selectorNames);
 
+	ProverADT mkListADT(ProverType pt);
+
 	// Temporary type representing the n'th ADT type; this is only used
 	// for defining ADTs
 	ProverType getADTTempType(int n);
@@ -81,6 +83,8 @@ public interface Prover {
 	ProverExpr mkLiteral(int value);
 
 	ProverExpr mkLiteral(BigInteger value);
+
+	ProverExpr mkString(String value);
 
 	ProverExpr mkPlus(ProverExpr left, ProverExpr right);
 

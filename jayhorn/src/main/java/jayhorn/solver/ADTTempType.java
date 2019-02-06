@@ -1,17 +1,37 @@
 package jayhorn.solver;
 
 
+import java.util.HashMap;
+
 public class ADTTempType implements ProverType {
 
-        public final int typeIndex;
+	private static final HashMap<Integer, ADTTempType> idx2type = new HashMap<Integer, ADTTempType>(1);
+	public static final int ListADTTypeIndex = 0;
 
-	public ADTTempType(int typeIndex) {
+	public final int typeIndex;
+
+	public static ADTTempType getADTTempType(int ti) {
+		if (!idx2type.containsKey(ti)) {
+			idx2type.put(ti, new ADTTempType(ti));
+		}
+		return idx2type.get(ti);
+	}
+
+	private ADTTempType(int typeIndex) {
             this.typeIndex = typeIndex;
 	}
 
 	@Override
 	public String toString() {
 		return "ADT[" + typeIndex + "]";
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof  ADTTempType) {
+			return this.typeIndex == ((ADTTempType)o).typeIndex;
+		}
+		return false;
 	}
 
 }

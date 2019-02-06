@@ -120,45 +120,54 @@ public class PrincessProver implements Prover {
                                int[]          ctorTypes,
                                ProverType[][] ctorArgTypes,
                                String[][]     selectorNames) {
-            assert(ctorNames.length == ctorTypes.length &&
-                   ctorNames.length == ctorArgTypes.length &&
-                   ctorNames.length == selectorNames.length);
+		assert(ctorNames.length == ctorTypes.length &&
+			   ctorNames.length == ctorArgTypes.length &&
+			   ctorNames.length == selectorNames.length);
 
-            final ArrayBuffer<String> sortNames = new ArrayBuffer<> ();
-            for (int i = 0; i < typeNames.length; ++i)
-                sortNames.$plus$eq(typeNames[i]);
+		final ArrayBuffer<String> sortNames = new ArrayBuffer<> ();
+		for (int i = 0; i < typeNames.length; ++i)
+			sortNames.$plus$eq(typeNames[i]);
 
-            final ArrayBuffer<Tuple2<String, CtorSignature>> ctors =
-                new ArrayBuffer<> ();
-            for (int i = 0; i < ctorNames.length; ++i) {
-                assert(ctorArgTypes[i].length == selectorNames[i].length);
+		final ArrayBuffer<Tuple2<String, CtorSignature>> ctors =
+			new ArrayBuffer<> ();
+		for (int i = 0; i < ctorNames.length; ++i) {
+			assert(ctorArgTypes[i].length == selectorNames[i].length);
 
-                final ADTSort resSort = new ADTSort(ctorTypes[i]);
+			final ADTSort resSort = new ADTSort(ctorTypes[i]);
 
-                final ArrayBuffer<Tuple2<String, CtorArgSort>> args =
-                    new ArrayBuffer<> ();
-                for (int j = 0; j < ctorArgTypes[i].length; ++j) {
-                    final ProverType type = ctorArgTypes[i][j];
-                    final CtorArgSort argSort;
-                    if (type instanceof ADTTempType)
-                        argSort = new ADTSort(((ADTTempType)type).typeIndex);
-                    else
-                        argSort = new OtherSort(type2Sort(type));
-                    args.$plus$eq(new Tuple2 (selectorNames[i][j], argSort));
-                }
+			final ArrayBuffer<Tuple2<String, CtorArgSort>> args =
+				new ArrayBuffer<> ();
+			for (int j = 0; j < ctorArgTypes[i].length; ++j) {
+				final ProverType type = ctorArgTypes[i][j];
+				final CtorArgSort argSort;
+				if (type instanceof ADTTempType)
+					argSort = new ADTSort(((ADTTempType)type).typeIndex);
+				else
+					argSort = new OtherSort(type2Sort(type));
+				args.$plus$eq(new Tuple2 (selectorNames[i][j], argSort));
+			}
 
-                ctors.$plus$eq(new Tuple2 (ctorNames[i],
-                                           new CtorSignature(args, resSort)));
-            }
+			ctors.$plus$eq(new Tuple2 (ctorNames[i],
+									   new CtorSignature(args, resSort)));
+		}
 
-            final ADT adt =
-                new ADT (sortNames, ctors, TermMeasure$.MODULE$.Size());
-            return new PrincessADT(adt);
-        }
+		final ADT adt =
+			new ADT (sortNames, ctors, TermMeasure$.MODULE$.Size());
+		return new PrincessADT(adt);
+	}
+
+	public ProverADT mkListADT(ProverType pt) {
+	    // TODO: make singleton
+		return mkADT(new String[]       { "List[" + pt.toString() + "]" },
+					 new String[]       { "nil", "cons" },
+					 new int[]          { ADTTempType.ListADTTypeIndex, ADTTempType.ListADTTypeIndex },
+					 new ProverType[][] { {}, { pt, getADTTempType(ADTTempType.ListADTTypeIndex) } },
+					 new String[][]     { {}, { "head", "tail" } });
+	}
 
 	public ProverType getADTTempType(int n) {
-            return new ADTTempType(n);
-        }
+		return ADTTempType.getADTTempType(n);
+	}
 
     public ProverType getTupleType(ProverType[] subTypes) {
         return new ProverTupleType(Arrays.copyOf(subTypes, subTypes.length));
@@ -336,6 +345,22 @@ public class PrincessProver implements Prover {
 
 	public ProverExpr mkLiteral(BigInteger value) {
 		return new TermExpr(new IIntLit(IdealInt$.MODULE$.apply(value.toString())), getIntType());
+	}
+
+	private ProverExpr mkStringFromCharArray(ProverADT listADT, char[] chars) {
+		int index = chars.length - 1;
+		ProverExpr res = listADT.mkCtorExpr(0, new ProverExpr[0]);
+		while (index >= 0) {
+			res = listADT.mkCtorExpr(1, new ProverExpr[] {
+					mkLiteral(((int)chars[index])), res
+			});
+			--index;
+		}
+		return res;
+	}
+
+	public ProverExpr mkString(String value) {
+		return mkStringFromCharArray(mkListADT(getIntType()), value.toCharArray());
 	}
 
 	public ProverExpr mkPlus(ProverExpr left, ProverExpr right) {

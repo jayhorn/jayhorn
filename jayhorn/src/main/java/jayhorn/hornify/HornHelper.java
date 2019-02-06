@@ -15,11 +15,7 @@ import jayhorn.solver.ProverFun;
 import jayhorn.solver.ProverTupleExpr;
 import jayhorn.solver.ProverTupleType;
 import jayhorn.solver.ProverType;
-import soottocfg.cfg.type.BoolType;
-import soottocfg.cfg.type.IntType;
-import soottocfg.cfg.type.ReferenceType;
-import soottocfg.cfg.type.Type;
-import soottocfg.cfg.type.TypeType;
+import soottocfg.cfg.type.*;
 import soottocfg.cfg.variable.Variable;
 
 public class HornHelper {
@@ -65,8 +61,8 @@ public class HornHelper {
 			}
 			return p.getTupleType(subTypes);
 		}
-                if (t instanceof WrappedProverType)
-                    return ((WrappedProverType)t).getProverType();
+		if (t instanceof WrappedProverType)
+			return ((WrappedProverType)t).getProverType();
 		if (t instanceof TypeType) {
 			return p.getIntType();
 		}
