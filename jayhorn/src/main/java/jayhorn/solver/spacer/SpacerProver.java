@@ -203,6 +203,11 @@ public class SpacerProver implements Prover {
 	}
 
 	@Override
+	public ProverADT getStringADT() {
+		throw new RuntimeException("not implemented");
+	}
+
+	@Override
 	public ProverType getArrayType(ProverType[] argTypes, ProverType resType) {
 		try{
 		if (argTypes.length == 0) {
@@ -224,25 +229,6 @@ public class SpacerProver implements Prover {
 	private ArraySort lookupArraySort(Sort idx, Sort val) throws Z3Exception{
 		return this.ctx.mkArraySort(idx, val);
 	}
-
-	@Override
-	public ProverADT mkADT(String[]       typeNames,
-                               String[]       ctorNames,
-                               int[]          ctorTypes,
-                               ProverType[][] ctorArgTypes,
-                               String[][]     selectorNames) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public ProverADT mkListADT(ProverType pt) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public ProverType getADTTempType(int n) {
-            throw new UnsupportedOperationException();
-        }
 
 	@Override
 	public ProverExpr mkBoundVariable(int deBruijnIndex, ProverType type) {
@@ -371,6 +357,11 @@ public class SpacerProver implements Prover {
 	}
 
 	@Override
+	public ProverExpr mkADTEq(ProverExpr left, ProverExpr right) {
+		throw new RuntimeException("not implemented");
+	}
+
+	@Override
 	public ProverExpr mkLiteral(boolean value) {
 		try{
 			return new SpacerBoolExpr(ctx.mkBool(value));
@@ -402,7 +393,7 @@ public class SpacerProver implements Prover {
 
 
 	@Override
-	public ProverExpr mkAnd(ProverExpr[] args)  {
+	public ProverExpr mkAnd(ProverExpr ... args)  {
 		try {
 			BoolExpr[] bargs = new BoolExpr[args.length];
 			for (int i = 0; i < args.length; i++) {
@@ -426,7 +417,7 @@ public class SpacerProver implements Prover {
 	}
 
 	@Override
-	public ProverExpr mkOr(ProverExpr[] args) {
+	public ProverExpr mkOr(ProverExpr ... args) {
 		try {
 			BoolExpr[] bargs = new BoolExpr[args.length];
 			for (int i = 0; i < args.length; i++) {

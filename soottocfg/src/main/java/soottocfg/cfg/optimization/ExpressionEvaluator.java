@@ -60,8 +60,6 @@ public class ExpressionEvaluator {
 			int b = ((BooleanLiteral)right).getValue() ? 1 : 0;
 			int res = evalBinop(e.getOp(), a, b);
 			return new BooleanLiteral(e.getSourceLocation(), res==1);
-		} else if (left instanceof StringLiteral && right instanceof StringLiteral) {
-			return evalStringBinop(e, (StringLiteral)left, (StringLiteral)right);
 		} else if (left instanceof IdentifierExpression && right instanceof IdentifierExpression) {
 			Variable leftVar = ((IdentifierExpression)left).getVariable();
 			Variable rightVar = ((IdentifierExpression)right).getVariable();
@@ -134,22 +132,6 @@ public class ExpressionEvaluator {
 		throw new RuntimeException("Not implemented: "+op);
 	}
 
-	private static Expression evalStringBinop(BinaryExpression e, StringLiteral left, StringLiteral right) {
-		BinaryOperator op = e.getOp();
-		SourceLocation loc = e.getSourceLocation();
-		String a = left.getValue();
-		String b = right.getValue();
-		switch (op) {
-		case Eq:
-		case Ne:
-			return new BinaryExpression(loc, op, left, right);
-		case Plus:
-			return e;
-		default:
-			break;
-		}
-		throw new RuntimeException("Not implemented: "+op);
-	}
 
 	public static Expression simplify(IteExpression e) {
 		Expression cond = simplify(e.getCondition());

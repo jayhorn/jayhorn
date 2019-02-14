@@ -10,6 +10,10 @@ public class ADTTempType implements ProverType {
 
 	public final int typeIndex;
 
+	/**
+	 * Temporary type representing the n'th ADT type; this is only used
+	 * for defining ADTs
+	 */
 	public static ADTTempType getADTTempType(int ti) {
 		if (!idx2type.containsKey(ti)) {
 			idx2type.put(ti, new ADTTempType(ti));

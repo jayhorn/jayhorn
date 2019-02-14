@@ -18,23 +18,11 @@ public interface Prover {
 
 	ProverType getIntType();
 
+	ProverADT getStringADT();
+
 	ProverType getArrayType(ProverType[] argTypes, ProverType resType);
 
 	ProverType getTupleType(ProverType[] subTypes);
-
-	// Define an algebraic data-type with the given sort, constructor,
-	// and selector names and types
-	ProverADT mkADT(String[]       typeNames,
-                        String[]       ctorNames,
-                        int[]          ctorTypes,
-                        ProverType[][] ctorArgTypes,
-                        String[][]     selectorNames);
-
-	ProverADT mkListADT(ProverType pt);
-
-	// Temporary type representing the n'th ADT type; this is only used
-	// for defining ADTs
-	ProverType getADTTempType(int n);
 
 	// Variables
 	ProverExpr mkBoundVariable(int deBruijnIndex, ProverType type);
@@ -62,6 +50,13 @@ public interface Prover {
 	// Equations (applicable to all types) (also have n-ary version?)
 	ProverExpr mkEq(ProverExpr left, ProverExpr right);
 
+	// TODO: Where to put these constants?
+	public static final String ADT_EQUALS = "adt_equals";
+	public static final String ADT_EQUALS_TT = ADT_EQUALS + "_tt";
+	public static final String ADT_EQUALS_TS = ADT_EQUALS + "_ts";
+
+	ProverExpr mkADTEq(ProverExpr left, ProverExpr right);
+
 	// Propositional (also have n-ary versions?)
 	ProverExpr mkLiteral(boolean value);
 
@@ -69,11 +64,11 @@ public interface Prover {
 
 	ProverExpr mkAnd(ProverExpr left, ProverExpr right);
 
-	ProverExpr mkAnd(ProverExpr[] args);
+	ProverExpr mkAnd(ProverExpr ... args);
 
 	ProverExpr mkOr(ProverExpr left, ProverExpr right);
 
-	ProverExpr mkOr(ProverExpr[] args);
+	ProverExpr mkOr(ProverExpr ... args);
 
 	ProverExpr mkImplies(ProverExpr left, ProverExpr right);
 

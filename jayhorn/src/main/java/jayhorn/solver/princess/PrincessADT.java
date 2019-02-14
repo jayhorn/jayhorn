@@ -6,7 +6,6 @@ import jayhorn.solver.ProverExpr;
 import jayhorn.solver.IntType;
 
 import ap.theories.ADT;
-import ap.types.Sort;
 import ap.types.MonoSortedIFunction;
 
 /**
@@ -46,40 +45,23 @@ public class PrincessADT implements ProverADT {
         }
     }
 
-    /**
-     * Query the individual ADT types
-     */
     public ProverType getType(int typeIndex) {
         return new PrincessADTType (adt.sorts().apply(typeIndex));
     }
 
-    /**
-     * Build constructor terms, using the ctorIndex'th constructor
-     */
     public ProverExpr mkCtorExpr(int ctorIndex, ProverExpr[] args) {
         return constructors[ctorIndex].mkExpr(args);
     }
 
-    /**
-     * Build selector terms, using the selIndex'th selector for the
-     * ctorIndex'th constructor
-     */
     public ProverExpr mkSelExpr(int ctorIndex, int selIndex, ProverExpr term) {
         return selectors[ctorIndex][selIndex].mkExpr(new ProverExpr[] { term });
     }
-    
-    /**
-     * Build a tester formula, testing whether the given term has the
-     * ctorIndex'th constructor as head symbol
-     */
+
     public ProverExpr mkTestExpr(int ctorIndex, ProverExpr term) {
         return new FormulaExpr (adt.hasCtor(((PrincessProverExpr)term).toTerm(),
                                             ctorIndex));
     }
 
-    /**
-     * Build a size term for the given ADT term
-     */
     public ProverExpr mkSizeExpr(ProverExpr term) {
         final ProverType type = term.getType();
 
@@ -89,6 +71,24 @@ public class PrincessADT implements ProverADT {
         }
 
         throw new IllegalArgumentException();
+    }
+
+    /**
+     * Define an algebraic data-type with the given sort, constructor,
+     * and selector names and types
+     * @param typeNames namings of this ADT
+     * @param ctorNames ADT constructors names
+     * @param ctorTypes ADT constructors types
+     * @param ctorArgTypes argument types of ADT constructors
+     * @param selectorNames ADT selectors names
+     * @return generated ProverADT
+     */
+    public static ProverADT mkADT(String[]       typeNames,
+                           String[]       ctorNames,
+                           int[]          ctorTypes,
+                           ProverType[][] ctorArgTypes,
+                           String[][]     selectorNames) {
+        return new PrincessADT(ProverADT.getADT(typeNames, ctorNames, ctorTypes, ctorArgTypes, selectorNames));
     }
 
 }

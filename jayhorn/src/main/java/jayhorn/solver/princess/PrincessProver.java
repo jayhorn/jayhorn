@@ -4,10 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Stack;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,7 +14,6 @@ import java.util.concurrent.TimeoutException;
 
 import com.google.common.base.Verify;
 
-import ap.DialogUtil$;
 import ap.SimpleAPI;
 import ap.SimpleAPI$;
 import ap.SimpleAPI.ProverStatus$;
@@ -45,34 +41,12 @@ import ap.parser.PredicateSubstVisitor$;
 import ap.parser.SymbolCollector$;
 import ap.terfor.ConstantTerm;
 import ap.terfor.preds.Predicate;
-import ap.theories.ADT;
-import ap.theories.ADT$;
 import ap.theories.ADT.ADTProxySort;
-import ap.theories.ADT.TermMeasure$;
-import ap.theories.ADT.CtorSignature;
-import ap.theories.ADT.CtorArgSort;
-import ap.theories.ADT.OtherSort;
-import ap.theories.ADT.ADTSort;
 import ap.theories.SimpleArray.ArraySort;
 import ap.types.Sort;
-import ap.types.Sort$;
-import ap.types.Sort.Integer$;
 import jayhorn.Log;
 import jayhorn.Options;
-import jayhorn.solver.ArrayType;
-import jayhorn.solver.BoolType;
-import jayhorn.solver.IntType;
-import jayhorn.solver.Prover;
-import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverFun;
-import jayhorn.solver.ProverHornClause;
-import jayhorn.solver.ProverListener;
-import jayhorn.solver.ProverResult;
-import jayhorn.solver.ProverTupleExpr;
-import jayhorn.solver.ProverTupleType;
-import jayhorn.solver.ProverType;
-import jayhorn.solver.ADTTempType;
-import jayhorn.solver.ProverADT;
+import jayhorn.solver.*;
 import lazabs.horn.bottomup.HornClauses;
 import lazabs.horn.bottomup.HornClauses.Clause;
 import lazabs.horn.bottomup.SimpleWrapper;
@@ -111,62 +85,22 @@ public class PrincessProver implements Prover {
 		return IntType.INSTANCE;
 	}
 
+	private ProverADT stringADT = null;
+
+	public void setStringADT(ProverADT stringADT) {
+		this.stringADT = stringADT;
+	}
+
+	@Override
+	public ProverADT getStringADT() {
+		if (stringADT == null) {
+			stringADT = (new PrincessListADTFactory(getIntType())).mkListADT();
+		}
+		return stringADT;
+	}
+
 	public ProverType getArrayType(ProverType[] argTypes, ProverType resType) {
 		return new ArrayType(argTypes.length);
-	}
-
-	public ProverADT mkADT(String[]       typeNames,
-                               String[]       ctorNames,
-                               int[]          ctorTypes,
-                               ProverType[][] ctorArgTypes,
-                               String[][]     selectorNames) {
-		assert(ctorNames.length == ctorTypes.length &&
-			   ctorNames.length == ctorArgTypes.length &&
-			   ctorNames.length == selectorNames.length);
-
-		final ArrayBuffer<String> sortNames = new ArrayBuffer<> ();
-		for (int i = 0; i < typeNames.length; ++i)
-			sortNames.$plus$eq(typeNames[i]);
-
-		final ArrayBuffer<Tuple2<String, CtorSignature>> ctors =
-			new ArrayBuffer<> ();
-		for (int i = 0; i < ctorNames.length; ++i) {
-			assert(ctorArgTypes[i].length == selectorNames[i].length);
-
-			final ADTSort resSort = new ADTSort(ctorTypes[i]);
-
-			final ArrayBuffer<Tuple2<String, CtorArgSort>> args =
-				new ArrayBuffer<> ();
-			for (int j = 0; j < ctorArgTypes[i].length; ++j) {
-				final ProverType type = ctorArgTypes[i][j];
-				final CtorArgSort argSort;
-				if (type instanceof ADTTempType)
-					argSort = new ADTSort(((ADTTempType)type).typeIndex);
-				else
-					argSort = new OtherSort(type2Sort(type));
-				args.$plus$eq(new Tuple2 (selectorNames[i][j], argSort));
-			}
-
-			ctors.$plus$eq(new Tuple2 (ctorNames[i],
-									   new CtorSignature(args, resSort)));
-		}
-
-		final ADT adt =
-			new ADT (sortNames, ctors, TermMeasure$.MODULE$.Size());
-		return new PrincessADT(adt);
-	}
-
-	public ProverADT mkListADT(ProverType pt) {
-	    // TODO: make singleton
-		return mkADT(new String[]       { "List[" + pt.toString() + "]" },
-					 new String[]       { "nil", "cons" },
-					 new int[]          { ADTTempType.ListADTTypeIndex, ADTTempType.ListADTTypeIndex },
-					 new ProverType[][] { {}, { pt, getADTTempType(ADTTempType.ListADTTypeIndex) } },
-					 new String[][]     { {}, { "head", "tail" } });
-	}
-
-	public ProverType getADTTempType(int n) {
-		return ADTTempType.getADTTempType(n);
 	}
 
     public ProverType getTupleType(ProverType[] subTypes) {
@@ -183,7 +117,7 @@ public class PrincessProver implements Prover {
 		}
 	}
 
-    protected static ProverType sort2Type(Sort sort) {
+    public static ProverType sort2Type(Sort sort) {
         if (sort == Sort.Integer$.MODULE$) {
             return IntType.INSTANCE;
         } else if (sort instanceof ADTProxySort) {
@@ -194,7 +128,7 @@ public class PrincessProver implements Prover {
         throw new IllegalArgumentException();
     }
 
-    protected static Sort type2Sort(ProverType type) {
+    public static Sort type2Sort(ProverType type) {
         if (type == IntType.INSTANCE) {
             return Sort.Integer$.MODULE$;
         } else if (type instanceof PrincessADTType) {
@@ -293,6 +227,55 @@ public class PrincessProver implements Prover {
             return new FormulaExpr(pLeft.toTerm().$eq$eq$eq(pRight.toTerm()));
     }
 
+    public ProverExpr mkADTEq(ProverExpr left, ProverExpr right) {
+	    ProverType stringADTType = getStringADT().getType(0);
+        ProverExpr s = mkVariable("s", stringADTType);
+        ProverExpr t = mkVariable("t", stringADTType);
+		if (left instanceof ProverTupleExpr) {
+			ProverExpr idLeft = ((ProverTupleExpr) left).getSubExpr(0);
+            ProverExpr r1 = mkVariable("r1", idLeft.getType());
+			if (right instanceof ProverTupleExpr) {
+				ProverExpr idRight = ((ProverTupleExpr) right).getSubExpr(0);
+				ProverFun ptt = mkHornPredicate(ADT_EQUALS_TT, new ProverType[]{idLeft.getType(), idRight.getType()});
+                ProverExpr r2 = mkVariable("r2", idRight.getType());
+				// TODO: Where is the right place to add this assertion? Is it better to add it once instead of for each mkADTEq?
+				addAssertion(mkHornClause(
+						ptt.mkExpr(new ProverExpr[]{r1, r2}),
+						new ProverExpr[] {mkADTEq(left, s), mkADTEq(right, s)},
+						mkLiteral(true)
+				));
+				// TODO: head must be an atom; what to do now?
+                /*
+                addAssertion(mkHornClause(
+                        mkNot(ptt.mkExpr(new ProverExpr[]{r1, r2})),
+                        new ProverExpr[] {mkADTEq(left, s), mkADTEq(right, t)},
+                        mkNot(mkEq(s, t))
+                ));
+                */
+				return mkOr(mkEq(idLeft, idRight), ptt.mkExpr(new ProverExpr[]{idLeft, idRight}));
+			} else {
+                Verify.verify(right.getType().equals(stringADTType), "right in mkADTEq is not a valid string");
+				ProverFun pts = mkHornPredicate(ADT_EQUALS_TS, new ProverType[]{idLeft.getType(), right.getType()});
+                // TODO: head must be an atom; what to do now?
+                /*
+				addAssertion(mkHornClause(
+				        mkNot(pts.mkExpr(new ProverExpr[]{r1, s})),
+                        new ProverExpr[]{pts.mkExpr(new ProverExpr[]{r1, t})},
+                        mkNot(mkEq(s, t))
+                ));
+                */
+				return pts.mkExpr(new ProverExpr[]{idLeft, right});
+			}
+		} else {
+		    Verify.verify(left.getType().equals(stringADTType), "left in mkADTEq is not a valid string");
+			if (right instanceof ProverTupleExpr) {
+				return mkADTEq(right, left);
+			} else {
+				return mkEq(left, right);
+			}
+		}
+	}
+
 	public ProverExpr mkLiteral(boolean value) {
 		return new FormulaExpr(new IBoolLit(value));
 	}
@@ -306,7 +289,7 @@ public class PrincessProver implements Prover {
 				((PrincessProverExpr) right).toFormula()));
 	}
 
-	public ProverExpr mkAnd(ProverExpr[] args) {
+	public ProverExpr mkAnd(ProverExpr ... args) {
 		final ArrayBuffer<IFormula> argsBuf = new ArrayBuffer<IFormula>();
 		for (int i = 0; i < args.length; ++i)
 			argsBuf.$plus$eq(((PrincessProverExpr) args[i]).toFormula());
@@ -318,7 +301,7 @@ public class PrincessProver implements Prover {
 				((PrincessProverExpr) right).toFormula()));
 	}
 
-	public ProverExpr mkOr(ProverExpr[] args) {
+	public ProverExpr mkOr(ProverExpr ... args) {
 		final ArrayBuffer<IFormula> argsBuf = new ArrayBuffer<IFormula>();
 		for (int i = 0; i < args.length; ++i)
 			argsBuf.$plus$eq(((PrincessProverExpr) args[i]).toFormula());
@@ -351,6 +334,7 @@ public class PrincessProver implements Prover {
 		int index = chars.length - 1;
 		ProverExpr res = listADT.mkCtorExpr(0, new ProverExpr[0]);
 		while (index >= 0) {
+			// TODO: support Unicode characters
 			res = listADT.mkCtorExpr(1, new ProverExpr[] {
 					mkLiteral(((int)chars[index])), res
 			});
@@ -360,7 +344,7 @@ public class PrincessProver implements Prover {
 	}
 
 	public ProverExpr mkString(String value) {
-		return mkStringFromCharArray(mkListADT(getIntType()), value.toCharArray());
+		return mkStringFromCharArray(getStringADT(), value.toCharArray());
 	}
 
 	public ProverExpr mkPlus(ProverExpr left, ProverExpr right) {

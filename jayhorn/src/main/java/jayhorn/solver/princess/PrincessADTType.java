@@ -20,19 +20,6 @@ public class PrincessADTType implements ProverADTType {
             return true;
         if (obj == null)
             return false;
-        // TODO: maybe move this comparison to another method
-        if (obj instanceof ProverTupleType) {
-            // check reference to object
-            ProverTupleType ptt = (ProverTupleType) obj;
-            if (ptt.getArity() != 3)
-                return false;
-            ProverType[] subTypes = ptt.getSubTypes();
-            for (ProverType subType: subTypes) {
-                if (subType != IntType.INSTANCE)
-                    return false;
-            }
-            return true;
-        }
         if (getClass() != obj.getClass())
             return false;
         PrincessADTType other = (PrincessADTType) obj;

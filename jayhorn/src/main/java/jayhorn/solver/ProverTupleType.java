@@ -75,17 +75,6 @@ public class ProverTupleType implements ProverType {
             return true;
         if (obj == null)
             return false;
-        // TODO: maybe move this comparison to another method
-        if (obj instanceof ProverADTType) {
-            // check reference to object
-            if (this.getArity() != 3)
-                return false;
-            for (ProverType subType: this.subTypes) {
-                if (subType != IntType.INSTANCE)
-                    return false;
-            }
-            return true;
-        }
         if (getClass() != obj.getClass())
             return false;
         ProverTupleType other = (ProverTupleType) obj;

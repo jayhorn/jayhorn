@@ -133,7 +133,6 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkStringConstant(StringConstant arg0) {
-		// TODO: What about distinct string literals having same value? (currently they are assumed being different objects)
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
 					"$string" + constantDictionary.size(), lookupType(arg0.getType())));
@@ -243,7 +242,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	private String classNameToSootName(String className) {
 		return className.replace('/', '.');
 	}
-	
+
 	public ClassVariable lookupClassVariable(ClassConstant cc) {
 		if (!this.constantDictionary.containsKey(cc)) {
 			final String name = cc.getValue();

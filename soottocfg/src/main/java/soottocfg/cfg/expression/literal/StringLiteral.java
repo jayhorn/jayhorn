@@ -12,7 +12,7 @@ import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.variable.Variable;
 
-public class StringLiteral extends IdentifierExpression implements Literal {
+public class StringLiteral extends IdentifierExpression {
 
     // FIXME: This is a random number distinct from other serialVersionUIDs. Is this the intended value?
     private static final long serialVersionUID = 2832524893670085097L;
@@ -27,7 +27,15 @@ public class StringLiteral extends IdentifierExpression implements Literal {
 
     @Override
     public String toString() {
-        return value;
+        // TODO: return StringEscapeUtils.escapeJava(String.format("\"%s\"", value));   // needs Apache Commons
+        return String.format("\"%s\"",
+                value
+                .replace("\"", "\\\"")
+                .replace("\\", "\\\\")
+                .replace("\r", "\\r")
+                .replace("\n", "\\n")
+                .replace("\t", "\\t")
+        );
     }
 
 
@@ -56,17 +64,11 @@ public class StringLiteral extends IdentifierExpression implements Literal {
     }
 
     public IdentifierExpression substitute(Map<Variable, Variable> subs) {
-        if (subs.containsKey(getVariable())) {
-            return new IdentifierExpression(getSourceLocation(), subs.get(getVariable()));
-        }
         return this.deepCopy();
     }
 
     @Override
     public Expression substituteVarWithExpression(Map<Variable, Expression> subs) {
-        if (subs.containsKey(getVariable())) {
-            return subs.get(getVariable()).deepCopy();
-        }
         return this.deepCopy();
     }
 

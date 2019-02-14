@@ -81,11 +81,17 @@ public class ExpressionEncoder {
 	}
 
 	public ProverExpr exprToProverExpr(Expression e, Map<Variable, ProverExpr> varMap) {
-		if (e instanceof StringLiteral) {
-			return p.mkString(((StringLiteral)e).getValue());
+		if (e instanceof StringLiteral) {	// check before (e instanceof IdentifierExpression)
+			ProverExpr str = p.mkString(((StringLiteral) e).getValue());
+			ProverExpr ref = varToProverExpr(((StringLiteral) e).getVariable(), varMap);
+			// TODO: Where is the right place to add this assertion?
+			p.addAssertion(
+					p.mkHornPredicate(p.ADT_EQUALS_TS, new ProverType[]{ref.getType(), str.getType()})
+					.mkExpr(new ProverExpr[]{ref, str}));
+			return ref;
 		} else if (e instanceof IdentifierExpression) {
 			Variable var = ((IdentifierExpression) e).getVariable();
-                        return varToProverExpr(var, varMap);
+			return varToProverExpr(var, varMap);
 		} else if (e instanceof TupleAccessExpression) {
 			TupleAccessExpression tae = (TupleAccessExpression) e;
 			ProverExpr tuple = varToProverExpr(tae.getVariable(), varMap);
@@ -139,13 +145,17 @@ public class ExpressionEncoder {
 		        if (left instanceof ProverTupleExpr) {
 		            ProverTupleExpr tLeft = (ProverTupleExpr)left;
 		            ProverTupleExpr tRight = (ProverTupleExpr)right;
-		            //TODO: this is sound if we assume that the first
-		            //element of a tuple is the sound identifier.
-                            // TODO: does this make sense? it should be advantageous
-                            // to use the other tuple components to differentiate objects
-		            return p.mkEq(tLeft.getSubExpr(0), tRight.getSubExpr(0));
-		        }
-				return p.mkEq(left, right);
+		            /*
+					TODO: this is sound if we assume that the first element of a tuple is the sound identifier.
+						  does this make sense? it should be advantageous to use the other tuple components to differentiate objects
+						  (also applies to case ADTEq)
+					*/
+					return p.mkEq(tLeft.getSubExpr(0), tRight.getSubExpr(0));
+		        } else {
+					return p.mkEq(left, right);
+				}
+			case ADTEq:
+				return p.mkADTEq(left, right);
 			case Ne:
 				return p.mkNot(p.mkEq(left, right));
 			case Gt:

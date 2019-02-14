@@ -42,33 +42,7 @@ import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
 import soot.Type;
-import soot.jimple.Jimple;
-import soot.jimple.AnyNewExpr;
-import soot.jimple.AssignStmt;
-import soot.jimple.BreakpointStmt;
-import soot.jimple.DefinitionStmt;
-import soot.jimple.DynamicInvokeExpr;
-import soot.jimple.EnterMonitorStmt;
-import soot.jimple.ExitMonitorStmt;
-import soot.jimple.FieldRef;
-import soot.jimple.GotoStmt;
-import soot.jimple.IdentityStmt;
-import soot.jimple.IfStmt;
-import soot.jimple.InstanceInvokeExpr;
-import soot.jimple.InvokeExpr;
-import soot.jimple.InvokeStmt;
-import soot.jimple.LengthExpr;
-import soot.jimple.LookupSwitchStmt;
-import soot.jimple.NopStmt;
-import soot.jimple.RetStmt;
-import soot.jimple.ReturnStmt;
-import soot.jimple.ReturnVoidStmt;
-import soot.jimple.SpecialInvokeExpr;
-import soot.jimple.StaticInvokeExpr;
-import soot.jimple.Stmt;
-import soot.jimple.StmtSwitch;
-import soot.jimple.TableSwitchStmt;
-import soot.jimple.ThrowStmt;
+import soot.jimple.*;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression;
@@ -78,6 +52,7 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.TupleAccessExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
@@ -413,6 +388,7 @@ public class SootStmtSwitch implements StmtSwitch {
 	 * @param optionalLhs
 	 * @param call
 	 */
+	// FIXME: Invokation -> Invocation
 	private void translateMethodInvokation(Unit u, Value optionalLhs, InvokeExpr call) {
 		if (isHandledAsSpecialCase(u, optionalLhs, call)) {
 			return;
@@ -482,7 +458,8 @@ public class SootStmtSwitch implements StmtSwitch {
 	 *         and false, otherwise.
 	 */
 	private boolean isHandledAsSpecialCase(Unit u, Value optionalLhs, InvokeExpr call) {
-		if (call.getMethod().getSignature().equals(SootTranslationHelpers.v().getAssertMethod().getSignature())) {
+		String methodSignature = call.getMethod().getSignature();
+		if (methodSignature.equals(SootTranslationHelpers.v().getAssertMethod().getSignature())) {
 			Verify.verify(optionalLhs == null);
 			Verify.verify(call.getArgCount() == 1);
 			call.getArg(0).apply(valueSwitch);
@@ -490,20 +467,40 @@ public class SootStmtSwitch implements StmtSwitch {
 					new AssertStatement(SootTranslationHelpers.v().getSourceLocation(u), valueSwitch.popExpression()));
 			return true;
 		}
-		if (call.getMethod().getSignature().contains("<java.lang.String: int length()>")) {
+		if (methodSignature.contains("<java.lang.String: int length()>")) {
 			assert (call instanceof InstanceInvokeExpr);
 			Expression rhs = SootTranslationHelpers.v().getMemoryModel()
 					.mkStringLengthExpr(((InstanceInvokeExpr) call).getBase());
 			if (optionalLhs != null) {
 				optionalLhs.apply(valueSwitch);
 				Expression lhs = valueSwitch.popExpression();
-				currentBlock
-						.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(u), lhs, rhs));
+				currentBlock.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(u), lhs, rhs));
 			}
 			return true;
 		}
-		if (call.getMethod().getSignature().contains("<java.lang.System: void exit(int)>") ||
-                    call.getMethod().getSignature().contains("<java.lang.Runtime: void halt(int)>")) {
+		if (methodSignature.contains("<java.lang.String: boolean equals(java.lang.Object)>")) {
+			assert (call instanceof  InstanceInvokeExpr);
+			Expression rhs;
+			if (call.getArg(0).getType() instanceof RefType) {
+				Value thisValue = ((InstanceInvokeExpr) call).getBase();
+				thisValue.apply(valueSwitch);
+				Expression a = valueSwitch.popExpression();
+				Value otherValue = call.getArg(0);
+				otherValue.apply(valueSwitch);
+				Expression b = valueSwitch.popExpression();
+				rhs = new BinaryExpression(SootTranslationHelpers.v().getSourceLocation(u), BinaryOperator.ADTEq, a, b);
+			} else {
+				rhs = new BooleanLiteral(SootTranslationHelpers.v().getSourceLocation(u), false);
+			}
+			if (optionalLhs != null) {
+				optionalLhs.apply(valueSwitch);
+				Expression lhs = valueSwitch.popExpression();
+				currentBlock.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(u), lhs, rhs));
+			}
+			return true;
+		}
+		if (methodSignature.contains("<java.lang.System: void exit(int)>") ||
+                    methodSignature.contains("<java.lang.Runtime: void halt(int)>")) {
 			// TODO: this is not sufficient for interprocedural analysis.
 			currentBlock = null;
 			return true;
@@ -520,7 +517,7 @@ public class SootStmtSwitch implements StmtSwitch {
 		}
 
 		if (call.getMethod().getDeclaringClass().getName().contains("com.google.common.base.")) {
-			if (call.getMethod().getSignature().contains("void checkArgument(boolean)")) {
+			if (methodSignature.contains("void checkArgument(boolean)")) {
 				Preconditions.checkArgument(optionalLhs == null);
 				call.getArg(0).apply(valueSwitch);
 				Expression guard = valueSwitch.popExpression();
@@ -529,7 +526,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 		}
 
-		if (call.getMethod().getSignature().equals("<java.lang.Class: boolean isAssignableFrom(java.lang.Class)>")) {
+		if (methodSignature.equals("<java.lang.Class: boolean isAssignableFrom(java.lang.Class)>")) {
 			InstanceInvokeExpr iivk = (InstanceInvokeExpr) call;
 			Verify.verify(call.getArgCount() == 1);
 			if (optionalLhs != null) {
@@ -547,7 +544,7 @@ public class SootStmtSwitch implements StmtSwitch {
 						new AssignStatement(SootTranslationHelpers.v().getSourceLocation(u), lhs, instOf));
 				return true;
 			} // otherwise ignore.
-		} else if (call.getMethod().getSignature().equals("<java.lang.Object: java.lang.Class getClass()>")) {
+		} else if (methodSignature.equals("<java.lang.Object: java.lang.Class getClass()>")) {
 			InstanceInvokeExpr iivk = (InstanceInvokeExpr) call;
 			Verify.verify(call.getArgCount() == 0);
 			if (optionalLhs != null) {
@@ -603,7 +600,7 @@ public class SootStmtSwitch implements StmtSwitch {
 				return true;
 
 			}
-		} else if (call.getMethod().getSignature().equals("<java.lang.Class: boolean isInstance(java.lang.Object)>")) {
+		} else if (methodSignature.equals("<java.lang.Class: boolean isInstance(java.lang.Object)>")) {
 			/*
 			 * E.g,
 			 * $r2 = class "java/lang/String";
@@ -630,22 +627,22 @@ public class SootStmtSwitch implements StmtSwitch {
 
 			}
 
-		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: boolean nondetBoolean()>")) {
+		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: boolean nondetBoolean()>")) {
                     translateVerifierNondet(BooleanType.v(), optionalLhs, call);
                     return true;
-		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: byte nondetByte()>")) {
+		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: byte nondetByte()>")) {
                     translateVerifierNondet(ByteType.v(), optionalLhs, call);
                     return true;
-		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: char nondetChar()>")) {
+		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: char nondetChar()>")) {
                     translateVerifierNondet(CharType.v(), optionalLhs, call);
                     return true;
-		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: short nondetShort()>")) {
+		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: short nondetShort()>")) {
                     translateVerifierNondet(ShortType.v(), optionalLhs, call);
                     return true;
-		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetInt()>")) {
+		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetInt()>")) {
                     translateVerifierNondet(IntType.v(), optionalLhs, call);
                     return true;
-		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: long nondetLong()>")) {
+		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: long nondetLong()>")) {
                     translateVerifierNondet(LongType.v(), optionalLhs, call);
                     return true;
 		}

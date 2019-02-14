@@ -83,6 +83,7 @@ public class CopyPropagator {
 		return changes;
 	}
 
+	// FIXME: progateForEdgeLabels -> propagateForEdgeLabels ?
 	private static boolean progateForEdgeLabels(Method m, CfgBlock b, ReachingDefinitions rdefs) {
 		boolean changes = false;
 		if (!b.getStatements().isEmpty()) {

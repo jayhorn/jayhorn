@@ -29,9 +29,9 @@ public class BinaryExpression extends Expression {
 	private static final long serialVersionUID = 1992559147136566989L;
 
 	public enum BinaryOperator {
-		Plus("+"), Minus("-"), Mul("*"), Div("/"), Mod("%"), And("&&"), Or("||"), Xor("^"), Implies("->"), Eq("=="), Ne(
-				"!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&"),
-		PoLeq("<:");
+		Plus("+"), Minus("-"), Mul("*"), Div("/"), Mod("%"), And("&&"), Or("||"), Xor("^"), Implies("->"), Eq("=="),
+		Ne("!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&"),
+		PoLeq("<:"), ADTEq("===");
 
 		private final String name;
 
@@ -137,6 +137,7 @@ public class BinaryExpression extends Expression {
 			return left.getType();
 		}
 		case Eq:
+		case ADTEq:
 		case Ne:
 		case Gt:
 		case Ge:
