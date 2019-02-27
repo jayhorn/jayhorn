@@ -18,8 +18,6 @@ public interface Prover {
 
 	ProverType getIntType();
 
-	ProverADT getStringADT();
-
 	ProverType getArrayType(ProverType[] argTypes, ProverType resType);
 
 	ProverType getTupleType(ProverType[] subTypes);
@@ -50,13 +48,6 @@ public interface Prover {
 	// Equations (applicable to all types) (also have n-ary version?)
 	ProverExpr mkEq(ProverExpr left, ProverExpr right);
 
-	// TODO: Where to put these constants?
-	public static final String ADT_EQUALS = "adt_equals";
-	public static final String ADT_EQUALS_TT = ADT_EQUALS + "_tt";
-	public static final String ADT_EQUALS_TS = ADT_EQUALS + "_ts";
-
-	ProverExpr mkADTEq(ProverExpr left, ProverExpr right);
-
 	// Propositional (also have n-ary versions?)
 	ProverExpr mkLiteral(boolean value);
 
@@ -78,8 +69,6 @@ public interface Prover {
 	ProverExpr mkLiteral(int value);
 
 	ProverExpr mkLiteral(BigInteger value);
-
-	ProverExpr mkString(String value);
 
 	ProverExpr mkPlus(ProverExpr left, ProverExpr right);
 

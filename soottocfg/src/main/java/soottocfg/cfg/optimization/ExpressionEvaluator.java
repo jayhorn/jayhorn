@@ -2,7 +2,6 @@ package soottocfg.cfg.optimization;
 
 import com.google.common.base.Optional;
 
-import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.Expression;
@@ -14,7 +13,6 @@ import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
-import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.variable.Variable;
 //import soottocfg.cfg.type.ReferenceType;
 

@@ -85,20 +85,6 @@ public class PrincessProver implements Prover {
 		return IntType.INSTANCE;
 	}
 
-	private ProverADT stringADT = null;
-
-	public void setStringADT(ProverADT stringADT) {
-		this.stringADT = stringADT;
-	}
-
-	@Override
-	public ProverADT getStringADT() {
-		if (stringADT == null) {
-			stringADT = (new PrincessListADTFactory(getIntType())).mkListADT();
-		}
-		return stringADT;
-	}
-
 	public ProverType getArrayType(ProverType[] argTypes, ProverType resType) {
 		return new ArrayType(argTypes.length);
 	}
@@ -227,55 +213,6 @@ public class PrincessProver implements Prover {
             return new FormulaExpr(pLeft.toTerm().$eq$eq$eq(pRight.toTerm()));
     }
 
-    public ProverExpr mkADTEq(ProverExpr left, ProverExpr right) {
-	    ProverType stringADTType = getStringADT().getType(0);
-        ProverExpr s = mkVariable("s", stringADTType);
-        ProverExpr t = mkVariable("t", stringADTType);
-		if (left instanceof ProverTupleExpr) {
-			ProverExpr idLeft = ((ProverTupleExpr) left).getSubExpr(0);
-            ProverExpr r1 = mkVariable("r1", idLeft.getType());
-			if (right instanceof ProverTupleExpr) {
-				ProverExpr idRight = ((ProverTupleExpr) right).getSubExpr(0);
-				ProverFun ptt = mkHornPredicate(ADT_EQUALS_TT, new ProverType[]{idLeft.getType(), idRight.getType()});
-                ProverExpr r2 = mkVariable("r2", idRight.getType());
-				// TODO: Where is the right place to add this assertion? Is it better to add it once instead of for each mkADTEq?
-				addAssertion(mkHornClause(
-						ptt.mkExpr(new ProverExpr[]{r1, r2}),
-						new ProverExpr[] {mkADTEq(left, s), mkADTEq(right, s)},
-						mkLiteral(true)
-				));
-				// TODO: head must be an atom; what to do now?
-                /*
-                addAssertion(mkHornClause(
-                        mkNot(ptt.mkExpr(new ProverExpr[]{r1, r2})),
-                        new ProverExpr[] {mkADTEq(left, s), mkADTEq(right, t)},
-                        mkNot(mkEq(s, t))
-                ));
-                */
-				return mkOr(mkEq(idLeft, idRight), ptt.mkExpr(new ProverExpr[]{idLeft, idRight}));
-			} else {
-                Verify.verify(right.getType().equals(stringADTType), "right in mkADTEq is not a valid string");
-				ProverFun pts = mkHornPredicate(ADT_EQUALS_TS, new ProverType[]{idLeft.getType(), right.getType()});
-                // TODO: head must be an atom; what to do now?
-                /*
-				addAssertion(mkHornClause(
-				        mkNot(pts.mkExpr(new ProverExpr[]{r1, s})),
-                        new ProverExpr[]{pts.mkExpr(new ProverExpr[]{r1, t})},
-                        mkNot(mkEq(s, t))
-                ));
-                */
-				return pts.mkExpr(new ProverExpr[]{idLeft, right});
-			}
-		} else {
-		    Verify.verify(left.getType().equals(stringADTType), "left in mkADTEq is not a valid string");
-			if (right instanceof ProverTupleExpr) {
-				return mkADTEq(right, left);
-			} else {
-				return mkEq(left, right);
-			}
-		}
-	}
-
 	public ProverExpr mkLiteral(boolean value) {
 		return new FormulaExpr(new IBoolLit(value));
 	}
@@ -328,23 +265,6 @@ public class PrincessProver implements Prover {
 
 	public ProverExpr mkLiteral(BigInteger value) {
 		return new TermExpr(new IIntLit(IdealInt$.MODULE$.apply(value.toString())), getIntType());
-	}
-
-	private ProverExpr mkStringFromCharArray(ProverADT listADT, char[] chars) {
-		int index = chars.length - 1;
-		ProverExpr res = listADT.mkCtorExpr(0, new ProverExpr[0]);
-		while (index >= 0) {
-			// TODO: support Unicode characters
-			res = listADT.mkCtorExpr(1, new ProverExpr[] {
-					mkLiteral(((int)chars[index])), res
-			});
-			--index;
-		}
-		return res;
-	}
-
-	public ProverExpr mkString(String value) {
-		return mkStringFromCharArray(getStringADT(), value.toCharArray());
 	}
 
 	public ProverExpr mkPlus(ProverExpr left, ProverExpr right) {

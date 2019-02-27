@@ -1,12 +1,13 @@
 package jayhorn.solver.princess;
 
-import jayhorn.solver.ProverADT;
-import jayhorn.solver.ProverType;
-import jayhorn.solver.ProverExpr;
-import jayhorn.solver.IntType;
+import jayhorn.solver.*;
 
 import ap.theories.ADT;
 import ap.types.MonoSortedIFunction;
+import scala.Tuple2;
+import scala.collection.mutable.ArrayBuffer;
+
+import static jayhorn.solver.princess.PrincessProver.type2Sort;
 
 /**
  * Class representing algebraic data-types
@@ -88,7 +89,39 @@ public class PrincessADT implements ProverADT {
                            int[]          ctorTypes,
                            ProverType[][] ctorArgTypes,
                            String[][]     selectorNames) {
-        return new PrincessADT(ProverADT.getADT(typeNames, ctorNames, ctorTypes, ctorArgTypes, selectorNames));
+        assert (ctorNames.length == ctorTypes.length &&
+                ctorNames.length == ctorArgTypes.length &&
+                ctorNames.length == selectorNames.length);
+
+        final ArrayBuffer<String> sortNames = new ArrayBuffer<>();
+        for (int i = 0; i < typeNames.length; ++i)
+            sortNames.$plus$eq(typeNames[i]);
+
+        final ArrayBuffer<Tuple2<String, ADT.CtorSignature>> ctors =
+                new ArrayBuffer<>();
+        for (int i = 0; i < ctorNames.length; ++i) {
+            assert (ctorArgTypes[i].length == selectorNames[i].length);
+
+            final ADT.ADTSort resSort = new ADT.ADTSort(ctorTypes[i]);
+
+            final ArrayBuffer<Tuple2<String, ADT.CtorArgSort>> args =
+                    new ArrayBuffer<>();
+            for (int j = 0; j < ctorArgTypes[i].length; ++j) {
+                final ProverType type = ctorArgTypes[i][j];
+                final ADT.CtorArgSort argSort;
+                if (type instanceof ADTTempType)
+                    argSort = new ADT.ADTSort(((ADTTempType) type).typeIndex);
+                else
+                    argSort = new ADT.OtherSort(type2Sort(type));
+                args.$plus$eq(new Tuple2(selectorNames[i][j], argSort));
+            }
+
+            ctors.$plus$eq(new Tuple2(ctorNames[i],
+                    new ADT.CtorSignature(args, resSort)));
+        }
+
+        final ADT adt = new ADT(sortNames, ctors, ADT.TermMeasure$.MODULE$.Size());
+        return new PrincessADT(adt);
     }
 
 }

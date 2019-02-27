@@ -31,7 +31,7 @@ public class BinaryExpression extends Expression {
 	public enum BinaryOperator {
 		Plus("+"), Minus("-"), Mul("*"), Div("/"), Mod("%"), And("&&"), Or("||"), Xor("^"), Implies("->"), Eq("=="),
 		Ne("!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&"),
-		PoLeq("<:"), ADTEq("===");
+		PoLeq("<:"), StringEq("==="), StringConcat("+++");
 
 		private final String name;
 
@@ -137,7 +137,7 @@ public class BinaryExpression extends Expression {
 			return left.getType();
 		}
 		case Eq:
-		case ADTEq:
+		case StringEq:
 		case Ne:
 		case Gt:
 		case Ge:

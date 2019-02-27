@@ -10,6 +10,7 @@ import java.util.Set;
 import com.google.common.base.Verify;
 
 import soottocfg.cfg.Program;
+import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.method.CfgBlock;
@@ -55,7 +56,8 @@ public class FlowBasedPointsToAnalysis {
 						if (s instanceof AssignStatement) {
 							AssignStatement as = (AssignStatement) s;
 							if (refType(as.getLeft()) && refType(as.getRight())
-									&& !(as.getRight() instanceof NullLiteral)) {
+									&& !(as.getRight() instanceof NullLiteral)
+									&& !(as.getRight() instanceof BinaryExpression)) {
 								Variable left = variableFromExpression(as.getLeft());
 								Variable right = variableFromExpression(as.getRight());
 								changes += rightIntoLeft(right, left);
@@ -69,7 +71,8 @@ public class FlowBasedPointsToAnalysis {
 							for (int i = 0; i < params.size(); i++) {
 								Variable left = params.get(i);
 								if (refType(left) && refType(args.get(i))
-										&& !(args.get(i) instanceof NullLiteral)) {
+										&& !(args.get(i) instanceof NullLiteral)
+										&& !(args.get(i) instanceof BinaryExpression)) {
 									Variable right = variableFromExpression(args.get(i));
 									changes += rightIntoLeft(right, left);
 								}

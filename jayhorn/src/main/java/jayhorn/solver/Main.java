@@ -3,7 +3,7 @@ package jayhorn.solver;
 import java.util.HashMap;
 import java.util.Map;
 
-import jayhorn.solver.princess.PrincessListADTFactory;
+import jayhorn.solver.princess.PrincessStringADTFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.solver.spacer.SpacerProver;
 
@@ -240,7 +240,7 @@ public class Main {
 
         public void testADT(Prover p) {
             System.out.println("Running ADT test ...");
-            final ProverADT listADT = (new PrincessListADTFactory(p.getIntType())).mkListADT();
+            final ProverADT listADT = (new PrincessStringADTFactory()).spawnStringADT();
 
             ProverExpr x = p.mkVariable("x", listADT.getType(0));
             ProverExpr y = p.mkVariable("y", listADT.getType(0));
@@ -268,7 +268,7 @@ public class Main {
             p.setHornLogic(true);
             System.out.println("Running ADT Horn test ...");
 
-			final ProverADT listADT = (new PrincessListADTFactory(p.getIntType())).mkListADT();
+			final ProverADT listADT = (new PrincessStringADTFactory()).spawnStringADT();
 
             ProverExpr x = p.mkVariable("x", listADT.getType(0));
             ProverExpr y = p.mkVariable("y", p.getIntType());

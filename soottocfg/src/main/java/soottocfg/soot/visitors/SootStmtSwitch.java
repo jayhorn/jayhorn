@@ -488,9 +488,30 @@ public class SootStmtSwitch implements StmtSwitch {
 				Value otherValue = call.getArg(0);
 				otherValue.apply(valueSwitch);
 				Expression b = valueSwitch.popExpression();
-				rhs = new BinaryExpression(SootTranslationHelpers.v().getSourceLocation(u), BinaryOperator.ADTEq, a, b);
+				rhs = new BinaryExpression(SootTranslationHelpers.v().getSourceLocation(u), BinaryOperator.StringEq, a, b);
 			} else {
 				rhs = new BooleanLiteral(SootTranslationHelpers.v().getSourceLocation(u), false);
+			}
+			if (optionalLhs != null) {
+				optionalLhs.apply(valueSwitch);
+				Expression lhs = valueSwitch.popExpression();
+				currentBlock.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(u), lhs, rhs));
+			}
+			return true;
+		}
+		if (methodSignature.contains("<java.lang.String: java.lang.String concat(java.lang.String)>")) {
+			assert (call instanceof  InstanceInvokeExpr);
+			Expression rhs;
+			if (call.getArg(0).getType() instanceof RefType) {
+				Value thisValue = ((InstanceInvokeExpr) call).getBase();
+				thisValue.apply(valueSwitch);
+				Expression a = valueSwitch.popExpression();
+				Value otherValue = call.getArg(0);
+				otherValue.apply(valueSwitch);
+				Expression b = valueSwitch.popExpression();
+				rhs = new BinaryExpression(SootTranslationHelpers.v().getSourceLocation(u), BinaryOperator.StringConcat, a, b);
+			} else {
+				throw new RuntimeException("String.concat(NonObject) not implemented");
 			}
 			if (optionalLhs != null) {
 				optionalLhs.apply(valueSwitch);

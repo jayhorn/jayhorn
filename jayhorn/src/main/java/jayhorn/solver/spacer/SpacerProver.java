@@ -203,11 +203,6 @@ public class SpacerProver implements Prover {
 	}
 
 	@Override
-	public ProverADT getStringADT() {
-		throw new RuntimeException("not implemented");
-	}
-
-	@Override
 	public ProverType getArrayType(ProverType[] argTypes, ProverType resType) {
 		try{
 		if (argTypes.length == 0) {
@@ -357,11 +352,6 @@ public class SpacerProver implements Prover {
 	}
 
 	@Override
-	public ProverExpr mkADTEq(ProverExpr left, ProverExpr right) {
-		throw new RuntimeException("not implemented");
-	}
-
-	@Override
 	public ProverExpr mkLiteral(boolean value) {
 		try{
 			return new SpacerBoolExpr(ctx.mkBool(value));
@@ -466,11 +456,6 @@ public class SpacerProver implements Prover {
 		} catch (Exception e) {
 			throw new RuntimeException(e.getMessage());
 		}
-	}
-
-	@Override
-	public ProverExpr mkString(String value) {
-		throw new UnsupportedOperationException();
 	}
 
 	@Override

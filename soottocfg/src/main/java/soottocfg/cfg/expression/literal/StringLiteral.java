@@ -14,7 +14,7 @@ import soottocfg.cfg.variable.Variable;
 
 public class StringLiteral extends IdentifierExpression {
 
-    // FIXME: This is a random number distinct from other serialVersionUIDs. Is this the intended value?
+    // TODO: This is a random number distinct from other serialVersionUIDs. Is this the intended value?
     private static final long serialVersionUID = 2832524893670085097L;
 
     private final String value;
@@ -27,7 +27,7 @@ public class StringLiteral extends IdentifierExpression {
 
     @Override
     public String toString() {
-        // TODO: return StringEscapeUtils.escapeJava(String.format("\"%s\"", value));   // needs Apache Commons
+        // for all escape characters: return StringEscapeUtils.escapeJava(String.format("\"%s\"", value));   // needs Apache Commons
         return String.format("\"%s\"",
                 value
                 .replace("\"", "\\\"")
@@ -38,12 +38,23 @@ public class StringLiteral extends IdentifierExpression {
         );
     }
 
+    @Override
+    public Set<Variable> getUseVariables() {
+        Set<Variable> res = new HashSet<Variable>();
+        res.add(this.getVariable());
+        return res;
+    }
+
+    // overridden so that this StringLiteral will be not removed by optimizer CopyPropagator.copyPropagate(method)
+    @Override
+    public Set<IdentifierExpression> getUseIdentifierExpressions() {
+        return new HashSet<IdentifierExpression>();
+    }
 
     @Override
     public Set<Variable> getDefVariables() {
         // because this can't happen on the left.
-        Set<Variable> used = new HashSet<Variable>();
-        return used;
+        return new HashSet<Variable>();
     }
 
     public String getValue() {
