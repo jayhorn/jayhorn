@@ -205,6 +205,10 @@ public class EldaricaChecker extends Checker {
                              ((PrincessProver)prover).getLastCEX().apply(1).productElement(0));
                 }
             }
+
+            if (Options.v().fullCEX && result == ProverResult.Unsat)
+                ((PrincessProver)prover).prettyPrintLastCEX();
+
             Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));
 
             allClauses.remove(allClauses.size() - 1);
