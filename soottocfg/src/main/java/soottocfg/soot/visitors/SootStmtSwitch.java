@@ -45,12 +45,8 @@ import soot.Type;
 import soot.jimple.*;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.*;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
-import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.TupleAccessExpression;
-import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.method.CfgBlock;
@@ -60,6 +56,7 @@ import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
@@ -488,7 +485,35 @@ public class SootStmtSwitch implements StmtSwitch {
 				Value otherValue = call.getArg(0);
 				otherValue.apply(valueSwitch);
 				Expression b = valueSwitch.popExpression();
-				rhs = new BinaryExpression(SootTranslationHelpers.v().getSourceLocation(u), BinaryOperator.StringEq, a, b);
+				LinkedList<Expression> args = new LinkedList<Expression>();
+				args.add(a); args.add(b);
+
+				// using IdentifierExpression
+				rhs = new IdentifierExpression(
+						SootTranslationHelpers.v().getSourceLocation(u),
+						new Variable("$ret_" + call.getMethod().getName(), BoolType.instance())
+				);
+				// leads to:
+				// java.lang.RuntimeException: Wrong argument type: expected Bool but got [callRes_93#0, callRes_93#1, callRes_93#2] of type [ Int , Int , Int ]
+				//	at jayhorn.solver.princess.PredicateFun.checkArgTypes(PredicateFun.java:53)
+
+				// using PrimitiveExpression
+//				rhs = new PrimitiveExpression(
+//						SootTranslationHelpers.v().getSourceLocation(u),
+//						new Variable("$ret_" + call.getMethod().getName(), BoolType.instance())
+//				);
+				// leads to:
+				// Exception in thread "main" java.lang.ClassCastException: soottocfg.cfg.expression.PrimitiveExpression cannot be cast to soottocfg.cfg.expression.IdentifierExpression
+				//	at jayhorn.hornify.encoder.StatementEncoder.callToClause(StatementEncoder.java:352)
+
+				LinkedList<Expression> receiver = new LinkedList<>();
+				receiver.add(rhs);
+				CallStatement callStmt = new CallStatement(
+						SootTranslationHelpers.v().getSourceLocation(u),
+						SootTranslationHelpers.v().lookupOrCreateMethod(call.getMethod()),
+						args, receiver
+				);
+				currentBlock.addStatement(callStmt);
 			} else {
 				rhs = new BooleanLiteral(SootTranslationHelpers.v().getSourceLocation(u), false);
 			}
