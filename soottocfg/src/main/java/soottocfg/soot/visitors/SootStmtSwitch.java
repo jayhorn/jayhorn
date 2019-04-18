@@ -51,11 +51,7 @@ import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.statement.AssertStatement;
-import soottocfg.cfg.statement.AssignStatement;
-import soottocfg.cfg.statement.CallStatement;
-import soottocfg.cfg.statement.NewStatement;
-import soottocfg.cfg.statement.Statement;
+import soottocfg.cfg.statement.*;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.ClassVariable;
@@ -477,6 +473,7 @@ public class SootStmtSwitch implements StmtSwitch {
 		}
 		if (methodSignature.contains("<java.lang.String: boolean equals(java.lang.Object)>")) {
 			assert (call instanceof  InstanceInvokeExpr);
+			SourceLocation srcLoc = SootTranslationHelpers.v().getSourceLocation(u);
 			Expression rhs;
 			if (call.getArg(0).getType() instanceof RefType) {
 				Value thisValue = ((InstanceInvokeExpr) call).getBase();
@@ -485,42 +482,17 @@ public class SootStmtSwitch implements StmtSwitch {
 				Value otherValue = call.getArg(0);
 				otherValue.apply(valueSwitch);
 				Expression b = valueSwitch.popExpression();
-				LinkedList<Expression> args = new LinkedList<Expression>();
-				args.add(a); args.add(b);
-
-				// using IdentifierExpression
-				rhs = new IdentifierExpression(
-						SootTranslationHelpers.v().getSourceLocation(u),
-						new Variable("$ret_" + call.getMethod().getName(), BoolType.instance())
-				);
-				// leads to:
-				// java.lang.RuntimeException: Wrong argument type: expected Bool but got [callRes_93#0, callRes_93#1, callRes_93#2] of type [ Int , Int , Int ]
-				//	at jayhorn.solver.princess.PredicateFun.checkArgTypes(PredicateFun.java:53)
-
-				// using PrimitiveExpression
-//				rhs = new PrimitiveExpression(
-//						SootTranslationHelpers.v().getSourceLocation(u),
-//						new Variable("$ret_" + call.getMethod().getName(), BoolType.instance())
-//				);
-				// leads to:
-				// Exception in thread "main" java.lang.ClassCastException: soottocfg.cfg.expression.PrimitiveExpression cannot be cast to soottocfg.cfg.expression.IdentifierExpression
-				//	at jayhorn.hornify.encoder.StatementEncoder.callToClause(StatementEncoder.java:352)
-
-				LinkedList<Expression> receiver = new LinkedList<>();
-				receiver.add(rhs);
-				CallStatement callStmt = new CallStatement(
-						SootTranslationHelpers.v().getSourceLocation(u),
-						SootTranslationHelpers.v().lookupOrCreateMethod(call.getMethod()),
-						args, receiver
-				);
-				currentBlock.addStatement(callStmt);
+                Variable retVar = new Variable("$str_eq_" + call.getMethod().getName(), BoolType.instance());
+				rhs = new IdentifierExpression(srcLoc, retVar);
+				BinaryExpression equality = new BinaryExpression(srcLoc, BinaryOperator.StringEq, a, b);
+				currentBlock.addStatement(new AssumeStatement(srcLoc, new BinaryExpression(srcLoc, BinaryOperator.Eq, retVar.mkExp(srcLoc), equality)));
 			} else {
-				rhs = new BooleanLiteral(SootTranslationHelpers.v().getSourceLocation(u), false);
+				rhs = new BooleanLiteral(srcLoc, false);
 			}
 			if (optionalLhs != null) {
 				optionalLhs.apply(valueSwitch);
 				Expression lhs = valueSwitch.popExpression();
-				currentBlock.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(u), lhs, rhs));
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
 			}
 			return true;
 		}
@@ -780,6 +752,14 @@ public class SootStmtSwitch implements StmtSwitch {
 
 				currentBlock.addStatement(
 						new AssignStatement(SootTranslationHelpers.v().getSourceLocation(def), left, right));
+				if (rhs instanceof StringConstant) {
+					// TODO: move previous assignment into else block?
+					// previous assignment will be removed by code optimizer
+					currentBlock.addStatement(new AssumeStatement(
+							SootTranslationHelpers.v().getSourceLocation(def),
+							new BinaryExpression(SootTranslationHelpers.v().getSourceLocation(def), BinaryOperator.StringEq, left, right)));
+					// TODO: move to StringEncoder or String-related CallStatement
+				}
 			}
 		}
 //TODO: assume non-null is not needed because we have a NewStatement now.

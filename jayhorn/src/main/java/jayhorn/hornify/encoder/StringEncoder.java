@@ -9,6 +9,8 @@ public class StringEncoder {
     public static final String STRING_EQUALS = "string_equals";
     public static final String STRING_EQUALS_RS = STRING_EQUALS + "_ref_str";
     public static final String STRING_EQUALS_RR = STRING_EQUALS + "_ref_ref";
+    public static final String STRING_NOT_EQUALS = "string_not_equals";
+    public static final String STRING_NOT_EQUALS_RR = STRING_NOT_EQUALS + "_ref_ref";
 
     public static final String STRING_CONCAT = "string_concat";
     public static final String STRING_CONCAT_CONT = STRING_CONCAT + "_cont";
@@ -56,39 +58,28 @@ public class StringEncoder {
     public ProverExpr mkStringEq(ProverExpr left, ProverExpr right) {
         ProverType stringADTType = stringADT.getType(0);
         ProverExpr s = p.mkVariable("s", stringADTType);
+        ProverExpr t = p.mkVariable("t", stringADTType);
         if (left instanceof ProverTupleExpr) {
             ProverExpr idLeft = ((ProverTupleExpr) left).getSubExpr(0);
-            ProverExpr r1 = p.mkVariable("r1", idLeft.getType());
             if (right instanceof ProverTupleExpr) {
                 ProverExpr idRight = ((ProverTupleExpr) right).getSubExpr(0);
-                ProverExpr r2 = p.mkVariable("r2", idRight.getType());
                 ProverFun prr = p.mkHornPredicate(STRING_EQUALS_RR, new ProverType[]{idLeft.getType(), idRight.getType()});
+                ProverFun nrr = p.mkHornPredicate(STRING_NOT_EQUALS_RR, new ProverType[]{idLeft.getType(), idRight.getType()});
                 // TODO: Where is the right place to add this assertion? Is it better to add it once instead of for each mkStringEq?
                 p.addAssertion(p.mkHornClause(
-                        prr.mkExpr(r1, r2),
+                        prr.mkExpr(idLeft, idRight),
                         new ProverExpr[] {mkStringEq(left, s), mkStringEq(right, s)},
                         p.mkLiteral(true)
                 ));
-                // TODO: head must be an atom; what to do now?
-                /*
-                addAssertion(mkHornClause(
-                        mkNot(prr.mkExpr(new ProverExpr[]{r1, r2})),
+                p.addAssertion(p.mkHornClause(
+                        nrr.mkExpr(idLeft, idRight),
                         new ProverExpr[] {mkStringEq(left, s), mkStringEq(right, t)},
-                        mkNot(mkEq(s, t))
+                        p.mkNot(p.mkEq(s, t))
                 ));
-                */
                 return p.mkOr(p.mkEq(idLeft, idRight), prr.mkExpr(idLeft, idRight));
             } else {
                 Verify.verify(right.getType().equals(stringADTType), "right in mkStringEq is not a valid string");
                 ProverFun prs = p.mkHornPredicate(STRING_EQUALS_RS, new ProverType[]{idLeft.getType(), right.getType()});
-                // TODO: head must be an atom; what to do now?
-                /*
-				addAssertion(mkHornClause(
-				        mkNot(prs.mkExpr(new ProverExpr[]{r1, s})),
-                        new ProverExpr[]{prs.mkExpr(new ProverExpr[]{r1, t})},
-                        mkNot(mkEq(s, t))
-                ));
-                */
                 return prs.mkExpr(idLeft, right);
             }
         } else {
@@ -96,7 +87,7 @@ public class StringEncoder {
             if (right instanceof ProverTupleExpr) {
                 return mkStringEq(right, left);
             } else {
-                return p.mkEq(left, right);
+                return p.mkEq(left, right);     // both of stringADTType
             }
         }
     }

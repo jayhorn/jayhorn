@@ -13,6 +13,7 @@ import soottocfg.cfg.Program;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.literal.NullLiteral;
+import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssignStatement;
@@ -187,7 +188,7 @@ public class FlowBasedPointsToAnalysis {
 	}
 	
 	private boolean refType(Expression e1){
-		return (e1.getType() instanceof ReferenceType);
+		return (e1.getType() instanceof ReferenceType) && !(e1 instanceof StringLiteral);	// TODO: better definition
 	}
 	
 	private boolean refType(Variable e1){

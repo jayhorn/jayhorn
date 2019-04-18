@@ -35,17 +35,11 @@ public class StringLiteral extends IdentifierExpression {
                 .replace("\r", "\\r")
                 .replace("\n", "\\n")
                 .replace("\t", "\\t")
+                .replace("\b", "\\b")
+                .replace("\f", "\\f")
         );
     }
 
-    @Override
-    public Set<Variable> getUseVariables() {
-        Set<Variable> res = new HashSet<Variable>();
-        res.add(this.getVariable());
-        return res;
-    }
-
-    // overridden so that this StringLiteral will be not removed by optimizer CopyPropagator.copyPropagate(method)
     @Override
     public Set<IdentifierExpression> getUseIdentifierExpressions() {
         return new HashSet<IdentifierExpression>();
@@ -70,16 +64,17 @@ public class StringLiteral extends IdentifierExpression {
     }
 
     @Override
-    public IdentifierExpression deepCopy() {
+    public StringLiteral deepCopy() {
         return new StringLiteral(getSourceLocation(), getVariable(), value);
     }
 
-    public IdentifierExpression substitute(Map<Variable, Variable> subs) {
+    @Override
+    public StringLiteral substitute(Map<Variable, Variable> subs) {
         return this.deepCopy();
     }
 
     @Override
-    public Expression substituteVarWithExpression(Map<Variable, Expression> subs) {
+    public StringLiteral substituteVarWithExpression(Map<Variable, Expression> subs) {
         return this.deepCopy();
     }
 
