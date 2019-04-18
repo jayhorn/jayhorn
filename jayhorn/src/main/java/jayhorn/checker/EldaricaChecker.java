@@ -41,6 +41,8 @@ public class EldaricaChecker extends Checker {
     private ProverFactory factory;
     private Prover prover;
 
+    private int hornOutputNum = 0;
+
     public EldaricaChecker(ProverFactory factory) {
         this.factory = factory;
     }
@@ -180,8 +182,9 @@ public class EldaricaChecker extends Checker {
 
             allClauses.add(entryClause);
 
-            Hornify.hornToSMTLIBFile(allClauses, 0, prover);
-            Hornify.hornToFile(allClauses, 0);
+            Hornify.hornToSMTLIBFile(allClauses, hornOutputNum, prover);
+            Hornify.hornToFile(allClauses, hornOutputNum);
+            hornOutputNum = hornOutputNum + 1;
 
             for (ProverHornClause clause : allClauses)
                 prover.addAssertion(clause);
@@ -202,6 +205,10 @@ public class EldaricaChecker extends Checker {
                              ((PrincessProver)prover).getLastCEX().apply(1).productElement(0));
                 }
             }
+
+            if (Options.v().fullCEX && result == ProverResult.Unsat)
+                ((PrincessProver)prover).prettyPrintLastCEX();
+
             Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));
 
             allClauses.remove(allClauses.size() - 1);

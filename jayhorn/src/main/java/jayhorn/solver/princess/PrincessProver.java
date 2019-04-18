@@ -402,6 +402,37 @@ public class PrincessProver implements Prover {
         return lastCEX[0];
     }
 
+    public void prettyPrintLastCEX() {
+                final Dag<String> prettyCEX =
+                    getLastCEX().map(new scala.runtime.AbstractFunction1<Tuple2<ProverFun, ProverExpr[]>,
+                                   String>() {
+                            public String apply(Tuple2<ProverFun, ProverExpr[]> p) {
+                                if (p == null) {
+                                    return "false";
+                                } else {
+                                    final StringBuffer res = new StringBuffer();
+                                    res.append(p._1());
+                                    res.append("(");
+                                    String sep = "";
+                                    for (int i = 0; i < p._2().length; ++i) {
+                                        res.append(sep);
+                                        sep = ", ";
+                                        res.append(p._2()[i]);
+                                    }
+                                    res.append(")");
+                                    return res.toString();
+                                }
+                            }
+                        });
+                Log.info("Counterexample:\n"
+                         + DialogUtil$.MODULE$.asString(new scala.runtime.AbstractFunction0<Integer>() {
+                                 public Integer apply() {
+                                     prettyCEX.prettyPrint();
+                                     return 0;
+                                 }
+                             }));
+    }
+
     public ProverResult checkSat(boolean block) {
         if (assertedClauses.isEmpty()) {
             return translateRes(api.checkSat(block));
@@ -478,36 +509,6 @@ public class PrincessProver implements Prover {
                                 return new Tuple2(fun, ProverTupleExpr.unflatten(flatArgs, types));
                             }
                         });
-/*
-                final Dag<String> prettyCEX =
-                    lastCEXAr[0].map(new scala.runtime.AbstractFunction1<Tuple2<ProverFun, ProverExpr[]>,
-                                   String>() {
-                            public String apply(Tuple2<ProverFun, ProverExpr[]> p) {
-                                if (p == null) {
-                                    return "false";
-                                } else {
-                                    final StringBuffer res = new StringBuffer();
-                                    res.append(p._1());
-                                    res.append("(");
-                                    String sep = "";
-                                    for (int i = 0; i < p._2().length; ++i) {
-                                        res.append(sep);
-                                        sep = ", ";
-                                        res.append(p._2()[i]);
-                                    }
-                                    res.append(")");
-                                    return res.toString();
-                                }
-                            }
-                        });
-                Log.info("Counterexample:\n"
-                         + DialogUtil$.MODULE$.asString(new scala.runtime.AbstractFunction0<Integer>() {
-                                 public Integer apply() {
-                                     prettyCEX.prettyPrint();
-                                     return 0;
-                                 }
-                             }));
-*/
                 return ProverResult.Unsat;
             }
         } else {
