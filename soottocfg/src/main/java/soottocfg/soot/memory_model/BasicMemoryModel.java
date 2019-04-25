@@ -133,6 +133,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkStringConstant(StringConstant arg0) {
+		// TODO: This method is currently ignored. Find a way to declare string constants without losing its value by optimizer.
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
 					"$string" + constantDictionary.size(), lookupType(arg0.getType())));

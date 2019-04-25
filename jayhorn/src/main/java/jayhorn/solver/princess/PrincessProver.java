@@ -64,6 +64,8 @@ public class PrincessProver implements Prover {
 
 	private SimpleAPI api;
 
+	private boolean initStringHornClauses = false;
+
 	public PrincessProver() {
 		ap.util.Debug.enableAllAssertions(false);
 		api = SimpleAPI.spawnNoSanitise();
@@ -171,7 +173,7 @@ public class PrincessProver implements Prover {
 		};
 	}
 
-	public ProverExpr mkAll(ProverExpr body, ProverType type) {
+	public ProverExpr mkAll(ProverExpr body, ProverType type) {		// TODO: type is not used, why?
             // TODO: handle tuples
 		return new FormulaExpr(IExpression$.MODULE$.all(((PrincessProverExpr) body).toFormula()));
 	}
@@ -778,7 +780,10 @@ public class PrincessProver implements Prover {
 	 * The head literal can either be constructed using
 	 * <code>mkHornPredicate</code>, or be the formula <code>false</code>.
 	 */
-	public ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body, ProverExpr constraint) {
+	@Override
+	public ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body, ProverExpr constraint
+//			, String name
+	) {
 		IFormula rawHead = ((FormulaExpr) head).formula;
 		if ((rawHead instanceof IBoolLit) && !((IBoolLit) rawHead).value())
 			rawHead = SimpleWrapper.FALSEAtom();
@@ -790,7 +795,28 @@ public class PrincessProver implements Prover {
 		final HornClauses.Clause clause = SimpleWrapper.clause((IAtom) rawHead, rawBody.toList(),
 				((FormulaExpr) constraint).formula);
 
-		return new HornExpr(clause);
+		return new HornExpr(clause
+//				, name
+		);
+	}
+
+//	public ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body, ProverExpr constraint) {
+//		return mkHornClause(head, body, constraint, null);
+//	}
+
+	@Override
+	public void initializeStringHornClauses(Iterable<ProverHornClause> stringHornClauses) {
+		if (!initStringHornClauses) {
+			for (ProverHornClause hc : stringHornClauses) {
+				addAssertion(hc);
+			}
+			initStringHornClauses = true;
+		}
+	}
+
+	@Override
+	public boolean isInitializedStringHornClauses() {
+		return initStringHornClauses;
 	}
 
 	@Override
