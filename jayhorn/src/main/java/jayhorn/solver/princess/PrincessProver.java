@@ -64,7 +64,7 @@ public class PrincessProver implements Prover {
 
 	private SimpleAPI api;
 
-	private boolean initStringHornClauses = false;
+//	private boolean initStringHornClauses = false;
 
 	public PrincessProver() {
 		ap.util.Debug.enableAllAssertions(false);
@@ -804,20 +804,20 @@ public class PrincessProver implements Prover {
 //		return mkHornClause(head, body, constraint, null);
 //	}
 
-	@Override
-	public void initializeStringHornClauses(Iterable<ProverHornClause> stringHornClauses) {
-		if (!initStringHornClauses) {
-			for (ProverHornClause hc : stringHornClauses) {
-				addAssertion(hc);
-			}
-			initStringHornClauses = true;
-		}
-	}
-
-	@Override
-	public boolean isInitializedStringHornClauses() {
-		return initStringHornClauses;
-	}
+//	@Override
+//	public void initializeStringHornClauses(Iterable<ProverHornClause> stringHornClauses) {
+//		if (!initStringHornClauses) {
+//			for (ProverHornClause hc : stringHornClauses) {
+//				addAssertion(hc);
+//			}
+//			initStringHornClauses = true;
+//		}
+//	}
+//
+//	@Override
+//	public boolean isInitializedStringHornClauses() {
+//		return initStringHornClauses;
+//	}
 
 	@Override
 	public void setHornLogic(boolean b) {

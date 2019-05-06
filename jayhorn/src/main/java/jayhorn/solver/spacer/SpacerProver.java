@@ -51,7 +51,7 @@ public class SpacerProver implements Prover {
 	private Context ctx;
 	private Solver solver;
 
-	private boolean initStringHornClauses = false;
+//	private boolean initStringHornClauses = false;
 
 	private HashMap<String, String> cfg = new HashMap<String, String>();
 	private Fixedpoint fx;
@@ -1023,20 +1023,20 @@ public class SpacerProver implements Prover {
 //		return mkHornClause(head, body, constraint, null);
 //	}
 
-	@Override
-	public void initializeStringHornClauses(Iterable<ProverHornClause> stringHornClauses) {
-		if (!initStringHornClauses) {
-			for (ProverHornClause hc : stringHornClauses) {
-				this.addAssertion(hc);
-			}
-			initStringHornClauses = true;
-		}
-	}
-
-	@Override
-	public boolean isInitializedStringHornClauses() {
-		return initStringHornClauses;
-	}
+//	@Override
+//	public void initializeStringHornClauses(Iterable<ProverHornClause> stringHornClauses) {
+//		if (!initStringHornClauses) {
+//			for (ProverHornClause hc : stringHornClauses) {
+//				this.addAssertion(hc);
+//			}
+//			initStringHornClauses = true;
+//		}
+//	}
+//
+//	@Override
+//	public boolean isInitializedStringHornClauses() {
+//		return initStringHornClauses;
+//	}
 
 	@Override
 	public void setHornLogic(boolean b) {

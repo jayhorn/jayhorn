@@ -246,9 +246,9 @@ public interface Prover {
 //								  ProverExpr constraint, String name);
 
 
-	void initializeStringHornClauses(Iterable<ProverHornClause> stringHornClauses);
-
-    boolean isInitializedStringHornClauses();
+//	void initializeStringHornClauses(Iterable<ProverHornClause> stringHornClauses);
+//
+//    boolean isInitializedStringHornClauses();
 
     void addRule(ProverExpr hornRule);
     
