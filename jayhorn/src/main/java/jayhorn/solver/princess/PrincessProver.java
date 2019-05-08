@@ -14,6 +14,7 @@ import java.util.concurrent.TimeoutException;
 
 import com.google.common.base.Verify;
 
+import ap.DialogUtil$;
 import ap.SimpleAPI;
 import ap.SimpleAPI$;
 import ap.SimpleAPI.ProverStatus$;

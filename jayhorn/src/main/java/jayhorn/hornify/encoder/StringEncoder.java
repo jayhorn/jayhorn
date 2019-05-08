@@ -174,6 +174,8 @@ public class StringEncoder {
             if (right instanceof ProverTupleExpr) {
                 ProverExpr idRight = p.mkTupleSelect(right, 0);
                 ProverFun predEqRefRef = mkStringEqualsRefRef(idLeft.getType(), idRight.getType());
+                // FIXME: Exception caused by this expression of an assume statement:
+                //        java.util.NoSuchElementException: key not found: string_equals_ref_ref/2
                 return predEqRefRef.mkExpr(idLeft, idRight);
             } else {
                 Verify.verify(right.getType().equals(stringADTType), "right in mkStringEq is not a valid string");
