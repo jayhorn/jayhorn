@@ -482,10 +482,11 @@ public class SootStmtSwitch implements StmtSwitch {
 				Value otherValue = call.getArg(0);
 				otherValue.apply(valueSwitch);
 				Expression b = valueSwitch.popExpression();
-                Variable retVar = new Variable("$str_eq_" + call.getMethod().getName(), BoolType.instance());
+				// TODO: make string constant value present at retVar.variableName
+                Variable retVar = new Variable("$string_" + call.getMethod().getName() + "(" + a + "," + b + ")", BoolType.instance());
 				rhs = new IdentifierExpression(srcLoc, retVar);
 				BinaryExpression equality = new BinaryExpression(srcLoc, BinaryOperator.StringEq, a, b);
-				currentBlock.addStatement(new AssumeStatement(srcLoc, new BinaryExpression(srcLoc, BinaryOperator.Eq, retVar.mkExp(srcLoc), equality)));
+				currentBlock.addStatement(new AssignStatement(srcLoc, retVar.mkExp(srcLoc), equality));
 			} else {
 				rhs = new BooleanLiteral(srcLoc, false);
 			}

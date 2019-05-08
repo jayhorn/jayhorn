@@ -239,10 +239,17 @@ public interface Prover {
      * The head literal can either be constructed using
      * <code>mkHornPredicate</code>, or be the formula <code>false</code>.
      */
-    ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body,
-                                  ProverExpr constraint);
-    
-    
+	ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body,
+								  ProverExpr constraint);
+
+//	ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body,
+//								  ProverExpr constraint, String name);
+
+
+//	void initializeStringHornClauses(Iterable<ProverHornClause> stringHornClauses);
+//
+//    boolean isInitializedStringHornClauses();
+
     void addRule(ProverExpr hornRule);
     
     

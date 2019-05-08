@@ -34,6 +34,7 @@ public class MethodEncoder {
 
     private final Map<CfgBlock, HornPredicate> blockPredicates = new LinkedHashMap<CfgBlock, HornPredicate>();
     private final List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
+    // TODO: What is the purpose of tsClauses?
     private final List<ProverHornClause> tsClauses = new LinkedList<ProverHornClause>(); // keep track of
     private final ExpressionEncoder expEnc;
 
@@ -68,7 +69,16 @@ public class MethodEncoder {
         blocksToHorn(liveVariables);
         S2H.sh().addClause((Statement) null, tsClauses);
 
+        encodeExtraClauses();
+
         return clauses;
+    }
+
+    private void encodeExtraClauses() {
+        List<ProverHornClause> extraClauses = expEnc.getExtraEncodedClauses();
+        tsClauses.addAll(extraClauses);
+        S2H.sh().addClause((Statement) null, tsClauses);
+        clauses.addAll(extraClauses);
     }
 
     /**

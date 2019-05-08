@@ -25,11 +25,10 @@ public class StringLiteral extends IdentifierExpression {
         this.value = value;
     }
 
-    @Override
-    public String toString() {
-        // for all escape characters: return StringEscapeUtils.escapeJava(String.format("\"%s\"", value));   // needs Apache Commons
+    public static String escape(String s) {
+        // for all escape characters: return StringEscapeUtils.escapeJava(String.format("\"%s\"", s));   // needs Apache Commons
         return String.format("\"%s\"",
-                value
+                s
                 .replace("\"", "\\\"")
                 .replace("\\", "\\\\")
                 .replace("\r", "\\r")
@@ -38,6 +37,11 @@ public class StringLiteral extends IdentifierExpression {
                 .replace("\b", "\\b")
                 .replace("\f", "\\f")
         );
+    }
+
+    @Override
+    public String toString() {
+        return StringLiteral.escape(this.value);
     }
 
     @Override

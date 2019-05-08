@@ -4,6 +4,7 @@
 package jayhorn.hornify.encoder;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Verify;
@@ -81,6 +82,10 @@ public class ExpressionEncoder {
 
 			return proverVar;
 		}
+	}
+
+	public List<ProverHornClause> getExtraEncodedClauses() {
+		return stringEncoder.getEncodedClauses();
 	}
 
 	public ProverExpr exprToProverExpr(Expression e, Map<Variable, ProverExpr> varMap) {
