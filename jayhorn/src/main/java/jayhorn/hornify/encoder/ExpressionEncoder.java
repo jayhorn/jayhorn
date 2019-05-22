@@ -163,7 +163,7 @@ public class ExpressionEncoder {
 			case StringEq:
 				return stringEncoder.mkStringEq(left, right);
 			case StringConcat:
-				return stringEncoder.mkStringConcat(left, right);
+				return stringEncoder.mkStringConcat(left, right, varMap);
 			case Ne:
 				return p.mkNot(p.mkEq(left, right));
 			case Gt:
