@@ -14,6 +14,7 @@ import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
+import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
@@ -167,6 +168,11 @@ public class CfgUpdater extends CfgVisitor {
 	protected Expression processExpression(IntegerLiteral e) {
 		return e.deepCopy();
 	}
+
+//	@Override
+//	protected Expression processExpression(StringLiteral e) {
+//		return e.deepCopy();
+//	}
 
 	@Override
 	protected Expression processExpression(TupleAccessExpression e) {

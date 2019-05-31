@@ -13,6 +13,7 @@ import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -78,6 +79,8 @@ public class BinaryExpression extends Expression {
 
 		Preconditions.checkArgument(
 				left.getType().getClass() == right.getType().getClass()
+						|| (left.getType() instanceof ReferenceType && right.getType() instanceof ReferenceType &&
+							((ReferenceType) left.getType()).getClassVariable().equals(((ReferenceType) right.getType()).getClassVariable()))
 						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(right)
 						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(left),
 				"Types don't match: " + left.getType() + " and " + right.getType() + " for "+left.toString()+op+right.toString());

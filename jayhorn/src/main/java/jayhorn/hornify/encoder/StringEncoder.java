@@ -6,16 +6,15 @@ import jayhorn.solver.*;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.Variable;
 
-import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 public class StringEncoder {
 
-    public static final String REF_TEMPLATE = "$ref(%d)";
-    public static final String STRING_REF_TEMPLATE = "$string_ref(%d)";
-    public static final String STRING_CONCAT_TEMPLATE = "$string_contact(%d, %d)";
+    public static final String REF_TEMPLATE = "$r%d";
+    public static final String STRING_REF_TEMPLATE = "$string_ref(%s)";
+    public static final String STRING_CONCAT_TEMPLATE = "$string_contact(%s, %s)";
 
 //    public static final String STRING_EQUALS = "string_equals";
 //    public static final String STRING_EQUALS_RS = STRING_EQUALS + "_ref_str";
@@ -78,25 +77,19 @@ public class StringEncoder {
         });
     }
 
-    private ProverExpr mkStringHornVariable(BigInteger id) {
-        ProverType stringADTType = stringADT.getType(0);
-        return p.mkHornVariable(
-                String.format(STRING_REF_TEMPLATE, id), stringADTType);
-    }
-
-    private ProverExpr mkStringHornVariable(int id) {
+    private ProverExpr mkStringHornVariable(String id) {
         ProverType stringADTType = stringADT.getType(0);
         return p.mkHornVariable(
                 String.format(STRING_REF_TEMPLATE, id), stringADTType);
     }
 
     private ProverExpr mkStringLiteralEq(ProverExpr id, ProverExpr str) {
-        ProverExpr strObject = mkStringHornVariable(id.getIntLiteralValue());
+        ProverExpr strObject = mkStringHornVariable(id.toString());
         return mkStringEq(strObject, str);
     }
 
     private ProverExpr mkStringLiteralEq(int id, ProverExpr str) {
-        ProverExpr strObject = mkStringHornVariable(id);
+        ProverExpr strObject = mkStringHornVariable(String.valueOf(id));
         return mkStringEq(strObject, str);
     }
 
@@ -158,11 +151,11 @@ public class StringEncoder {
         if (left instanceof ProverTupleExpr) {
             ProverExpr idLeft = p.mkTupleSelect(left, 0);
             // TODO: Exception java.lang.RuntimeException
-            ProverExpr leftString = mkStringHornVariable(idLeft.getIntLiteralValue());
+            ProverExpr leftString = mkStringHornVariable(idLeft.toString());
             if (right instanceof ProverTupleExpr) {
                 ProverExpr idRight = p.mkTupleSelect(right, 0);
 //                ProverFun predEqRefRef = mkStringEqualsRefRef(idLeft.getType(), idRight.getType());
-                ProverExpr rightString = mkStringHornVariable(idRight.getIntLiteralValue());
+                ProverExpr rightString = mkStringHornVariable(idRight.toString());
                 return p.mkOr(p.mkEq(leftString, rightString), p.mkEq(idLeft, idRight));
             } else {
                 Verify.verify(right.getType().equals(stringADTType), "right in mkStringEq is not a valid string");
@@ -187,33 +180,50 @@ public class StringEncoder {
         return stringADT.mkSelExpr(1, 1, expr);
     }
 
-    private ProverExpr cons(ProverExpr expr1, ProverExpr expr2) {
-        return stringADT.mkCtorExpr(1, new ProverExpr[]{expr1, expr2});
+    private ProverExpr cons(ProverExpr h, ProverExpr t) {
+        return stringADT.mkCtorExpr(1, new ProverExpr[]{h, t});
+    }
+
+    private ProverExpr concat(ProverExpr a, ProverExpr b) {
+        if (stringADT.mkSelExpr(1, 0, a) != null) {
+            throw new RuntimeException("infinite recursion");
+//            return cons(head(a), concat(tail(a), b));
+        } else {
+            return b;
+        }
     }
 
     public ProverExpr mkStringConcat(ProverExpr left, ProverExpr right, Map<Variable, ProverExpr> varMap) {
+        ProverType stringADTType = stringADT.getType(0);
+        int idConcat = HornHelper.hh().newVarNum();
+        ProverType refType = HornHelper.hh().getProverType(p, ReferenceType.instance());
+        ProverExpr concat = p.mkHornVariable(String.format(REF_TEMPLATE, idConcat), refType);
         if (left instanceof ProverTupleExpr) {
             ProverExpr idLeft = p.mkTupleSelect(left, 0);
-            ProverExpr leftString = mkStringHornVariable(idLeft.getIntLiteralValue());
+            ProverExpr leftString = mkStringHornVariable(idLeft.toString());
             if (right instanceof ProverTupleExpr) {
                 ProverExpr idRight = p.mkTupleSelect(right, 0);
-                ProverExpr rightString = mkStringHornVariable(idRight.getIntLiteralValue());
-                int idConcat = HornHelper.hh().newVarNum();
+                ProverExpr rightString = mkStringHornVariable(idRight.toString());
                 String concatName = String.format(STRING_CONCAT_TEMPLATE,
-                        idLeft.getIntLiteralValue(), idRight.getIntLiteralValue());
-                ProverType refType = HornHelper.hh().getProverType(p, ReferenceType.instance());
-                ProverExpr concat = p.mkHornVariable(String.format(REF_TEMPLATE, idConcat), refType);
-                ProverType stringADTType = stringADT.getType(0);
+                        idLeft.toString(), idRight.toString());
                 ProverExpr concatString = p.mkHornVariable(concatName, stringADTType);
                 ProverFun predConcat = mkStringConcatProverFun();
                 p.addAssertion(p.mkImplies(predConcat.mkExpr(leftString, rightString, concatString),
                         mkStringLiteralEq(idConcat, concatString)));
                 return concat;
             } else {
-                throw new RuntimeException("operands in mkStringConcat must be object references; other cases not implemented");
+                throw new RuntimeException("not implemented");
             }
         } else {
-            throw new RuntimeException("operands in mkStringConcat must be object references; other cases not implemented");
+            Verify.verify(left.getType().equals(stringADTType), "left in mkStringConcat is not a valid string");
+            if (right instanceof ProverTupleExpr) {
+                throw new RuntimeException("not implemented");
+            } else {
+                Verify.verify(right.getType().equals(stringADTType), "right in mkStringConcat is not a valid string");
+                ProverExpr concatString = concat(left, right);
+                p.addAssertion(mkStringLiteralEq(idConcat, concatString));
+                return concat;
+            }
         }
     }
 

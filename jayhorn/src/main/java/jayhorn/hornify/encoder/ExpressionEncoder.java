@@ -90,6 +90,7 @@ public class ExpressionEncoder {
 
 	public ProverExpr exprToProverExpr(Expression e, Map<Variable, ProverExpr> varMap) {
 		if (e instanceof StringLiteral) {	// check before (e instanceof IdentifierExpression)
+//			return stringEncoder.mkString(((StringLiteral) e).getValue());
 			StringLiteral stl = (StringLiteral) e;
 			ProverExpr ste = stringEncoder.mkString(stl.getValue());
 			ProverExpr ref = varToProverExpr(stl.getVariable(), varMap);

@@ -53,6 +53,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	protected final Map<SootField, Variable> fieldGlobals = new HashMap<SootField, Variable>();
 
 	protected final Map<Constant, Variable> constantDictionary = new HashMap<Constant, Variable>();
+	protected final Map<Variable, Expression> varToExpressionMap = new HashMap<Variable, Expression>();
 
 	// protected final Type nullType;
 
@@ -136,7 +137,9 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		// TODO: This method is currently ignored. Find a way to declare string constants without losing its value by optimizer.
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
-					"$string" + constantDictionary.size(), lookupType(arg0.getType())));
+					"$string" + constantDictionary.size(), StringType.instance()));
+			putExpression(constantDictionary.get(arg0),
+					new StringLiteral(statementSwitch.getCurrentLoc(), constantDictionary.get(arg0), arg0.value));
 		}
 		return new StringLiteral(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0), arg0.value);
 	}
@@ -306,4 +309,11 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		return (ClassVariable) this.constantDictionary.get(cc);
 	}
 
+	public void putExpression(Variable variable, Expression expr) {
+		varToExpressionMap.put(variable, expr);
+	}
+
+	public Expression lookupExpression(Variable variable) {
+		return varToExpressionMap.get(variable);
+	}
 }

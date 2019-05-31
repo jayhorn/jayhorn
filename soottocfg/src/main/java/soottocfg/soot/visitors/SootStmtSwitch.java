@@ -49,6 +49,7 @@ import soottocfg.cfg.expression.*;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
+import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.*;
@@ -440,6 +441,17 @@ public class SootStmtSwitch implements StmtSwitch {
 		}
 	}
 
+	private Expression getExpressionOrSelf(Expression expr) {
+		if (expr instanceof IdentifierExpression) {
+			Variable v = ((IdentifierExpression) expr).getVariable();
+			Expression e = SootTranslationHelpers.v().getMemoryModel().lookupExpression(v);
+			if (e != null) {
+				return e;
+			}
+		}
+		return expr;
+	}
+
 	/**
 	 * Check if the call is a special case such as System.exit. If so, translate
 	 * it and return true. Otherwise, ignore it and return false.
@@ -479,6 +491,7 @@ public class SootStmtSwitch implements StmtSwitch {
 				Value thisValue = ((InstanceInvokeExpr) call).getBase();
 				thisValue.apply(valueSwitch);
 				Expression a = valueSwitch.popExpression();
+				a = getExpressionOrSelf(a);
 				Value otherValue = call.getArg(0);
 				otherValue.apply(valueSwitch);
 				Expression b = valueSwitch.popExpression();
@@ -504,9 +517,11 @@ public class SootStmtSwitch implements StmtSwitch {
 				Value thisValue = ((InstanceInvokeExpr) call).getBase();
 				thisValue.apply(valueSwitch);
 				Expression a = valueSwitch.popExpression();
+				a = getExpressionOrSelf(a);
 				Value otherValue = call.getArg(0);
 				otherValue.apply(valueSwitch);
 				Expression b = valueSwitch.popExpression();
+				b = getExpressionOrSelf(b);
 				rhs = new BinaryExpression(SootTranslationHelpers.v().getSourceLocation(u), BinaryOperator.StringConcat, a, b);
 			} else {
 				throw new RuntimeException("String.concat(NonObject) not implemented");
@@ -751,16 +766,11 @@ public class SootStmtSwitch implements StmtSwitch {
 				rhs.apply(valueSwitch);
 				Expression right = valueSwitch.popExpression();
 
+				if (left instanceof IdentifierExpression && right instanceof StringLiteral) {
+					SootTranslationHelpers.v().getMemoryModel().putExpression(((IdentifierExpression) left).getVariable(), right);
+				}
 				currentBlock.addStatement(
 						new AssignStatement(SootTranslationHelpers.v().getSourceLocation(def), left, right));
-				if (rhs instanceof StringConstant) {
-					// TODO: move previous assignment into else block?
-					// previous assignment will be removed by code optimizer
-					currentBlock.addStatement(new AssumeStatement(
-							SootTranslationHelpers.v().getSourceLocation(def),
-							new BinaryExpression(SootTranslationHelpers.v().getSourceLocation(def), BinaryOperator.StringEq, left, right)));
-					// TODO: move to StringEncoder or String-related CallStatement
-				}
 			}
 		}
 //TODO: assume non-null is not needed because we have a NewStatement now.
