@@ -3,12 +3,7 @@
  */
 package soottocfg.soot.memory_model;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.google.common.base.Verify;
 
@@ -137,7 +132,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		// TODO: This method is currently ignored. Find a way to declare string constants without losing its value by optimizer.
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
-					"$string" + constantDictionary.size(), StringType.instance()));
+					"$string" + constantDictionary.size(), ReferenceType.instance()));	// TODO: StringType
 			putExpression(constantDictionary.get(arg0),
 					new StringLiteral(statementSwitch.getCurrentLoc(), constantDictionary.get(arg0), arg0.value));
 		}
@@ -233,8 +228,13 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		if (t instanceof ArrayType) {
 			throw new RuntimeException("Remove Arrays first. " + t);
 		} else if (t instanceof RefType) {
-			if ( ((RefType)t).getSootClass().equals(Scene.v().getSootClass("java.lang.Class"))) {
+			if (((RefType)t).getSootClass().equals(Scene.v().getSootClass("java.lang.Class"))) {
 				return new TypeType();
+			}
+			if (((RefType)t).getSootClass().equals(Scene.v().getSootClass("java.lang.String"))) {
+				LinkedHashMap<String, Type> elementTypes = ReferenceType.mkDefaultElementTypes();
+				elementTypes.put("$String", IntType.instance());
+				return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)), elementTypes);
 			}
 			return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)));
 		} else if (t instanceof soot.NullType) {

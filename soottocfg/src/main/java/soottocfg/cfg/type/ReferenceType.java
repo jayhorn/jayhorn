@@ -19,17 +19,20 @@ public class ReferenceType extends Type {
 	
 	public static final String RefFieldName = "$Ref";
 	public static final String TypeFieldName = "$Type";
-	
 	public static final String AllocationSiteFieldName = "$AllocSite";
 
 	private static final long serialVersionUID = 4056715121602313972L;
 	private final ClassVariable classVariable;
 
-	private Map<String, Type> elementTypes = null;
+	private LinkedHashMap<String, Type> elementTypes;	// LinkedHashMap is needed to preserve order
+
+	public ReferenceType(ClassVariable var, LinkedHashMap<String, Type> elementTypes) {
+		classVariable = var;
+		this.elementTypes = elementTypes;
+	}
 
 	public ReferenceType(ClassVariable var) {
-		classVariable = var;
-
+		this(var, null);
 	}
 
 	private static ReferenceType instance = new ReferenceType(null);
@@ -42,23 +45,28 @@ public class ReferenceType extends Type {
 		return classVariable;
 	}
 
+	public static LinkedHashMap<String, Type> mkDefaultElementTypes() {
+		LinkedHashMap<String, Type> elementTypes = new LinkedHashMap<String, Type>();
+		elementTypes.put(RefFieldName, IntType.instance() );
+		elementTypes.put(TypeFieldName, new TypeType());
+		if (soottocfg.Options.v().useAllocationSiteTupleElement) {
+			elementTypes.put(AllocationSiteFieldName, IntType.instance() );
+		}
+		return elementTypes;
+	}
+
 	public Map<String, Type> getElementTypes() {
 		if (this.elementTypes==null) {
 			/*
 			 * Compute element types on the fly to avoid problems
 			 * with recursive definitions.
 			 */			
-			elementTypes = new LinkedHashMap<String, Type>();
-			elementTypes.put(RefFieldName, IntType.instance() );
-			elementTypes.put(TypeFieldName, new TypeType());
-			if (soottocfg.Options.v().useAllocationSiteTupleElement) {
-				elementTypes.put(AllocationSiteFieldName, IntType.instance() );
-			}
-			
-			if (classVariable != null) {			
+			elementTypes = mkDefaultElementTypes();
+
+			if (classVariable != null) {
 				for (Variable finalField : classVariable.getInlineableFields()) {
 					// TODO: don't look for final - look for all fields that
-					// are only written to once, and the rhs is a constant.
+					//       are only written to once, and the rhs is a constant.
 					elementTypes.put(finalField.getName(), finalField.getType());
 				}
 			}
