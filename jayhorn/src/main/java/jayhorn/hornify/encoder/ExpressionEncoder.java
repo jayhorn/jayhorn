@@ -94,7 +94,7 @@ public class ExpressionEncoder {
 			StringLiteral stl = (StringLiteral) e;
 			ProverExpr ste = stringEncoder.mkString(stl.getValue());
 			ProverExpr ref = varToProverExpr(stl.getVariable(), varMap);
-			stringEncoder.assertStringLiteral(ref, ste);
+			stringEncoder.assertStringLiteral(ref, ste, (ReferenceType)e.getType());
 			return ref;
 		} else if (e instanceof IdentifierExpression) {
 			Variable var = ((IdentifierExpression) e).getVariable();
@@ -162,9 +162,9 @@ public class ExpressionEncoder {
 					return p.mkEq(left, right);
 				}
 			case StringEq:
-				return stringEncoder.mkStringEq(left, right);
+				return stringEncoder.mkStringEq(left, right, (ReferenceType)be.getLeft().getType());
 			case StringConcat:
-				return stringEncoder.mkStringConcat(left, right);
+				return stringEncoder.mkStringConcat(left, right, (ReferenceType)be.getLeft().getType());
 			case Ne:
 				return p.mkNot(p.mkEq(left, right));
 			case Gt:
