@@ -7,7 +7,7 @@ env:
     - secure: "TauTtOUCfCa7QIdbhmlDKFpClw6+xSwyUGDMIsDGBPETNYyoCNSFxn/u5J0V2L7g2OMvGfQprlBvmKIKCAbM+wmUz5qyEXHAn1+YXCEYtwYIi962Wehh4ZkehmCvoKloFZAA2qAgycW4Ca68obqZX5wIUfYEU7TxjofCQ7b3WL0AqZivRxknGwkBwjmCMNAhfMysjKD1OcgDKgMnzAi7J1qCX26Dyu1O9MPs54cjrNtKkNH4WTqYImrdAI385GgP04REkuUILHLspryVkKpp90l9qK2n+5ivjD210zilryC2fQjzk7j3ysqzvaD4i+O3hZTVaRAZeyEsy/lK8NcyBtAUKwPZcauosB5+nRduTCA1d23/+8cM5ZzO4EA8hZOTW2P3sJIVtvLi439YmSKBfD1ix+1us/HauqQ4O7f9DNaa1kBLgXtew3Yw28VJYDHuk7WiloGDksThkhRmy/+COZiSTYS52k4IXV+Cg+k/wonYS50PiZdRjbP1tfFQFPwIhVsuuxxK47fyzSR9VCp9WA8/Bg/GehL3ChpMUnN5+UUu8fzQF5fGcgQti5X5JAj/pqDjs0UbW350a1D0nzG6z6Posze9eP0BZ9rQM+xJG86u6ZTTyeZMf2CFx3aDZVFqASweEgcmtySR1z5SDMzeAZBUbMzPWpyUA+710YUuIU0="
 
 jdk:
-  - openjdk10
+  - openjdk8
 
 before_install:
    - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
