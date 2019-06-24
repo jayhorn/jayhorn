@@ -75,6 +75,8 @@ class HornExpr implements ProverHornClause {
         //return clause.toSMTString();
         IFormula f = clause.toFormula();
         f = PartialEvaluator$.MODULE$.apply(f);
+        // Note: this can sometimes produce formulas that are not
+        // Horn, since ite-expressions get split
         f = EquivExpander$.MODULE$.apply(f);
         f = Transform2Prenex$.MODULE$.apply(f);
         return SMTLineariser$.MODULE$.asString(f);
