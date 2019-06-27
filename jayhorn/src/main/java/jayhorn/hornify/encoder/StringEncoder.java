@@ -31,6 +31,13 @@ public class StringEncoder {
         clauses.add(proverHornClause);
     }
 
+    private void storeProverAssertion(ProverExpr proverAssertion) {
+        ProverHornClause proverHornClause = p.mkHornClause(
+                p.mkLiteral(false), new ProverExpr[0], p.mkNot(proverAssertion)
+        );
+        storeProverHornClause(proverHornClause);
+    }
+
     public List<ProverHornClause> getEncodedClauses() {
         return clauses;
     }
@@ -70,8 +77,11 @@ public class StringEncoder {
 
     public void assertStringLiteral(ProverExpr ref, ProverExpr str, ReferenceType stringType) {
         if (ref instanceof ProverTupleExpr) {
-            ProverExpr id = p.mkTupleSelect(ref, 3);
-            p.addAssertion(mkStringEq(id, str, stringType));
+            ProverExpr idStr = p.mkTupleSelect(ref, 3);
+            storeProverAssertion(mkStringEq(idStr, str, stringType));
+            // FIXME:
+            //          Horn:   false :- $string("a")_260#3 != cons(97, nil).
+            //          SMT2:   (assert (forall ((var0 List[Int])) (= var0 (cons 97 nil))))
         } else {
             throw new RuntimeException("ref must be a ProverTupleExpr with size of 4");
         }
@@ -191,7 +201,7 @@ public class StringEncoder {
                 ProverExpr concatString = mkNewStringHornVariable(p, concatName, stringType);
                 ProverExpr idConcat = p.mkTupleSelect(concatString, 3);
                 ProverFun predConcat = mkStringConcatProverFun();
-                p.addAssertion(predConcat.mkExpr(left, right, idConcat));
+                storeProverAssertion(predConcat.mkExpr(left, right, idConcat));
                 return concatString;
             }
         }
