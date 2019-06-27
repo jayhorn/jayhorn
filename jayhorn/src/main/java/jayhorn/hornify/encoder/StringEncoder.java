@@ -82,7 +82,7 @@ public class StringEncoder {
             ProverType stringADTType = stringADT.getType(0);
             ProverExpr a = p.mkHornVariable("a", stringADTType);
             ProverExpr b = p.mkHornVariable("b", stringADTType);
-            ProverExpr c = p.mkHornVariable("b", stringADTType);
+            ProverExpr c = p.mkHornVariable("c", stringADTType);
             ProverExpr r = p.mkHornVariable("r", stringADTType);
             ProverExpr t = p.mkHornVariable("t", stringADTType);
             ProverExpr h = p.mkHornVariable("h", stringADTType);
