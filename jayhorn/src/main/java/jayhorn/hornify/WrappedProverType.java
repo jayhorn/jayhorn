@@ -23,5 +23,21 @@ public class WrappedProverType extends Type {
         return wrappedType.toString();
     }
   
+    @Override
+    public int hashCode() {
+        return 23 * wrappedType.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        WrappedProverType other = (WrappedProverType) obj;
+        return this.wrappedType.equals(other.wrappedType);
+    }
 
 }

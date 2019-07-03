@@ -55,7 +55,7 @@ public class AssertStatement extends Statement {
 
 	@Override
 	public AssertStatement deepCopy() {
-		return new AssertStatement(getSourceLocation(), expression.deepCopy());
+		return new AssertStatement(getSourceLocation(), expression);
 	}
 	
 	@Override

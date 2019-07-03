@@ -88,7 +88,7 @@ public class NewStatement extends Statement {
 	
 	@Override
 	public NewStatement deepCopy() {
-		return new NewStatement(getSourceLocation(), left.deepCopy(), this.classVariable, this.counterVar);
+		return new NewStatement(getSourceLocation(), left, this.classVariable, this.counterVar);
 	}
 
 	@Override

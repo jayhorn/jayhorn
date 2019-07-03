@@ -18,7 +18,7 @@ import soottocfg.cfg.variable.Variable;
 public class IteExpression extends Expression {
 
 	private static final long serialVersionUID = -7138261822713810587L;
-	private Expression condition, thenExpr, elseExpr;
+	private final Expression condition, thenExpr, elseExpr;
 
 	public Expression getCondition() {
 		return condition;
@@ -75,18 +75,26 @@ public class IteExpression extends Expression {
 	}
 
 	@Override
-	public IteExpression deepCopy() {		
-		return new IteExpression(getSourceLocation(), condition.deepCopy(), thenExpr.deepCopy(), elseExpr.deepCopy());
-	}
-
-	@Override
 	public IteExpression substitute(Map<Variable, Variable> subs) {
-		return new IteExpression(getSourceLocation(), condition.substitute(subs), thenExpr.substitute(subs), elseExpr.substitute(subs));
+            Expression newCond = condition.substitute(subs);
+            Expression newThen = thenExpr.substitute(subs);
+            Expression newElse = elseExpr.substitute(subs);
+            if (condition == newCond && thenExpr == newThen && elseExpr == newElse)
+                return this;
+            else
+		return new IteExpression(getSourceLocation(), newCond, newThen, newElse);
 	}
 
 	@Override
 	public IteExpression substituteVarWithExpression(Map<Variable, Expression> subs) {
-		return new IteExpression(getSourceLocation(), condition.substituteVarWithExpression(subs), thenExpr.substituteVarWithExpression(subs), elseExpr.substituteVarWithExpression(subs));
+            Expression newCond = condition.substituteVarWithExpression(subs);
+            Expression newThen = thenExpr.substituteVarWithExpression(subs);
+            Expression newElse = elseExpr.substituteVarWithExpression(subs);
+            if (condition == newCond && thenExpr == newThen && elseExpr == newElse)
+                return this;
+            else
+
+		return new IteExpression(getSourceLocation(), newCond, newThen, newElse);
 	}
 	
 }

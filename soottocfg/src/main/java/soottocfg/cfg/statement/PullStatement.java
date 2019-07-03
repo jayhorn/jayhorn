@@ -131,13 +131,13 @@ public class PullStatement extends Statement {
 	public PullStatement deepCopy() {
 		List<IdentifierExpression> leftCopy = new LinkedList<IdentifierExpression>();
 		for (IdentifierExpression e : left) {
-			leftCopy.add(e.deepCopy());
+			leftCopy.add(e);
 		}
 		List<Expression> ghostCopy = new LinkedList<Expression>();
 		for (Expression e : ghostExpressions) {
-			ghostCopy.add(e.deepCopy());
+			ghostCopy.add(e);
 		}
-		return new PullStatement(getSourceLocation(), classConstant, object.deepCopy(), leftCopy, ghostCopy);
+		return new PullStatement(getSourceLocation(), classConstant, object, leftCopy, ghostCopy);
 	}
 
 	@Override
@@ -158,7 +158,7 @@ public class PullStatement extends Statement {
 	public PullStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
 		List<IdentifierExpression> leftCopy = new LinkedList<IdentifierExpression>();
 		for (IdentifierExpression e : left) {
-			leftCopy.add(e.deepCopy());
+			leftCopy.add(e);
 		}
 		List<Expression> ghostCopy = new LinkedList<Expression>();
 		for (Expression e : ghostExpressions) {
@@ -166,7 +166,7 @@ public class PullStatement extends Statement {
 		}
 		
 //		Verify.verify(!subs.containsKey(object.getVariable()));
-		return new PullStatement(getSourceLocation(), classConstant, object.deepCopy(), leftCopy, ghostCopy);
+		return new PullStatement(getSourceLocation(), classConstant, object, leftCopy, ghostCopy);
 	}
 	
 }

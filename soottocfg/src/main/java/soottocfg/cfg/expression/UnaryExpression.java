@@ -19,7 +19,7 @@ import soottocfg.cfg.variable.Variable;
 public class UnaryExpression extends Expression {
 
 	private static final long serialVersionUID = -3534248180235954114L;
-	private Expression expression;
+	private final Expression expression;
 	private final UnaryOperator op;
 
 	public enum UnaryOperator {
@@ -90,18 +90,21 @@ public class UnaryExpression extends Expression {
 	}
 
 	@Override
-	public UnaryExpression deepCopy() {		
-		return new UnaryExpression(getSourceLocation(), op, expression.deepCopy());
-	}
-
-	@Override
 	public UnaryExpression substitute(Map<Variable, Variable> subs) {
-		return new UnaryExpression(getSourceLocation(), op, expression.substitute(subs));
+            Expression newE = expression.substitute(subs);
+            if (newE == expression)
+                return this;
+            else
+		return new UnaryExpression(getSourceLocation(), op, newE);
 	}
 
 	@Override
 	public UnaryExpression substituteVarWithExpression(Map<Variable, Expression> subs) {
-		return new UnaryExpression(getSourceLocation(), op, expression.substituteVarWithExpression(subs));
+            Expression newE = expression.substituteVarWithExpression(subs);
+            if (newE == expression)
+                return this;
+            else
+		return new UnaryExpression(getSourceLocation(), op, newE);
 	}
 	
 }

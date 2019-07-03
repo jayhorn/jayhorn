@@ -85,7 +85,7 @@ public class AssignStatement extends Statement {
 
 	@Override
 	public Statement deepCopy() {
-		return new AssignStatement(getSourceLocation(), left.deepCopy(), right.deepCopy());
+		return new AssignStatement(getSourceLocation(), left, right);
 	}
 
 	@Override
@@ -95,7 +95,7 @@ public class AssignStatement extends Statement {
 
 	@Override
 	public AssignStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
-		return new AssignStatement(getSourceLocation(), left.deepCopy(), right.substituteVarWithExpression(subs));
+		return new AssignStatement(getSourceLocation(), left, right.substituteVarWithExpression(subs));
 	}
 	
 }

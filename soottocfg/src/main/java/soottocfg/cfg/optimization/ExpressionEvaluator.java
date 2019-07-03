@@ -14,12 +14,15 @@ import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.variable.Variable;
-//import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.type.Type;
+import soottocfg.cfg.type.IntType;
+import soottocfg.cfg.type.BoolType;
 
 /**
  * Evaluate expressions statically if possible.
- * Mostly still TODO. Right now only expressions over boolean literals are handled.
  * 
+ * TODO: verify that right integer semantics is used (Probably not)
+ *
  * @author rodykers
  *
  */
@@ -29,19 +32,19 @@ public class ExpressionEvaluator {
 		if (e instanceof BinaryExpression) {
 			return simplify((BinaryExpression) e);
 		} else if (e instanceof BooleanLiteral) {
-			return e.deepCopy();
+			return e;
 		} else if (e instanceof IdentifierExpression) {
-			return e.deepCopy();
+			return e;
 		} else if (e instanceof IntegerLiteral) {
-			return e.deepCopy();
+			return e;
 		} else if (e instanceof IteExpression) {
 			return simplify((IteExpression) e);
 		} else if (e instanceof UnaryExpression) {
 			return simplify((UnaryExpression) e);
 		} else if (e instanceof NullLiteral) {
-			return e.deepCopy();
+			return e;
 		} else if (e instanceof TupleAccessExpression) {
-			return e.deepCopy();
+			return e;
 		} else {
 			throw new RuntimeException("unexpected expression type: " + e);
 		}	
@@ -51,17 +54,33 @@ public class ExpressionEvaluator {
 		Expression left = simplify(e.getLeft());
 		Expression right = simplify(e.getRight());
 		if (left instanceof IntegerLiteral && right instanceof IntegerLiteral) {
-			int res = evalBinop(e.getOp(), ((IntegerLiteral)left).getValue().intValue(), ((IntegerLiteral)right).getValue().intValue());
-			return new IntegerLiteral(e.getSourceLocation(), res);
+                    int leftVal = ((IntegerLiteral)left).getValue().intValue();
+                    int rightVal = ((IntegerLiteral)right).getValue().intValue();
+                    Type resType = e.getType();
+                    if (resType instanceof IntType) {
+			return new IntegerLiteral(e.getSourceLocation(),
+                                                  evalIntOp(e.getOp(), leftVal, rightVal));
+                    } else if (resType instanceof BoolType) {
+			return new BooleanLiteral(e.getSourceLocation(),
+                                                  evalBoolOp(e.getOp(), leftVal, rightVal));
+                    } else {
+                        throw new RuntimeException("Not handled: result type "+resType);
+                    }
 		} else if (left instanceof BooleanLiteral && right instanceof BooleanLiteral) {
-			int a = ((BooleanLiteral)left).getValue() ? 1 : 0;
-			int b = ((BooleanLiteral)right).getValue() ? 1 : 0;
-			int res = evalBinop(e.getOp(), a, b);
-			return new BooleanLiteral(e.getSourceLocation(), res==1);
+			boolean a = ((BooleanLiteral)left).getValue();
+			boolean b = ((BooleanLiteral)right).getValue();
+			boolean res = evalConnective(e.getOp(), a, b);
+			return new BooleanLiteral(e.getSourceLocation(), res);
+                } else if (left instanceof NullLiteral && right instanceof NullLiteral) {
+                    if (e.getOp()==BinaryOperator.Eq) {
+                        return BooleanLiteral.trueLiteral();
+                    } else if (e.getOp()==BinaryOperator.Ne) {
+                        return BooleanLiteral.falseLiteral();
+                    }
 		} else if (left instanceof IdentifierExpression && right instanceof IdentifierExpression) {
 			Variable leftVar = ((IdentifierExpression)left).getVariable();
 			Variable rightVar = ((IdentifierExpression)right).getVariable();
-			// for the case a==a and a!=a			
+			// for the case a==a and a!=a
 			if (leftVar.equals(rightVar)) {
 				if (e.getOp()==BinaryOperator.Eq) {
 					return BooleanLiteral.trueLiteral();
@@ -80,42 +99,58 @@ public class ExpressionEvaluator {
 		return new BinaryExpression(e.getSourceLocation(), e.getOp(),left, right);
 	}
 	
-	private static int evalBinop(BinaryOperator op, int a, int b) {
+	private static boolean evalConnective(BinaryOperator op, boolean a, boolean b) {
 		switch (op) {
 		case And:
-			return (a==1 && b==1) ? 1 : 0;
+			return a && b;
+		case Implies:
+			return !a || b;
+		case Or:
+			return a || b;
+		default:
+			break;
+		}
+		throw new RuntimeException("Not implemented: "+op);
+	}
+
+	private static boolean evalBoolOp(BinaryOperator op, int a, int b) {
+		switch (op) {
+		case Eq:
+			return a == b;
+		case Ge:
+			return a >= b;
+		case Gt:
+			return a > b;
+		case Le:
+			return a <= b;
+		case Lt:
+			return a < b;
+		case Ne:
+			return a != b;
+		case PoLeq:
+			break;
+		default:
+			break;
+		}
+		throw new RuntimeException("Not implemented: "+op);
+	}
+
+	private static int evalIntOp(BinaryOperator op, int a, int b) {
+		switch (op) {
 		case BAnd:
 			return a & b;
 		case BOr:
 			return a | b;
 		case Div:
 			return a / b;
-		case Eq:
-			return a == b ? 1 : 0;
-		case Ge:
-			return a >= b ? 1 : 0;
-		case Gt:
-			return a > b ? 1 : 0;
-		case Implies:
-			return (a==0|| b==1) ? 1 : 0;
-		case Le:
-			return a <= b ? 1 : 0;
-		case Lt:
-			return a < b ? 1 : 0;
 		case Minus:
 			return a - b;
 		case Mod:
 			return a % b;
 		case Mul:
 			return a * b;
-		case Ne:
-			return a != b ? 1 : 0;
-		case Or:
-			return (a==1 || b==1) ? 1 : 0;
 		case Plus:
 			return a + b;
-		case PoLeq:
-			break;
 		case Shl:
 			return a << b;
 		case Shr:
@@ -127,7 +162,7 @@ public class ExpressionEvaluator {
 		default:
 			break;
 		}
-		throw new RuntimeException("Not implemented: "+op);
+		throw new RuntimeException("Not handled: " + op);
 	}
 
 	public static Expression simplify(IteExpression e) {

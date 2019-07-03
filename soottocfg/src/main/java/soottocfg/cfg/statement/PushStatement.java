@@ -161,13 +161,13 @@ public class PushStatement extends Statement {
 	public Statement deepCopy() {
 		List<Expression> rightCopy = new LinkedList<Expression>();
 		for (Expression e : right) {
-			rightCopy.add(e.deepCopy());
+			rightCopy.add(e);
 		}
 		List<Expression> ghostCopy = new LinkedList<Expression>();
 		for (Expression e : ghostExpressions) {
-			ghostCopy.add(e.deepCopy());
+			ghostCopy.add(e);
 		}
-		return new PushStatement(getSourceLocation(), classConstant, object.deepCopy(), rightCopy, ghostCopy, this.id);
+		return new PushStatement(getSourceLocation(), classConstant, object, rightCopy, ghostCopy, this.id);
 	}
 
 	@Override
@@ -195,7 +195,7 @@ public class PushStatement extends Statement {
 			ghostCopy.add(e.substituteVarWithExpression(subs));
 		}
 //		Verify.verify(!subs.containsKey(object.getVariable()));
-		return new PushStatement(getSourceLocation(), classConstant, object.deepCopy(), rightCopy, ghostCopy, this.id);
+		return new PushStatement(getSourceLocation(), classConstant, object, rightCopy, ghostCopy, this.id);
 	}	
 	
 	

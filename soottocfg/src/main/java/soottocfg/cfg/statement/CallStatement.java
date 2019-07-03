@@ -133,11 +133,11 @@ public class CallStatement extends Statement {
 	public CallStatement deepCopy() {
 		List<Expression> argCopy = new LinkedList<Expression>();
 		for (Expression e : arguments) {
-			argCopy.add(e.deepCopy());
+			argCopy.add(e);
 		}
 		List<Expression> rec = new LinkedList<Expression>();
 		for (Expression e : returnReceiver) {
-			rec.add(e.deepCopy());
+			rec.add(e);
 		}
 		return new CallStatement(getSourceLocation(), method, argCopy, rec);
 	}
@@ -163,7 +163,7 @@ public class CallStatement extends Statement {
 		}
 		List<Expression> rec = new LinkedList<Expression>();
 		for (Expression e : returnReceiver) {
-			rec.add(e.deepCopy());
+			rec.add(e);
 		}
 		return new CallStatement(getSourceLocation(), method, argCopy, rec);
 	}

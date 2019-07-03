@@ -32,13 +32,7 @@ public class ReferenceType extends Type {
 
 	}
 
-	private static ReferenceType instance = new ReferenceType(null);
-	public static Type instance() {
-		return instance;
-	}
-
-	
-	public ClassVariable getClassVariable() {
+ 	public ClassVariable getClassVariable() {
 		return classVariable;
 	}
 
@@ -93,7 +87,25 @@ public class ReferenceType extends Type {
 		}
 	}
 
+        @Override
+        public int hashCode() {
+            return 17 * classVariable.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            ReferenceType other = (ReferenceType) obj;
+            return this.classVariable.equals(other.classVariable);
+        }
+
 	public boolean isNull() {
 		return (classVariable == null);
 	}
+
 }

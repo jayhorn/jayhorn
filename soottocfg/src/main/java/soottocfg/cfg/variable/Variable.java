@@ -67,7 +67,7 @@ public class Variable implements Serializable {
 	public boolean equals(Object obj) {
 		if (obj instanceof Variable) {
 			Variable other = (Variable) obj;
-			return this.variableName.equals(other.variableName) &&	this.type.equals(other.type);
+			return this.variableName.equals(other.variableName); // &&	this.type.equals(other.type);
 		}
 		return false;
 	}
@@ -76,7 +76,7 @@ public class Variable implements Serializable {
 	public int hashCode() {
 		int result = 42;
 		result = 37 * result + this.variableName.hashCode();
-		result = 37 * result + this.type.hashCode();
+//		result = 37 * result + this.type.hashCode();
 		return result;
 	}
 }

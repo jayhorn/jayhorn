@@ -63,24 +63,21 @@ public class IdentifierExpression extends Expression {
 		return variable.getType();
 	}
 
-	@Override
-	public IdentifierExpression deepCopy() {		
-		return new IdentifierExpression(getSourceLocation(), variable);
-	}
-	
 	public IdentifierExpression substitute(Map<Variable, Variable> subs) {
 		if (subs.containsKey(variable)) {
-			return new IdentifierExpression(getSourceLocation(), subs.get(variable));
+                    Variable newVar = subs.get(variable);
+                    if (newVar != variable)
+                        return new IdentifierExpression(getSourceLocation(), newVar);
 		}
-		return new IdentifierExpression(getSourceLocation(), variable);
+		return this;
 	}
 	
 	@Override
 	public Expression substituteVarWithExpression(Map<Variable, Expression> subs) {
 		if (subs.containsKey(variable)) {
-			return subs.get(variable).deepCopy();
+			return subs.get(variable);
 		}
-		return this.deepCopy();
+		return this;
 	}
 
 

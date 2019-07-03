@@ -60,7 +60,7 @@ public class AssumeStatement extends Statement {
 
 	@Override
 	public AssumeStatement deepCopy() {
-		return new AssumeStatement(getSourceLocation(), expression.deepCopy());
+		return new AssumeStatement(getSourceLocation(), expression);
 	}
 
 	@Override

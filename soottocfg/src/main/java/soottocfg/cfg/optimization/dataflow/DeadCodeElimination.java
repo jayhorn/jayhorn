@@ -91,9 +91,7 @@ public class DeadCodeElimination  {
 						toRemove.add(edge);
 					}
 				} else {
-					//TODO : do not set the label for now because it causes
-					//princess to fail during type checking.
-//					edge.setLabel(simpleLabel);
+					edge.setLabel(simpleLabel);
 				}
 //				
 //				Optional<Object> res = ExpressionEvaluator.eval(edge.getLabel().get());

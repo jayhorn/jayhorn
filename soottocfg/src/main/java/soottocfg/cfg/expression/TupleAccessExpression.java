@@ -104,33 +104,28 @@ public class TupleAccessExpression extends Expression {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see soottocfg.cfg.expression.Expression#deepCopy()
-	 */
-	@Override
-	public Expression deepCopy() {
-		return new TupleAccessExpression(this.getSourceLocation(), tupleVariable, tupleKey);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
 	 * @see soottocfg.cfg.expression.Expression#substitute(java.util.Map)
 	 */
 	@Override
 	public Expression substitute(Map<Variable, Variable> subs) {
-		if (subs.containsKey(tupleVariable)) {
-			return new TupleAccessExpression(this.getSourceLocation(), subs.get(tupleVariable), tupleKey);
-		}
-		return new TupleAccessExpression(this.getSourceLocation(), tupleVariable, tupleKey);
+            if (subs.containsKey(tupleVariable)) {
+                Variable newVar = subs.get(tupleVariable);
+                if (newVar != tupleVariable)
+                    return new TupleAccessExpression(this.getSourceLocation(), newVar, tupleKey);
+            }
+            return this;
 	}
 
 	@Override
 	public Expression substituteVarWithExpression(Map<Variable, Expression> subs) {
-		if (subs.containsKey(tupleVariable)) {
-//			return new TupleAccessExpression(this.getSourceLocation(), subs.get(tupleVariable), tupleKey);
-//			throw new RuntimeException("Not expected! " + subs.get(tupleVariable));
-		}
-		return this.deepCopy();
+            if (subs.containsKey(tupleVariable)) {
+                Expression newVarE = subs.get(tupleVariable);
+                Verify.verify(newVarE instanceof IdentifierExpression);
+                Variable newVar = ((IdentifierExpression)newVarE).getVariable();
+                if (newVar != tupleVariable)
+                    return new TupleAccessExpression(this.getSourceLocation(), newVar, tupleKey);
+            }
+            return this;
 	}
 	
 }

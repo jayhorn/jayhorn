@@ -49,7 +49,7 @@ public class BinaryExpression extends Expression {
 		}
 	}
 
-	private Expression left, right;
+	private final Expression left, right;
 	private final BinaryOperator op;
 
 	public BinaryExpression(SourceLocation loc, BinaryOperator op, Expression left, Expression right) {
@@ -163,17 +163,22 @@ public class BinaryExpression extends Expression {
 		}
 	}
 
-	@Override
-	public BinaryExpression deepCopy() {		
-		return new BinaryExpression(getSourceLocation(), op, left.deepCopy(), right.deepCopy());
-	}
-
 	public BinaryExpression substitute(Map<Variable, Variable> subs) {
-		return new BinaryExpression(getSourceLocation(), op, left.substitute(subs), right.substitute(subs));
+            Expression newLeft = left.substitute(subs);
+            Expression newRight = right.substitute(subs);
+            if (left == newLeft && right == newRight)
+                return this;
+            else
+		return new BinaryExpression(getSourceLocation(), op, newLeft, newRight);
 	}
 
 	public BinaryExpression substituteVarWithExpression(Map<Variable, Expression> subs) {
-		return new BinaryExpression(getSourceLocation(), op, left.substituteVarWithExpression(subs), right.substituteVarWithExpression(subs));
+            Expression newLeft = left.substituteVarWithExpression(subs);
+            Expression newRight = right.substituteVarWithExpression(subs);
+            if (left == newLeft && right == newRight)
+                return this;
+            else
+		return new BinaryExpression(getSourceLocation(), op, newLeft, newRight);
 	}
 
 }
