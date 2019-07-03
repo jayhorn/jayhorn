@@ -233,7 +233,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 			}
 			if (((RefType)t).getSootClass().equals(Scene.v().getSootClass("java.lang.String"))) {
 				LinkedHashMap<String, Type> elementTypes = ReferenceType.mkDefaultElementTypes();
-				elementTypes.put("$String", IntType.instance());
+				elementTypes.put("$String", IntType.instance());	// TODO: proverTypeToType(stringADTType)
 				return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)), elementTypes);
 			}
 			return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)));

@@ -69,22 +69,10 @@ public class StringEncoder {
     }
 
     private ProverFun mkStringConcatProverFun() {
+        ProverType stringADTType = stringADT.getType(0);
         return p.mkHornPredicate(STRING_CONCAT, new ProverType[]{
-                IntType.INSTANCE, IntType.INSTANCE, IntType.INSTANCE
+                stringADTType, stringADTType, stringADTType
         });
-    }
-
-
-    public void assertStringLiteral(ProverExpr ref, ProverExpr str, ReferenceType stringType) {
-        if (ref instanceof ProverTupleExpr) {
-            ProverExpr idStr = p.mkTupleSelect(ref, 3);
-            storeProverAssertion(mkStringEq(idStr, str, stringType));
-            // FIXME:
-            //          Horn:   false :- $string("a")_260#3 != cons(97, nil).
-            //          SMT2:   (assert (forall ((var0 List[Int])) (= var0 (cons 97 nil))))
-        } else {
-            throw new RuntimeException("ref must be a ProverTupleExpr with size of 4");
-        }
     }
 
     private void initializeStringHornClauses(ReferenceType stringType) {
@@ -97,15 +85,6 @@ public class StringEncoder {
             ProverExpr t = p.mkHornVariable("t", stringADTType);
             ProverExpr h = p.mkHornVariable("h", stringADTType);
             ProverExpr empty = stringADT.mkCtorExpr(0, new ProverExpr[0]);
-            ProverExpr left = mkNewStringHornVariable(p, "left", stringType);
-            ProverExpr leftString = p.mkHornVariable("leftString", stringADTType);
-            ProverExpr idLeft = p.mkTupleSelect(left, 3);
-            ProverExpr right = mkNewStringHornVariable(p, "right", stringType);
-            ProverExpr rightString = p.mkHornVariable("rightString", stringADTType);
-            ProverExpr idRight = p.mkTupleSelect(right, 3);
-            ProverExpr concat = mkNewStringHornVariable(p, "concat", stringType);
-            ProverExpr concatString = p.mkHornVariable("concatString", stringADTType);
-            ProverExpr idConcat = p.mkTupleSelect(concat, 3);
             // String Concatenation
             ProverFun predConcatIter = mkStringConcatIterativeProverFun();
             ProverFun predConcat = mkStringConcatProverFun();
@@ -128,10 +107,9 @@ public class StringEncoder {
                     p.mkLiteral(true)
             ));
             storeProverHornClause(p.mkHornClause(
-                    predConcat.mkExpr(idLeft, idRight, idConcat),
-                    new ProverExpr[] {predConcatIter.mkExpr(leftString, rightString, empty, empty, concatString)},
-                    p.mkAnd(p.mkEq(idLeft, leftString), p.mkEq(idRight, rightString),
-                            p.mkEq(idConcat, concatString))
+                    predConcat.mkExpr(a, b, c),
+                    new ProverExpr[] {predConcatIter.mkExpr(a, b, empty, empty, c)},
+                    p.mkLiteral(true)
             ));
 
             initializedStringHornClauses = true;
@@ -141,17 +119,17 @@ public class StringEncoder {
     public ProverExpr mkStringEq(ProverExpr left, ProverExpr right, ReferenceType stringType) {
         initializeStringHornClauses(stringType);
         if (left instanceof ProverTupleExpr) {
-            ProverExpr idLeft = p.mkTupleSelect(left, 3);
+            ProverExpr leftString = p.mkTupleSelect(left, 3);
             if (right instanceof ProverTupleExpr) {
-                ProverExpr idRight = p.mkTupleSelect(right, 3);
-                return mkStringEq(idLeft, idRight, stringType);
+                ProverExpr rightString = p.mkTupleSelect(right, 3);
+                return mkStringEq(leftString, rightString, stringType);
             } else {
-                return mkStringEq(idLeft, right, stringType);
+                return mkStringEq(leftString, right, stringType);
             }
         } else {
             if (right instanceof ProverTupleExpr) {
-                ProverExpr idRight = p.mkTupleSelect(right, 3);
-                return mkStringEq(left, idRight, stringType);
+                ProverExpr rightString = p.mkTupleSelect(right, 3);
+                return mkStringEq(left, rightString, stringType);
             } else {
                 return p.mkEq(left, right);
             }
@@ -184,25 +162,25 @@ public class StringEncoder {
                                      ReferenceType stringType) {
         initializeStringHornClauses(stringType);
         if (left instanceof ProverTupleExpr) {
-            ProverExpr idLeft = p.mkTupleSelect(left, 3);
+            ProverExpr leftString = p.mkTupleSelect(left, 3);
             if (right instanceof ProverTupleExpr) {
-                ProverExpr idRight = p.mkTupleSelect(right, 3);
-                return mkStringConcat(idLeft, idRight, stringType);
+                ProverExpr rightString = p.mkTupleSelect(right, 3);
+                return mkStringConcat(leftString, rightString, stringType);
             } else {
-                return mkStringConcat(idLeft, right, stringType);
+                return mkStringConcat(leftString, right, stringType);
             }
         } else {
             if (right instanceof ProverTupleExpr) {
-                ProverExpr idRight = p.mkTupleSelect(right, 3);
-                return mkStringConcat(left, idRight, stringType);
+                ProverExpr rightString = p.mkTupleSelect(right, 3);
+                return mkStringConcat(left, rightString, stringType);
             } else {
                 String concatName = String.format(STRING_CONCAT_TEMPLATE,
                         left.toString(), right.toString());
-                ProverExpr concatString = mkNewStringHornVariable(p, concatName, stringType);
-                ProverExpr idConcat = p.mkTupleSelect(concatString, 3);
+                ProverExpr concat = mkNewStringHornVariable(p, concatName, stringType);
+                ProverExpr concatString = p.mkTupleSelect(concat, 3);
                 ProverFun predConcat = mkStringConcatProverFun();
-                storeProverAssertion(predConcat.mkExpr(left, right, idConcat));
-                return concatString;
+                storeProverAssertion(predConcat.mkExpr(left, right, concatString));
+                return concat;
             }
         }
     }

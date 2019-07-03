@@ -92,10 +92,11 @@ public class ExpressionEncoder {
 		if (e instanceof StringLiteral) {	// check before (e instanceof IdentifierExpression)
 //			return stringEncoder.mkString(((StringLiteral) e).getValue());
 			StringLiteral stl = (StringLiteral) e;
-			ProverExpr ste = stringEncoder.mkString(stl.getValue());
+			ProverExpr str = stringEncoder.mkString(stl.getValue());
 			ProverExpr ref = varToProverExpr(stl.getVariable(), varMap);
-			stringEncoder.assertStringLiteral(ref, ste, (ReferenceType)e.getType());
-			return ref;
+//			stringEncoder.assertStringLiteral(ref, ste, (ReferenceType)e.getType());
+//			return ref;
+			return p.mkTupleUpdate(ref, 3, str);
 		} else if (e instanceof IdentifierExpression) {
 			Variable var = ((IdentifierExpression) e).getVariable();
 			return varToProverExpr(var, varMap);
