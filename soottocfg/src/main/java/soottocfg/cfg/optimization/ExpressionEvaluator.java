@@ -107,6 +107,10 @@ public class ExpressionEvaluator {
 			return !a || b;
 		case Or:
 			return a || b;
+		case Eq:
+			return a == b;
+		case Ne:
+			return a != b;
 		default:
 			break;
 		}
