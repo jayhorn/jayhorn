@@ -64,28 +64,30 @@ public class ConstPropagator {
 	 */
 	public static boolean constPropagate(Method m) {
 		ReachingDefinitions rdefs = DataFlowUtils.computeReachingDefinitions(m);
+//            Long start = System.currentTimeMillis();
 		
 		boolean changes = false;
 
 		for (CfgBlock b : m.vertexSet()) {
-			if (progateForEdgeLabels(m, b, rdefs)) {
+			if (propagateForEdgeLabels(m, b, rdefs)) {
 				changes = true;
 			}
 			List<Statement> newStmts = new LinkedList<Statement>();
 			for (Statement s : b.getStatements()) {
-				Map<Variable, Expression> subsitutions = createSubstitutionMap(s.getUseVariables(), rdefs.in.get(s));
-				Statement newStmt = s.substituteVarWithExpression(subsitutions);
-				changes = !cfgEquals(newStmt, s) ? true : changes;
+				Map<Variable, Expression> substitutions = createSubstitutionMap(s.getUseVariables(), rdefs.in.get(s));
+				Statement newStmt = s.substituteVarWithExpression(substitutions);
+				changes = changes || !cfgEquals(newStmt, s);
 				newStmts.add(newStmt);
 			}
 			if (changes) {
 				b.setStatements(newStmts);
 			}
 		}
+//            System.out.println("A: " + (System.currentTimeMillis() - start));
 		return changes;
 	}
 
-	private static boolean progateForEdgeLabels(Method m, CfgBlock b, ReachingDefinitions rdefs) {
+	private static boolean propagateForEdgeLabels(Method m, CfgBlock b, ReachingDefinitions rdefs) {
 		boolean changes = false;
 		if (!b.getStatements().isEmpty()) {
 			Statement lastStmt = b.getStatements().get(b.getStatements().size() - 1);
@@ -93,9 +95,9 @@ public class ConstPropagator {
 			for (CfgEdge e : m.outgoingEdgesOf(b)) {
 				if (e.getLabel().isPresent()) {
 					Expression expr = e.getLabel().get();
-					Map<Variable, Expression> subsitutions = createSubstitutionMap(expr.getUseVariables(), defStmts);
-					if (!subsitutions.isEmpty()) {
-						Expression newExpr = expr.substituteVarWithExpression(subsitutions);						
+					Map<Variable, Expression> substitutions = createSubstitutionMap(expr.getUseVariables(), defStmts);
+					if (!substitutions.isEmpty()) {
+						Expression newExpr = expr.substituteVarWithExpression(substitutions);
 						if (!cfgEquals(expr, newExpr)) {
 							e.setLabel(newExpr);
 							changes = true;

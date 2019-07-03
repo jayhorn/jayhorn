@@ -86,114 +86,73 @@ public class DataFlowUtils  {
 	}
 	
 	public static ReachingDefinitions computeReachingDefinitions(Method m) {
-//            System.out.println("reachingDefs");
 //            Long start = System.currentTimeMillis();
 
-		Map<Statement, Set<Statement>> gen = new LinkedHashMap<Statement, Set<Statement>>();
-		Map<Statement, Set<Statement>> kill = new LinkedHashMap<Statement, Set<Statement>>();
-		computeGenAndKillSets(m, gen, kill);
+            Map<Statement, Set<Statement>> gen = new HashMap<Statement, Set<Statement>>();
+            Map<Statement, Set<Statement>> kill = new HashMap<Statement, Set<Statement>>();
+            computeGenAndKillSets(m, gen, kill);
 		
-		// compute the predecessor-set for all statements
-		Map<Statement, Set<Statement>> predMap = getStatementPredecessorMap(m);
-
-		// compute the successor-set for all statements
-		Map<Statement, Set<Statement>> succMap = getStatementSuccessorMap(predMap);
+            // compute the predecessor-set for all statements
+            Map<Statement, Set<Statement>> predMap = getStatementPredecessorMap(m);
+            
+            // compute the successor-set for all statements
+            Map<Statement, Set<Statement>> succMap = getStatementSuccessorMap(predMap);
 		
-		Map<Statement, Set<Statement>> in = new LinkedHashMap<Statement, Set<Statement>>();
-		Map<Statement, Set<Statement>> out = new LinkedHashMap<Statement, Set<Statement>>();
-		Map<Statement, Set<Statement>> queued = new LinkedHashMap<Statement, Set<Statement>>();
+            Map<Statement, Set<Statement>> in = new LinkedHashMap<Statement, Set<Statement>>();
+            Map<Statement, Set<Statement>> out = new LinkedHashMap<Statement, Set<Statement>>();
+            Map<Statement, Set<Statement>> queued = new HashMap<Statement, Set<Statement>>();
 		
-		List<Statement> allStatements = new LinkedList<Statement>(predMap.keySet());
-		for (Statement s : allStatements) {
-			in.put(s, new HashSet<Statement>());
-			out.put(s, new HashSet<Statement>());
-			queued.put(s, new HashSet<Statement>());
-		}
-//            System.out.println(allStatements.size());
+            List<Statement> allStatements = new LinkedList<Statement>(predMap.keySet());
+            for (Statement s : allStatements) {
+                in.put(s, new HashSet<Statement>());
+                out.put(s, new HashSet<Statement>());
+                queued.put(s, new HashSet<Statement>());
+            }
 
-                Stack<Statement> workList = new Stack<> ();
-                Set<Statement> workListEls = new HashSet<> ();
+            Stack<Statement> workList = new Stack<> ();
+            Set<Statement> workListEls = new HashSet<> ();
 
-                for (Statement s : allStatements)
-                    for (Statement r : gen.get(s)) {
-                        out.get(s).add(r);
-                        for (Statement t : succMap.get(s))
-                            if (queued.get(t).add(r) && workListEls.add(t))
-                                workList.push(t);
-                    }
-
-//            System.out.println("Z1: " + (System.currentTimeMillis() - start));
-
-                while (!workList.isEmpty()) {
-                    final Statement nextS = workList.pop();
-                    workListEls.remove(nextS);
-
-                    // update the in- and out-set
-                    boolean outChanged = false;
-                    final Set<Statement> inS = in.get(nextS);
-                    final Set<Statement> outS = out.get(nextS);
-                    final Set<Statement> killS = kill.get(nextS);
-                    final Set<Statement> queuedS = queued.get(nextS);
-
-                    queued.put(nextS, new HashSet<Statement>());
-
-                    for (Statement s : queuedS)
-                        if (inS.add(s) && !killS.contains(s) && outS.add(s))
-                            for (Statement t : succMap.get(nextS))
-                                if (queued.get(t).add(s) && workListEls.add(t))
-                                    workList.push(t);
+            for (Statement s : allStatements)
+                for (Statement r : gen.get(s)) {
+                    out.get(s).add(r);
+                    for (Statement t : succMap.get(s))
+                        if (queued.get(t).add(r) && workListEls.add(t))
+                            workList.push(t);
                 }
 
+            Set<Statement> emptySet = new HashSet<>();
+
+            while (!workList.isEmpty()) {
+                final Statement nextS = workList.pop();
+                workListEls.remove(nextS);
+
+                // update the in- and out-set
+                boolean outChanged = false;
+                final Set<Statement> inS = in.get(nextS);
+                final Set<Statement> outS = out.get(nextS);
+                final Set<Statement> killS = kill.get(nextS);
+                final Set<Statement> queuedS = queued.get(nextS);
+
+                queued.put(nextS, emptySet);
+
+                for (Statement s : queuedS)
+                    if (inS.add(s) && !killS.contains(s) && outS.add(s))
+                        for (Statement t : succMap.get(nextS))
+                            if (queued.get(t).add(s) && workListEls.add(t))
+                                workList.push(t);
+
+                queuedS.clear();
+                emptySet = queuedS;
+            }
+
 //            System.out.println("Z2: " + (System.currentTimeMillis() - start));
-		
-
-/*
-		boolean changed = true;
-		while(changed) {
-			changed = false;
-			for (Statement s : allStatements) {
-
-				//update the in-sets
-				Set<Statement> newIn = computeInSet(s, predMap, out);
-				if (!in.get(s).equals(newIn) ) {
-					changed = true;
-					in.get(s).clear();
-					in.get(s).addAll(newIn);
-				}
-				//update the out-sets
-				Set<Statement> newOut = new HashSet<Statement>();
-				//gen[s] \cup (in[s] - kill[s])
-				newOut.addAll(in.get(s));
-				newOut.removeAll(kill.get(s));
-				newOut.addAll(gen.get(s));
-				if (!out.get(s).equals(newOut)) {
-					changed = true;
-					out.get(s).clear();
-					out.get(s).addAll(newOut);
-				}
-			}
-		}
-*/
-
-		ReachingDefinitions reach = new ReachingDefinitions();
-		reach.in = in;
-		reach.out = out;
-		return reach;
+            
+            ReachingDefinitions reach = new ReachingDefinitions();
+            reach.in = in;
+            reach.out = out;
+            return reach;
 	}
 
-/*
-	private static Set<Statement> computeInSet(Statement s, Map<Statement, Set<Statement>> predMap, Map<Statement, Set<Statement>> out) {
-		Set<Statement> res = new HashSet<Statement>();
-		for (Statement pre : predMap.get(s)) {
-			if (!out.containsKey(s)) {
-				out.put(s, new HashSet<Statement>());
-			}
-			res.addAll(out.get(pre));
-		}
-		return res;
- 	}
-*/
-	
 	/**
 	 * Returns true if s generates an update to a variable.
 	 * @param s
@@ -247,7 +206,7 @@ public class DataFlowUtils  {
 	 * @return Map from statement to set of predecessor statements 
 	 */
 	private static Map<Statement, Set<Statement>> getStatementPredecessorMap(Method m) {
-		Map<Statement, Set<Statement>> pred = new LinkedHashMap<Statement, Set<Statement>>();
+		Map<Statement, Set<Statement>> pred = new HashMap<Statement, Set<Statement>>();
 
 		Map<CfgBlock, Set<Statement>> lastStmt = new HashMap<CfgBlock, Set<Statement>>();
 
@@ -312,7 +271,7 @@ public class DataFlowUtils  {
 
     private static Map<Statement, Set<Statement>> getStatementSuccessorMap(
                                                     Map<Statement, Set<Statement>> predMap) {
-        Map<Statement, Set<Statement>> res = new LinkedHashMap<Statement, Set<Statement>>();
+        Map<Statement, Set<Statement>> res = new HashMap<Statement, Set<Statement>>();
 
         for (Map.Entry<Statement, Set<Statement>> entry : predMap.entrySet()) {
             Statement succ = entry.getKey();
