@@ -446,7 +446,8 @@ public class PushPullSimplifier {
 
 				if (debug)
 					System.out.println("Let's see if we can move " + push + " down in the CFG...");
-				
+
+                                // TODO: why is this not limited to subsequent blocks with only one incoming edge?
 				for (CfgEdge out : outgoing) {
 					CfgBlock next = b.getMethod().getEdgeTarget(out);
 					

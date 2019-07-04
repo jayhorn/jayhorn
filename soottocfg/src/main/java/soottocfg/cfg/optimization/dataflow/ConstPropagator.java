@@ -34,16 +34,6 @@ import soottocfg.soot.util.SootTranslationHelpers;
  */
 public class ConstPropagator {
 
-	private static boolean cfgEquals(Expression s1, Expression s2) {
-		// TODO: equals currently broken
-		return s1.toString().equals(s2.toString());
-	}
-
-	private static boolean cfgEquals(Statement s1, Statement s2) {
-		// TODO: equals currently broken
-		return s1.toString().equals(s2.toString());
-	}
-
 	public static void main(String[] args) {
 		Method m = createExampleProgram();
 		System.err.println(m);
@@ -76,7 +66,7 @@ public class ConstPropagator {
 			for (Statement s : b.getStatements()) {
 				Map<Variable, Expression> substitutions = createSubstitutionMap(s.getUseVariables(), rdefs.in.get(s));
 				Statement newStmt = s.substituteVarWithExpression(substitutions);
-				changes = changes || !cfgEquals(newStmt, s);
+				changes = changes || (newStmt != s);
 				newStmts.add(newStmt);
 			}
 			if (changes) {
@@ -98,7 +88,7 @@ public class ConstPropagator {
 					Map<Variable, Expression> substitutions = createSubstitutionMap(expr.getUseVariables(), defStmts);
 					if (!substitutions.isEmpty()) {
 						Expression newExpr = expr.substituteVarWithExpression(substitutions);
-						if (!cfgEquals(expr, newExpr)) {
+						if (expr != newExpr) {
 							e.setLabel(newExpr);
 							changes = true;
 						}
