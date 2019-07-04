@@ -115,9 +115,9 @@ public class Main {
 
 			if (Options.v().verbose) Log.v().setLevel(Level.INFO);
 			
-			Log.info("\t\t ---   JAYHORN : Static Analyzer for Java Programs ---- ");
-			Log.info("\t Verification : " + Options.v().getChecker());
-			Log.info("\t Solver : " + Options.v().getSolver());
+			Log.info("---   JayHorn : Static Analyzer for Java Programs   --- ");
+//			Log.info("Verification: " + Options.v().getChecker());
+			Log.info("Horn solver: " + Options.v().getSolver());
 			
 			if ("safety".equals(Options.v().getChecker())) {			
 				safetyAnalysis(factory);

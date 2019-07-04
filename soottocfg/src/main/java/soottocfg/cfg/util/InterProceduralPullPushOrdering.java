@@ -50,7 +50,7 @@ public class InterProceduralPullPushOrdering {
 			sb.append("FPNode: ");
 			sb.append(stmt);
 			sb.append(" in ");
-			sb.append(this.containingMethod);
+			sb.append(containingMethod == null ? "null" : this.containingMethod.getMethodName());
 			return sb.toString();
 		}
 	}

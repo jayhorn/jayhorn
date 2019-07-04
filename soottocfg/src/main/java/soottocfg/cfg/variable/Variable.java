@@ -62,7 +62,11 @@ public class Variable implements Serializable {
 //		return this.variableName + "/" + this.type;
 		return this.type + " " + this.variableName;
 	}
-	
+
+/*	
+        Because a program can contain multiple distinct variables with the same name and type,
+        it is not a good idea to implement an equals method in this class
+
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof Variable) {
@@ -79,4 +83,5 @@ public class Variable implements Serializable {
 //		result = 37 * result + this.type.hashCode();
 		return result;
 	}
+*/
 }
