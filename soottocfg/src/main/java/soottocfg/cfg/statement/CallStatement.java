@@ -144,28 +144,44 @@ public class CallStatement extends Statement {
 
 	@Override
 	public CallStatement substitute(Map<Variable, Variable> subs) {
-		List<Expression> argCopy = new LinkedList<Expression>();
-		for (Expression e : arguments) {
-			argCopy.add(e.substitute(subs));
-		}
-		List<Expression> rec = new LinkedList<Expression>();
-		for (Expression e : returnReceiver) {
-			rec.add(e.substitute(subs));
-		}
-		return new CallStatement(getSourceLocation(), method, argCopy, rec);
+            boolean changed = false;
+            List<Expression> argCopy = new LinkedList<Expression>();
+            for (Expression e : arguments) {
+                Expression newE = e.substitute(subs);
+                changed = changed || (newE != e);
+                argCopy.add(newE);
+            }
+            List<Expression> rec = new LinkedList<Expression>();
+            for (Expression e : returnReceiver) {
+                Expression newE = e.substitute(subs);
+                changed = changed || (newE != e);
+                rec.add(newE);
+            }
+            if (changed)
+                return new CallStatement(getSourceLocation(), method, argCopy, rec);
+            else
+                return this;
 	}
 
 	@Override
 	public CallStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
-		List<Expression> argCopy = new LinkedList<Expression>();
-		for (Expression e : arguments) {
-			argCopy.add(e.substituteVarWithExpression(subs));
-		}
-		List<Expression> rec = new LinkedList<Expression>();
-		for (Expression e : returnReceiver) {
-			rec.add(e);
-		}
-		return new CallStatement(getSourceLocation(), method, argCopy, rec);
+            boolean changed = false;
+            List<Expression> argCopy = new LinkedList<Expression>();
+            for (Expression e : arguments) {
+                Expression newE = e.substituteVarWithExpression(subs);
+                changed = changed || (newE != e);
+                argCopy.add(newE);
+            }
+            List<Expression> rec = new LinkedList<Expression>();
+            for (Expression e : returnReceiver) {
+                Expression newE = e.substituteVarWithExpression(subs);
+                changed = changed || (newE != e);
+                rec.add(newE);
+            }
+            if (changed)
+                return new CallStatement(getSourceLocation(), method, argCopy, rec);
+            else
+                return this;
 	}
 	
 }

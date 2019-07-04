@@ -93,16 +93,19 @@ public class NewStatement extends Statement {
 
 	@Override
 	public NewStatement substitute(Map<Variable, Variable> subs) {
-		ClassVariable cv = this.classVariable;
-		if (subs.containsKey(cv)) {
-			cv = (ClassVariable)subs.get(cv);
-		}
-		return new NewStatement(getSourceLocation(), left.substitute(subs), cv, this.counterVar);
+            ClassVariable cv = this.classVariable;
+            if (subs.containsKey(cv))
+                cv = (ClassVariable)subs.get(cv);
+            IdentifierExpression newLeft = left.substitute(subs);
+            if (cv == classVariable && newLeft == left)
+                return this;
+            else
+                return new NewStatement(getSourceLocation(), newLeft, cv, this.counterVar);
 	}
 	
 	@Override
 	public NewStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
-		return this.deepCopy();
+		return this;
 	}
 	
 }
