@@ -80,7 +80,7 @@ public class Options {
 	/**
 	 * JAR file
 	 */
-	@Option(name = "-j", usage = "JAR file, class folder, or apk", required = false)
+	@Option(name = "-j", usage = "JAR file, class folder, or apk", required = true)
 	private String javaInput;
 
 	public String getJavaInput() {

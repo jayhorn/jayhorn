@@ -16,6 +16,16 @@ For information on how to download and run JayHorn check [our website](http://ja
 
 Join the chat [![Join the chat at https://gitter.im/jayhorn/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jayhorn/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+## Quick Guide
+
+```bash
+./gradlew assemble
+java -jar jayhorn/build/libs/jayhorn.jar -help
+java -jar jayhorn/build/libs/jayhorn.jar -j example/classes
+```
+
+
+
 ## Soundines Statement
 This project has been done in the spirit of soundiness. When building practical program analyses, it is often necessary to cut corners. In order to be open about language features that we do not support or support only partially, we are attaching this soundiness statement.
 

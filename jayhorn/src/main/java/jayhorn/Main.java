@@ -38,7 +38,6 @@ public class Main {
 
     /**
      * Safety Analysis with JayHorn
-     * @param options
      * @param factory
      * @return true if safe, otherwise false
      */
@@ -94,6 +93,13 @@ public class Main {
 		
 		Options options = Options.v();
 		CmdLineParser parser = new CmdLineParser(options);
+
+		if (args.length == 0) {
+            Log.info("java -jar jayhorn.jar [options...] -j [JAR, DIR]");
+            parser.printUsage(System.err);
+            return;
+        }
+
 		try {
 			// parse command-line arguments
 			parser.parseArgument(args);
@@ -116,7 +122,6 @@ public class Main {
 			if (Options.v().verbose) Log.v().setLevel(Level.INFO);
 			
 			Log.info("---   JayHorn : Static Analyzer for Java Programs   --- ");
-//			Log.info("Verification: " + Options.v().getChecker());
 			Log.info("Horn solver: " + Options.v().getSolver());
 			
 			if ("safety".equals(Options.v().getChecker())) {			
@@ -127,7 +132,7 @@ public class Main {
 			
 		} catch (CmdLineException e) {
 			Log.error(e.toString());
-			Log.error("java -jar jayhorn.jar [options...] -j [JAR, DIR]");
+			Log.info("java -jar jayhorn.jar [options...] -j [JAR, DIR]");
 			parser.printUsage(System.err);
 		
 		} catch (Throwable t) {

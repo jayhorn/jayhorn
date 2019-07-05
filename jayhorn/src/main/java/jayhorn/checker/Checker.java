@@ -18,7 +18,7 @@ public abstract class Checker {
 		HornHelper.resetInstance();
 	}
 
-        public static enum CheckerResult {
+        public enum CheckerResult {
           SAFE, UNSAFE, UNKNOWN
         }
 	
