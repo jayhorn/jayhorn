@@ -1,4 +1,5 @@
 import java.util.Random;
+import org.sosy_lab.sv_benchmarks.Verifier;
 
 class A {
   public int i;
@@ -15,9 +16,8 @@ class A {
 class Example {
 
   public static void main(String[] args) {
-     Random r = new Random();
      A a = new A();
-     if (r.nextBoolean()) {
+     if (Verifier.nondetBoolean()) {
      	a.setI(41);
      } else {
         a.setI(42);
