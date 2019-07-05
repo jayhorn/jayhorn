@@ -9,7 +9,7 @@ import java.util.List;
 
 public class StringEncoder {
 
-    public static final String STRING_REF_TEMPLATE = "$string_ref(%s)";
+    public static final String STRING_REF_TEMPLATE = "$str_%d";
     public static final String STRING_CONCAT_TEMPLATE = "$contact(%s, %s)";
 
     public static final String STRING_CONCAT = "string_concat";
@@ -31,9 +31,9 @@ public class StringEncoder {
         clauses.add(proverHornClause);
     }
 
-    private void storeProverAssertion(ProverExpr proverAssertion) {
+    private void storeProverAssumption(ProverExpr proverAssumption) {
         ProverHornClause proverHornClause = p.mkHornClause(
-                p.mkLiteral(false), new ProverExpr[0], p.mkNot(proverAssertion)
+                proverAssumption, new ProverExpr[0], p.mkLiteral(true)
         );
         storeProverHornClause(proverHornClause);
     }
@@ -174,12 +174,12 @@ public class StringEncoder {
                 ProverExpr rightString = p.mkTupleSelect(right, 3);
                 return mkStringConcat(left, rightString, stringType);
             } else {
-                String concatName = String.format(STRING_CONCAT_TEMPLATE,
-                        left.toString(), right.toString());
-                ProverExpr concat = mkNewStringHornVariable(p, concatName, stringType);
+//                String concatName = String.format(STRING_CONCAT_TEMPLATE,
+//                        left.toString(), right.toString());
+                ProverExpr concat = mkNewStringHornVariable(p, null, stringType);
                 ProverExpr concatString = p.mkTupleSelect(concat, 3);
                 ProverFun predConcat = mkStringConcatProverFun();
-                storeProverAssertion(predConcat.mkExpr(left, right, concatString));
+                storeProverAssumption(predConcat.mkExpr(left, right, concatString));
                 return concat;
             }
         }

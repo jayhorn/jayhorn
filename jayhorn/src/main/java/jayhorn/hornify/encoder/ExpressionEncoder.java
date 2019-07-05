@@ -44,7 +44,7 @@ public class ExpressionEncoder {
 	public ExpressionEncoder(Prover p, HornEncoderContext hornContext) {
 		this.p = p;
 		this.hornContext = hornContext;
-		this.stringEncoder = new StringEncoder(p, hornContext.getStringADT());
+		this.stringEncoder = new StringEncoder(p, HornHelper.hh().getStringADT());
 	}
 
 	public HornEncoderContext getContext() {

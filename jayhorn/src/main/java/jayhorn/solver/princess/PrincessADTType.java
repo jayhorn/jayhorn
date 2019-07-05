@@ -3,6 +3,7 @@ package jayhorn.solver.princess;
 import jayhorn.solver.*;
 
 import ap.theories.ADT.ADTProxySort;
+import soottocfg.cfg.type.StringType;
 
 public class PrincessADTType implements ProverADTType {
     public final ADTProxySort sort;
@@ -20,6 +21,8 @@ public class PrincessADTType implements ProverADTType {
             return true;
         if (obj == null)
             return false;
+        if (this.toString().equals("List[Int]") && obj instanceof StringType)
+            return true;
         if (getClass() != obj.getClass())
             return false;
         PrincessADTType other = (PrincessADTType) obj;

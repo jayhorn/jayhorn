@@ -9,13 +9,10 @@ import java.util.Set;
 
 import com.google.common.base.Verify;
 
-import jayhorn.solver.Prover;
-import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverFun;
-import jayhorn.solver.ProverTupleExpr;
-import jayhorn.solver.ProverTupleType;
-import jayhorn.solver.ProverType;
+import jayhorn.solver.*;
 import soottocfg.cfg.type.*;
+import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.variable.Variable;
 
 public class HornHelper {
@@ -23,6 +20,8 @@ public class HornHelper {
 	public static final int NullValue = 0;
 	
 	private static HornHelper hh;
+
+	private ProverADT stringADT;
 	
 	public static void resetInstance() {
 		hh = null;
@@ -38,6 +37,14 @@ public class HornHelper {
 	private HornHelper() {
 	}
 
+	public void setStringADT(ProverADT stringADT) {
+		this.stringADT = stringADT;
+	}
+
+	public ProverADT getStringADT() {
+		return stringADT;
+	}
+
 	/**
 	 * Creates a ProverType from a Type.
 	 * TODO: not fully implemented.
@@ -49,6 +56,11 @@ public class HornHelper {
 	public ProverType getProverType(Prover p, Type t) {
 		if (t == IntType.instance()) {
 			return p.getIntType();
+		}
+		if (t == StringType.instance()) {
+			if (stringADT == null)
+				throw new RuntimeException("stringADT is not set");
+			return stringADT.getType(0);
 		}
 		if (t == BoolType.instance()) {
 			return p.getBooleanType();

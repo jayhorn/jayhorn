@@ -54,8 +54,6 @@ public class HornEncoderContext {
     private final Program program;
     private final Prover p;
 
-    private final ProverADT stringADT;
-
     private Map<ClassVariable, Integer> typeIds = new LinkedHashMap<ClassVariable, Integer>();
     private Map<ClassVariable, Map<Long, HornPredicate>> invariantPredicates =
         new HashMap<ClassVariable, Map<Long, HornPredicate>>();
@@ -183,7 +181,7 @@ public class HornEncoderContext {
     public HornEncoderContext(Prover p, Program prog, ProverADT stringADT, int explicitHeapSize, GeneratedAssertions generatedAssertions) {
         this.program = prog;
         this.p = p;
-        this.stringADT = stringADT;
+        HornHelper.hh().setStringADT(stringADT);
         this.explicitHeapSize = explicitHeapSize;
         this.genAssertions = generatedAssertions;
         for (ClassVariable var : program.getTypeGraph().vertexSet()) {
@@ -633,10 +631,6 @@ public class HornEncoderContext {
 
     public Program getProgram() {
         return this.program;
-    }
-
-    public ProverADT getStringADT() {
-        return this.stringADT;
     }
 
     /**
