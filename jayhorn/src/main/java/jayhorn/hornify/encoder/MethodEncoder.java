@@ -17,13 +17,14 @@ import jayhorn.hornify.MethodContract;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverHornClause;
-//import soottocfg.Options;
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.variable.Variable;
+
+//import soottocfg.Options;
 
 public class MethodEncoder {
 
@@ -69,6 +70,10 @@ public class MethodEncoder {
         S2H.sh().addClause((Statement) null, tsClauses);
 
         return clauses;
+    }
+
+    public Map<CfgBlock, HornPredicate> getBlockPredicates() {
+        return this.blockPredicates;
     }
 
     /**
@@ -122,8 +127,7 @@ public class MethodEncoder {
      * in precondition.variables. So the arity of the prover fun is
      * |precondition.variables| + |sortedVars|
      *
-     * @param p
-     * @param method
+     * @param liveVariables the list of live variables at the beginning of the block
      */
     private void makeBlockPredicates(LiveVars<CfgBlock> liveVariables) {
         for (Entry<CfgBlock, Set<Variable>> entry : liveVariables.liveIn.entrySet()) {
@@ -165,7 +169,6 @@ public class MethodEncoder {
      * Creates Horn clauses for all CfgBlocks in a method.
      *
      * @param liveVariables
-     * @param preVars
      */
     private void blocksToHorn(LiveVars<CfgBlock> liveVariables) {
         List<CfgBlock> todo = new LinkedList<CfgBlock>();

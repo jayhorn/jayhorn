@@ -39,7 +39,11 @@ public class S2H {
 	public void addClause(Statement s, List<ProverHornClause> h){
 		statToClause.put(s,h);
 	}
-	
+
+	public Map<Statement, List<ProverHornClause>> getStatToClause() {
+	    return statToClause;
+    }
+
 	/**
 	 * Get Transition Relation Clauses
 	 * @return

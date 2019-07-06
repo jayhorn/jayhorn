@@ -13,6 +13,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Verify;
 
+import jayhorn.CexPrinter;
 import jayhorn.Log;
 import jayhorn.Options;
 import jayhorn.hornify.HornEncoderContext;
@@ -206,8 +207,11 @@ public class EldaricaChecker extends Checker {
                 }
             }
 
-            if (Options.v().fullCEX && result == ProverResult.Unsat)
-                ((PrincessProver)prover).prettyPrintLastCEX();
+            if (Options.v().fullCEX && result == ProverResult.Unsat) {
+                ((PrincessProver) prover).prettyPrintLastCEX();
+                final CexPrinter cexPrinter = new CexPrinter();
+                cexPrinter.proverCexToCext(((PrincessProver) prover).getLastCEX(), hornContext);
+            }
 
             Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));
 
