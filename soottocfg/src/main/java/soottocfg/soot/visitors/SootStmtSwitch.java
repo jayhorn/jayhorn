@@ -464,6 +464,7 @@ public class SootStmtSwitch implements StmtSwitch {
 	 */
 	private boolean isHandledAsSpecialCase(Unit u, Value optionalLhs, InvokeExpr call) {
 		String methodSignature = call.getMethod().getSignature();
+		SourceLocation srcLoc = SootTranslationHelpers.v().getSourceLocation(u);
 		if (methodSignature.equals(SootTranslationHelpers.v().getAssertMethod().getSignature())) {
 			Verify.verify(optionalLhs == null);
 			Verify.verify(call.getArgCount() == 1);
@@ -485,7 +486,6 @@ public class SootStmtSwitch implements StmtSwitch {
 		}
 		if (methodSignature.contains("<java.lang.String: boolean equals(java.lang.Object)>")) {
 			assert (call instanceof  InstanceInvokeExpr);
-			SourceLocation srcLoc = SootTranslationHelpers.v().getSourceLocation(u);
 			Expression rhs;
 			if (call.getArg(0).getType() instanceof RefType) {
 				Value thisValue = ((InstanceInvokeExpr) call).getBase();
@@ -522,14 +522,16 @@ public class SootStmtSwitch implements StmtSwitch {
 				otherValue.apply(valueSwitch);
 				Expression b = valueSwitch.popExpression();
 				b = getExpressionOrSelf(b);
-				rhs = new BinaryExpression(SootTranslationHelpers.v().getSourceLocation(u), BinaryOperator.StringConcat, a, b);
+				BinaryExpression concatAssumption = new BinaryExpression(srcLoc, BinaryOperator.StringConcatAssumption, a, b);
+				currentBlock.addStatement(new AssumeStatement(srcLoc, concatAssumption, true));
+				rhs = new BinaryExpression(srcLoc, BinaryOperator.StringConcat, a, b);
 			} else {
 				throw new RuntimeException("String.concat(NonObject) not implemented");
 			}
 			if (optionalLhs != null) {
 				optionalLhs.apply(valueSwitch);
 				Expression lhs = valueSwitch.popExpression();
-				currentBlock.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(u), lhs, rhs));
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
 			}
 			return true;
 		}

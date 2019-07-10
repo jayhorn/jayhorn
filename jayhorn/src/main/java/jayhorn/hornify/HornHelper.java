@@ -87,7 +87,7 @@ public class HornHelper {
 		for (int i = 0; i < types.length; i++) {
 			if (types[i] instanceof jayhorn.solver.BoolType) {
 				subExprs[i] = p.mkLiteral(false);
-			} else if (types[i] instanceof jayhorn.solver.IntType) {
+			} else if (types[i] instanceof jayhorn.solver.IntType || types[i] instanceof jayhorn.solver.ProverADTType) {
 				subExprs[i] = p.mkLiteral(NullValue);
 			} else if (types[i] instanceof ProverTupleType) {				
 				subExprs[i] = mkNullExpression(p, ((ProverTupleType)types[i]).getSubTypes());

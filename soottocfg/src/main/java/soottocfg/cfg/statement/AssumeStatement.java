@@ -24,18 +24,30 @@ public class AssumeStatement extends Statement {
 	 */
 	private static final long serialVersionUID = -4719730863944690585L;
 	private Expression expression;
+	private boolean isPredicate;
+
+	public AssumeStatement(SourceLocation loc, Expression expr, boolean isPredicate) {
+		super(loc);
+		this.isPredicate = isPredicate;
+		this.expression = expr;
+		if (!this.isPredicate) {
+			assert (expr.getType() == BoolType.instance());
+		}
+	}
 
 	/**
 	 * @param createdFrom
 	 */
 	public AssumeStatement(SourceLocation loc, Expression expr) {
-		super(loc);
-		assert (expr.getType() == BoolType.instance());
-		this.expression = expr;
+		this(loc, expr, false);
 	}
 
 	public Expression getExpression() {
 		return this.expression;
+	}
+
+	public boolean isPredicate() {
+		return this.isPredicate;
 	}
 
 	@Override
@@ -60,17 +72,17 @@ public class AssumeStatement extends Statement {
 
 	@Override
 	public AssumeStatement deepCopy() {
-		return new AssumeStatement(getSourceLocation(), expression.deepCopy());
+		return new AssumeStatement(getSourceLocation(), expression.deepCopy(), isPredicate);
 	}
 
 	@Override
 	public AssumeStatement substitute(Map<Variable, Variable> subs) {
-		return new AssumeStatement(getSourceLocation(), expression.substitute(subs));
+		return new AssumeStatement(getSourceLocation(), expression.substitute(subs), isPredicate);
 	}
 
 	@Override
 	public AssumeStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
-		return new AssumeStatement(getSourceLocation(), expression.substituteVarWithExpression(subs));
+		return new AssumeStatement(getSourceLocation(), expression.substituteVarWithExpression(subs), isPredicate);
 	}
 	
 }

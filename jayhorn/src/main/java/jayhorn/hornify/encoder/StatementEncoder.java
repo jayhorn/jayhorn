@@ -205,7 +205,11 @@ public class StatementEncoder {
         List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
         final ProverExpr cond = expEncoder.exprToProverExpr(as.getExpression(), varMap);
         final ProverExpr postAtom = postPred.instPredicate(varMap);
-        clauses.add(p.mkHornClause(postAtom, new ProverExpr[]{preAtom}, cond));
+        if (!as.isPredicate()) {
+            clauses.add(p.mkHornClause(postAtom, new ProverExpr[]{preAtom}, cond));
+        } else {
+            clauses.add(p.mkHornClause(postAtom, new ProverExpr[]{preAtom, cond}, p.mkLiteral(true)));
+        }
         return clauses;
     }
 

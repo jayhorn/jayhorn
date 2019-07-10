@@ -118,22 +118,9 @@ public class StringEncoder {
 
     public ProverExpr mkStringEq(ProverExpr left, ProverExpr right, ReferenceType stringType) {
         initializeStringHornClauses(stringType);
-        if (left instanceof ProverTupleExpr) {
-            ProverExpr leftString = p.mkTupleSelect(left, 3);
-            if (right instanceof ProverTupleExpr) {
-                ProverExpr rightString = p.mkTupleSelect(right, 3);
-                return mkStringEq(leftString, rightString, stringType);
-            } else {
-                return mkStringEq(leftString, right, stringType);
-            }
-        } else {
-            if (right instanceof ProverTupleExpr) {
-                ProverExpr rightString = p.mkTupleSelect(right, 3);
-                return mkStringEq(left, rightString, stringType);
-            } else {
-                return p.mkEq(left, right);
-            }
-        }
+        left = selectString(p, left);
+        right = selectString(p, right);
+        return p.mkEq(left, right);
     }
 
     private ProverExpr head(ProverExpr expr) {
@@ -148,41 +135,45 @@ public class StringEncoder {
         return stringADT.mkCtorExpr(1, new ProverExpr[]{h, t});
     }
 
-    public static ProverExpr mkNewStringHornVariable(Prover p, String name,
-                                                     ReferenceType stringType) {
-        int id = HornHelper.hh().newVarNum();
+    public static ProverExpr mkStringHornVariable(Prover p, String name,
+                                                  ReferenceType stringType) {
         ProverType refType = HornHelper.hh().getProverType(p, stringType);
         if (name == null) {
+            int id = HornHelper.hh().newVarNum();
             name = String.format(STRING_REF_TEMPLATE, id);
         }
         return p.mkHornVariable(name, refType);
     }
 
+    public static ProverExpr selectString(Prover p, ProverExpr expr) {
+        if (expr instanceof ProverTupleExpr) {
+            return p.mkTupleSelect(expr, 3);
+        } else {
+            return expr;
+        }
+    }
+
+    public ProverExpr mkStringConcatAssumption(ProverExpr left, ProverExpr right,
+                                               ReferenceType stringType) {
+        initializeStringHornClauses(stringType);
+        left = selectString(p, left);
+        right = selectString(p, right);
+        String concatName = String.format(STRING_CONCAT_TEMPLATE,
+                left.toString(), right.toString());
+        ProverExpr concat = mkStringHornVariable(p, concatName, stringType);
+        ProverExpr concatString = selectString(p, concat);
+        ProverFun predConcat = mkStringConcatProverFun();
+        return predConcat.mkExpr(left, right, concatString);
+    }
+
     public ProverExpr mkStringConcat(ProverExpr left, ProverExpr right,
                                      ReferenceType stringType) {
         initializeStringHornClauses(stringType);
-        if (left instanceof ProverTupleExpr) {
-            ProverExpr leftString = p.mkTupleSelect(left, 3);
-            if (right instanceof ProverTupleExpr) {
-                ProverExpr rightString = p.mkTupleSelect(right, 3);
-                return mkStringConcat(leftString, rightString, stringType);
-            } else {
-                return mkStringConcat(leftString, right, stringType);
-            }
-        } else {
-            if (right instanceof ProverTupleExpr) {
-                ProverExpr rightString = p.mkTupleSelect(right, 3);
-                return mkStringConcat(left, rightString, stringType);
-            } else {
-//                String concatName = String.format(STRING_CONCAT_TEMPLATE,
-//                        left.toString(), right.toString());
-                ProverExpr concat = mkNewStringHornVariable(p, null, stringType);
-                ProverExpr concatString = p.mkTupleSelect(concat, 3);
-                ProverFun predConcat = mkStringConcatProverFun();
-                storeProverAssumption(predConcat.mkExpr(left, right, concatString));
-                return concat;
-            }
-        }
+        left = selectString(p, left);
+        right = selectString(p, right);
+        String concatName = String.format(STRING_CONCAT_TEMPLATE,
+                left.toString(), right.toString());
+        return mkStringHornVariable(p, concatName, stringType);
     }
 
 }

@@ -164,6 +164,8 @@ public class ExpressionEncoder {
 				}
 			case StringEq:
 				return stringEncoder.mkStringEq(left, right, (ReferenceType)be.getLeft().getType());
+			case StringConcatAssumption:
+				return stringEncoder.mkStringConcatAssumption(left, right, (ReferenceType)be.getLeft().getType());
 			case StringConcat:
 				return stringEncoder.mkStringConcat(left, right, (ReferenceType)be.getLeft().getType());
 			case Ne:
