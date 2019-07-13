@@ -135,6 +135,8 @@ public class Options {
 	@Option(name = "-cid", usage = "Insert call IDs variables to track calling context into pull and push statements", required = false, hidden=true)
 	public boolean useCallIDs = false;
 
+    @Option(name = "-jimple", usage = "Prints the jimple of the bytecode", required = false, hidden=true)
+        public boolean printJimple = false;
 
 	
 	/*

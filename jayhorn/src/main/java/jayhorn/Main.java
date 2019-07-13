@@ -47,6 +47,7 @@ public class Main {
   		soottocfg.Options.v().setBuiltInSpecs(Options.v().useSpecs);
   		soottocfg.Options.v().setResolveVirtualCalls(true);
   		soottocfg.Options.v().setMemModel(MemModel.PullPush);
+                soottocfg.Options.v().printJimple = Options.v().printJimple;
   		if (Options.v().getOut()!=null) {
   			Path outDir = Paths.get(Options.v().getOut());
   			String in = Options.v().getJavaInput();
