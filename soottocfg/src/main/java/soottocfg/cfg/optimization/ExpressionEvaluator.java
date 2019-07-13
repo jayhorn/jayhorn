@@ -171,8 +171,8 @@ public class ExpressionEvaluator {
 
 	public static Expression simplify(IteExpression e) {
 		Expression cond = simplify(e.getCondition());
-		Expression thenExpr = simplify(e.getCondition());
-		Expression elseExpr = simplify(e.getCondition());
+		Expression thenExpr = simplify(e.getThenExpr());
+		Expression elseExpr = simplify(e.getElseExpr());
 		
 		if (cond instanceof BooleanLiteral) {
 			if (((BooleanLiteral)cond).getValue()) {
