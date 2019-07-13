@@ -150,7 +150,7 @@ public final class Util {
 	}
 
 	public static File getTempDir() throws IOException {
-		final File tempDir = File.createTempFile("bixie_test_temp", Long.toString(System.nanoTime()));
+		final File tempDir = File.createTempFile("jayhorn_test_temp", Long.toString(System.nanoTime()));
 		if (!(tempDir.delete())) {
 			throw new IOException("Could not delete temp file: " + tempDir.getAbsolutePath());
 		}
