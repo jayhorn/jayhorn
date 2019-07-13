@@ -16,7 +16,7 @@ import soottocfg.cfg.statement.Statement;
 
 public class CexPrinter {
 
-    public void proverCexToCext(final Util.Dag<Tuple2<ProverFun, ProverExpr[]>> cex, HornEncoderContext hornContext) {
+    public String proverCexToCext(final Util.Dag<Tuple2<ProverFun, ProverExpr[]>> cex, HornEncoderContext hornContext) {
         final List<Statement> trace = new ArrayList<>();
         Statement lastStatement = null;
         scala.collection.Iterator<Tuple2<ProverFun, ProverExpr[]>> iter = cex.iterator();
@@ -53,7 +53,7 @@ public class CexPrinter {
                                                loc.getLineNumber(),
                                                stmt.toString()));
         }
-        Log.info(stringBuilder.toString());
+        return stringBuilder.toString();
     }
 
     private Statement findStatement(final ProverFun proverFun) {
