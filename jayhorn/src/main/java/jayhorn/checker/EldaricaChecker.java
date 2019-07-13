@@ -13,7 +13,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Verify;
 
-import jayhorn.CexPrinter;
 import jayhorn.Log;
 import jayhorn.Options;
 import jayhorn.hornify.HornEncoderContext;
@@ -25,6 +24,7 @@ import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
 import jayhorn.solver.princess.PrincessProver;
+import jayhorn.solver.princess.CexPrinter;
 import jayhorn.utils.GhostRegister;
 import jayhorn.utils.HeapCounterTransformer;
 import jayhorn.utils.Stats;
