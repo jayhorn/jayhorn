@@ -21,7 +21,7 @@ Join the chat [![Join the chat at https://gitter.im/jayhorn/Lobby](https://badge
 ```bash
 ./gradlew assemble
 java -jar jayhorn/build/libs/jayhorn.jar -help
-java -jar jayhorn/build/libs/jayhorn.jar -j example/classes -solution -full-cex
+java -jar jayhorn/build/libs/jayhorn.jar -j example/classes -solution -trace
 ```
 
 
