@@ -2,7 +2,7 @@ def z3LibPath = 'native_lib'
 def File nativeLibFile = file(z3LibPath)
 
 //global properties
-def version = '0.6-alpha'
+def version = '0.6.1'
 jar.archiveName = 'jayhorn.jar'
 
 
