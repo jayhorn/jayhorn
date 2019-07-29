@@ -1,5 +1,5 @@
 
-class FalseNegative {
+public class UnsatRecursive {
     public static class Ptr {
         public int a;
         }
