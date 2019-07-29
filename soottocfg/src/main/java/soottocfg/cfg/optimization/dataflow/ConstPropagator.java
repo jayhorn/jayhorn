@@ -64,7 +64,8 @@ public class ConstPropagator {
 			}
 			List<Statement> newStmts = new LinkedList<Statement>();
 			for (Statement s : b.getStatements()) {
-				Map<Variable, Expression> substitutions = createSubstitutionMap(s.getUseVariables(), rdefs.in.get(s));
+				Map<Variable, Expression> substitutions =
+                                    createSubstitutionMap(s.getUseVariables(), rdefs.in.get(s), rdefs);
 				Statement newStmt = s.substituteVarWithExpression(substitutions);
 				changes = changes || (newStmt != s);
 				newStmts.add(newStmt);
@@ -85,7 +86,8 @@ public class ConstPropagator {
 			for (CfgEdge e : m.outgoingEdgesOf(b)) {
 				if (e.getLabel().isPresent()) {
 					Expression expr = e.getLabel().get();
-					Map<Variable, Expression> substitutions = createSubstitutionMap(expr.getUseVariables(), defStmts);
+					Map<Variable, Expression> substitutions =
+                                            createSubstitutionMap(expr.getUseVariables(), defStmts, rdefs);
 					if (!substitutions.isEmpty()) {
 						Expression newExpr = expr.substituteVarWithExpression(substitutions);
 						if (expr != newExpr) {
@@ -100,25 +102,30 @@ public class ConstPropagator {
 	}
 
 	private static Map<Variable, Expression> createSubstitutionMap(Set<Variable> useVars,
-			Set<Statement> reachingStatements) {
-		Map<Variable, Expression> subsitutions = new HashMap<Variable, Expression>();
-		for (Variable v : useVars) {
-//			boolean debug = false;
-//			if (v.getName().contains("cp_$ex__9")) debug=true;
-			
+                                                                       Set<Statement> reachingStatements,
+                                                                       ReachingDefinitions rdefs) {
+		Map<Variable, Expression> substitutions = new HashMap<Variable, Expression>();
+		mainLoop: for (Variable v : useVars) {
 			Set<Statement> defStmts = getDefStatementsForVar(v, reachingStatements);
-//			if (debug) System.err.println("1 " + reachingStatements);
-			if (defStmts.size() == 1) {
-				Statement stmt = defStmts.iterator().next();
-//				if (debug) System.err.println("2");
-				if (stmt instanceof AssignStatement && ((AssignStatement) stmt).getRight() instanceof Literal) {
-					Expression literal = (Expression) ((AssignStatement) stmt).getRight();
-//					if (debug) System.err.println("3");
-					subsitutions.put(v, literal);
-				}
-			}
+                        Expression replacement = null;
+
+                        for (Statement s : defStmts) {
+                            if (rdefs.havocStatements.contains(s))
+                                continue mainLoop;
+                            if (!(s instanceof AssignStatement &&
+                                  ((AssignStatement)s).getRight() instanceof Literal))
+                                continue mainLoop;
+                            AssignStatement assS = (AssignStatement)s;
+                            Expression rhs = assS.getRight();
+                            if (replacement != null && !replacement.equals(rhs))
+                                continue mainLoop;
+                            replacement = rhs;
+                        }
+
+                        if (replacement != null)
+                            substitutions.put(v, replacement);
 		}
-		return subsitutions;
+		return substitutions;
 	}
 
 	/**

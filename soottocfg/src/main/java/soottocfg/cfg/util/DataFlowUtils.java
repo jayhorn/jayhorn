@@ -18,6 +18,7 @@ import org.jgrapht.Graphs;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.method.CfgBlock;
@@ -52,6 +53,7 @@ public class DataFlowUtils  {
 	
 	public static class ReachingDefinitions {
 		public Map<Statement, Set<Statement>> in, out;
+                public Set<Statement> havocStatements;
 		
 		@Override
 		public String toString() {			
@@ -89,9 +91,11 @@ public class DataFlowUtils  {
 //            Long start = System.currentTimeMillis();
 
             Map<Statement, Set<Statement>> gen = new HashMap<Statement, Set<Statement>>();
-            Map<Statement, Set<Statement>> kill = new HashMap<Statement, Set<Statement>>();
-            computeGenAndKillSets(m, gen, kill);
-		
+            computeGenSet(m, gen);
+
+            // havoc expressions for the variables
+            Map<Variable, Statement> havocAssignments = new HashMap<>();
+
             // compute the predecessor-set for all statements
             Map<Statement, Set<Statement>> predMap = getStatementPredecessorMap(m);
             
@@ -127,19 +131,39 @@ public class DataFlowUtils  {
                 workListEls.remove(nextS);
 
                 // update the in- and out-set
-                boolean outChanged = false;
                 final Set<Statement> inS = in.get(nextS);
                 final Set<Statement> outS = out.get(nextS);
-                final Set<Statement> killS = kill.get(nextS);
                 final Set<Statement> queuedS = queued.get(nextS);
 
                 queued.put(nextS, emptySet);
 
                 for (Statement s : queuedS)
-                    if (inS.add(s) && !killS.contains(s) && outS.add(s))
-                        for (Statement t : succMap.get(nextS))
-                            if (queued.get(t).add(s) && workListEls.add(t))
-                                workList.push(t);
+                    if (inS.add(s) && !kills(nextS, s)) {
+                        Statement outStmt;
+                        if (updatesUseVariables(nextS, s) && s instanceof AssignStatement) {
+                            // in this case we replace the right-hand side of the assignment
+                            // with a fresh havoc-variable; to make sure that the right-hand
+                            // side does not contain any variables that have been updated
+                            // in the meantime
+                            AssignStatement assS = (AssignStatement)s;
+                            Variable lhs = ((IdentifierExpression)assS.getLeft()).getVariable();
+                            outStmt = havocAssignments.get(lhs);
+                            if (outStmt == null) {
+                                SourceLocation loc = s.getSourceLocation();
+                                Variable havocV = new Variable("havoc", lhs.getType());
+                                outStmt = new AssignStatement(loc, assS.getLeft(),
+                                                              new IdentifierExpression(loc, havocV));
+                                havocAssignments.put(lhs, outStmt);
+                            }
+                        } else {
+                            outStmt = s;
+                        }
+
+                        if (outS.add(outStmt))
+                            for (Statement t : succMap.get(nextS))
+                                if (queued.get(t).add(outStmt) && workListEls.add(t))
+                                    workList.push(t);
+                    }
 
                 queuedS.clear();
                 emptySet = queuedS;
@@ -150,30 +174,53 @@ public class DataFlowUtils  {
             ReachingDefinitions reach = new ReachingDefinitions();
             reach.in = in;
             reach.out = out;
+
+            Set<Statement> havocs = new HashSet<>();
+            havocs.addAll(havocAssignments.values());
+            reach.havocStatements = havocs;
+
             return reach;
 	}
 
 	/**
 	 * Returns true if s generates an update to a variable.
-	 * @param s
-	 * @return
 	 */
 	private static boolean isGenStatement(Statement s) {
-		return s instanceof AssignStatement || s instanceof CallStatement || s instanceof PullStatement || s instanceof NewStatement;
+		return s instanceof AssignStatement ||
+                       s instanceof CallStatement ||
+                       s instanceof PullStatement ||
+                       s instanceof NewStatement;
 	}
+
+	/**
+	 * Returns true if statement <code>killer</code> kills
+	 * <code>victim</code>.
+	 */
+        private static boolean kills(Statement killer,
+                                     Statement victim) {
+            final Set<Variable> killerDefs = killer.getDefVariables();
+            for (Variable v : victim.getDefVariables())
+                if (killerDefs.contains(v))
+                    return true;
+            return false;
+        }
 	
-	private static void computeGenAndKillSets(Method m, Map<Statement, Set<Statement>> gen, Map<Statement, Set<Statement>> kill) {
-		Map<Variable, Set<Statement>> defs = new HashMap<Variable, Set<Statement>>();
-		// compute defs and gen sets before computing kill sets.
+	/**
+	 * Returns true if statement <code>killer</code> updates some
+	 * variables used by <code>victim</code>.
+	 */
+        private static boolean updatesUseVariables(Statement killer,
+                                                   Statement victim) {
+            final Set<Variable> killerDefs = killer.getDefVariables();
+            for (Variable v : victim.getUseVariables())
+                if (killerDefs.contains(v))
+                    return true;
+            return false;
+        }
+
+	private static void computeGenSet(Method m, Map<Statement, Set<Statement>> gen) {
 		for (CfgBlock b : m.vertexSet()) {
 			for (Statement s : b.getStatements()) {
-				// create the defs set.
-				for (Variable v : s.getDefVariables()) {
-					if (!defs.containsKey(v)) {
-						defs.put(v, new HashSet<Statement>());
-					}
-					defs.get(v).add(s);
-				}
 				// create the gen[s] map
 				Set<Statement> genSet = new HashSet<Statement>();
 				gen.put(s, genSet);
@@ -182,21 +229,6 @@ public class DataFlowUtils  {
 				} // else do nothing.
 			}
 		}
-		// now compute the kill sets
-		for (CfgBlock b : m.vertexSet()) {
-			for (Statement s : b.getStatements()) {
-				Set<Statement> killSet = new HashSet<Statement>();
-				kill.put(s, killSet);
-//				if (s instanceof AssignStatement || s instanceof CallStatement || s instanceof PullStatement) {
-					Set<Statement> defStatements = new HashSet<Statement>();
-					for (Variable v : s.getDefVariables()) {
-						defStatements.addAll(defs.get(v));
-					}
-					defStatements.remove(s);
-					kill.get(s).addAll(defStatements);
-//				} // else do nothing.
-			}
-		}		
 	}
  	
 	/**
