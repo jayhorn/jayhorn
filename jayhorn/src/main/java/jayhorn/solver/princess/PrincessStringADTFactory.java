@@ -8,14 +8,14 @@ import jayhorn.solver.ADTTempType;
 
 public class PrincessStringADTFactory implements StringADTFactory {
 
-    private final ProverType pt = IntType.INSTANCE;
-    private final int ti = ADTTempType.ListADTTypeIndex;
+    private final ProverType proverType = IntType.INSTANCE;
+    private static final int listADTTypeIndex = ADTTempType.ListADTTypeIndex;
 
     public ProverADT spawnStringADT() {
-        return PrincessADT.mkADT(new String[]{"List[" + pt.toString() + "]"},
+        return PrincessADT.mkADT(new String[]{"List[" + proverType.toString() + "]"},
                 new String[]{"nil", "cons"},
-                new int[]{ADTTempType.ListADTTypeIndex, ti},
-                new ProverType[][]{{}, {pt, ADTTempType.getADTTempType(ti)}},
+                new int[]{ADTTempType.ListADTTypeIndex, listADTTypeIndex},
+                new ProverType[][]{{}, {proverType, ADTTempType.getADTTempType(listADTTypeIndex)}},
                 new String[][]{{}, {"head", "tail"}});
     }
 

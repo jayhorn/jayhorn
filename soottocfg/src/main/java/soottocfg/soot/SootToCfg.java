@@ -109,6 +109,18 @@ public class SootToCfg {
 		SootRunner runner = new SootRunner();
 		runner.run(input, classPath);
 
+                if (Options.v().printJimple) {
+                    System.out.println("Jimple before transformations:");
+                    for (SootClass sc : Scene.v().getApplicationClasses()) {
+                        for (SootMethod sm : sc.getMethods()) {
+                            System.out.println(sm.getSignature());
+                            if (sm.hasActiveBody()) {
+                                System.out.println(sm.retrieveActiveBody());
+                            }
+                        }
+                    }
+                }
+                
 		/*
 		 * Get a reference for the main method. We have to get the
 		 * reference before applying the array transformation because
@@ -116,7 +128,32 @@ public class SootToCfg {
 		 */
 		final SootMethod mainMethod = Scene.v().getMainMethod();
 		performBehaviorPreservingTransformations();
+
+                if (Options.v().printJimple) {
+                    System.out.println("Jimple after behavior-preserving transformations:");
+                    for (SootClass sc : Scene.v().getApplicationClasses()) {
+                        for (SootMethod sm : sc.getMethods()) {
+                            System.out.println(sm.getSignature());
+                            if (sm.hasActiveBody()) {
+                                System.out.println(sm.retrieveActiveBody());
+                            }
+                        }
+                    }
+                }
+                
 		performAbstractionTransformations();
+
+                if (Options.v().printJimple) {
+                    System.out.println("Jimple after abstracting transformations:");
+                    for (SootClass sc : Scene.v().getApplicationClasses()) {
+                        for (SootMethod sm : sc.getMethods()) {
+                            System.out.println(sm.getSignature());
+                            if (sm.hasActiveBody()) {
+                                System.out.println(sm.retrieveActiveBody());
+                            }
+                        }
+                    }
+                }
 
 		constructCfg();
 
@@ -185,6 +222,7 @@ public class SootToCfg {
 	
 	private boolean applyDataFlowSimplifications() {
 		boolean programChanged = false;
+//                long start = System.currentTimeMillis();
 		if (Options.v().optimizeMethods) {
 			for (Method method : program.getMethods()) {
 				boolean changed = true;
@@ -208,6 +246,7 @@ public class SootToCfg {
 				method.getLocals().retainAll(allVars);				
 			}			
 		}
+//                System.out.println("data-flow: " + (System.currentTimeMillis() - start));
 		return programChanged;
 	}
 	

@@ -60,7 +60,7 @@ public class FoldStraighLineSeq {
 					CfgEdge newEdge = new CfgEdge();
 					CfgEdge oldEdge = m.getEdge(b2, suc);
 					if (oldEdge.getLabel().isPresent()) {
-						newEdge.setLabel(oldEdge.getLabel().get().deepCopy());
+						newEdge.setLabel(oldEdge.getLabel().get());
 					}
 
 					m.addEdge(b1, suc, newEdge);

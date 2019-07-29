@@ -24,6 +24,7 @@ import jayhorn.solver.ProverFactory;
 import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverResult;
 import jayhorn.solver.princess.PrincessProver;
+import jayhorn.solver.princess.CexPrinter;
 import jayhorn.utils.GhostRegister;
 import jayhorn.utils.HeapCounterTransformer;
 import jayhorn.utils.Stats;
@@ -81,9 +82,14 @@ public class EldaricaChecker extends Checker {
                 generateAndCheckHornClauses(program, -1,
                   HornEncoderContext.GeneratedAssertions.ALL);
 
-            Log.info("Prover code " + result);
-            if (result == ProverResult.Sat)
+            //            Log.info("Prover code " + result);
+            
+            if (result == ProverResult.Sat) {
+                Log.info("Program is SAFE");
+                if (!"".equals(solutionOutput))
+                    Log.info(solutionOutput);
                 return CheckerResult.SAFE;
+            }
             break;
         default:
             break;
@@ -116,11 +122,13 @@ public class EldaricaChecker extends Checker {
                   HornEncoderContext.GeneratedAssertions.SAFETY_UNDER_APPROX);
             if (result == ProverResult.Unsat) {
                 // definitely unsafe: found counterexample with bounded heap
-                Log.info("- found one!");
+                Log.info("Program is UNSAFE");
+                if (!"".equals(solutionOutput))
+                    Log.info(solutionOutput);
                 return CheckerResult.UNSAFE;
             } else {
                 // try to verify program with heap size k and only heap bound assertions
-                Log.info("- no counterexamples, checking heap bounds ...");
+                Log.info("No counterexamples, checking heap bounds ...");
                 result =
                     generateAndCheckHornClauses(program, k,
                       HornEncoderContext.GeneratedAssertions.HEAP_BOUNDS);
@@ -133,10 +141,12 @@ public class EldaricaChecker extends Checker {
                         generateAndCheckHornClauses(program, k,
                           HornEncoderContext.GeneratedAssertions.SAFETY_OVER_APPROX);
                     if (result == ProverResult.Sat) {
-                        Log.info("- safe!");
+                        Log.info("Program is SAFE");
+                        if (!"".equals(solutionOutput))
+                            Log.info(solutionOutput);
                         return CheckerResult.SAFE;
                     } else {
-                        Log.info("- could not prove safety, giving up");
+                        Log.info("Could not prove safety, giving up");
                         return CheckerResult.UNKNOWN;
                     }
                 } else {
@@ -148,6 +158,8 @@ public class EldaricaChecker extends Checker {
         return CheckerResult.UNKNOWN;
     }
 
+    private String solutionOutput = "";
+    
     private ProverResult generateAndCheckHornClauses(final Program program,
                                                      int explicitHeapSize,
                                                      HornEncoderContext.GeneratedAssertions generatedAssertions) {
@@ -173,7 +185,6 @@ public class EldaricaChecker extends Checker {
             // add an entry clause from the preconditions
             final HornPredicate entryPred = hornContext.getMethodContract(entryPoint).precondition;
             Map<Variable, ProverExpr> initialState = new HashMap<Variable, ProverExpr>();
-            //Set the heap counter initially to one (because 0 is reserved for null)
 
             final ProverExpr entryAtom = entryPred.instPredicate(initialState);
 
@@ -199,7 +210,7 @@ public class EldaricaChecker extends Checker {
             }
             if (Options.v().solution) {
                 if (result == ProverResult.Sat) {
-                    Log.info(printHeapInvariants(hornContext));
+                    // solutionOutput = printHeapInvariants(hornContext);
                 } else if (result == ProverResult.Unsat) {
                     Log.info("Possible violation at " +
                              ((PrincessProver)prover).getLastCEX().apply(1).productElement(0));
@@ -207,7 +218,15 @@ public class EldaricaChecker extends Checker {
             }
 
             if (Options.v().fullCEX && result == ProverResult.Unsat)
-                ((PrincessProver)prover).prettyPrintLastCEX();
+                ((PrincessProver) prover).prettyPrintLastCEX();
+
+            if (Options.v().trace && result == ProverResult.Unsat) {
+                final CexPrinter cexPrinter = new CexPrinter();
+                solutionOutput =
+                    cexPrinter.proverCexToCext(
+                       ((PrincessProver) prover).getLastCEX(),
+                       hornContext);
+            }
 
             Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));
 
@@ -221,13 +240,6 @@ public class EldaricaChecker extends Checker {
         }
 
         return result;
-//
-//        if (result == ProverResult.Sat) {
-//            return true;
-//        } else if (result == ProverResult.Unsat) {
-//            return false;
-//        }
-//        throw new RuntimeException("Verification failed with prover code " + result);
     }
 
 
@@ -244,7 +256,7 @@ public class EldaricaChecker extends Checker {
 
                     for (Entry<Long, HornPredicate> predEntry : pentry.getValue().entrySet()) {
                         HornPredicate hp = predEntry.getValue();
-                        if (hp.predicate.toString().contains(entry.getKey())) {
+                        if (entry.getKey().contains(hp.predicate.toString())) {
                             //we found one.
                             if (!heapInvariants.containsKey(pentry.getKey())) {
                                 heapInvariants.put(pentry.getKey(), new TreeMap<Long, String>());

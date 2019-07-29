@@ -6,6 +6,7 @@ package soottocfg.cfg.util;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Stack;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import org.jgrapht.Graphs;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.method.CfgBlock;
@@ -51,6 +53,7 @@ public class DataFlowUtils  {
 	
 	public static class ReachingDefinitions {
 		public Map<Statement, Set<Statement>> in, out;
+                public Set<Statement> havocStatements;
 		
 		@Override
 		public String toString() {			
@@ -85,86 +88,139 @@ public class DataFlowUtils  {
 	}
 	
 	public static ReachingDefinitions computeReachingDefinitions(Method m) {
+//            Long start = System.currentTimeMillis();
 
-		Map<Statement, Set<Statement>> gen = new LinkedHashMap<Statement, Set<Statement>>();
-		Map<Statement, Set<Statement>> kill = new LinkedHashMap<Statement, Set<Statement>>();
-		computeGenAndKillSets(m, gen, kill);
-		
-		// compute the predecessor-set for all statements
-		Map<Statement, Set<Statement>> predMap = getStatementPredecessorMap(m);
-		
-		Map<Statement, Set<Statement>> in = new LinkedHashMap<Statement, Set<Statement>>();
-		Map<Statement, Set<Statement>> out = new LinkedHashMap<Statement, Set<Statement>>();
-		
-		
-		List<Statement> allStatements = new LinkedList<Statement>(predMap.keySet());
-		for (Statement s : allStatements) {
-			in.put(s, new HashSet<Statement>());
-			out.put(s, new HashSet<Statement>());
-		}
-		boolean changed = true;
-		while(changed) {
-			changed = false;
-			for (Statement s : allStatements) {
+            Map<Statement, Set<Statement>> gen = new HashMap<Statement, Set<Statement>>();
+            computeGenSet(m, gen);
 
-				//update the in-sets
-				Set<Statement> newIn = computeInSet(s, predMap, out);
-				if (!in.get(s).equals(newIn) ) {
-					changed = true;
-					in.get(s).clear();
-					in.get(s).addAll(newIn);
-				}
-				//update the out-sets
-				Set<Statement> newOut = new HashSet<Statement>();
-				//gen[s] \cup (in[s] - kill[s])
-				newOut.addAll(in.get(s));
-				newOut.removeAll(kill.get(s));
-				newOut.addAll(gen.get(s));
-				if (!out.get(s).equals(newOut)) {
-					changed = true;
-					out.get(s).clear();
-					out.get(s).addAll(newOut);
-				}
-			}
-		}
-		ReachingDefinitions reach = new ReachingDefinitions();
-		reach.in = in;
-		reach.out = out;
-		return reach;
+            // havoc expressions for the variables
+            Map<Variable, Statement> havocAssignments = new HashMap<>();
+
+            // compute the predecessor-set for all statements
+            Map<Statement, Set<Statement>> predMap = getStatementPredecessorMap(m);
+            
+            // compute the successor-set for all statements
+            Map<Statement, Set<Statement>> succMap = getStatementSuccessorMap(predMap);
+		
+            Map<Statement, Set<Statement>> in = new LinkedHashMap<Statement, Set<Statement>>();
+            Map<Statement, Set<Statement>> out = new LinkedHashMap<Statement, Set<Statement>>();
+            Map<Statement, Set<Statement>> queued = new HashMap<Statement, Set<Statement>>();
+		
+            List<Statement> allStatements = new LinkedList<Statement>(predMap.keySet());
+            for (Statement s : allStatements) {
+                in.put(s, new HashSet<Statement>());
+                out.put(s, new HashSet<Statement>());
+                queued.put(s, new HashSet<Statement>());
+            }
+
+            Stack<Statement> workList = new Stack<> ();
+            Set<Statement> workListEls = new HashSet<> ();
+
+            for (Statement s : allStatements)
+                for (Statement r : gen.get(s)) {
+                    out.get(s).add(r);
+                    for (Statement t : succMap.get(s))
+                        if (queued.get(t).add(r) && workListEls.add(t))
+                            workList.push(t);
+                }
+
+            Set<Statement> emptySet = new HashSet<>();
+
+            while (!workList.isEmpty()) {
+                final Statement nextS = workList.pop();
+                workListEls.remove(nextS);
+
+                // update the in- and out-set
+                final Set<Statement> inS = in.get(nextS);
+                final Set<Statement> outS = out.get(nextS);
+                final Set<Statement> queuedS = queued.get(nextS);
+
+                queued.put(nextS, emptySet);
+
+                for (Statement s : queuedS)
+                    if (inS.add(s) && !kills(nextS, s)) {
+                        Statement outStmt;
+                        if (updatesUseVariables(nextS, s) && s instanceof AssignStatement) {
+                            // in this case we replace the right-hand side of the assignment
+                            // with a fresh havoc-variable; to make sure that the right-hand
+                            // side does not contain any variables that have been updated
+                            // in the meantime
+                            AssignStatement assS = (AssignStatement)s;
+                            Variable lhs = ((IdentifierExpression)assS.getLeft()).getVariable();
+                            outStmt = havocAssignments.get(lhs);
+                            if (outStmt == null) {
+                                SourceLocation loc = s.getSourceLocation();
+                                Variable havocV = new Variable("havoc", lhs.getType());
+                                outStmt = new AssignStatement(loc, assS.getLeft(),
+                                                              new IdentifierExpression(loc, havocV));
+                                havocAssignments.put(lhs, outStmt);
+                            }
+                        } else {
+                            outStmt = s;
+                        }
+
+                        if (outS.add(outStmt))
+                            for (Statement t : succMap.get(nextS))
+                                if (queued.get(t).add(outStmt) && workListEls.add(t))
+                                    workList.push(t);
+                    }
+
+                queuedS.clear();
+                emptySet = queuedS;
+            }
+
+//            System.out.println("Z2: " + (System.currentTimeMillis() - start));
+            
+            ReachingDefinitions reach = new ReachingDefinitions();
+            reach.in = in;
+            reach.out = out;
+
+            Set<Statement> havocs = new HashSet<>();
+            havocs.addAll(havocAssignments.values());
+            reach.havocStatements = havocs;
+
+            return reach;
 	}
 
-	private static Set<Statement> computeInSet(Statement s, Map<Statement, Set<Statement>> predMap, Map<Statement, Set<Statement>> out) {
-		Set<Statement> res = new HashSet<Statement>();
-		for (Statement pre : predMap.get(s)) {
-			if (!out.containsKey(s)) {
-				out.put(s, new HashSet<Statement>());
-			}
-			res.addAll(out.get(pre));
-		}
-		return res;
- 	}
-	
 	/**
 	 * Returns true if s generates an update to a variable.
-	 * @param s
-	 * @return
 	 */
 	private static boolean isGenStatement(Statement s) {
-		return s instanceof AssignStatement || s instanceof CallStatement || s instanceof PullStatement || s instanceof NewStatement;
+		return s instanceof AssignStatement ||
+                       s instanceof CallStatement ||
+                       s instanceof PullStatement ||
+                       s instanceof NewStatement;
 	}
+
+	/**
+	 * Returns true if statement <code>killer</code> kills
+	 * <code>victim</code>.
+	 */
+        private static boolean kills(Statement killer,
+                                     Statement victim) {
+            final Set<Variable> killerDefs = killer.getDefVariables();
+            for (Variable v : victim.getDefVariables())
+                if (killerDefs.contains(v))
+                    return true;
+            return false;
+        }
 	
-	private static void computeGenAndKillSets(Method m, Map<Statement, Set<Statement>> gen, Map<Statement, Set<Statement>> kill) {
-		Map<Variable, Set<Statement>> defs = new HashMap<Variable, Set<Statement>>();
-		// compute defs and gen sets before computing kill sets.
+	/**
+	 * Returns true if statement <code>killer</code> updates some
+	 * variables used by <code>victim</code>.
+	 */
+        private static boolean updatesUseVariables(Statement killer,
+                                                   Statement victim) {
+            final Set<Variable> killerDefs = killer.getDefVariables();
+            for (Variable v : victim.getUseVariables())
+                if (killerDefs.contains(v))
+                    return true;
+            return false;
+        }
+
+	private static void computeGenSet(Method m, Map<Statement, Set<Statement>> gen) {
 		for (CfgBlock b : m.vertexSet()) {
 			for (Statement s : b.getStatements()) {
-				// create the defs set.
-				for (Variable v : s.getDefVariables()) {
-					if (!defs.containsKey(v)) {
-						defs.put(v, new HashSet<Statement>());
-					}
-					defs.get(v).add(s);
-				}
 				// create the gen[s] map
 				Set<Statement> genSet = new HashSet<Statement>();
 				gen.put(s, genSet);
@@ -173,21 +229,6 @@ public class DataFlowUtils  {
 				} // else do nothing.
 			}
 		}
-		// now compute the kill sets
-		for (CfgBlock b : m.vertexSet()) {
-			for (Statement s : b.getStatements()) {
-				Set<Statement> killSet = new HashSet<Statement>();
-				kill.put(s, killSet);
-//				if (s instanceof AssignStatement || s instanceof CallStatement || s instanceof PullStatement) {
-					Set<Statement> defStatements = new HashSet<Statement>();
-					for (Variable v : s.getDefVariables()) {
-						defStatements.addAll(defs.get(v));
-					}
-					defStatements.remove(s);
-					kill.get(s).addAll(defStatements);
-//				} // else do nothing.
-			}
-		}		
 	}
  	
 	/**
@@ -197,7 +238,7 @@ public class DataFlowUtils  {
 	 * @return Map from statement to set of predecessor statements 
 	 */
 	private static Map<Statement, Set<Statement>> getStatementPredecessorMap(Method m) {
-		Map<Statement, Set<Statement>> pred = new LinkedHashMap<Statement, Set<Statement>>();
+		Map<Statement, Set<Statement>> pred = new HashMap<Statement, Set<Statement>>();
 
 		Map<CfgBlock, Set<Statement>> lastStmt = new HashMap<CfgBlock, Set<Statement>>();
 
@@ -260,6 +301,23 @@ public class DataFlowUtils  {
 		return ret;
 	}
 
+    private static Map<Statement, Set<Statement>> getStatementSuccessorMap(
+                                                    Map<Statement, Set<Statement>> predMap) {
+        Map<Statement, Set<Statement>> res = new HashMap<Statement, Set<Statement>>();
+
+        for (Map.Entry<Statement, Set<Statement>> entry : predMap.entrySet()) {
+            Statement succ = entry.getKey();
+            if (!res.containsKey(succ))
+                res.put(succ, new HashSet<Statement> ());
+            for (Statement pred : entry.getValue()) {
+                if (!res.containsKey(pred))
+                    res.put(pred, new HashSet<Statement> ());
+                res.get(pred).add(succ);
+            }
+        }
+
+        return res;
+    }
 
 	/**
 	 * Creates example program from Listing 17.3 on page 356

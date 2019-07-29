@@ -150,23 +150,23 @@ public class CfgUpdater extends CfgVisitor {
 
 	@Override
 	protected Expression processExpression(BooleanLiteral e) {
-		return e.deepCopy();
+		return e;
 	}
 
 	@Override
 	protected Expression processExpression(NullLiteral e) {
-		return e.deepCopy();
+		return e;
 	}
 
 	
 	@Override
 	protected Expression processExpression(IdentifierExpression e) {
-		return e.deepCopy();
+		return e;
 	}
 
 	@Override
 	protected Expression processExpression(IntegerLiteral e) {
-		return e.deepCopy();
+		return e;
 	}
 
 //	@Override
@@ -176,7 +176,7 @@ public class CfgUpdater extends CfgVisitor {
 
 	@Override
 	protected Expression processExpression(TupleAccessExpression e) {
-		return e.deepCopy();
+		return e;
 	}
 
 	@Override

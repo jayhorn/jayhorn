@@ -92,18 +92,13 @@ public class IntegerLiteral extends Expression implements Literal{
 	}
 
 	@Override
-	public Expression deepCopy() {		
-		return new IntegerLiteral(getSourceLocation(), value);
-	}
-	
-	@Override
 	public Expression substitute(Map<Variable, Variable> subs) {
-		return this.deepCopy();
+		return this;
 	}
 
 	@Override
 	public Expression substituteVarWithExpression(Map<Variable, Expression> subs) {
-		return this.deepCopy();
+		return this;
 	}
 
 }

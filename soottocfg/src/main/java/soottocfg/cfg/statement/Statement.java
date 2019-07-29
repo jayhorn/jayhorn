@@ -81,14 +81,14 @@ public abstract class Statement implements Node, Serializable {
 	public abstract Statement deepCopy();
 	
 	/**
-	 * Returns a deep copy of the statement where all
+	 * Returns a variant of the statement where all
 	 * variables in the map have been substituted.
 	 * @param subs
 	 */
 	public abstract Statement substitute(Map<Variable, Variable> subs);
 
 	/**
-	 * Returns a deep copy of the statement where all
+	 * Returns a variant of the statement where all
 	 * variables in the map have been substituted by the expression
 	 * they map to.
 	 * @param subs

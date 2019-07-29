@@ -38,7 +38,6 @@ public class Main {
 
     /**
      * Safety Analysis with JayHorn
-     * @param options
      * @param factory
      * @return true if safe, otherwise false
      */
@@ -48,6 +47,7 @@ public class Main {
   		soottocfg.Options.v().setBuiltInSpecs(Options.v().useSpecs);
   		soottocfg.Options.v().setResolveVirtualCalls(true);
   		soottocfg.Options.v().setMemModel(MemModel.PullPush);
+                soottocfg.Options.v().printJimple = Options.v().printJimple;
   		if (Options.v().getOut()!=null) {
   			Path outDir = Paths.get(Options.v().getOut());
   			String in = Options.v().getJavaInput();
@@ -94,6 +94,13 @@ public class Main {
 		
 		Options options = Options.v();
 		CmdLineParser parser = new CmdLineParser(options);
+
+		if (args.length == 0) {
+            Log.info("java -jar jayhorn.jar [options...] -j [JAR, DIR]");
+            parser.printUsage(System.err);
+            return;
+        }
+
 		try {
 			// parse command-line arguments
 			parser.parseArgument(args);
@@ -115,9 +122,8 @@ public class Main {
 
 			if (Options.v().verbose) Log.v().setLevel(Level.INFO);
 			
-			Log.info("\t\t ---   JAYHORN : Static Analyzer for Java Programs ---- ");
-			Log.info("\t Verification : " + Options.v().getChecker());
-			Log.info("\t Solver : " + Options.v().getSolver());
+			Log.info("---   JayHorn : Static Analyzer for Java Programs   --- ");
+			Log.info("Horn solver: " + Options.v().getSolver());
 			
 			if ("safety".equals(Options.v().getChecker())) {			
 				safetyAnalysis(factory);
@@ -127,7 +133,7 @@ public class Main {
 			
 		} catch (CmdLineException e) {
 			Log.error(e.toString());
-			Log.error("java -jar jayhorn.jar [options...] -j [JAR, DIR]");
+			Log.info("java -jar jayhorn.jar [options...] -j [JAR, DIR]");
 			parser.printUsage(System.err);
 		
 		} catch (Throwable t) {

@@ -22,12 +22,19 @@ public class ADTTempType implements ProverType {
 	}
 
 	private ADTTempType(int typeIndex) {
-            this.typeIndex = typeIndex;
+		this.typeIndex = typeIndex;
 	}
 
 	@Override
 	public String toString() {
 		return "ADT[" + typeIndex + "]";
+	}
+
+	@Override
+	public int hashCode() {
+		// resolve FindBugs Report:
+		//		HE_EQUALS_USE_HASHCODE: Class defines equals() and uses Object.hashCode()
+		return this.typeIndex;
 	}
 
 	@Override

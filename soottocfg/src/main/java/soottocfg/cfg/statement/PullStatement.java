@@ -131,42 +131,58 @@ public class PullStatement extends Statement {
 	public PullStatement deepCopy() {
 		List<IdentifierExpression> leftCopy = new LinkedList<IdentifierExpression>();
 		for (IdentifierExpression e : left) {
-			leftCopy.add(e.deepCopy());
+			leftCopy.add(e);
 		}
 		List<Expression> ghostCopy = new LinkedList<Expression>();
 		for (Expression e : ghostExpressions) {
-			ghostCopy.add(e.deepCopy());
+			ghostCopy.add(e);
 		}
-		return new PullStatement(getSourceLocation(), classConstant, object.deepCopy(), leftCopy, ghostCopy);
+		return new PullStatement(getSourceLocation(), classConstant, object, leftCopy, ghostCopy);
 	}
 
 	@Override
 	public PullStatement substitute(Map<Variable, Variable> subs) {
-		List<IdentifierExpression> leftCopy = new LinkedList<IdentifierExpression>();
-		for (IdentifierExpression e : left) {
-			leftCopy.add(e.substitute(subs));
-		}
-		List<Expression> ghostCopy = new LinkedList<Expression>();
-		for (Expression e : ghostExpressions) {
-			ghostCopy.add(e.substitute(subs));
-		}
+            boolean changed = false;
+            List<IdentifierExpression> leftCopy = new LinkedList<IdentifierExpression>();
+            for (IdentifierExpression e : left) {
+                IdentifierExpression newE = e.substitute(subs);
+                changed = changed || (newE != e);
+                leftCopy.add(newE);
+            }
+            List<Expression> ghostCopy = new LinkedList<Expression>();
+            for (Expression e : ghostExpressions) {
+                Expression newE = e.substitute(subs);
+                changed = changed || (newE != e);
+                ghostCopy.add(newE);
+            }
 		
-		return new PullStatement(getSourceLocation(), classConstant, object.substitute(subs), leftCopy, ghostCopy);
+            IdentifierExpression newObj = object.substitute(subs);
+            changed = changed || (newObj != object);
+
+            if (changed)
+                return new PullStatement(getSourceLocation(), classConstant, newObj, leftCopy, ghostCopy);
+            else
+                return this;
 	}
 
 	@Override
 	public PullStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
-		List<IdentifierExpression> leftCopy = new LinkedList<IdentifierExpression>();
-		for (IdentifierExpression e : left) {
-			leftCopy.add(e.deepCopy());
-		}
-		List<Expression> ghostCopy = new LinkedList<Expression>();
-		for (Expression e : ghostExpressions) {
-			ghostCopy.add(e.substituteVarWithExpression(subs));
-		}
+            boolean changed = false;
+            List<IdentifierExpression> leftCopy = new LinkedList<IdentifierExpression>();
+            for (IdentifierExpression e : left) {
+                leftCopy.add(e);
+            }
+            List<Expression> ghostCopy = new LinkedList<Expression>();
+            for (Expression e : ghostExpressions) {
+                Expression newE = e.substituteVarWithExpression(subs);
+                changed = changed || (newE != e);
+                ghostCopy.add(newE);
+            }
 		
-//		Verify.verify(!subs.containsKey(object.getVariable()));
-		return new PullStatement(getSourceLocation(), classConstant, object.deepCopy(), leftCopy, ghostCopy);
+            if (changed)
+		return new PullStatement(getSourceLocation(), classConstant, object, leftCopy, ghostCopy);
+            else
+                return this;
 	}
 	
 }

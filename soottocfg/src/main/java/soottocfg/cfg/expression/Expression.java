@@ -87,19 +87,15 @@ public abstract class Expression implements Node, Serializable {
 		return t.getClass().isAssignableFrom(this.getType().getClass());
 	}
 	
-	public abstract Expression deepCopy();
-	
 	/**
-	 * Substitute variables in subs and return
-	 * a clone of the original expression
+	 * Substitute variables in subs.
 	 * @param subs
 	 * @return
 	 */
 	public abstract Expression substitute(Map<Variable, Variable> subs);
 	
 	/**
-	 * Substitute variables with the expressions in subs and return
-	 * a clone of the original expression
+	 * Substitute variables with the expressions in subs.
 	 * @param subs
 	 * @return
 	 */

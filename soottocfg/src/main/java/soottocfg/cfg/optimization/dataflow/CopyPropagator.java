@@ -34,16 +34,6 @@ import soottocfg.soot.util.SootTranslationHelpers;
  */
 public class CopyPropagator {
 
-	private static boolean cfgEquals(Expression s1, Expression s2) {
-		// TODO: equals currently broken
-		return s1.toString().equals(s2.toString());
-	}
-
-	private static boolean cfgEquals(Statement s1, Statement s2) {
-		// TODO: equals currently broken
-		return s1.toString().equals(s2.toString());
-	}
-
 	public static void main(String[] args) {
 		Method m = createExampleProgram();
 		System.err.println(m);
@@ -71,9 +61,10 @@ public class CopyPropagator {
 			}
 			List<Statement> newStmts = new LinkedList<Statement>();
 			for (Statement s : b.getStatements()) {
-				Map<Variable, Variable> subsitutions = createSubstitutionMap(s.getUseVariables(), rdefs.in.get(s));
-				Statement newStmt = s.substitute(subsitutions);
-				changes = !cfgEquals(newStmt, s) ? true : changes;				
+				Map<Variable, Variable> substitutions =
+                                    createSubstitutionMap(s.getUseVariables(), rdefs.in.get(s), rdefs);
+				Statement newStmt = s.substitute(substitutions);
+				changes = changes || (newStmt != s);
 				newStmts.add(newStmt);
 			}
 			if (changes) {
@@ -92,10 +83,11 @@ public class CopyPropagator {
 			for (CfgEdge e : m.outgoingEdgesOf(b)) {
 				if (e.getLabel().isPresent()) {
 					Expression expr = e.getLabel().get();
-					Map<Variable, Variable> subsitutions = createSubstitutionMap(expr.getUseVariables(), defStmts);
-					if (!subsitutions.isEmpty()) {
-						Expression newExpr = expr.substitute(subsitutions);						
-						if (!cfgEquals(expr, newExpr)) {
+					Map<Variable, Variable> substitutions =
+                                            createSubstitutionMap(expr.getUseVariables(), defStmts, rdefs);
+					if (!substitutions.isEmpty()) {
+						Expression newExpr = expr.substitute(substitutions);
+						if (expr != newExpr) {
 							e.setLabel(newExpr);
 							changes = true;
 						}
@@ -107,20 +99,30 @@ public class CopyPropagator {
 	}
 
 	private static Map<Variable, Variable> createSubstitutionMap(Set<Variable> useVars,
-			Set<Statement> reachingStatements) {
-		Map<Variable, Variable> subsitutions = new HashMap<Variable, Variable>();
-		for (Variable v : useVars) {
+                                                                     Set<Statement> reachingStatements,
+                                                                     ReachingDefinitions rdefs) {
+		Map<Variable, Variable> substitutions = new HashMap<Variable, Variable>();
+		mainLoop: for (Variable v : useVars) {
 			Set<Statement> defStmts = getDefStatementsForVar(v, reachingStatements);
-			if (defStmts.size() == 1) {
-				Statement stmt = defStmts.iterator().next();
-				if (stmt instanceof AssignStatement
-						&& ((AssignStatement) stmt).getRight() instanceof IdentifierExpression) {
-					IdentifierExpression rhsId = (IdentifierExpression) ((AssignStatement) stmt).getRight();
-					subsitutions.put(v, rhsId.getVariable());
-				}
-			}
+                        Variable replacement = null;
+
+                        for (Statement s : defStmts) {
+                            if (rdefs.havocStatements.contains(s))
+                                continue mainLoop;
+                            if (!(s instanceof AssignStatement &&
+                                  ((AssignStatement)s).getRight() instanceof IdentifierExpression))
+                                continue mainLoop;
+                            AssignStatement assS = (AssignStatement)s;
+                            Variable rhs = ((IdentifierExpression)assS.getRight()).getVariable();
+                            if (replacement != null && !replacement.equals(rhs))
+                                continue mainLoop;
+                            replacement = rhs;
+                        }
+
+                        if (replacement != null)
+                            substitutions.put(v, replacement);
 		}
-		return subsitutions;
+		return substitutions;
 	}
 
 	/**

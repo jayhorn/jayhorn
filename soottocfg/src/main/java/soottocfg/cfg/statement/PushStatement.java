@@ -161,54 +161,60 @@ public class PushStatement extends Statement {
 	public Statement deepCopy() {
 		List<Expression> rightCopy = new LinkedList<Expression>();
 		for (Expression e : right) {
-			rightCopy.add(e.deepCopy());
+			rightCopy.add(e);
 		}
 		List<Expression> ghostCopy = new LinkedList<Expression>();
 		for (Expression e : ghostExpressions) {
-			ghostCopy.add(e.deepCopy());
+			ghostCopy.add(e);
 		}
-		return new PushStatement(getSourceLocation(), classConstant, object.deepCopy(), rightCopy, ghostCopy, this.id);
+		return new PushStatement(getSourceLocation(), classConstant, object, rightCopy, ghostCopy, this.id);
 	}
 
 	@Override
 	public PushStatement substitute(Map<Variable, Variable> subs) {
-		List<Expression> rightCopy = new LinkedList<Expression>();
-		for (Expression e : right) {
-			rightCopy.add(e.substitute(subs));
-		}
-		List<Expression> ghostCopy = new LinkedList<Expression>();
-		for (Expression e : ghostExpressions) {
-			ghostCopy.add(e.substitute(subs));
-		}
+            boolean changed = false;
+            List<Expression> rightCopy = new LinkedList<Expression>();
+            for (Expression e : right) {
+                Expression newE = e.substitute(subs);
+                changed = changed || (newE != e);
+                rightCopy.add(newE);
+            }
+            List<Expression> ghostCopy = new LinkedList<Expression>();
+            for (Expression e : ghostExpressions) {
+                Expression newE = e.substitute(subs);
+                changed = changed || (newE != e);
+                ghostCopy.add(newE);
+            }
 
-		return new PushStatement(getSourceLocation(), classConstant, object.substitute(subs), rightCopy, ghostCopy, this.id);
+            IdentifierExpression newObj = object.substitute(subs);
+            changed = changed || (newObj != object);
+
+            if (changed)
+		return new PushStatement(getSourceLocation(), classConstant, newObj, rightCopy, ghostCopy, this.id);
+            else
+                return this;
 	}
 	
 	@Override
 	public PushStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
-		List<Expression> rightCopy = new LinkedList<Expression>();
-		for (Expression e : right) {
-			rightCopy.add(e.substituteVarWithExpression(subs));
-		}
-		List<Expression> ghostCopy = new LinkedList<Expression>();
-		for (Expression e : ghostExpressions) {
-			ghostCopy.add(e.substituteVarWithExpression(subs));
-		}
-//		Verify.verify(!subs.containsKey(object.getVariable()));
-		return new PushStatement(getSourceLocation(), classConstant, object.deepCopy(), rightCopy, ghostCopy, this.id);
+            boolean changed = false;
+            List<Expression> rightCopy = new LinkedList<Expression>();
+            for (Expression e : right) {
+                Expression newE = e.substituteVarWithExpression(subs);
+                changed = changed || (newE != e);
+                rightCopy.add(newE);
+            }
+            List<Expression> ghostCopy = new LinkedList<Expression>();
+            for (Expression e : ghostExpressions) {
+                Expression newE = e.substituteVarWithExpression(subs);
+                changed = changed || (newE != e);
+                ghostCopy.add(newE);
+            }
+
+            if (changed)
+		return new PushStatement(getSourceLocation(), classConstant, object, rightCopy, ghostCopy, this.id);
+            else
+                return this;
 	}	
 	
-	
-//	@Override
-//	public boolean equals(Object o) {
-//		if (!(o instanceof PushStatement))
-//			return false;
-//		PushStatement other = (PushStatement) o;
-//		return this.id == other.id;
-//	}
-//	
-//	@Override
-//	public int hashCode() {
-//		return id;
-//	}
 }

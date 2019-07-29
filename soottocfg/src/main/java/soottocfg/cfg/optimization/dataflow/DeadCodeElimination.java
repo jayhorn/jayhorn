@@ -7,6 +7,7 @@ import java.util.Set;
 
 import soottocfg.cfg.LiveVars;
 import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
@@ -14,6 +15,8 @@ import soottocfg.cfg.method.Method;
 import soottocfg.cfg.optimization.ExpressionEvaluator;
 import soottocfg.cfg.optimization.UnreachableNodeRemover;
 import soottocfg.cfg.statement.AssignStatement;
+import soottocfg.cfg.statement.AssertStatement;
+import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.util.SetOperations;
@@ -37,27 +40,77 @@ public class DeadCodeElimination  {
 	}
 
 	protected static boolean isDead(Statement stmt, LiveVars<Statement> liveVars) {
-		if (!(stmt instanceof AssignStatement) && !(stmt instanceof PullStatement)) {
-			// only assignments and pulls can be dead.
-			return false;
-		}
 		// If a statement writes to only variables that are not live, we can
 		// remove it!
 		// I.e. if intersection s.lvals, s.live is empty
-		return SetOperations.intersect(stmt.getDefVariables(), liveVars.liveOut.get(stmt)).isEmpty();
+		if ((stmt instanceof AssignStatement ||
+                     stmt instanceof PullStatement) &&
+                    SetOperations.intersect(
+                      stmt.getDefVariables(),
+                      liveVars.liveOut.get(stmt)).isEmpty())
+                    return true;
+
+                // Assignments with identical lhs and rhs can be removed
+                if (stmt instanceof AssignStatement) {
+                    AssignStatement astmt = (AssignStatement)stmt;
+                    Expression left = astmt.getLeft();
+                    Expression right = astmt.getRight();
+                    if (left instanceof IdentifierExpression &&
+                        right instanceof IdentifierExpression &&
+                        ((IdentifierExpression)left).getVariable().equals(
+                          ((IdentifierExpression)right).getVariable()))
+                        return true;
+                }
+                
+                if (stmt instanceof AssertStatement &&
+                    BooleanLiteral.trueLiteral().equals(
+                      ExpressionEvaluator.simplify(
+                        ((AssertStatement)stmt).getExpression())))
+                    return true;
+
+                if (stmt instanceof AssumeStatement &&
+                    BooleanLiteral.trueLiteral().equals(
+                      ExpressionEvaluator.simplify(
+                        ((AssumeStatement)stmt).getExpression())))
+                    return true;
+
+                return false;
 	}
 
-	protected static boolean eliminateDeadStatements(Method method, CfgBlock block, LiveVars<CfgBlock> blockLiveVars) {
+
+    /*
+    	protected static Statement simplifyStmt(Statement stmt) {
+            if (stmt instanceof AssertStatement) {
+                AssertStatement astmt = (AssertStatement)stmt;
+                return new AssertStatement(
+                         stmt.getSourceLocation(),
+                         ExpressionEvaluator.simplify(astmt.getExpression()));
+            }
+            if (stmt instanceof AssumeStatement) {
+                AssumeStatement astmt = (AssumeStatement)stmt;
+                return new AssumeStatement(
+                         stmt.getSourceLocation(),
+                         ExpressionEvaluator.simplify(astmt.getExpression()));
+            }
+
+            return stmt;   
+        }
+    */
+    
+	protected static boolean eliminateDeadStatements(
+                                        Method method,
+                                        CfgBlock block,
+                                        LiveVars<CfgBlock> blockLiveVars) {
 		boolean changed = false;
 		List<Statement> rval = new LinkedList<Statement>();
 		LiveVars<Statement> stmtLiveVars = block.computeLiveVariables(blockLiveVars);
 		for (Statement s : block.getStatements()) {
 			if (isDead(s, stmtLiveVars)) {
-				// If the statements is dead, just remove it from the list
-				changed = true;
+                            // If the statements is dead, just remove it from the list
+                            changed = true;
 			} else {
-				// otherwise, it stays in the list
-				rval.add(s.deepCopy());
+                            // otherwise, it stays in the list
+                            rval.add(s.deepCopy());
 			}
 		}
 		if (changed) {
@@ -91,9 +144,7 @@ public class DeadCodeElimination  {
 						toRemove.add(edge);
 					}
 				} else {
-					//TODO : do not set the label for now because it causes
-					//princess to fail during type checking.
-//					edge.setLabel(simpleLabel);
+					edge.setLabel(simpleLabel);
 				}
 //				
 //				Optional<Object> res = ExpressionEvaluator.eval(edge.getLabel().get());

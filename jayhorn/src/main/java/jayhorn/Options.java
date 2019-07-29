@@ -80,7 +80,7 @@ public class Options {
 	/**
 	 * JAR file
 	 */
-	@Option(name = "-j", usage = "JAR file, class folder, or apk", required = false)
+	@Option(name = "-j", usage = "JAR file, class folder, or apk", required = true)
 	private String javaInput;
 
 	public String getJavaInput() {
@@ -94,7 +94,7 @@ public class Options {
 	// /**
 	// * Print Horn clauses
 	// */
-	@Option(name = "-print-horn", usage = "Print horn clauses", required = false)
+    @Option(name = "-print-horn", usage = "Print horn clauses", required = false, hidden=true)
 	private boolean printHorn = false;
 
 	public boolean getPrintHorn() {
@@ -126,12 +126,17 @@ public class Options {
 	@Option(name = "-dot-cex", usage = "Output counter-examples in GraphViz format", required = false)
 	public boolean dotCEX = false;
 	
-	@Option(name = "-full-cex", usage = "Output full counter-examples in textual format", required = false)
+    @Option(name = "-full-cex", usage = "Output full internal counter-examples in textual format", required = false, depends = {"-solution"})
 	public boolean fullCEX = false;
 	
-	@Option(name = "-cid", usage = "Insert call IDs variables to track calling context into pull and push statements", required = false)
+	@Option(name = "-trace", usage = "Output counterexample traces", required = false, depends = {"-solution"})
+	public boolean trace = false;
+	
+	@Option(name = "-cid", usage = "Insert call IDs variables to track calling context into pull and push statements", required = false, hidden=true)
 	public boolean useCallIDs = false;
 
+    @Option(name = "-jimple", usage = "Prints the jimple of the bytecode", required = false, hidden=true)
+        public boolean printJimple = false;
 
 	
 	/*
@@ -143,20 +148,20 @@ public class Options {
 	/*
 	 * Disable array invariants
 	 */
-	@Option(name = "-disable-array-inv", usage = "Disable array invariants", required = false)
+	@Option(name = "-disable-array-inv", usage = "Disable array invariants", required = false, hidden=true)
 	private boolean disableArrayInv = false;
 
 	
 	/*
 	 * Exact array elements
 	 */
-	@Option(name = "-array-exact", usage = "Number of exactly modeled array elements", required = false)
+	@Option(name = "-array-exact", usage = "Number of exactly modeled array elements", required = false, hidden=true)
 	private int exactArrayElements = 0;
 
 	// /**
 	// * Output intermediate representations
 	// */
-	@Option(name = "-out", usage = "Output directory for intermediate represenations", required = false)
+	@Option(name = "-out", usage = "Output directory for Horn clauses", required = false)
 	private String out = null;
 
 	public String getOut() {

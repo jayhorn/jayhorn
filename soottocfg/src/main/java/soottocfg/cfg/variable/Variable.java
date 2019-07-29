@@ -62,12 +62,16 @@ public class Variable implements Serializable {
 //		return this.variableName + "/" + this.type;
 		return this.type + " " + this.variableName;
 	}
-	
+
+/*	
+        Because a program can contain multiple distinct variables with the same name and type,
+        it is not a good idea to implement an equals method in this class
+
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof Variable) {
 			Variable other = (Variable) obj;
-			return this.variableName.equals(other.variableName) &&	this.type.equals(other.type);
+			return this.variableName.equals(other.variableName); // &&	this.type.equals(other.type);
 		}
 		return false;
 	}
@@ -76,7 +80,8 @@ public class Variable implements Serializable {
 	public int hashCode() {
 		int result = 42;
 		result = 37 * result + this.variableName.hashCode();
-		result = 37 * result + this.type.hashCode();
+//		result = 37 * result + this.type.hashCode();
 		return result;
 	}
+*/
 }

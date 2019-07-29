@@ -1,0 +1,6 @@
+#!/bin/sh
+
+BASEDIR=`dirname $(readlink -e $0)`
+JAVA_OPTS="-Xss20000k -Xmx1500m -ea"
+
+java $JAVA_OPTS -jar $BASEDIR/jayhorn/build/libs/jayhorn.jar "$@"

@@ -82,18 +82,13 @@ public class BooleanLiteral extends Expression implements Literal{
 	}
 
 	@Override
-	public Expression deepCopy() {
-		return new BooleanLiteral(getSourceLocation(), value);
-	}
-	
-	@Override
 	public Expression substitute(Map<Variable, Variable> subs) {
-		return this.deepCopy();
+		return this;
 	}
 
 	@Override
 	public Expression substituteVarWithExpression(Map<Variable, Expression> subs) {
-		return this.deepCopy();
+		return this;
 	}
 
 }

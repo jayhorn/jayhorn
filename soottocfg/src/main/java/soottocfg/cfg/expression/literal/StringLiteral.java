@@ -29,13 +29,13 @@ public class StringLiteral extends IdentifierExpression {
         // for all escape characters: return StringEscapeUtils.escapeJava(String.format("\"%s\"", s));   // needs Apache Commons
         return String.format("\"%s\"",
                 s
-                .replace("\"", "\\\"")
-                .replace("\\", "\\\\")
-                .replace("\r", "\\r")
-                .replace("\n", "\\n")
-                .replace("\t", "\\t")
-                .replace("\b", "\\b")
-                .replace("\f", "\\f")
+                        .replace("\"", "\\\"")
+                        .replace("\\", "\\\\")
+                        .replace("\r", "\\r")
+                        .replace("\n", "\\n")
+                        .replace("\t", "\\t")
+                        .replace("\b", "\\b")
+                        .replace("\f", "\\f")
         );
     }
 
@@ -60,6 +60,13 @@ public class StringLiteral extends IdentifierExpression {
     }
 
     @Override
+    public int hashCode() {
+        // resolve FindBugs Report:
+        //		HE_EQUALS_USE_HASHCODE: Class defines equals() and uses Object.hashCode()
+        return this.value.hashCode();
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (other instanceof StringLiteral) {
             return ((StringLiteral) other).getValue().equals(this.value);
@@ -68,18 +75,13 @@ public class StringLiteral extends IdentifierExpression {
     }
 
     @Override
-    public StringLiteral deepCopy() {
-        return new StringLiteral(getSourceLocation(), getVariable(), value);
-    }
-
-    @Override
     public StringLiteral substitute(Map<Variable, Variable> subs) {
-        return this.deepCopy();
-    }
-
-    @Override
-    public StringLiteral substituteVarWithExpression(Map<Variable, Expression> subs) {
-        return this.deepCopy();
+        if (subs.containsKey(getVariable())) {
+            Variable newVar = subs.get(getVariable());
+            if (newVar != getVariable())
+                return new StringLiteral(getSourceLocation(), newVar, value);
+        }
+        return this;
     }
 
 }

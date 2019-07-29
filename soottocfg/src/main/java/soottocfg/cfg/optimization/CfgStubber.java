@@ -204,14 +204,24 @@ public class CfgStubber {
 					/*
 					 * The length field is now part of the tuple.
 					 */
+					TupleAccessExpression refExpr = new TupleAccessExpression(loc, argsParam,
+							ReferenceType.RefFieldName);
 					TupleAccessExpression typeExpr = new TupleAccessExpression(loc, argsParam,
 							ReferenceType.TypeFieldName);
 					TupleAccessExpression lenExpr = new TupleAccessExpression(loc, argsParam,
 							SootTranslationHelpers.lengthFieldName);
+
+                                        /**
+                                         * We add an assumption that the input array has address
+                                         * 1 (which is guaranteed to be non-null), has
+                                         * non-negative length, and has string array type
+                                         */
 					AssumeStatement asm = new AssumeStatement(loc,
                                           new BinaryExpression(loc, BinaryOperator.And,
+                                          new BinaryExpression(loc, BinaryOperator.And,
                                             SootTranslationHelpers.createInstanceOfExpression(typeExpr, c),
-                                            new BinaryExpression(loc, BinaryOperator.Ge, lenExpr, IntegerLiteral.zero())));
+                                            new BinaryExpression(loc, BinaryOperator.Ge, lenExpr, IntegerLiteral.zero())),
+                                            new BinaryExpression(loc, BinaryOperator.Eq, refExpr, IntegerLiteral.one())));
 					entry.addStatement(0, asm);
 
 					// push(JayHornArr12, r0, [JayHornArr12.$length,

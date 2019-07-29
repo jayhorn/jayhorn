@@ -85,17 +85,26 @@ public class AssignStatement extends Statement {
 
 	@Override
 	public Statement deepCopy() {
-		return new AssignStatement(getSourceLocation(), left.deepCopy(), right.deepCopy());
+		return new AssignStatement(getSourceLocation(), left, right);
 	}
 
 	@Override
 	public AssignStatement substitute(Map<Variable, Variable> subs) {
-		return new AssignStatement(getSourceLocation(), left.substitute(subs), right.substitute(subs));
+            Expression newLeft = left.substitute(subs);
+            Expression newRight = right.substitute(subs);
+            if (newLeft == left && newRight == right)
+                return this;
+            else
+		return new AssignStatement(getSourceLocation(), newLeft, newRight);
 	}
 
 	@Override
 	public AssignStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
-		return new AssignStatement(getSourceLocation(), left.deepCopy(), right.substituteVarWithExpression(subs));
+            Expression newRight = right.substituteVarWithExpression(subs);
+            if (newRight == right)
+                return this;
+            else
+		return new AssignStatement(getSourceLocation(), left, newRight);
 	}
 	
 }

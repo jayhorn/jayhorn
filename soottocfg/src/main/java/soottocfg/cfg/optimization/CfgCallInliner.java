@@ -231,7 +231,7 @@ public class CfgCallInliner {
 						CfgEdge newEdge = new CfgEdge();
 						CfgEdge oldEdge = m.getEdge(b, suc);
 						if (oldEdge.getLabel().isPresent()) {
-							newEdge.setLabel(oldEdge.getLabel().get().deepCopy());
+							newEdge.setLabel(oldEdge.getLabel().get());
 						}
 						m.removeEdge(b, suc);
 						m.addEdge(nextBlock, suc, newEdge);
@@ -271,7 +271,7 @@ public class CfgCallInliner {
 			CfgEdge newEdge = new CfgEdge();
 			CfgEdge oldEdge = caller.getEdge(pre, block);
 			if (oldEdge.getLabel().isPresent()) {
-				newEdge.setLabel(oldEdge.getLabel().get().deepCopy());
+				newEdge.setLabel(oldEdge.getLabel().get());
 			}
 			caller.removeEdge(pre, block);
 			caller.addEdge(pre, preBlock, newEdge);
@@ -280,7 +280,7 @@ public class CfgCallInliner {
 			CfgEdge newEdge = new CfgEdge();
 			CfgEdge oldEdge = caller.getEdge(block, post);
 			if (oldEdge.getLabel().isPresent()) {
-				newEdge.setLabel(oldEdge.getLabel().get().deepCopy());
+				newEdge.setLabel(oldEdge.getLabel().get());
 			}
 			caller.removeEdge(block, post);
 			caller.addEdge(postBlock, post, newEdge);

@@ -55,17 +55,25 @@ public class AssertStatement extends Statement {
 
 	@Override
 	public AssertStatement deepCopy() {
-		return new AssertStatement(getSourceLocation(), expression.deepCopy());
+		return new AssertStatement(getSourceLocation(), expression);
 	}
 	
 	@Override
 	public AssertStatement substitute(Map<Variable, Variable> subs) {
-		return new AssertStatement(getSourceLocation(), expression.substitute(subs));
+            Expression newExpr = expression.substitute(subs);
+            if (newExpr == expression)
+                return this;
+            else
+		return new AssertStatement(getSourceLocation(), newExpr);
 	}
 	
 	@Override
 	public AssertStatement substituteVarWithExpression(Map<Variable, Expression> subs) {
-		return new AssertStatement(getSourceLocation(), expression.substituteVarWithExpression(subs));
+            Expression newExpr = expression.substituteVarWithExpression(subs);
+            if (newExpr == expression)
+                return this;
+            else
+		return new AssertStatement(getSourceLocation(), newExpr);
 	}
 
 }
