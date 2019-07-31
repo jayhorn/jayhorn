@@ -105,27 +105,30 @@ public class PushPullSimplifier {
 		int removed = 0;
 		List<Statement> stmts = b.getStatements();
 		for (int i = 0; i+1 < stmts.size(); i++) {
-			if ((stmts.get(i) instanceof PullStatement /* || isConstructorCall(stmts.get(i)) */)
-                            && stmts.get(i+1) instanceof PullStatement) {
-				PullStatement pull1 = (PullStatement)stmts.get(i);
-				PullStatement pull2 = (PullStatement)stmts.get(i+1);
-				if (getObject(pull1).sameVariable(getObject(pull2)) &&
-                                    pull1.getLeft().size() == pull2.getLeft().size()) {
-					if (debug)
-						System.out.println("Applied rule (I); removed " + pull2);
-					b.removeStatement(i+1);
-                                        List<IdentifierExpression> left1 = pull1.getLeft();
-                                        List<IdentifierExpression> left2 = pull2.getLeft();
-                                        for (int j = 0; j < left1.size(); ++j) {
-                                            IdentifierExpression var1 = left1.get(j);
-                                            IdentifierExpression var2 = left2.get(j);
-                                            if (!var1.equals(var2))
-                                                b.addStatement(i+1, new AssignStatement(pull2.getSourceLocation(),
-                                                                                        var2, var1));
-                                        }
-					removed++;
-				}
-			}
+                    if ((stmts.get(i) instanceof PullStatement ||
+                         isConstructorCall(stmts.get(i))) &&
+                        stmts.get(i+1) instanceof PullStatement) {
+                        Statement pull1 = stmts.get(i);
+                        Statement pull2 = stmts.get(i+1);
+                        if (getObject(pull1).sameVariable(getObject(pull2))) {
+                            List<IdentifierExpression> left1 = getPullLHS(pull1);
+                            List<IdentifierExpression> left2 = getPullLHS(pull2);
+                            if (left1.size() == left2.size()) {
+                                if (debug)
+                                    System.out.println("Applied rule (I); removed " + pull2);
+                                b.removeStatement(i+1);
+                                SourceLocation loc = pull2.getSourceLocation();
+                                for (int j = 0; j < left1.size(); ++j) {
+                                    IdentifierExpression var1 = left1.get(j);
+                                    IdentifierExpression var2 = left2.get(j);
+                                    if (!var1.sameVariable(var2))
+                                        b.addStatement(i+1,
+                                                       new AssignStatement(loc, var2, var1));
+                                }
+                                removed++;
+                            }
+                        }
+                    }
 		}
 		return removed;
 	}
@@ -162,9 +165,8 @@ public class PushPullSimplifier {
                         List<Expression> pushvars = push.getRight();
                         List<IdentifierExpression> pullvars = pull.getLeft();
                         
-                        if (((IdentifierExpression)push.getObject()).sameVariable(
-                                  (IdentifierExpression)pull.getObject()) &&
-                            pushvars.size() == pullvars.size()) {
+                        if (getObject(push).sameVariable(getObject(pull)) &&
+                            pushvars.size() >= pullvars.size()) {
 
                             if (debug)
                                 System.out.println("Applied rule (III); removed " + pull);
@@ -173,7 +175,7 @@ public class PushPullSimplifier {
                             b.removeStatement(i+1);
                             SourceLocation loc = pull.getSourceLocation();
 
-                            for (int j = pushvars.size() - 1; j >= 0; --j) {
+                            for (int j = pullvars.size() - 1; j >= 0; --j) {
                                 Expression pushvar = pushvars.get(j);
                                 IdentifierExpression pullvar = pullvars.get(j);
                                 
@@ -265,7 +267,7 @@ public class PushPullSimplifier {
 
                                 Statement newPull =
                                     new PullStatement(loc, pull.getClassSignature(),
-                                                      (IdentifierExpression)pull.getObject(),
+                                                      getObject(pull),
                                                       newLHS, pull.getGhostExpressions());
 
                                 b.removeStatement(i+1);
@@ -278,46 +280,7 @@ public class PushPullSimplifier {
 
                             moved++;
                         }
-
-                    } else
-
-                        // can this case ever occur?
-			if (isConstructorCall(stmts.get(i+1))) {
-				Statement pull = stmts.get(i+1);
-				if (s instanceof AssignStatement) {
-					Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
-					pullvars.addAll(pull.getDefIdentifierExpressions());
-					AssignStatement as = (AssignStatement) s;
-					Set<IdentifierExpression> svars = as.getLeft().getUseIdentifierExpressions();
-					if (distinct(svars,pullvars)) {
-						b.swapStatements(i, i+1);
-						if (debug)
-							System.out.println("Applied rule (V); swapped " + s + " and " + pull);
-						moved++;
-					}
-				} else if (s instanceof NewStatement || s instanceof AssumeStatement) {
-					Set<IdentifierExpression> pullvars = pull.getIdentifierExpressions();
-					pullvars.addAll(pull.getDefIdentifierExpressions());
-					Set<IdentifierExpression> svars = s.getUseIdentifierExpressions();
-					svars.addAll(s.getDefIdentifierExpressions());
-					if (distinct(svars,pullvars)) {
-						b.swapStatements(i, i+1);
-						if (debug)
-							System.out.println("Applied rule (V); swapped " + s + " and " + pull);
-						moved++;
-					}
-				} else if (s instanceof AssertStatement) {
-					// do not move past null check
-					AssertStatement as = (AssertStatement) s;
-					if (i == 0 || (!(pull instanceof PullStatement)) || 
-							!isNullCheckBeforePull(stmts.get(i-1), as, (PullStatement) pull)) {
-						b.swapStatements(i, i+1);
-						if (debug)
-							System.out.println("Applied rule (V); swapped " + s + " and " + pull);
-						moved++;
-					}
-				}
-			}
+                    }
 		}
 		return moved;
 	}
@@ -463,9 +426,12 @@ public class PushPullSimplifier {
                     // if there is even just one predecessor which is further from 
                     // the source, don't move anything
 
+                    int bDist = m.distanceToSource(b);
                     for (CfgEdge in : incoming) {
                         CfgBlock prev = m.getEdgeSource(in);
-                        if (m.distanceToSource(prev) >= m.distanceToSource(b) ||
+                        if (!(m.distanceToSource(prev) < bDist ||
+                              (pull instanceof PullStatement &&
+                               blockIsBlockingPull(prev, (PullStatement)pull))) ||
                             m.outgoingEdgesOf(prev).size() > 1) {
                             nothingMoves = true;
                             break;
@@ -512,6 +478,31 @@ public class PushPullSimplifier {
             }
             return moves;
 	}
+
+    /**
+     * Determine whether the possibility exists that method <code>movePullUp</code>
+     * will move the given pull statement across the whole block
+     */
+    private boolean blockIsBlockingPull(CfgBlock b, PullStatement pull) {
+        Variable object = getObjectVar(pull);
+        List<Statement> stmts = b.getStatements();
+        for (int i = stmts.size() - 1; i >= 0; --i) {
+            Statement stmt = stmts.get(i);
+            if (stmt instanceof PushStatement) {
+                PushStatement s = (PushStatement)stmt;
+                if (object.equals(getObjectVar(s)))
+                    return true;
+            }
+            if (stmt instanceof NewStatement) {
+                NewStatement s = (NewStatement)stmt;
+                if (object.equals(getObjectVar(s)))
+                    return true;
+            }
+            if (stmt.getDefVariables().contains(object))
+                return false;
+        }
+        return false;
+    }
 	
 	/*
 	 * We don't currently allow pushes to break out of loops. We might in the future
@@ -685,6 +676,23 @@ public class PushPullSimplifier {
 			return (IdentifierExpression) ((CallStatement) s).getArguments().get(0);
 		return null;
 	}
+
+        private List<IdentifierExpression> getPullLHS(Statement s) {
+            if (s instanceof PullStatement)
+                return ((PullStatement)s).getLeft();
+            if (isConstructorCall(s)) {
+                List<IdentifierExpression> result = new LinkedList<>();
+                List<Expression> receivers = ((CallStatement) s).getReceiver();
+                for (int i = 1; i < receivers.size(); ++i)
+                    result.add((IdentifierExpression)receivers.get(i));
+                return result;
+            }
+            return null;
+        }
+
+	private Variable getObjectVar(Statement s) {
+            return getObject(s).getVariable();
+        }
 	
 	// check if the object of a push has been pulled in or on the path to CfgBlock b
 	private boolean hasBeenPulledIn(PushStatement push, CfgBlock b) {
@@ -713,7 +721,7 @@ public class PushPullSimplifier {
 	}
 	
 	private boolean isNullCheckBeforePull(Statement previous, AssertStatement as, PullStatement pull) {
-		Variable pullVar = ((IdentifierExpression) pull.getObject()).getVariable();
+		Variable pullVar = getObjectVar(pull);
 		if (previous instanceof AssignStatement) {
 			AssignStatement assign = (AssignStatement) previous;
 			Expression rhs = assign.getRight();

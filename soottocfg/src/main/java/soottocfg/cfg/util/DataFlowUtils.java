@@ -200,9 +200,9 @@ public class DataFlowUtils  {
                                      Statement victim) {
             final Set<Variable> killerDefs = killer.getDefVariables();
             for (Variable v : victim.getDefVariables())
-                if (killerDefs.contains(v))
-                    return true;
-            return false;
+                if (!killerDefs.contains(v))
+                    return false;
+            return true;
         }
 	
 	/**
