@@ -7,6 +7,7 @@ import ap.parser.EquivExpander$;
 import ap.parser.Transform2Prenex$;
 import ap.parser.IFormula;
 import ap.parser.SMTLineariser$;
+import ap.terfor.preds.Predicate;
 
 import jayhorn.solver.BoolType;
 import jayhorn.solver.IntType;
@@ -16,6 +17,8 @@ import jayhorn.solver.ProverHornClause;
 import jayhorn.solver.ProverType;
 import lazabs.horn.bottomup.HornClauses;
 import lazabs.horn.bottomup.SimpleWrapper;
+
+import scala.collection.mutable.HashSet;
 
 class HornExpr implements ProverHornClause {
 
@@ -73,15 +76,23 @@ class HornExpr implements ProverHornClause {
 
     public String toSMTLIBFormula() {
         //return clause.toSMTString();
+        return SMTLineariser$.MODULE$.asString(toFormula());
+    }
+
+    public IFormula toFormula() {
         IFormula f = clause.toFormula();
         f = PartialEvaluator$.MODULE$.apply(f);
         // Note: this can sometimes produce formulas that are not
         // Horn, since ite-expressions get split
         f = EquivExpander$.MODULE$.apply(f);
         f = Transform2Prenex$.MODULE$.apply(f);
-        return SMTLineariser$.MODULE$.asString(f);
+        return f;
     }
 
+    public void collectPreds(HashSet<Predicate> preds) {
+        preds.$plus$plus$eq(clause.predicates());
+    }
+    
     /**
      * Get the head predicate symbol.
      */

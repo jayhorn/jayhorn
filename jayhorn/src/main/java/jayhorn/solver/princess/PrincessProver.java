@@ -84,6 +84,7 @@ import scala.collection.immutable.List;
 import scala.collection.immutable.Map;
 import scala.collection.immutable.Set;
 import scala.collection.mutable.ArrayBuffer;
+import scala.collection.mutable.HashSet;
 import scala.util.Either;
 
 public class PrincessProver implements Prover {
@@ -186,7 +187,7 @@ public class PrincessProver implements Prover {
     }
 
     protected static Sort type2Sort(ProverType type) {
-        if (type == IntType.INSTANCE) {
+        if (type == IntType.INSTANCE || type == BoolType.INSTANCE) {
             return Sort.Integer$.MODULE$;
         } else if (type instanceof PrincessADTType) {
             return ((PrincessADTType)type).sort;
@@ -840,7 +841,10 @@ public class PrincessProver implements Prover {
 
     public ProverFun mkHornPredicate(String name, ProverType[] argTypes) {
         ProverType[] flatTypes = ProverTupleType.flatten(argTypes);
-        Predicate pred = api.createRelation(name, flatTypes.length);
+        ArrayBuffer<Sort> flatSorts = new ArrayBuffer<> ();
+        for (int i = 0; i < flatTypes.length; ++i)
+            flatSorts.$plus$eq(type2Sort(flatTypes[i]));
+        Predicate pred = api.createRelation(name, flatSorts);
         ProverType[] argCopy = Arrays.copyOf(argTypes, argTypes.length);
         fullHornTypes.put(pred, argCopy);
         return new PredicateFun(pred, argCopy);
@@ -894,6 +898,34 @@ public class PrincessProver implements Prover {
 		return ((HornExpr) clause).toSMTLIBFormula();
 	}
 
+	@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "DM_DEFAULT_ENCODING")
+        public String toSMTLIBScript(java.util.List<ProverHornClause> clauses) {
+            ArrayBuffer<IFormula> clauseFors = new ArrayBuffer<> ();
+            HashSet<Predicate> allPreds = new HashSet<> ();
+            
+            for (ProverHornClause c : clauses) {
+                IFormula f = ((HornExpr)c).toFormula();
+                ((HornExpr)c).collectPreds(allPreds);
+                clauseFors.$plus$eq(f);
+            }
+
+            allPreds.$minus$eq(SimpleWrapper.FALSEAtom().pred());
+            
+            PrintStream originalOut = scala.Console.out();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintStream newOut = new PrintStream(baos);
+            scala.Console.setOut(newOut);
+            
+            ap.parser.SMTLineariser.apply("JayHorn-clauses", "HORN", "unknown",
+                                          new ArrayBuffer(),
+                                          allPreds.toSeq(), // .sortBy(_.name),
+                                          clauseFors);
+
+            scala.Console.flush();
+            scala.Console.setOut(originalOut);
+            return baos.toString();
+        }
+            
 	public void parseSMTLIBFormula(final String formula) {
 //		Tuple3<Seq<IFormula>, scala.collection.immutable.Map<IFunction, SMTFunctionType>, scala.collection.immutable.Map<ConstantTerm, SMTType>> triple = 
 				

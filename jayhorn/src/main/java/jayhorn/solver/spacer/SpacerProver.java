@@ -1285,7 +1285,11 @@ public class SpacerProver implements Prover {
     public void parseSMTLIBFormula(final String formula) {
     	throw new UnsupportedOperationException();
     }
-    
+
+    public String toSMTLIBScript(List<ProverHornClause> clauses) {
+    	throw new UnsupportedOperationException();
+    }
+
     public void printRules() {
     	try{
     	BoolExpr[] rules = this.fx.getRules();
