@@ -1,6 +1,6 @@
 
 
-class SatIncrField {
+public class SatIncrField {
     public static class Ptr {
         public int a;
         }

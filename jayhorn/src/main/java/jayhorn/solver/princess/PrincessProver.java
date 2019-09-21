@@ -4,7 +4,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Stack;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,9 +45,18 @@ import ap.parser.PredicateSubstVisitor$;
 import ap.parser.SymbolCollector$;
 import ap.terfor.ConstantTerm;
 import ap.terfor.preds.Predicate;
+import ap.theories.ADT;
+import ap.theories.ADT$;
 import ap.theories.ADT.ADTProxySort;
+import ap.theories.ADT.TermMeasure$;
+import ap.theories.ADT.CtorSignature;
+import ap.theories.ADT.CtorArgSort;
+import ap.theories.ADT.OtherSort;
+import ap.theories.ADT.ADTSort;
 import ap.theories.SimpleArray.ArraySort;
 import ap.types.Sort;
+import ap.types.Sort$;
+import ap.types.Sort.Integer$;
 import jayhorn.Log;
 import jayhorn.Options;
 import jayhorn.solver.*;
@@ -59,13 +71,12 @@ import scala.collection.immutable.List;
 import scala.collection.immutable.Map;
 import scala.collection.immutable.Set;
 import scala.collection.mutable.ArrayBuffer;
+import scala.collection.mutable.HashSet;
 import scala.util.Either;
 
 public class PrincessProver implements Prover {
 
 	private SimpleAPI api;
-
-//	private boolean initStringHornClauses = false;
 
 	public PrincessProver() {
 		ap.util.Debug.enableAllAssertions(false);
@@ -92,6 +103,51 @@ public class PrincessProver implements Prover {
 		return new ArrayType(argTypes.length);
 	}
 
+	public ProverADT mkADT(String[]       typeNames,
+                               String[]       ctorNames,
+                               int[]          ctorTypes,
+                               ProverType[][] ctorArgTypes,
+                               String[][]     selectorNames) {
+            assert(ctorNames.length == ctorTypes.length &&
+                   ctorNames.length == ctorArgTypes.length &&
+                   ctorNames.length == selectorNames.length);
+
+            final ArrayBuffer<String> sortNames = new ArrayBuffer<> ();
+            for (int i = 0; i < typeNames.length; ++i)
+                sortNames.$plus$eq(typeNames[i]);
+
+            final ArrayBuffer<Tuple2<String, CtorSignature>> ctors =
+                new ArrayBuffer<> ();
+            for (int i = 0; i < ctorNames.length; ++i) {
+                assert(ctorArgTypes[i].length == selectorNames[i].length);
+
+                final ADTSort resSort = new ADTSort(ctorTypes[i]);
+
+                final ArrayBuffer<Tuple2<String, CtorArgSort>> args =
+                    new ArrayBuffer<> ();
+                for (int j = 0; j < ctorArgTypes[i].length; ++j) {
+                    final ProverType type = ctorArgTypes[i][j];
+                    final CtorArgSort argSort;
+                    if (type instanceof ADTTempType)
+                        argSort = new ADTSort(((ADTTempType)type).typeIndex);
+                    else
+                        argSort = new OtherSort(type2Sort(type));
+                    args.$plus$eq(new Tuple2 (selectorNames[i][j], argSort));
+                }
+
+                ctors.$plus$eq(new Tuple2 (ctorNames[i],
+                                           new CtorSignature(args, resSort)));
+            }
+
+            final ADT adt =
+                new ADT (sortNames, ctors, TermMeasure$.MODULE$.Size());
+            return new PrincessADT(adt);
+        }
+
+	public ProverType getADTTempType(int n) {
+            return new ADTTempType(n);
+        }
+
     public ProverType getTupleType(ProverType[] subTypes) {
         return new ProverTupleType(Arrays.copyOf(subTypes, subTypes.length));
     }
@@ -106,7 +162,7 @@ public class PrincessProver implements Prover {
 		}
 	}
 
-    public static ProverType sort2Type(Sort sort) {
+    protected static ProverType sort2Type(Sort sort) {
         if (sort == Sort.Integer$.MODULE$) {
             return IntType.INSTANCE;
         } else if (sort instanceof ADTProxySort) {
@@ -117,8 +173,8 @@ public class PrincessProver implements Prover {
         throw new IllegalArgumentException();
     }
 
-    public static Sort type2Sort(ProverType type) {
-        if (type == IntType.INSTANCE) {
+    protected static Sort type2Sort(ProverType type) {
+        if (type == IntType.INSTANCE || type == BoolType.INSTANCE) {
             return Sort.Integer$.MODULE$;
         } else if (type instanceof PrincessADTType) {
             return ((PrincessADTType)type).sort;
@@ -772,7 +828,10 @@ public class PrincessProver implements Prover {
 
     public ProverFun mkHornPredicate(String name, ProverType[] argTypes) {
         ProverType[] flatTypes = ProverTupleType.flatten(argTypes);
-        Predicate pred = api.createRelation(name, flatTypes.length);
+        ArrayBuffer<Sort> flatSorts = new ArrayBuffer<> ();
+        for (int i = 0; i < flatTypes.length; ++i)
+            flatSorts.$plus$eq(type2Sort(flatTypes[i]));
+        Predicate pred = api.createRelation(name, flatSorts);
         ProverType[] argCopy = Arrays.copyOf(argTypes, argTypes.length);
         fullHornTypes.put(pred, argCopy);
         return new PredicateFun(pred, argCopy);
@@ -782,10 +841,7 @@ public class PrincessProver implements Prover {
 	 * The head literal can either be constructed using
 	 * <code>mkHornPredicate</code>, or be the formula <code>false</code>.
 	 */
-	@Override
-	public ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body, ProverExpr constraint
-//			, String name
-	) {
+	public ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body, ProverExpr constraint) {
 		IFormula rawHead = ((FormulaExpr) head).formula;
 		if ((rawHead instanceof IBoolLit) && !((IBoolLit) rawHead).value())
 			rawHead = SimpleWrapper.FALSEAtom();
@@ -797,29 +853,8 @@ public class PrincessProver implements Prover {
 		final HornClauses.Clause clause = SimpleWrapper.clause((IAtom) rawHead, rawBody.toList(),
 				((FormulaExpr) constraint).formula);
 
-		return new HornExpr(clause
-//				, name
-		);
+		return new HornExpr(clause);
 	}
-
-//	public ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body, ProverExpr constraint) {
-//		return mkHornClause(head, body, constraint, null);
-//	}
-
-//	@Override
-//	public void initializeStringHornClauses(Iterable<ProverHornClause> stringHornClauses) {
-//		if (!initStringHornClauses) {
-//			for (ProverHornClause hc : stringHornClauses) {
-//				addAssertion(hc);
-//			}
-//			initStringHornClauses = true;
-//		}
-//	}
-//
-//	@Override
-//	public boolean isInitializedStringHornClauses() {
-//		return initStringHornClauses;
-//	}
 
 	@Override
 	public void setHornLogic(boolean b) {
@@ -849,6 +884,34 @@ public class PrincessProver implements Prover {
 	public String toSMTLIBFormula(ProverHornClause clause) {
 		return ((HornExpr) clause).toSMTLIBFormula();
 	}
+
+	@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "DM_DEFAULT_ENCODING")
+        public String toSMTLIBScript(java.util.List<ProverHornClause> clauses) {
+            ArrayBuffer<IFormula> clauseFors = new ArrayBuffer<> ();
+            HashSet<Predicate> allPreds = new HashSet<> ();
+
+            for (ProverHornClause c : clauses) {
+                IFormula f = ((HornExpr)c).toFormula();
+                ((HornExpr)c).collectPreds(allPreds);
+                clauseFors.$plus$eq(f);
+            }
+
+            allPreds.$minus$eq(SimpleWrapper.FALSEAtom().pred());
+
+            PrintStream originalOut = scala.Console.out();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintStream newOut = new PrintStream(baos);
+            scala.Console.setOut(newOut);
+
+            ap.parser.SMTLineariser.apply("JayHorn-clauses", "HORN", "unknown",
+                                          new ArrayBuffer(),
+                                          allPreds.toSeq(), // .sortBy(_.name),
+                                          clauseFors);
+
+            scala.Console.flush();
+            scala.Console.setOut(originalOut);
+            return baos.toString();
+        }
 
 	public void parseSMTLIBFormula(final String formula) {
 //		Tuple3<Seq<IFormula>, scala.collection.immutable.Map<IFunction, SMTFunctionType>, scala.collection.immutable.Map<ConstantTerm, SMTType>> triple = 

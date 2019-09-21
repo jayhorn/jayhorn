@@ -21,7 +21,7 @@ public class ADTTempType implements ProverType {
 		return idx2type.get(ti);
 	}
 
-	private ADTTempType(int typeIndex) {
+	public ADTTempType(int typeIndex) {
 		this.typeIndex = typeIndex;
 	}
 
