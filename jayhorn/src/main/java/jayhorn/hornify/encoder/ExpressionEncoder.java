@@ -47,6 +47,10 @@ public class ExpressionEncoder {
 		this.stringEncoder = new StringEncoder(p, HornHelper.hh().getStringADT());
 	}
 
+	public StringEncoder getStringEncoder() {
+		return stringEncoder;
+	}
+    
 	public HornEncoderContext getContext() {
 		return this.hornContext;
 	}
@@ -162,12 +166,6 @@ public class ExpressionEncoder {
 		        } else {
 					return p.mkEq(left, right);
 				}
-			case StringEq:
-				return stringEncoder.mkStringEq(left, right, (ReferenceType)be.getLeft().getType());
-			case StringConcatAssumption:
-				return stringEncoder.mkStringConcatAssumption(left, right, (ReferenceType)be.getLeft().getType());
-			case StringConcat:
-				return stringEncoder.mkStringConcat(left, right, (ReferenceType)be.getLeft().getType());
 			case Ne:
 				return p.mkNot(p.mkEq(left, right));
 			case Gt:

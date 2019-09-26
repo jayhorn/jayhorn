@@ -213,7 +213,8 @@ public class StatementEncoder {
         return clauses;
     }
 
-    public List<ProverHornClause> assignToClause(AssignStatement as, HornPredicate postPred, ProverExpr preAtom,
+    public List<ProverHornClause> assignToClause(AssignStatement as,
+                                                 HornPredicate postPred, ProverExpr preAtom,
                                                  Map<Variable, ProverExpr> varMap) {
         List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
@@ -221,6 +222,11 @@ public class StatementEncoder {
                       "only assignments to variables are supported, not to " + as.getLeft());
         final IdentifierExpression idLhs = (IdentifierExpression) as.getLeft();
 
+        StringEncoder.EncodingFacts stringConstraints =
+            expEncoder.getStringEncoder().handleStringExpr(as.getRight(), varMap);
+        if (stringConstraints != null)
+            return generateStringClauses(stringConstraints, idLhs, postPred, preAtom, varMap);
+        
         ProverExpr right = expEncoder.exprToProverExpr(as.getRight(), varMap);
         if (as.getRight() instanceof NullLiteral) {
             ProverTupleType pttLeft = (ProverTupleType) HornHelper.hh().getProverType(p, idLhs.getType());
@@ -254,6 +260,28 @@ public class StatementEncoder {
         return clauses;
     }
 
+    private List<ProverHornClause> generateStringClauses(StringEncoder.EncodingFacts stringConstraints,
+                                                         IdentifierExpression idLhs,
+                                                         HornPredicate postPred, ProverExpr preAtom,
+                                                         Map<Variable, ProverExpr> varMap) {
+        List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
+
+        if (stringConstraints.rely != null)
+            clauses.add(p.mkHornClause(stringConstraints.rely, new ProverExpr[]{preAtom}, p.mkLiteral(true)));
+
+        varMap.put(idLhs.getVariable(), stringConstraints.result);
+
+        ProverExpr[] body;
+        if (stringConstraints.guarantee != null)
+            body = new ProverExpr[]{preAtom, stringConstraints.guarantee};
+        else
+            body = new ProverExpr[]{preAtom};
+
+        final ProverExpr postAtom = postPred.instPredicate(varMap);
+        clauses.add(p.mkHornClause(postAtom, body, stringConstraints.constraint));
+
+        return clauses;
+    }
 
     public List<ProverHornClause> newToClause(NewStatement ns, HornPredicate postPred, ProverExpr preAtom,
                                               Map<Variable, ProverExpr> varMap) {

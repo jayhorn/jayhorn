@@ -522,9 +522,7 @@ public class SootStmtSwitch implements StmtSwitch {
 				otherValue.apply(valueSwitch);
 				Expression b = valueSwitch.popExpression();
 				b = getExpressionOrSelf(b);
-				BinaryExpression concatAssumption = new BinaryExpression(srcLoc, BinaryOperator.StringConcatAssumption, a, b);
-				currentBlock.addStatement(new AssumeStatement(srcLoc, concatAssumption, true));
-				rhs = new BinaryExpression(srcLoc, BinaryOperator.StringConcat, a, b);
+                rhs = new BinaryExpression(srcLoc, BinaryOperator.StringConcat, a, b);
 			} else {
 				throw new RuntimeException("String.concat(NonObject) not implemented");
 			}

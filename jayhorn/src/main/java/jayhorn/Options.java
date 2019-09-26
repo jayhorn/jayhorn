@@ -21,6 +21,7 @@ package jayhorn;
 
 import java.util.Arrays;
 import java.util.List;
+import jayhorn.hornify.encoder.StringEncoder;
 
 import org.kohsuke.args4j.Option;
 
@@ -75,6 +76,13 @@ public class Options {
 	
 	public void setSolverOptions(String so) {
 		solverOptions = so;
+	}
+
+	@Option(name = "-string-encoding", usage = "Sets the string encoding method")
+	private StringEncoder.StringEncoding stringEncoding = StringEncoder.StringEncoding.recursive;
+
+	public StringEncoder.StringEncoding getStringEncoding() {
+		return stringEncoding;
 	}
 
 	/**
