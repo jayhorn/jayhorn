@@ -2,6 +2,7 @@ package jayhorn.solver;
 
 import java.math.BigInteger;
 import java.util.Map;
+import java.util.List;
 
 public interface Prover {
 
@@ -269,6 +270,8 @@ public interface Prover {
     String toSMTLIBDeclaration(ProverFun fun);
 
     String toSMTLIBFormula(ProverHornClause clause);
+
+    String toSMTLIBScript(List<ProverHornClause> clauses);
 
     void parseSMTLIBFormula(final String formula);
 }
