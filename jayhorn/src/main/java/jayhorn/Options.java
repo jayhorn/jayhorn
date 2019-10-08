@@ -85,6 +85,10 @@ public class Options {
 		return stringEncoding;
 	}
 
+	public void setStringEncoding(StringEncoder.StringEncoding stringEncoding) {
+		this.stringEncoding = stringEncoding;
+	}
+
 	/**
 	 * JAR file
 	 */
