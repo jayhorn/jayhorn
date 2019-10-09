@@ -864,7 +864,7 @@ public class PrincessProver implements Prover {
 			rawBody.$plus$eq((IAtom) ((FormulaExpr) body[i]).formula);
 
 		final HornClauses.Clause clause = SimpleWrapper.clause((IAtom) rawHead, rawBody.toList(),
-				((FormulaExpr) constraint).formula);
+				((PrincessProverExpr) constraint).toFormula());
 
 		return new HornExpr(clause);
 	}

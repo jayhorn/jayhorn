@@ -81,6 +81,7 @@ import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
+import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.statement.NewStatement;
@@ -647,6 +648,15 @@ public class SootStmtSwitch implements StmtSwitch {
                     return true;
 		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: long nondetLong()>")) {
                     translateVerifierNondet(LongType.v(), optionalLhs, call);
+                    return true;
+
+		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: void assume(boolean)>")) {
+                    Verify.verify(optionalLhs == null);
+                    Verify.verify(call.getArgCount() == 1);
+                    call.getArg(0).apply(valueSwitch);
+                    Expression cond = valueSwitch.popExpression();
+                    currentBlock.addStatement(
+                       new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(u), cond));
                     return true;
 		}
 

@@ -30,8 +30,7 @@ public class AssumeStatement extends Statement {
 	 */
 	public AssumeStatement(SourceLocation loc, Expression expr) {
 		super(loc);
-		assert (expr.getType() == BoolType.instance());
-		this.expression = expr;
+		this.expression = expr.castToBoolIfNecessary();
 	}
 
 	public Expression getExpression() {
