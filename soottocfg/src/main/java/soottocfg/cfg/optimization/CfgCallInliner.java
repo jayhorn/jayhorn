@@ -33,6 +33,29 @@ import soottocfg.soot.transformers.ArrayTransformer;
  */
 public class CfgCallInliner {
 
+    /**
+     * Verify that a program does not contain identical statement
+     * objects multiple times
+     */
+    public static void noDuplicateStatements(Program program) {
+        for (Method method : program.getMethods())
+            noDuplicateStatements(method);
+    }
+
+    /**
+     * Verify that a method does not contain identical statement
+     * objects multiple times
+     */
+    public static void noDuplicateStatements(Method method) {
+        Set<Statement> seen = new HashSet<> ();
+        for (CfgBlock b : method.vertexSet()) {
+            for (Statement s : b.getStatements()) {
+                if (!seen.add(s))
+                    Verify.verify(false, "duplicate statement in method " + method.getMethodName() + ": " + s);
+            }
+        }
+    }
+    
 	private int freshInt = 0;
 
 	/*
@@ -324,7 +347,12 @@ public class CfgCallInliner {
 		for (CfgBlock cur : callee.vertexSet()) {
 			CfgBlock clone = new CfgBlock(caller);
 			for (Statement s : cur.getStatements()) {
-				clone.addStatement(s.substitute(varSubstitionMap));
+                            Statement s2 = s.substitute(varSubstitionMap);
+                            // we need to make sure that we get a new object, otherwise
+                            // the InterProceduralPullPushOrdering will get confused
+                            if (s2 == s)
+                                s2 = s2.deepCopy();
+                            clone.addStatement(s2);
 			}
 			cloneMap.put(cur, clone);
 		}
