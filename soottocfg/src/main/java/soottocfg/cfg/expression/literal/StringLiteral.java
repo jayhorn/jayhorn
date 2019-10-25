@@ -4,13 +4,20 @@
 package soottocfg.cfg.expression.literal;
 
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import soot.RefType;
+import soot.jimple.ClassConstant;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.type.StringType;
+import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.soot.util.SootTranslationHelpers;
 
 public class StringLiteral extends IdentifierExpression {
 
@@ -84,4 +91,11 @@ public class StringLiteral extends IdentifierExpression {
         return this;
     }
 
+//    public static ReferenceType mkStringReferenceType() {
+//        LinkedHashMap<String, Type> elementTypes = ReferenceType.mkDefaultElementTypes();
+//        elementTypes.put("$String", StringType.instance());
+//        RefType t = RefType.v("java.lang.String");
+//        return new ReferenceType(SootTranslationHelpers.v().getMemoryModel().lookupClassVariable(
+//                ClassConstant.v("java/lang/String")), elementTypes);  // NullPointerException since program is null
+//    }
 }

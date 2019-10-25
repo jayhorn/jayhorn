@@ -510,7 +510,9 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 			return true;
 		}
-		if (methodSignature.contains("<java.lang.String: java.lang.String concat(java.lang.String)>")) {
+		if (methodSignature.contains("<java.lang.String: java.lang.String concat(java.lang.String)>") ||
+			methodSignature.contains("<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>") ||
+			methodSignature.contains("<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>")) {
 			assert (call instanceof  InstanceInvokeExpr);
 			Expression rhs;
 			if (call.getArg(0).getType() instanceof RefType) {
@@ -533,6 +535,27 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 			return true;
 		}
+		if (methodSignature.contains("<java.lang.StringBuilder: java.lang.String toString()>") ||
+			methodSignature.contains("<java.lang.StringBuffer: java.lang.String toString()>")) {
+			assert (call instanceof  InstanceInvokeExpr);
+			if (optionalLhs != null) {
+				Expression rhs;
+				Value thisValue = ((InstanceInvokeExpr) call).getBase();
+				thisValue.apply(valueSwitch);
+				Expression thisExpr = valueSwitch.popExpression();
+				thisExpr = getExpressionOrSelf(thisExpr);
+				optionalLhs.apply(valueSwitch);
+				Expression lhs = valueSwitch.popExpression();
+				rhs = new BinaryExpression(srcLoc, BinaryOperator.ToString, thisExpr, lhs);
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+			} // else: ignore
+			return true;
+		}
+//		if (methodSignature.contains("<java.lang.StringBuilder: void <init>()>") ||
+//			methodSignature.contains("<java.lang.StringBuffer: void <init>()>")) {
+//			assert (call instanceof InstanceInvokeExpr);
+//			// ignore for now
+//		}
 		if (methodSignature.contains("<java.lang.System: void exit(int)>") ||
                     methodSignature.contains("<java.lang.Runtime: void halt(int)>")) {
 			// TODO: this is not sufficient for interprocedural analysis.

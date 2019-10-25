@@ -32,7 +32,8 @@ public class BinaryExpression extends Expression {
 	public enum BinaryOperator {
 		Plus("+"), Minus("-"), Mul("*"), Div("/"), Mod("%"), And("&&"), Or("||"), Xor("^"), Implies("->"), Eq("=="),
 		Ne("!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&"),
-		PoLeq("<:"), StringEq("==="), StringConcat("+++"), StringConcatAssumption("+s+");
+		PoLeq("<:"), StringEq("==="), StringConcat("+++"),
+		ToString("<str>");	// TODO: not an actual BinaryExpression
 
 		private final String name;
 
@@ -106,9 +107,14 @@ public class BinaryExpression extends Expression {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("(");
-		sb.append(this.left);
-		sb.append(" " + this.op + " ");
-		sb.append(this.right);
+		if (this.op.equals(BinaryOperator.ToString)) {
+			sb.append(this.op);
+			sb.append(left);
+		} else {
+			sb.append(this.left);
+			sb.append(" " + this.op + " ");
+			sb.append(this.right);
+		}
 		sb.append(")");
 		return sb.toString();
 	}
@@ -131,39 +137,43 @@ public class BinaryExpression extends Expression {
 	@Override
 	public Type getType() {
 		switch (op) {
-		case Plus:
-		case Minus:
-		case Mul:
-		case Div:
-		case Mod: {
-			assert (left.getType().equals(right.getType()));
-			return left.getType();
-		}
-		case Eq:
-		case StringEq:
-		case Ne:
-		case Gt:
-		case Ge:
-		case Lt:
-		case Le: {
-			// assert(left.getType().equals(right.getType()));
-			return BoolType.instance();
-		}
-		case And:
-		case Or:
-		case Implies: {
-			assert (left.getType() == BoolType.instance() && right.getType() == BoolType.instance());
-			return BoolType.instance();
-		}
+			case Plus:
+			case Minus:
+			case Mul:
+			case Div:
+			case Mod: {
+				assert (left.getType().equals(right.getType()));
+				return left.getType();
+			}
+			case Eq:
+			case StringEq:
+			case Ne:
+			case Gt:
+			case Ge:
+			case Lt:
+			case Le: {
+				// assert(left.getType().equals(right.getType()));
+				return BoolType.instance();
+			}
+			case And:
+			case Or:
+			case Implies: {
+				assert (left.getType() == BoolType.instance() && right.getType() == BoolType.instance());
+				return BoolType.instance();
+			}
 
-		case PoLeq: {
-			return BoolType.instance();
-		}
-		
-		default: {
-			//TODO: more testing here?
-			return left.getType();
-		}
+			case PoLeq: {
+				return BoolType.instance();
+			}
+
+			case ToString: {
+				return right.getType();
+			}
+
+			default: {
+				//TODO: more testing here?
+				return left.getType();
+			}
 		}
 	}
 

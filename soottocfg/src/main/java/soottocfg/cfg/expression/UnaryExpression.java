@@ -79,12 +79,12 @@ public class UnaryExpression extends Expression {
 	@Override
 	public Type getType() {
 		switch (op) {
-		case LNot: {
-			return BoolType.instance();
-		}
-		case Neg: {
-			return expression.getType();
-		}
+			case LNot: {
+				return BoolType.instance();
+			}
+			case Neg: {
+				return expression.getType();
+			}
 		}
 		throw new RuntimeException("Unknown case " + op);
 	}

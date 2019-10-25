@@ -1,7 +1,7 @@
 /**
  * 
  */
-package jayhorn.test.assorted_tests;
+package jayhorn.test.regression_tests;
 
 import jayhorn.checker.Checker;
 import jayhorn.checker.EldaricaChecker;
@@ -88,8 +88,6 @@ public class StringTest {
 			Checker.CheckerResult expectedCheckerResult;
 			if (this.sourceFile.getName().startsWith("Sat")) {
 				expectedCheckerResult = EldaricaChecker.CheckerResult.SAFE;
-			} else if (this.sourceFile.getName().startsWith("Unknown")) {
-				expectedCheckerResult = EldaricaChecker.CheckerResult.UNKNOWN;
 			} else {
 				expectedCheckerResult = EldaricaChecker.CheckerResult.UNSAFE;
 			}

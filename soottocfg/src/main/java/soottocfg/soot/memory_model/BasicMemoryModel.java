@@ -228,10 +228,13 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		if (t instanceof ArrayType) {
 			throw new RuntimeException("Remove Arrays first. " + t);
 		} else if (t instanceof RefType) {
-			if (((RefType)t).getSootClass().equals(Scene.v().getSootClass("java.lang.Class"))) {
+			SootClass typeSootClass = ((RefType)t).getSootClass();
+			if (typeSootClass.equals(Scene.v().getSootClass("java.lang.Class"))) {
 				return new TypeType();
 			}
-			if (((RefType)t).getSootClass().equals(Scene.v().getSootClass("java.lang.String"))) {
+			if (typeSootClass.equals(Scene.v().getSootClass("java.lang.String")) ||
+					typeSootClass.equals(Scene.v().getSootClass("java.lang.StringBuilder")) ||
+					typeSootClass.equals(Scene.v().getSootClass("java.lang.StringBuffer"))) {
 				LinkedHashMap<String, Type> elementTypes = ReferenceType.mkDefaultElementTypes();
 				elementTypes.put("$String", StringType.instance());
 				return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)), elementTypes);

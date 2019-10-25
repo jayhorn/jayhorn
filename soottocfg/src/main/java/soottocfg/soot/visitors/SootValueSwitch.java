@@ -557,7 +557,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseNewExpr(NewExpr arg0) {
-		throw new RuntimeException("Should be handeled in SootStmtSwitch");
+		throw new RuntimeException("Should be handled in SootStmtSwitch");
 	}
 
 	@Override

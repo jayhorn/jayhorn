@@ -292,7 +292,12 @@ public class StatementEncoder {
         final IdentifierExpression idLhs = (IdentifierExpression) ns.getLeft();
 
         ReferenceType rightType = new ReferenceType(ns.getClassVariable());
-        ProverExpr[] tupleElements = new ProverExpr[rightType.getElementTypeList().size()];
+        int extraElementsCount = 0;
+        if (ns.getClassVariable().getName().equals("java/lang/StringBuilder")
+                || ns.getClassVariable().getName().equals("java/lang/StringBuffer")) {
+            extraElementsCount++;
+        }
+        ProverExpr[] tupleElements = new ProverExpr[rightType.getElementTypeList().size() + extraElementsCount];
 
         final ProverExpr heapCounter =
             expEncoder.exprToProverExpr(
@@ -306,9 +311,15 @@ public class StatementEncoder {
             tupleElements[offset++] = p.mkLiteral(HornHelper.hh().newVarNum());
         }
 
+        if (ns.getClassVariable().getName().equals("java/lang/StringBuilder")
+                || ns.getClassVariable().getName().equals("java/lang/StringBuffer")) {
+            tupleElements[offset++] = expEncoder.getStringEncoder().mkString("");
+        }
+
         for (int i = offset; i < tupleElements.length; i++) {
             tupleElements[i] = p.mkVariable("$new" + i,
-                                            HornHelper.hh().getProverType(p, rightType.getElementTypeList().get(i)));
+                                            HornHelper.hh().getProverType(p,
+                                                    rightType.getElementTypeList().get(i - extraElementsCount)));
         }
         varMap.put(idLhs.getVariable(), p.mkTuple(tupleElements));
 

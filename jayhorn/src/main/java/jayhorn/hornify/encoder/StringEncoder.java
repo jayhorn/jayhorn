@@ -303,20 +303,25 @@ public class StringEncoder {
         if (e instanceof BinaryExpression) {
             final BinaryExpression be = (BinaryExpression) e;
             switch (be.getOp()) {
-            case StringConcat: {
-                final ProverExpr leftPE = selectString(be.getLeft(), varMap);
-                final ProverExpr rightPE = selectString(be.getRight(), varMap);
-                return mkStringConcat(leftPE, rightPE, (ReferenceType)be.getLeft().getType());
-            }
+                case StringConcat: {
+                    final ProverExpr leftPE = selectString(be.getLeft(), varMap);
+                    final ProverExpr rightPE = selectString(be.getRight(), varMap);
+                    return mkStringConcat(leftPE, rightPE, (ReferenceType)be.getLeft().getType());
+                }
 
-            case StringEq: {
-                final ProverExpr leftPE = selectString(be.getLeft(), varMap);
-                final ProverExpr rightPE = selectString(be.getRight(), varMap);
-                return new EncodingFacts(null, null, p.mkEq(leftPE, rightPE), p.mkLiteral(true));
-            }
+                case StringEq: {
+                    final ProverExpr leftPE = selectString(be.getLeft(), varMap);
+                    final ProverExpr rightPE = selectString(be.getRight(), varMap);
+                    return new EncodingFacts(null, null, p.mkEq(leftPE, rightPE), p.mkLiteral(true));
+                }
 
-            default:
-                return null;
+                case ToString: {
+                    final ProverExpr strExpr = selectString(be.getLeft(), varMap);
+                    return mkStringConcat(strExpr, mkString(""), (ReferenceType) be.getRight().getType());  // TODO: optimize
+                }
+
+                default:
+                    return null;
             }
         }
 
