@@ -702,6 +702,15 @@ public class SootStmtSwitch implements StmtSwitch {
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: long nondetLong()>")) {
                     translateVerifierNondet(LongType.v(), optionalLhs, call);
                     return true;
+
+		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: void assume(boolean)>")) {
+                    Verify.verify(optionalLhs == null);
+                    Verify.verify(call.getArgCount() == 1);
+                    call.getArg(0).apply(valueSwitch);
+                    Expression cond = valueSwitch.popExpression();
+                    currentBlock.addStatement(
+                       new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(u), cond));
+                    return true;
 		}
 
 //System.out.println(call.getMethod().getSignature());
@@ -789,7 +798,7 @@ public class SootStmtSwitch implements StmtSwitch {
 				rhs.apply(valueSwitch);
 				Expression right = valueSwitch.popExpression();
 
-				if (left instanceof IdentifierExpression && right instanceof StringLiteral) {
+				if (left instanceof IdentifierExpression && right instanceof StringLiteral) {    // TODO: needed?
 					SootTranslationHelpers.v().getMemoryModel().putExpression(((IdentifierExpression) left).getVariable(), right);
 				}
 				currentBlock.addStatement(

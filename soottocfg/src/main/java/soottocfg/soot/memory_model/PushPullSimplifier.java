@@ -412,12 +412,16 @@ public class PushPullSimplifier {
                 List<Statement> stmts = b.getStatements();
                 int s = 0;
                 Set<Statement> toRemove = new HashSet<Statement>();
+                Set<CfgEdge> incoming = m.incomingEdgesOf(b);
+
+                Set<CfgBlock> incomingBlocks = new HashSet<CfgBlock>();
+                for (CfgEdge in : incoming)
+                    incomingBlocks.add(m.getEdgeSource(in));
+				
                 while (s < stmts.size() && 
                        (stmts.get(s) instanceof PullStatement || isConstructorCall(stmts.get(s)))) {
 				
                     Statement pull = stmts.get(s);
-                    Set<CfgEdge> incoming = m.incomingEdgesOf(b);				
-                    Set<CfgBlock> moveTo = new HashSet<CfgBlock>();
                     boolean nothingMoves = false;
 				
                     if (debug)
@@ -441,31 +445,9 @@ public class PushPullSimplifier {
                     if (nothingMoves)
                         break;
 		
-                    for (CfgEdge in : incoming) {
-                        CfgBlock prev = m.getEdgeSource(in);
-					
-                        // only move up in CFG
-						
-                        // Not sure why I added this before, but as labels are pure expressions, it's not needed
-//						if (in.getLabel().isPresent() &&
-//								!distinct(in.getLabel().get().getUseIdentifierExpressions(), pull.getIdentifierExpressions())) {
-//							// edge label contains a ref to pulled object, do not move this pull
-//							if (debug)
-//								System.out.println("Label not distinct: " + pull);
-//							nothingMoves = true;
-//							break;
-//						} 
-						
-                        moveTo.add(prev);
-                    }
-				
-                    for (CfgBlock prev : moveTo) {
-                        //don't create references to the same statement in multiple blocks
-                        if (toRemove.contains(pull))
-                            pull = pull.deepCopy();
-                        else
-                            toRemove.add(pull);
-                        prev.addStatement(pull);
+                    for (CfgBlock prev : incomingBlocks) {
+                        toRemove.add(pull);
+                        prev.addStatement(pull.deepCopy());
                         moves++;
 
                         if (debug)
@@ -532,7 +514,9 @@ public class PushPullSimplifier {
 					
 					// only move down in source 
 					// and to the end of a loop, not back into the header
-					if (m.distanceToSink(next) < m.distanceToSink(b) && !loopHeaders.get(m).contains(next)) {
+					if (m.distanceToSink(next) < m.distanceToSink(b) &&
+                                            !loopHeaders.get(m).contains(next) &&
+                                            m.incomingEdgesOf(next).size() == 1) {
 						
 						// Not sure why I added this before, but as labels are pure expressions, it's not needed
 //						if (out.getLabel().isPresent() && 
@@ -560,16 +544,13 @@ public class PushPullSimplifier {
 				
 				if (!nothingMoves) {
 					for (CfgBlock next : moveTo) {
-						// don't create references to the same statement in multiple blocks
-						if (toRemove.contains(push))
-							push = (PushStatement) push.deepCopy();
-						else
-							toRemove.add(push);
-						next.addStatement(0, push);
-						moves++;
+                                            toRemove.add(push);
+                                            // don't create references to the same statement in multiple blocks
+                                            next.addStatement(0, push.deepCopy());
+                                            moves++;
 
-						if (debug)
-							System.out.println("Moved " + push + " down in CFG.");
+                                            if (debug)
+                                                System.out.println("Moved " + push + " down in CFG.");
 					}
 				}
 				

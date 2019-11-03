@@ -73,6 +73,7 @@ public class EldaricaChecker extends Checker {
         }
 
         ProverResult result = ProverResult.Unknown;
+        solutionOutput = "";
 
         switch(Options.v().getHeapMode()) {
         case auto:
@@ -114,6 +115,7 @@ public class EldaricaChecker extends Checker {
         Log.info("Trying to verify with max explicit heap size " + max);
         ProverResult result = ProverResult.Unknown;
         for (int k = offset; k <= max; k += step) {
+            solutionOutput = "";
             Log.info("======== Round " + (k - offset + 1) + ": heap size " + k);
             // try to verify program with heap size k and only safety assertions
             Log.info("- Searching for counterexamples ...");

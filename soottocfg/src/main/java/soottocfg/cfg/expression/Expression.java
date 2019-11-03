@@ -60,8 +60,7 @@ public abstract class Expression implements Node, Serializable {
 	 */
 	public Expression castToBoolIfNecessary() {
 		if (this.getType() == IntType.instance()) {
-			return new IteExpression(this.sourceLocation, new BinaryExpression(this.sourceLocation, BinaryOperator.Eq, this, IntegerLiteral.zero()),
-					BooleanLiteral.falseLiteral(), BooleanLiteral.trueLiteral());
+			return new BinaryExpression(this.sourceLocation, BinaryOperator.Ne, this, IntegerLiteral.zero());
 		} else if (this.getType() == BoolType.instance()) {
 			return this;
 		} else {
