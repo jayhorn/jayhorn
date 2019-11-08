@@ -14,6 +14,10 @@ import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
+import soottocfg.cfg.expression.literal.NullLiteral;
+
+import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
  * @author schaef
@@ -120,10 +124,26 @@ public class TupleAccessExpression extends Expression {
 	public Expression substituteVarWithExpression(Map<Variable, Expression> subs) {
             if (subs.containsKey(tupleVariable)) {
                 Expression newVarE = subs.get(tupleVariable);
-                Verify.verify(newVarE instanceof IdentifierExpression);
-                Variable newVar = ((IdentifierExpression)newVarE).getVariable();
-                if (newVar != tupleVariable)
-                    return new TupleAccessExpression(this.getSourceLocation(), newVar, tupleKey);
+                if (newVarE instanceof NullLiteral) {
+                    // then we can directly resolve the access
+                    // TODO: do this in a more generic way?
+                    if (tupleKey.equals(ReferenceType.RefFieldName))
+                        return IntegerLiteral.zero();
+                    else if (tupleKey.equals(ReferenceType.TypeFieldName))
+                        return new IdentifierExpression(
+                                      this.getSourceLocation(),
+                                      SootTranslationHelpers.v().getNullTypeVariable());
+                    else
+                        Verify.verify(false,
+                                      "do not know how to access field " + tupleKey +
+                                      " of $null");
+                } else {
+                    Verify.verify(newVarE instanceof IdentifierExpression);
+                    Variable newVar = ((IdentifierExpression)newVarE).getVariable();
+                    if (newVar != tupleVariable)
+                        return new TupleAccessExpression(this.getSourceLocation(),
+                                                         newVar, tupleKey);
+                }
             }
             return this;
 	}
