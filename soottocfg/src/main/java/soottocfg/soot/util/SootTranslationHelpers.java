@@ -71,8 +71,6 @@ public enum SootTranslationHelpers {
 
 	public static final String AbstractedVariablePrefix = "$abstract_";
 
-	public static final String NullTypeName = "$nullType";
-
 	private static boolean initialized = false;
 	
 	/**
@@ -220,10 +218,6 @@ public enum SootTranslationHelpers {
 		return getClassVariable(((RefType)t).getSootClass());
 	}
 	
-        public Variable getNullTypeVariable() {
-            return new Variable(NullTypeName, new TypeType());
-        }
-
 	public ClassConstant getClassConstant(Type t) {
 		if (t instanceof RefType) {
 			final String className = ((RefType) t).getClassName().replace(".", "/");

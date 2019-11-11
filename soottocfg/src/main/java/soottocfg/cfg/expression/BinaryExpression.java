@@ -12,8 +12,10 @@ import com.google.common.base.Preconditions;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
+import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.Type;
+import soottocfg.cfg.type.TypeType;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.SootTranslationHelpers;
 
@@ -172,7 +174,21 @@ public class BinaryExpression extends Expression {
 		return new BinaryExpression(getSourceLocation(), op, newLeft, newRight);
 	}
 
-	public BinaryExpression substituteVarWithExpression(Map<Variable, Expression> subs) {
+	public Expression substituteVarWithExpression(Map<Variable, Expression> subs) {
+            if (op == BinaryOperator.PoLeq &&
+                left instanceof TupleAccessExpression) {
+                final TupleAccessExpression ta = (TupleAccessExpression)left;
+                if (subs.get(ta.getVariable()) instanceof NullLiteral &&
+                    ta.getType() instanceof TypeType) {
+                    // as a special case, if the left operand of an
+                    // instanceof check is replace with null, the
+                    // whole expression becomes false.  we currently
+                    // cannot express null instanceof Class in the
+                    // CFG, so we catch this case right away
+                    return BooleanLiteral.falseLiteral();
+                }
+            }
+
             Expression newLeft = left.substituteVarWithExpression(subs);
             Expression newRight = right.substituteVarWithExpression(subs);
             if (left == newLeft && right == newRight)
