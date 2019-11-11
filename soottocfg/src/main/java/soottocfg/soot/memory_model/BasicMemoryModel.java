@@ -107,11 +107,10 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkStringLengthExpr(Value arg0) {
-		//TODO
-		Variable v = SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
-                                SootTranslationHelpers.AbstractedVariablePrefix +
-				"TODO" + constantDictionary.size(), IntType.instance());
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(),v);
+            Variable v =
+                new Variable(SootTranslationHelpers.AbstractedVariablePrefix +
+                             "strlen_" + constantDictionary.size(), IntType.instance());
+            return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), v);
 	}
 
 	/*
