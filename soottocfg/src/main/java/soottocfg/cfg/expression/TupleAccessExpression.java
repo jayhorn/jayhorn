@@ -14,6 +14,9 @@ import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
+
+import soottocfg.soot.util.SootTranslationHelpers;
 
 /**
  * @author schaef
@@ -23,6 +26,7 @@ public class TupleAccessExpression extends Expression {
 
 	private static final long serialVersionUID = -7526110216710195228L;
 
+        // TODO: why not have general expressions here?
 	private final Variable tupleVariable;
 	private final Type projectionType;
 	private final String tupleKey;
@@ -120,10 +124,12 @@ public class TupleAccessExpression extends Expression {
 	public Expression substituteVarWithExpression(Map<Variable, Expression> subs) {
             if (subs.containsKey(tupleVariable)) {
                 Expression newVarE = subs.get(tupleVariable);
+                // TODO: why not have general expressions here?
                 Verify.verify(newVarE instanceof IdentifierExpression);
                 Variable newVar = ((IdentifierExpression)newVarE).getVariable();
                 if (newVar != tupleVariable)
-                    return new TupleAccessExpression(this.getSourceLocation(), newVar, tupleKey);
+                    return new TupleAccessExpression(this.getSourceLocation(),
+                                                     newVar, tupleKey);
             }
             return this;
 	}

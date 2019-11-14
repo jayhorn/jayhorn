@@ -3,7 +3,13 @@
  */
 package soottocfg.soot.memory_model;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import com.google.common.base.Verify;
 
@@ -32,7 +38,12 @@ import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.CallStatement;
-import soottocfg.cfg.type.*;
+import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.type.IntType;
+import soottocfg.cfg.type.StringType;
+import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.type.Type;
+import soottocfg.cfg.type.TypeType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.SootTranslationHelpers;
@@ -48,7 +59,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	protected final Map<SootField, Variable> fieldGlobals = new HashMap<SootField, Variable>();
 
 	protected final Map<Constant, Variable> constantDictionary = new HashMap<Constant, Variable>();
-	protected final Map<Variable, Expression> varToExpressionMap = new HashMap<Variable, Expression>();
+	protected final Map<Variable, Expression> varToExpressionMap = new HashMap<Variable, Expression>();	// TODO: probabely should be removed
 
 	// protected final Type nullType;
 
@@ -101,13 +112,13 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkStringLengthExpr(Value arg0) {
-		if (arg0 instanceof StringConstant) {
+		if (arg0 instanceof StringConstant) {	// TODO: is this special case helpful?
 			return new IntegerLiteral(this.statementSwitch.getCurrentLoc(), ((StringConstant)arg0).value.length());
 		} else {
-			Variable v = SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
-					SootTranslationHelpers.AbstractedVariablePrefix +
-							"TODO" + constantDictionary.size(), IntType.instance());
-			return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), v);
+            Variable v =
+                new Variable(SootTranslationHelpers.AbstractedVariablePrefix +
+                             "strlen_" + constantDictionary.size(), IntType.instance());
+            return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), v);
 		}
 	}
 
@@ -249,7 +260,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	private String classNameToSootName(String className) {
 		return className.replace('/', '.');
 	}
-
+	
 	public ClassVariable lookupClassVariable(ClassConstant cc) {
 		if (!this.constantDictionary.containsKey(cc)) {
 			final String name = cc.getValue();

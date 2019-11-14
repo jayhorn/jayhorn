@@ -46,6 +46,7 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.TupleAccessExpression;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.type.TypeType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.SootRunner;
