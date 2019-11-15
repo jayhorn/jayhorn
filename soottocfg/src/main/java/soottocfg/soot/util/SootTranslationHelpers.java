@@ -66,35 +66,10 @@ public enum SootTranslationHelpers {
 		return INSTANCE;
 	}
 
-	public static final String HavocClassName = "Havoc_Class";
-	public static final String HavocMethodName = "havoc_";
-
 	public static final String AbstractedVariablePrefix = "$abstract_";
 
 	private static boolean initialized = false;
 	
-	/**
-	 * Get a method that returns an unknown value of type t.
-	 * 
-	 * @param t
-	 * @return
-	 */
-	public SootMethod getHavocMethod(soot.Type t) {
-		if (!Scene.v().containsClass(HavocClassName)) {
-			SootClass sClass = new SootClass(HavocClassName, Modifier.PUBLIC | Modifier.PUBLIC);
-			sClass.setSuperclass(Scene.v().getSootClass("java.lang.Object"));
-			sClass.setResolvingLevel(SootClass.SIGNATURES);
-			Scene.v().addClass(sClass);
-		}
-		SootClass cls = Scene.v().getSootClass(HavocClassName);
-		final String havocMethodName = HavocMethodName + t.toString();
-		if (!cls.declaresMethodByName(havocMethodName)) {
-			cls.addMethod(new SootMethod(havocMethodName, Arrays.asList(new Type[] {}), t,
-					Modifier.PUBLIC | Modifier.STATIC));
-		}
-		return cls.getMethodByName("havoc_" + t.toString());
-	}
-
 	public static void initialize(Program program) {
 		initialized = true;
 		INSTANCE.reset();

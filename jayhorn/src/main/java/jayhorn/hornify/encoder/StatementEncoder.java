@@ -30,6 +30,7 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.HavocStatement;
 import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
@@ -125,6 +126,10 @@ public class StatementEncoder {
             return clause;
         } else if (s instanceof CallStatement) {
             List<ProverHornClause> clause = callToClause((CallStatement) s, postPred, preAtom, varMap);
+            S2H.sh().addClause(s, clause);
+            return clause;
+        } else if (s instanceof HavocStatement) {
+            List<ProverHornClause> clause = havocToClause((HavocStatement) s, postPred, preAtom, varMap);
             S2H.sh().addClause(s, clause);
             return clause;
         } else if (s instanceof PullStatement) {
@@ -461,6 +466,38 @@ public class StatementEncoder {
         return clauses;
     }
 
+
+    /**
+     * Translates a call statement of the form:
+     *   havoc x
+     *
+     * @param cs
+     * @param postPred
+     * @param preAtom
+     * @param varMap
+     * @return
+     */
+    public List<ProverHornClause> havocToClause(HavocStatement hs,
+                                                HornPredicate postPred,
+                                                ProverExpr preAtom,
+                                                Map<Variable, ProverExpr> varMap) {
+        List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
+
+        Variable var = hs.getVariable();
+        varMap.put(var,
+                   p.mkVariable(var.getName() + "_havoc",
+                                HornHelper.hh().getProverType(p, var.getType())));
+        
+        final ProverExpr postAtom =
+            postPred.instPredicate(varMap);
+        final ProverHornClause postClause =
+            p.mkHornClause(postAtom,
+                           new ProverExpr[]{preAtom},
+                           p.mkLiteral(true));
+        clauses.add(postClause);
+
+        return clauses;
+    }
 
     /**
      * Translates a pull statement of the form:

@@ -84,6 +84,7 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.HavocStatement;
 import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.ReferenceType;
@@ -666,19 +667,24 @@ public class SootStmtSwitch implements StmtSwitch {
 	}
 
         /**
-         * Method nondet*() of the Verifier class used to formula SV-COMP problems.
-         * Replace those method with a simple havoc.
+         * Method nondet*() of the Verifier class used to formula
+         * SV-COMP problems.  Replace those method with a simple
+         * havoc.
          */
-        private void translateVerifierNondet(Type t, Value optionalLhs, InvokeExpr call) {
+        private void translateVerifierNondet(Type t, Value optionalLhs,
+                                             InvokeExpr call) {
             Verify.verify(call.getArgCount() == 0);
 
             if (optionalLhs != null) {
-                final InvokeExpr newInvokeExpr =
-                    Jimple.v().newStaticInvokeExpr(
-                      SootTranslationHelpers.v().getHavocMethod(t).makeRef());
-                final Unit stmt =
-                    Jimple.v().newAssignStmt(optionalLhs, newInvokeExpr);
-                translateMethodInvokation(stmt, optionalLhs, newInvokeExpr);
+                optionalLhs.apply(valueSwitch);
+                Expression lhs = valueSwitch.popExpression();
+
+                Verify.verify(lhs instanceof IdentifierExpression,
+                              "do not know how to havoc " + lhs);
+                IdentifierExpression idLhs = (IdentifierExpression)lhs;
+
+                currentBlock.addStatement(
+                        new HavocStatement(lhs.getSourceLocation(), idLhs));
             }
         }
 

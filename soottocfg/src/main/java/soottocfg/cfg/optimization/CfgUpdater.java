@@ -21,6 +21,7 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.HavocStatement;
 import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
@@ -121,6 +122,14 @@ public class CfgUpdater extends CfgVisitor {
 			rec.add(processExpression(e));
 		}
 		return new CallStatement(s.getSourceLocation(), s.getCallTarget(), args, rec);
+	}
+	
+	@Override
+	protected Statement processStatement(HavocStatement s) {
+            Expression newVar = processExpression(s.getHavocedExpression());
+            Verify.verify(newVar instanceof IdentifierExpression);
+            return new HavocStatement(s.getSourceLocation(),
+                                      (IdentifierExpression)newVar);
 	}
 	
 	@Override
