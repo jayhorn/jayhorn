@@ -78,9 +78,10 @@ public class CfgScanner extends CfgVisitor {
 		return s;
 	}
 
-	@SuppressWarnings("ReturnValueIgnored")
+        @Override
 	protected Statement processStatement(HavocStatement s) {
 		Expression x = processExpression(s.getHavocedExpression());
+                // prevent Findbugs warnings
                 if (x == null)
                     return s;
 		return s;
@@ -131,7 +132,7 @@ public class CfgScanner extends CfgVisitor {
 		return e;
 	}
 
-	@SuppressWarnings("ReturnValueIgnored")
+	@Override
 	protected Expression processExpression(IdentifierExpression e) {
 		return e;
 	}
