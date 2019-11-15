@@ -144,6 +144,7 @@ public class StatementEncoder {
 
         } catch (ExpressionEncoder.OverApproxException e) {
             Log.info("Dropping imprecisely handled statement " + s);
+            hornContext.droppedApproximatedStatement();
             return new ArrayList<> ();
         }
 
@@ -331,6 +332,7 @@ public class StatementEncoder {
         if (calledMethod.isStub() && hornContext.elimOverApprox()) {
             Log.info("Dropping call to over-approximated " +
                      calledMethod.getMethodName());
+            hornContext.droppedApproximatedStatement();
             return clauses;
         }
 
