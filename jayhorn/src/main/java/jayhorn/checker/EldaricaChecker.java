@@ -129,16 +129,20 @@ public class EldaricaChecker extends Checker {
                     Log.info(solutionOutput);
                 return CheckerResult.UNSAFE;
             } else {
-                // try to verify program with heap size k and only heap bound assertions
+                // try to verify program with heap size k and only
+                // heap bound assertions
                 Log.info("No counterexamples, checking heap bounds ...");
+                final Boolean approx = hasDroppedStatements;
                 result =
                     generateAndCheckHornClauses(program, k,
                       HornEncoderContext.GeneratedAssertions.HEAP_BOUNDS);
                 if (result == ProverResult.Sat) {
+                    if (!approx) {
+                        Log.info("Program is bounded and therefore SAFE");
+                        return CheckerResult.SAFE;
+                    }
+                    
                     Log.info("- program is bounded, checking full safety ...");
-                    // TODO: this check can be skipped if the
-                    // program does not actually contain any
-                    // over-approximated statements!
                     result =
                         generateAndCheckHornClauses(program, k,
                           HornEncoderContext.GeneratedAssertions.SAFETY_OVER_APPROX);
@@ -161,7 +165,8 @@ public class EldaricaChecker extends Checker {
     }
 
     private String solutionOutput = "";
-    
+    private Boolean hasDroppedStatements = false;
+
     private ProverResult generateAndCheckHornClauses(final Program program,
                                                      int explicitHeapSize,
                                                      HornEncoderContext.GeneratedAssertions generatedAssertions) {
@@ -169,7 +174,10 @@ public class EldaricaChecker extends Checker {
         Log.info("Hornify  ... ");
         Hornify hf = new Hornify(factory);
         Stopwatch toHornTimer = Stopwatch.createStarted();
-        HornEncoderContext hornContext = hf.toHorn(program, explicitHeapSize, generatedAssertions);
+        HornEncoderContext hornContext =
+            hf.toHorn(program, explicitHeapSize, generatedAssertions);
+        hasDroppedStatements =
+            hornContext.encodingHasDroppedApproximatedStatements();
         Stats.stats().add("ToHorn", String.valueOf(toHornTimer.stop()));
         prover = hf.getProver();
         allClauses.addAll(hf.clauses);

@@ -18,6 +18,7 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.HavocStatement;
 import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
@@ -68,6 +69,8 @@ public abstract class CfgVisitor {
 			return processStatement((AssumeStatement) s);
 		} else if (s instanceof CallStatement) {
 			return processStatement((CallStatement) s);
+		} else if (s instanceof HavocStatement) {
+			return processStatement((HavocStatement) s);
 		} else if (s instanceof PullStatement) {
 			return processStatement((PullStatement) s);
 		} else if (s instanceof PushStatement) {
@@ -88,6 +91,8 @@ public abstract class CfgVisitor {
 	protected abstract Statement processStatement(AssumeStatement s);
 
 	protected abstract Statement processStatement(CallStatement s);
+
+	protected abstract Statement processStatement(HavocStatement s);
 
 	protected abstract Statement processStatement(PullStatement s);
 

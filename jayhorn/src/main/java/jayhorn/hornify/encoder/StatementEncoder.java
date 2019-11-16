@@ -30,6 +30,7 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.HavocStatement;
 import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
@@ -127,6 +128,10 @@ public class StatementEncoder {
             List<ProverHornClause> clause = callToClause((CallStatement) s, postPred, preAtom, varMap);
             S2H.sh().addClause(s, clause);
             return clause;
+        } else if (s instanceof HavocStatement) {
+            List<ProverHornClause> clause = havocToClause((HavocStatement) s, postPred, preAtom, varMap);
+            S2H.sh().addClause(s, clause);
+            return clause;
         } else if (s instanceof PullStatement) {
             List<ProverHornClause> clause = pullToClause((PullStatement) s, postPred, preAtom, varMap, m);
             S2H.sh().addClause(s, clause);
@@ -139,6 +144,7 @@ public class StatementEncoder {
 
         } catch (ExpressionEncoder.OverApproxException e) {
             Log.info("Dropping imprecisely handled statement " + s);
+            hornContext.droppedApproximatedStatement();
             return new ArrayList<> ();
         }
 
@@ -365,6 +371,7 @@ public class StatementEncoder {
         if (calledMethod.isStub() && hornContext.elimOverApprox()) {
             Log.info("Dropping call to over-approximated " +
                      calledMethod.getMethodName());
+            hornContext.droppedApproximatedStatement();
             return clauses;
         }
 
@@ -500,6 +507,38 @@ public class StatementEncoder {
         return clauses;
     }
 
+
+    /**
+     * Translates a call statement of the form:
+     *   havoc x
+     *
+     * @param cs
+     * @param postPred
+     * @param preAtom
+     * @param varMap
+     * @return
+     */
+    public List<ProverHornClause> havocToClause(HavocStatement hs,
+                                                HornPredicate postPred,
+                                                ProverExpr preAtom,
+                                                Map<Variable, ProverExpr> varMap) {
+        List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
+
+        Variable var = hs.getVariable();
+        varMap.put(var,
+                   p.mkVariable(var.getName() + "_havoc",
+                                HornHelper.hh().getProverType(p, var.getType())));
+        
+        final ProverExpr postAtom =
+            postPred.instPredicate(varMap);
+        final ProverHornClause postClause =
+            p.mkHornClause(postAtom,
+                           new ProverExpr[]{preAtom},
+                           p.mkLiteral(true));
+        clauses.add(postClause);
+
+        return clauses;
+    }
 
     /**
      * Translates a pull statement of the form:

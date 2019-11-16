@@ -231,6 +231,7 @@ public class MethodEncoder {
                             exitCondExpr = expEnc.exprToProverExpr(edge.getLabel().get(), varMap);
                         } catch (ExpressionEncoder.OverApproxException e) {
                             Log.info("Removing imprecisely handled block transition");
+                            hornContext.droppedApproximatedStatement();
                             exitCondExpr = p.mkLiteral(false);
                         }
                     } else {

@@ -42,19 +42,55 @@ import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
 import soot.Type;
-import soot.jimple.*;
+import soot.jimple.Jimple;
+import soot.jimple.AnyNewExpr;
+import soot.jimple.AssignStmt;
+import soot.jimple.BreakpointStmt;
+import soot.jimple.DefinitionStmt;
+import soot.jimple.DynamicInvokeExpr;
+import soot.jimple.EnterMonitorStmt;
+import soot.jimple.ExitMonitorStmt;
+import soot.jimple.FieldRef;
+import soot.jimple.GotoStmt;
+import soot.jimple.IdentityStmt;
+import soot.jimple.IfStmt;
+import soot.jimple.InstanceInvokeExpr;
+import soot.jimple.InvokeExpr;
+import soot.jimple.InvokeStmt;
+import soot.jimple.LengthExpr;
+import soot.jimple.LookupSwitchStmt;
+import soot.jimple.NopStmt;
+import soot.jimple.RetStmt;
+import soot.jimple.ReturnStmt;
+import soot.jimple.ReturnVoidStmt;
+import soot.jimple.SpecialInvokeExpr;
+import soot.jimple.StaticInvokeExpr;
+import soot.jimple.Stmt;
+import soot.jimple.StmtSwitch;
+import soot.jimple.TableSwitchStmt;
+import soot.jimple.ThrowStmt;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.expression.*;
+import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
+import soottocfg.cfg.expression.Expression;
+import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.TupleAccessExpression;
+import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
-import soottocfg.cfg.statement.*;
-import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.statement.AssertStatement;
+import soottocfg.cfg.statement.AssumeStatement;
+import soottocfg.cfg.statement.AssignStatement;
+import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.HavocStatement;
+import soottocfg.cfg.statement.NewStatement;
+import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.ReferenceType;
+import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.MethodInfo;
@@ -719,19 +755,24 @@ public class SootStmtSwitch implements StmtSwitch {
 	}
 
         /**
-         * Method nondet*() of the Verifier class used to formula SV-COMP problems.
-         * Replace those method with a simple havoc.
+         * Method nondet*() of the Verifier class used to formula
+         * SV-COMP problems.  Replace those method with a simple
+         * havoc.
          */
-        private void translateVerifierNondet(Type t, Value optionalLhs, InvokeExpr call) {
+        private void translateVerifierNondet(Type t, Value optionalLhs,
+                                             InvokeExpr call) {
             Verify.verify(call.getArgCount() == 0);
 
             if (optionalLhs != null) {
-                final InvokeExpr newInvokeExpr =
-                    Jimple.v().newStaticInvokeExpr(
-                      SootTranslationHelpers.v().getHavocMethod(t).makeRef());
-                final Unit stmt =
-                    Jimple.v().newAssignStmt(optionalLhs, newInvokeExpr);
-                translateMethodInvokation(stmt, optionalLhs, newInvokeExpr);
+                optionalLhs.apply(valueSwitch);
+                Expression lhs = valueSwitch.popExpression();
+
+                Verify.verify(lhs instanceof IdentifierExpression,
+                              "do not know how to havoc " + lhs);
+                IdentifierExpression idLhs = (IdentifierExpression)lhs;
+
+                currentBlock.addStatement(
+                        new HavocStatement(lhs.getSourceLocation(), idLhs));
             }
         }
 

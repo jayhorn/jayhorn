@@ -18,6 +18,7 @@ import soottocfg.cfg.statement.AssertStatement;
 import soottocfg.cfg.statement.AssignStatement;
 import soottocfg.cfg.statement.AssumeStatement;
 import soottocfg.cfg.statement.CallStatement;
+import soottocfg.cfg.statement.HavocStatement;
 import soottocfg.cfg.statement.NewStatement;
 import soottocfg.cfg.statement.PullStatement;
 import soottocfg.cfg.statement.PushStatement;
@@ -75,6 +76,15 @@ public class CfgScanner extends CfgVisitor {
 		for (Expression e : s.getReceiver()) {
 			processExpression(e);
 		}
+		return s;
+	}
+
+        @Override
+	protected Statement processStatement(HavocStatement s) {
+		Expression x = processExpression(s.getHavocedExpression());
+                // prevent Findbugs warnings
+                if (x == null)
+                    return s;
 		return s;
 	}
 

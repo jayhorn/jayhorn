@@ -65,6 +65,18 @@ public class HornEncoderContext {
         return assertionCnt++;
     }
 
+    // flag that can be set by the encoder classes to signal that some
+    // approximate statements were replaced by an assume(false)
+    private Boolean haveDroppedApproxStatements = false;
+
+    public void droppedApproximatedStatement() {
+        haveDroppedApproxStatements = true;
+    }
+
+    public Boolean encodingHasDroppedApproximatedStatements() {
+        return haveDroppedApproxStatements;
+    }
+
     public static enum GeneratedAssertions {
         // only include actual safety assertions; this will under-approximate,
         // and turn every over-approximated statement into an assume(false)
