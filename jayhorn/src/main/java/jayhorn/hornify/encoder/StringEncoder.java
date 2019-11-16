@@ -29,6 +29,8 @@ public class StringEncoder {
     public static final String STRING_CONCAT = "string_concat";
     public static final String STRING_CONCAT_ITERATIVE = STRING_CONCAT + "_it";
 
+    public static final int MAX_LEFT_SIZE_HINT = 8;
+
     public static class EncodingFacts {
         final ProverExpr rely, guarantee, result, constraint;
         public EncodingFacts(ProverExpr rely, ProverExpr guarantee, ProverExpr result, ProverExpr constraint) {
@@ -43,7 +45,6 @@ public class StringEncoder {
     private ProverADT stringADT;
 
     private LinkedList<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
-    private boolean initializedStringHornClauses = false;
 
     public StringEncoder(Prover p, ProverADT stringADT) {
         this.p = p;
@@ -53,13 +54,6 @@ public class StringEncoder {
     private void storeProverHornClause(ProverHornClause proverHornClause) {
 //        p.addAssertion(proverHornClause);
         clauses.add(proverHornClause);
-    }
-
-    private void storeProverAssumption(ProverExpr proverAssumption) {
-        ProverHornClause proverHornClause = p.mkHornClause(
-                proverAssumption, new ProverExpr[0], p.mkLiteral(true)
-        );
-        storeProverHornClause(proverHornClause);
     }
 
     public List<ProverHornClause> getEncodedClauses() {
@@ -101,7 +95,9 @@ public class StringEncoder {
         String res = base + "_" + nameCounter;
         ++nameCounter;
         return res;
-//        return base;  // TODO: The base name is sufficient for predicates (mkName function can be removed)
+        // [Shamakhi] Previously there was a wrong assumption on predicate names:
+        //      The base name is sufficient for predicates (mkName function can be removed)
+//        return base;
     }
     
     private ProverFun mkStringConcatProverFun() {
@@ -111,6 +107,24 @@ public class StringEncoder {
                                      stringADTType, stringADTType,
                                      stringADTType
                                  });
+    }
+
+    private void considerHintedSizeConcat(ProverFun predConcat) {
+        ProverType stringADTType = stringADT.getType(0);
+        ProverExpr b = p.mkHornVariable("b", stringADTType);
+        ProverExpr c = p.mkHornVariable("c", stringADTType);
+        ProverExpr left = nil();
+        ProverExpr concat = c;
+        for (int leftSize = 0; leftSize <= MAX_LEFT_SIZE_HINT; leftSize++) {
+            storeProverHornClause(p.mkHornClause(
+                    predConcat.mkExpr(left, b, concat),
+                    new ProverExpr[0],
+                    p.mkEq(b, c)
+            ));
+            ProverExpr h = p.mkHornVariable("h" + leftSize, p.getIntType());
+            left = cons(h, left);
+            concat = cons(h, concat);
+        }
     }
 
     private ProverFun genConcatRec() {
@@ -123,15 +137,18 @@ public class StringEncoder {
         ProverFun predConcat = mkStringConcatProverFun();
         // string_concat nil case
         storeProverHornClause(p.mkHornClause(
-                predConcat.mkExpr(nil(), a, a),
+                predConcat.mkExpr(nil(), b, b),
                 new ProverExpr[0],
                 p.mkLiteral(true)
         ));
+        ProverExpr ha = cons(h, a);
+        ProverExpr hc = cons(h, c);
         // string_concat cons case
         storeProverHornClause(p.mkHornClause(
-                predConcat.mkExpr(cons(h, a), b, cons(h, c)),
+                predConcat.mkExpr(ha, b, hc),
                 new ProverExpr[] {predConcat.mkExpr(a, b, c)},
-                p.mkLiteral(true)
+                p.mkGt(stringADT.mkSizeExpr(ha), p.mkLiteral(MAX_LEFT_SIZE_HINT))
+//                p.mkLiteral(true)
         ));
 
         return predConcat;
@@ -150,7 +167,7 @@ public class StringEncoder {
         ProverFun predConcat = mkStringConcatProverFun();
         // string_concat_iterative initial condition
         storeProverHornClause(p.mkHornClause(
-                predConcatIter.mkExpr(a, b, a, nil(), b),
+                predConcatIter.mkExpr(a, b, a, nil(), b),   // base case
                 new ProverExpr[0],
                 p.mkLiteral(true)
         ));
@@ -168,60 +185,13 @@ public class StringEncoder {
         ));
         storeProverHornClause(p.mkHornClause(
                 predConcat.mkExpr(a, b, c),
-                new ProverExpr[] {predConcatIter.mkExpr(a, b, nil(), nil(), c)},
-                p.mkLiteral(true)
+                new ProverExpr[] {predConcatIter.mkExpr(a, b, nil(), nil(), c)},    // (?) problem matching a = nil on base case
+                p.mkGt(stringADT.mkSizeExpr(a), p.mkLiteral(MAX_LEFT_SIZE_HINT))
+//                p.mkLiteral(true)
         ));
 
         return predConcat;
     }
-
-//    private void initializeStringHornClauses(ReferenceType stringType) {
-//        if (!initializedStringHornClauses) {
-//            ProverType stringADTType = stringADT.getType(0);
-//            ProverExpr a = p.mkHornVariable("a", stringADTType);
-//            ProverExpr b = p.mkHornVariable("b", stringADTType);
-//            ProverExpr c = p.mkHornVariable("c", stringADTType);
-//            ProverExpr r = p.mkHornVariable("r", stringADTType);
-//            ProverExpr t = p.mkHornVariable("t", stringADTType);
-//            ProverExpr h = p.mkHornVariable("h", p.getIntType());
-//            ProverExpr empty = stringADT.mkCtorExpr(0, new ProverExpr[0]);
-//            // String Concatenation
-//            ProverFun predConcatIter = mkStringConcatIterativeProverFun();
-//            ProverFun predConcat = mkStringConcatProverFun();
-//            // string_concat_iterative initial condition
-//            storeProverHornClause(p.mkHornClause(
-//                    predConcatIter.mkExpr(a, b, a, empty, b),
-//                    new ProverExpr[0],
-//                    p.mkLiteral(true)
-//            ));
-//            // string_concat_iterative reversing a
-//            storeProverHornClause(p.mkHornClause(
-//                    predConcatIter.mkExpr(a, b, t, cons(h, r), c),
-//                    new ProverExpr[] {predConcatIter.mkExpr(a, b, cons(h, t), r, c)},
-//                    p.mkLiteral(true)
-//            ));
-//            // string_concat_iterative reversing reverse of a at head of b, results concatenation
-//            storeProverHornClause(p.mkHornClause(
-//                    predConcatIter.mkExpr(a, b, empty, t, cons(h, c)),
-//                    new ProverExpr[] {predConcatIter.mkExpr(a, b, empty, cons(h, t), c)},
-//                    p.mkLiteral(true)
-//            ));
-//            storeProverHornClause(p.mkHornClause(
-//                    predConcat.mkExpr(a, b, c),
-//                    new ProverExpr[] {predConcatIter.mkExpr(a, b, empty, empty, c)},
-//                    p.mkLiteral(true)
-//            ));
-//
-//            initializedStringHornClauses = true;
-//        }
-//    }
-
-//    public ProverExpr mkStringEq(ProverExpr left, ProverExpr right, ReferenceType stringType) {
-//        initializeStringHornClauses(stringType);
-//        left = selectString(p, left);
-//        right = selectString(p, right);
-//        return p.mkEq(left, right);
-//    }
 
     private ProverExpr head(ProverExpr expr) {
         return stringADT.mkSelExpr(1, 0, expr);
@@ -249,7 +219,7 @@ public class StringEncoder {
         return p.mkHornVariable(name, refType);
     }
 
-    public static ProverExpr selectString(Prover p, ProverExpr expr) {
+    private ProverExpr selectString(ProverExpr expr) {
         if (expr instanceof ProverTupleExpr) {
             return p.mkTupleSelect(expr, 3);
         } else {
@@ -263,7 +233,7 @@ public class StringEncoder {
         } else if (expr instanceof IdentifierExpression) {
             ProverExpr pe = varMap.get(((IdentifierExpression)expr).getVariable());
             Verify.verify(pe != null, "cannot extract string from " + expr);
-            return selectString(p, pe);
+            return selectString(pe);
         } else {
             Verify.verify(false, "cannot extract string from " + expr);
             return null;
@@ -271,14 +241,11 @@ public class StringEncoder {
     }
 
     public EncodingFacts mkStringConcat(ProverExpr left, ProverExpr right, ReferenceType stringType) {
-//        initializeStringHornClauses(stringType);
-//        System.out.println("left: " + left);
-//        System.out.println("right: " + right);
-        ProverExpr leftString = selectString(p, left);
-        ProverExpr rightString = selectString(p, right);
+        ProverExpr leftString = selectString(left);
+        ProverExpr rightString = selectString(right);
         String concatName = String.format(STRING_CONCAT_TEMPLATE, leftString.toString(), rightString.toString());
         ProverExpr concat = mkStringHornVariable(p, concatName, stringType);
-        ProverExpr concatString = selectString(p, concat);
+        ProverExpr concatString = selectString(concat);
         ProverFun predConcat;
         StringEncoding enc = Options.v().getStringEncoding();
         switch (enc) {
@@ -291,6 +258,7 @@ public class StringEncoder {
             default:
                 throw new RuntimeException("unhandled string encoding");
         }
+        considerHintedSizeConcat(predConcat);
         ProverExpr guarantee = predConcat.mkExpr(leftString, rightString, concatString);
         return new EncodingFacts(
                 null, guarantee, concat,
@@ -304,9 +272,11 @@ public class StringEncoder {
             final BinaryExpression be = (BinaryExpression) e;
             switch (be.getOp()) {
                 case StringConcat: {
-                    final ProverExpr leftPE = selectString(be.getLeft(), varMap);
-                    final ProverExpr rightPE = selectString(be.getRight(), varMap);
-                    return mkStringConcat(leftPE, rightPE, (ReferenceType)be.getLeft().getType());
+                    Expression leftExpr = be.getLeft();
+                    Expression rightExpr = be.getRight();
+                    final ProverExpr leftPE = selectString(leftExpr, varMap);
+                    final ProverExpr rightPE = selectString(rightExpr, varMap);
+                    return mkStringConcat(leftPE, rightPE, (ReferenceType)leftExpr.getType());
                 }
 
                 case StringEq: {
@@ -316,8 +286,20 @@ public class StringEncoder {
                 }
 
                 case ToString: {
-                    final ProverExpr strExpr = selectString(be.getLeft(), varMap);
-                    return mkStringConcat(strExpr, mkString(""), (ReferenceType) be.getRight().getType());  // TODO: optimize
+                    Expression stringContainerExpr = be.getLeft();
+                    Expression lhsStringExpr = be.getRight();
+                    final ProverExpr internalString = selectString(stringContainerExpr, varMap);
+                    if (internalString == null)
+                        return null;
+                    ProverExpr result = mkStringHornVariable(p, internalString.toString(), (ReferenceType)lhsStringExpr.getType());
+                    ProverExpr resultString = selectString(result);
+                    return new EncodingFacts(null, null, result,
+                            p.mkAnd(
+                                    // need to make sure that the result is non-null
+                                    p.mkNot(p.mkEq(p.mkTupleSelect(result, 0), p.mkLiteral(0))),
+                                    p.mkEq(resultString, internalString)
+                            )
+                    );
                 }
 
                 default:

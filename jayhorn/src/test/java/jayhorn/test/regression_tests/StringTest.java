@@ -84,15 +84,16 @@ public class StringTest {
 		Program program = getCFG(factory);
 		if (program != null) {
 			EldaricaChecker eldarica = new EldaricaChecker(factory);
-			Checker.CheckerResult checkerResult = eldarica.checkProgram(program);
-			Checker.CheckerResult expectedCheckerResult;
+			Checker.CheckerResult result = eldarica.checkProgram(program);
+			Checker.CheckerResult expected;
 			if (this.sourceFile.getName().startsWith("Sat")) {
-				expectedCheckerResult = EldaricaChecker.CheckerResult.SAFE;
+				expected = EldaricaChecker.CheckerResult.SAFE;
+			} else if (this.sourceFile.getName().startsWith("Unsat")) {
+				expected = EldaricaChecker.CheckerResult.UNSAFE;
 			} else {
-				expectedCheckerResult = EldaricaChecker.CheckerResult.UNSAFE;
+				expected = EldaricaChecker.CheckerResult.UNKNOWN;
 			}
-			boolean resultIsExpected = checkerResult == expectedCheckerResult;
-			Assert.assertTrue("For " + this.sourceFile.getName() + ": expected " + expectedCheckerResult + " but got " + checkerResult, resultIsExpected);
+			Assert.assertTrue("For " + this.sourceFile.getName() + ": expected " + expected + " but got " + result, result == expected);
 		} else {
 			Assert.fail();
 		}
@@ -101,7 +102,7 @@ public class StringTest {
 	protected Program getCFG(ProverFactory factory) {
             return getCFG(factory, 1, -1, -1);
         }
-	
+
 	protected Program getCFG(ProverFactory factory,
                                  int initialHeapSize,
                                  int boundedHeapSize,
@@ -110,15 +111,16 @@ public class StringTest {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
-			jayhorn.Options.v().setHeapMode(
-                          boundedHeapSize >= 0 ?
-                          jayhorn.Options.HeapMode.bounded :
-                          jayhorn.Options.HeapMode.unbounded);
-			jayhorn.Options.v().setInlineCount(inline_size);
-//			jayhorn.Options.v().setInlineMaxSize(50);			
+			// TODO: any custom options needed ?
+//			jayhorn.Options.v().setHeapMode(
+//                          boundedHeapSize >= 0 ?
+//                          jayhorn.Options.HeapMode.bounded :
+//                          jayhorn.Options.HeapMode.unbounded);
+//			jayhorn.Options.v().setInlineCount(inline_size);
+//			jayhorn.Options.v().setInlineMaxSize(50);
 //			soottocfg.Options.v().setMemPrecision(1);
-                        jayhorn.Options.v().setInitialHeapSize(initialHeapSize);
-                        jayhorn.Options.v().setBoundedHeapSize(boundedHeapSize);
+//			jayhorn.Options.v().setInitialHeapSize(initialHeapSize);
+//			jayhorn.Options.v().setBoundedHeapSize(boundedHeapSize);
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
 //			soottocfg.Options.v().setPrintCFG(true);
