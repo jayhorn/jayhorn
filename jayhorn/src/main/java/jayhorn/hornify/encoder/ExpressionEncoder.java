@@ -188,7 +188,7 @@ public class ExpressionEncoder {
 			case Xor:
                                 if (hornContext.elimOverApprox())
                                     throw new OverApproxException();
-				return p.mkVariable("HACK_FreeVar" + HornHelper.hh().newVarNum(), p.getIntType());
+				return p.mkHornVariable("HACK_FreeVar" + HornHelper.hh().newVarNum(), p.getIntType());
 			// Verify.verify(left.getType()==p.getIntType() &&
 			// right.getType()==p.getIntType());
 			// return binopFun.mkExpr(new ProverExpr[]{left, right});
