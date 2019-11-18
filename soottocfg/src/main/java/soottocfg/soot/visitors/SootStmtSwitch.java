@@ -78,6 +78,7 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.TupleAccessExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
@@ -633,22 +634,28 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 
 		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: boolean nondetBoolean()>")) {
-                    translateVerifierNondet(BooleanType.v(), optionalLhs, call);
+                    translateVerifierNondet(BooleanType.v(), optionalLhs, call,
+                                            false, 0, 0);
                     return true;
 		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: byte nondetByte()>")) {
-                    translateVerifierNondet(ByteType.v(), optionalLhs, call);
+                    translateVerifierNondet(ByteType.v(), optionalLhs, call,
+                                            true, Byte.MIN_VALUE, Byte.MAX_VALUE);
                     return true;
 		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: char nondetChar()>")) {
-                    translateVerifierNondet(CharType.v(), optionalLhs, call);
+                    translateVerifierNondet(CharType.v(), optionalLhs, call,
+                                            true, Character.MIN_VALUE, Character.MAX_VALUE);
                     return true;
 		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: short nondetShort()>")) {
-                    translateVerifierNondet(ShortType.v(), optionalLhs, call);
+                    translateVerifierNondet(ShortType.v(), optionalLhs, call,
+                                            true, Short.MIN_VALUE, Short.MAX_VALUE);
                     return true;
 		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetInt()>")) {
-                    translateVerifierNondet(IntType.v(), optionalLhs, call);
+                    translateVerifierNondet(IntType.v(), optionalLhs, call,
+                                            true, Integer.MIN_VALUE, Integer.MAX_VALUE);
                     return true;
 		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: long nondetLong()>")) {
-                    translateVerifierNondet(LongType.v(), optionalLhs, call);
+                    translateVerifierNondet(LongType.v(), optionalLhs, call,
+                                            true, Long.MIN_VALUE, Long.MAX_VALUE);
                     return true;
 
 		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: void assume(boolean)>")) {
@@ -672,7 +679,9 @@ public class SootStmtSwitch implements StmtSwitch {
          * havoc.
          */
         private void translateVerifierNondet(Type t, Value optionalLhs,
-                                             InvokeExpr call) {
+                                             InvokeExpr call,
+                                             boolean addBounds,
+                                             long lower, long upper) {
             Verify.verify(call.getArgCount() == 0);
 
             if (optionalLhs != null) {
@@ -683,8 +692,21 @@ public class SootStmtSwitch implements StmtSwitch {
                               "do not know how to havoc " + lhs);
                 IdentifierExpression idLhs = (IdentifierExpression)lhs;
 
-                currentBlock.addStatement(
-                        new HavocStatement(lhs.getSourceLocation(), idLhs));
+                final SourceLocation loc = lhs.getSourceLocation();
+
+                currentBlock.addStatement(new HavocStatement(loc, idLhs));
+
+                if (addBounds)
+                    currentBlock.addStatement(
+                        new AssumeStatement(loc,
+                          new BinaryExpression(
+                            loc, BinaryOperator.And,
+                            new BinaryExpression(
+                              loc, BinaryOperator.Le,
+                              new IntegerLiteral(loc, lower), idLhs),
+                            new BinaryExpression(
+                              loc, BinaryOperator.Le,
+                              idLhs, new IntegerLiteral(loc, upper)))));
             }
         }
 
