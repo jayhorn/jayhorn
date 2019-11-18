@@ -274,6 +274,9 @@ public class HornEncoderContext {
         if (isArrayInv(var)) {
             Log.debug("adding array type " + var);
 
+            if (var.getName().startsWith("JayArray_JayArray_"))
+                throw new RuntimeException("Multi-dimensional arrays not fully supported yet");
+
             Variable elemVar = null;
             for (Variable v : fields)
                 if (v.getName().equals(ArrayTransformer.AElem))
