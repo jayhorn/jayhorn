@@ -196,8 +196,16 @@ public class ExceptionTransformer extends AbstractSceneTransformer {
 		body.getTraps().removeAll(usedTraps);
 
 		if (!body.getTraps().isEmpty()) {
-			System.err.format("TODO: %d traps could not be removed for %s%n", body.getTraps().size(),
+                        String msg = String.format("%d traps could not be removed for %s", body.getTraps().size(),
 					body.getMethod().getSignature());
+
+                        if (soottocfg.Options.v().strictlySound()) {
+                            throw new RuntimeException(msg);
+                        } else {
+                            System.err.println(msg);
+                            System.err.println("trying to continue ...");
+                        }
+
 			// TODO!!!!!
 			body.getTraps().clear();
 			Set<Unit> caughtExceptionUnits = new HashSet<Unit>();

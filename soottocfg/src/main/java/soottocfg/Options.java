@@ -116,7 +116,23 @@ public class Options {
 	public void setExcAsAssert(boolean b) {
 		this.excAsAssert = b;
 	}
+
+        /**
+         * When encountering any Java feature that is not fully
+         * supported yet, throw an exception rather than risking
+         * a wrong answer.
+         */
 	
+        private boolean strictlySound = false;
+
+        public boolean strictlySound() {
+            return strictlySound;
+        }
+
+        public void setStrictlySound(boolean b) {
+            this.strictlySound = b;
+        }
+
 	/* 
 	 * Print CFG
 	 */

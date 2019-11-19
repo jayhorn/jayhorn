@@ -206,6 +206,24 @@ public class Options {
 		soottocfg.Options.v().setInlineMaxSize(inlineMaxSize);
 	}
 
+        /**
+         * When encountering any Java feature that is not fully
+         * supported yet, throw an exception rather than risking
+         * a wrong answer.
+         */
+	
+        @Option(name = "-conservative", usage = "Exit when encountering a Java feature that is not fully supported", required = false)
+        private boolean strictlySound = false;
+
+        public boolean strictlySound() {
+            return strictlySound;
+        }
+
+        public void setStrictlySound(boolean b) {
+            this.strictlySound = b;
+            soottocfg.Options.v().setStrictlySound(b);
+        }
+
 	/**
 	 * @return the inlineCount
 	 */
@@ -330,6 +348,7 @@ public class Options {
 //		soottocfg.Options.v().setPrintCFG(printCFG);
 		soottocfg.Options.v().setInlineMaxSize(inlineMaxSize);
 		soottocfg.Options.v().setInlineCount(inlineCount);
+		soottocfg.Options.v().setStrictlySound(strictlySound);
 		soottocfg.Options.v().setArrayInv(!disableArrayInv);
 		soottocfg.Options.v().setExactArrayElements(exactArrayElements);
 	}
