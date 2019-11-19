@@ -653,6 +653,8 @@ public class PushPullSimplifier {
 			return (IdentifierExpression) ((PullStatement) s).getObject();
 		if (s instanceof PushStatement)
 			return (IdentifierExpression) ((PushStatement) s).getObject();
+		if (s instanceof NewStatement)
+			return (IdentifierExpression) ((NewStatement) s).getLeft();
 		if (isConstructorCall(s))
 			return (IdentifierExpression) ((CallStatement) s).getArguments().get(0);
 		return null;
