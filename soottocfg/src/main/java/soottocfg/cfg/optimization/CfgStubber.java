@@ -47,6 +47,7 @@ public class CfgStubber {
             if (name.contains("Havoc_Class:") ||
                 // this might be too broad
                 name.contains("void <init>()") ||
+                name.contains("Exception: void <init>(java.lang.String)") ||
                 name.contains("java.io.PrintStream: void println"))
                 return false;
             return true;
