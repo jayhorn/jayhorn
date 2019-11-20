@@ -436,7 +436,8 @@ public class PushPullSimplifier {
                         if (!(m.distanceToSource(prev) < bDist ||
                               (pull instanceof PullStatement &&
                                blockIsBlockingPull(prev, (PullStatement)pull))) ||
-                            m.outgoingEdgesOf(prev).size() > 1) {
+                            !(m.outgoingEdgesOf(prev).size() <= 1 ||
+                              blockIsPullingObject(prev, getObjectVar(pull)))) {
                             nothingMoves = true;
                             break;
                         }
@@ -460,6 +461,26 @@ public class PushPullSimplifier {
             }
             return moves;
 	}
+
+    /**
+     * Determine whether a block contains a pull statement for the
+     * given object.
+     *
+     * TODO: this should be done properly using AI
+     */
+    private boolean blockIsPullingObject(CfgBlock b, Variable obj) {
+        List<Statement> stmts = b.getStatements();
+        for (int i = stmts.size() - 1; i >= 0; --i) {
+            Statement stmt = stmts.get(i);
+            if (stmt instanceof PullStatement) {
+                if (obj.equals(getObjectVar(stmt)))
+                    return true;
+            }
+            if (stmt.getDefVariables().contains(obj))
+                return false;
+        }
+        return false;
+    }
 
     /**
      * Determine whether the possibility exists that method <code>movePullUp</code>
