@@ -111,16 +111,15 @@ public class StringTest {
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
-			// TODO: any custom options needed ?
-//			jayhorn.Options.v().setHeapMode(
-//                          boundedHeapSize >= 0 ?
-//                          jayhorn.Options.HeapMode.bounded :
-//                          jayhorn.Options.HeapMode.unbounded);
-//			jayhorn.Options.v().setInlineCount(inline_size);
+			jayhorn.Options.v().setHeapMode(
+					boundedHeapSize >= 0 ?
+							jayhorn.Options.HeapMode.bounded :
+							jayhorn.Options.HeapMode.unbounded);
+			jayhorn.Options.v().setInlineCount(inline_size);
 //			jayhorn.Options.v().setInlineMaxSize(50);
 //			soottocfg.Options.v().setMemPrecision(1);
-//			jayhorn.Options.v().setInitialHeapSize(initialHeapSize);
-//			jayhorn.Options.v().setBoundedHeapSize(boundedHeapSize);
+			jayhorn.Options.v().setInitialHeapSize(initialHeapSize);
+			jayhorn.Options.v().setBoundedHeapSize(boundedHeapSize);
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
 //			soottocfg.Options.v().setPrintCFG(true);

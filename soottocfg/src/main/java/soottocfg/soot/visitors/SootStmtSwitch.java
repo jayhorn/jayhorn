@@ -78,6 +78,7 @@ import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.TupleAccessExpression;
 import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.method.CfgBlock;
@@ -665,7 +666,7 @@ public class SootStmtSwitch implements StmtSwitch {
 				}
 				return true;
 			}
-		} else if (call.getMethod().getSignature()
+		} else if (methodSignature
 				.equals("<java.lang.Class: java.lang.Object cast(java.lang.Object)>")) {
 			// TODO: we have to check if we have to throw an exception or add
 			// E.g, String.<java.lang.Class: java.lang.Object
@@ -720,26 +721,39 @@ public class SootStmtSwitch implements StmtSwitch {
 
 			}
 
+        // TODO: For general cases, cover Random().next<TYPE>() and similar functions.
+
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: boolean nondetBoolean()>")) {
-                    translateVerifierNondet(BooleanType.v(), optionalLhs, call);
+                    translateVerifierNondet(BooleanType.v(), optionalLhs, call,
+                                            false, 0, 0);
                     return true;
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: byte nondetByte()>")) {
-                    translateVerifierNondet(ByteType.v(), optionalLhs, call);
+                    translateVerifierNondet(ByteType.v(), optionalLhs, call,
+                                            true, Byte.MIN_VALUE, Byte.MAX_VALUE);
                     return true;
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: char nondetChar()>")) {
-                    translateVerifierNondet(CharType.v(), optionalLhs, call);
+                    translateVerifierNondet(CharType.v(), optionalLhs, call,
+                                            true, Character.MIN_VALUE, Character.MAX_VALUE);
                     return true;
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: short nondetShort()>")) {
-                    translateVerifierNondet(ShortType.v(), optionalLhs, call);
+                    translateVerifierNondet(ShortType.v(), optionalLhs, call,
+                                            true, Short.MIN_VALUE, Short.MAX_VALUE);
                     return true;
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetInt()>")) {
-                    translateVerifierNondet(IntType.v(), optionalLhs, call);
+                    translateVerifierNondet(IntType.v(), optionalLhs, call,
+                                            true, Integer.MIN_VALUE, Integer.MAX_VALUE);
                     return true;
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: long nondetLong()>")) {
-                    translateVerifierNondet(LongType.v(), optionalLhs, call);
+                    translateVerifierNondet(LongType.v(), optionalLhs, call,
+                                            true, Long.MIN_VALUE, Long.MAX_VALUE);
                     return true;
+		// TODO: cover other nondeterministic Verifier functions
+		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: String nondetString()>")) {
+					translateVerifierNondet(RefType.v(), optionalLhs, call,
+							false, 0, 0);
+					return true;
 
-		} else if (call.getMethod().getSignature().equals("<org.sosy_lab.sv_benchmarks.Verifier: void assume(boolean)>")) {
+		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: void assume(boolean)>")) {
                     Verify.verify(optionalLhs == null);
                     Verify.verify(call.getArgCount() == 1);
                     call.getArg(0).apply(valueSwitch);
@@ -749,7 +763,7 @@ public class SootStmtSwitch implements StmtSwitch {
                     return true;
 		}
 
-//System.out.println(call.getMethod().getSignature());
+//System.out.println(methodSignature);
 
 		return false;
 	}
@@ -760,7 +774,9 @@ public class SootStmtSwitch implements StmtSwitch {
          * havoc.
          */
         private void translateVerifierNondet(Type t, Value optionalLhs,
-                                             InvokeExpr call) {
+                                             InvokeExpr call,
+                                             boolean addBounds,
+                                             long lower, long upper) {
             Verify.verify(call.getArgCount() == 0);
 
             if (optionalLhs != null) {
@@ -771,8 +787,21 @@ public class SootStmtSwitch implements StmtSwitch {
                               "do not know how to havoc " + lhs);
                 IdentifierExpression idLhs = (IdentifierExpression)lhs;
 
+                final SourceLocation loc = lhs.getSourceLocation();
+
+                currentBlock.addStatement(new HavocStatement(loc, idLhs));
+
+                if (addBounds)
                 currentBlock.addStatement(
-                        new HavocStatement(lhs.getSourceLocation(), idLhs));
+                        new AssumeStatement(loc,
+                          new BinaryExpression(
+                            loc, BinaryOperator.And,
+                            new BinaryExpression(
+                              loc, BinaryOperator.Le,
+                              new IntegerLiteral(loc, lower), idLhs),
+                            new BinaryExpression(
+                              loc, BinaryOperator.Le,
+                              idLhs, new IntegerLiteral(loc, upper)))));
             }
         }
 
@@ -839,7 +868,7 @@ public class SootStmtSwitch implements StmtSwitch {
 				rhs.apply(valueSwitch);
 				Expression right = valueSwitch.popExpression();
 
-				if (left instanceof IdentifierExpression && right instanceof StringLiteral) {    // TODO: needed?
+				if (left instanceof IdentifierExpression && right instanceof StringLiteral) { // TODO: find a better way
 					SootTranslationHelpers.v().getMemoryModel().putExpression(((IdentifierExpression) left).getVariable(), right);
 				}
 				currentBlock.addStatement(

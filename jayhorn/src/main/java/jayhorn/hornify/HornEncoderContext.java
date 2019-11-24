@@ -13,6 +13,7 @@ import java.util.BitSet;
 import com.google.common.base.Verify;
 
 import jayhorn.Log;
+import jayhorn.Options;
 import jayhorn.solver.Prover;
 import jayhorn.solver.ProverADT;
 import jayhorn.solver.ProverType;
@@ -274,6 +275,10 @@ public class HornEncoderContext {
 
         if (isArrayInv(var)) {
             Log.debug("adding array type " + var);
+
+            if (Options.v().strictlySound() &&
+                var.getName().startsWith("JayArray_JayArray_"))
+                throw new RuntimeException("Multi-dimensional arrays not fully supported yet");
 
             Variable elemVar = null;
             for (Variable v : fields)

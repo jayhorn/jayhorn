@@ -51,7 +51,7 @@ public class HornPredicate {
 						if (j<pte.getArity()) {
 							tupleElements[j]=pte.getSubExpr(j);
 						} else {
-							tupleElements[j]=p.mkVariable("$dummy"+i+j, ptt.getSubType(j));
+							tupleElements[j]=p.mkHornVariable("$dummy"+i+j, ptt.getSubType(j));
 						}
 					}
 					exprs[i] = new ProverTupleExpr(tupleElements);

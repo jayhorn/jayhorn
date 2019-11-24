@@ -139,8 +139,12 @@ public class Main {
 		} catch (Throwable t) {
 			Log.error(t.toString());
 			Stats.stats().add("Result", "UNKNOWN");
-			if (Options.v().stats){ Stats.stats().printStats(); }
-			throw t;	
+			if (Options.v().stats) {
+                            Stats.stats().printStats();
+                        } else {
+                            System.out.println("UNKNOWN");
+                        }
+			// throw t;	
 		} finally {
 			Options.resetInstance();
 			soot.G.reset();

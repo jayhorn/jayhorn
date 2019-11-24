@@ -215,8 +215,7 @@ public class StatementEncoder {
         return clauses;
     }
 
-    public List<ProverHornClause> assignToClause(AssignStatement as,
-                                                 HornPredicate postPred, ProverExpr preAtom,
+    public List<ProverHornClause> assignToClause(AssignStatement as, HornPredicate postPred, ProverExpr preAtom,
                                                  Map<Variable, ProverExpr> varMap) {
         List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
@@ -245,7 +244,7 @@ public class StatementEncoder {
                     if (i < pteR.getArity()) {
                         expandedRightTuple[i] = pteR.getSubExpr(i);
                     } else {
-                        expandedRightTuple[i] = p.mkVariable("$dummy" + i, pttLeft.getSubType(i));
+                        expandedRightTuple[i] = p.mkHornVariable("$dummy" + i, pttLeft.getSubType(i));
                     }
                 }
                 right = new ProverTupleExpr(expandedRightTuple);
@@ -319,9 +318,8 @@ public class StatementEncoder {
         }
 
         for (int i = offset; i < tupleElements.length; i++) {
-            tupleElements[i] = p.mkVariable("$new" + i,
-                                            HornHelper.hh().getProverType(p,
-                                                    rightType.getElementTypeList().get(i - extraElementsCount)));
+            tupleElements[i] = p.mkHornVariable("$new" + i,
+                                            HornHelper.hh().getProverType(p, rightType.getElementTypeList().get(i - extraElementsCount)));
         }
         varMap.put(idLhs.getVariable(), p.mkTuple(tupleElements));
 
@@ -526,7 +524,7 @@ public class StatementEncoder {
 
         Variable var = hs.getVariable();
         varMap.put(var,
-                   p.mkVariable(var.getName() + "_havoc",
+                   p.mkHornVariable(var.getName() + "_havoc",
                                 HornHelper.hh().getProverType(p, var.getType())));
         
         final ProverExpr postAtom =
