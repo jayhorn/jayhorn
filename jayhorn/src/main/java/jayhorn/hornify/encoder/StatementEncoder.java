@@ -231,7 +231,7 @@ public class StatementEncoder {
         ProverExpr right = expEncoder.exprToProverExpr(as.getRight(), varMap);
         if (as.getRight() instanceof NullLiteral) {
             ProverTupleType pttLeft = (ProverTupleType) HornHelper.hh().getProverType(p, idLhs.getType());
-            right = HornHelper.hh().mkNullExpression(p, pttLeft.getSubTypes());
+            right = HornHelper.hh().mkNullExpression(p, pttLeft.getSubTypes(), expEncoder);
         } else if (right instanceof ProverTupleExpr) {
             if (!(idLhs.getType() instanceof ReferenceType)) {
                 Verify.verify(false, "Chances are that this is a cast from java.lang.Integer to int");
@@ -412,7 +412,7 @@ public class StatementEncoder {
             if (e instanceof NullLiteral) {
                 ReferenceType rt = (ReferenceType) inParams.get(cnt).getType();
                 ProverTupleType ptt = (ProverTupleType) HornHelper.hh().getProverType(p, rt);
-                expr = HornHelper.hh().mkNullExpression(p, ptt.getSubTypes());
+                expr = HornHelper.hh().mkNullExpression(p, ptt.getSubTypes(), expEncoder);
             } else {
                 expr = expEncoder.exprToProverExpr(e, varMap);
             }
@@ -825,7 +825,7 @@ public class StatementEncoder {
             if (invariantArgs.get(i) instanceof NullLiteral) {
                 ProverTupleType ptt = (ProverTupleType) HornHelper.hh().getProverType(p,
                                                                                       invariant.variables.get(i).getType());
-                right = HornHelper.hh().mkNullExpression(p, ptt.getSubTypes());
+                right = HornHelper.hh().mkNullExpression(p, ptt.getSubTypes(), expEncoder);
             } else {
                 right = expEncoder.exprToProverExpr(invariantArgs.get(i), varMap);
             }

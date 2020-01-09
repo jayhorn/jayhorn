@@ -9,6 +9,7 @@ import java.util.Set;
 
 import com.google.common.base.Verify;
 
+import jayhorn.hornify.encoder.ExpressionEncoder;
 import jayhorn.solver.*;
 import soottocfg.cfg.type.*;
 import soottocfg.cfg.type.BoolType;
@@ -82,15 +83,18 @@ public class HornHelper {
 		throw new IllegalArgumentException("don't know what to do with " + t);
 	}
 	
-	public ProverTupleExpr mkNullExpression(Prover p, ProverType[] types) {
+	public ProverTupleExpr mkNullExpression(Prover p, ProverType[] types, ExpressionEncoder expEncoder) {
 		ProverExpr[] subExprs = new ProverExpr[types.length];
 		for (int i = 0; i < types.length; i++) {
 			if (types[i] instanceof jayhorn.solver.BoolType) {
 				subExprs[i] = p.mkLiteral(false);
-			} else if (types[i] instanceof jayhorn.solver.IntType || types[i] instanceof jayhorn.solver.ProverADTType) {
+			} else if (types[i] instanceof jayhorn.solver.IntType) {
 				subExprs[i] = p.mkLiteral(NullValue);
+			} else if (types[i] instanceof jayhorn.solver.ProverADTType
+						&& types[i].toString().equals(StringType.instance().toString())) {	// TODO: better check
+				subExprs[i] = expEncoder.getStringEncoder().mkString("");
 			} else if (types[i] instanceof ProverTupleType) {				
-				subExprs[i] = mkNullExpression(p, ((ProverTupleType)types[i]).getSubTypes());
+				subExprs[i] = mkNullExpression(p, ((ProverTupleType)types[i]).getSubTypes(), expEncoder);
 			} else {
 				throw new RuntimeException("Not implemented " + types[i].getClass());
 			}
