@@ -512,13 +512,23 @@ public class SootStmtSwitch implements StmtSwitch {
 		}
 		if (methodSignature.contains("<java.lang.String: int length()>")) {
 			assert (call instanceof InstanceInvokeExpr);
-			Expression rhs = SootTranslationHelpers.v().getMemoryModel()
-					.mkStringLengthExpr(((InstanceInvokeExpr) call).getBase());
 			if (optionalLhs != null) {
+				Expression rhs;
+				Value thisValue = ((InstanceInvokeExpr) call).getBase();
+				thisValue.apply(valueSwitch);
+				Expression thisExpr = valueSwitch.popExpression();
+				thisExpr = getExpressionOrSelf(thisExpr);
 				optionalLhs.apply(valueSwitch);
 				Expression lhs = valueSwitch.popExpression();
-				currentBlock.addStatement(new AssignStatement(SootTranslationHelpers.v().getSourceLocation(u), lhs, rhs));
-			}
+				if (thisExpr instanceof StringLiteral) {
+					rhs = new UnaryExpression(srcLoc, UnaryOperator.Len, thisExpr);
+				}
+				else {
+					rhs = SootTranslationHelpers.v().getMemoryModel()
+							.mkStringLengthExpr(((InstanceInvokeExpr) call).getBase());
+				}
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+			} // else: ignore
 			return true;
 		}
 		if (methodSignature.contains("<java.lang.String: boolean equals(java.lang.Object)>")) {
@@ -564,6 +574,29 @@ public class SootStmtSwitch implements StmtSwitch {
                 rhs = new BinaryExpression(srcLoc, BinaryOperator.StringConcat, a, b);
 			} else {
 				throw new RuntimeException("String.concat(NonObject) not implemented");
+			}
+			if (optionalLhs != null) {
+				optionalLhs.apply(valueSwitch);
+				Expression lhs = valueSwitch.popExpression();
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+			}
+			return true;
+		}
+		if (methodSignature.contains("<java.lang.String: boolean startsWith(java.lang.String)>")) {
+			assert (call instanceof  InstanceInvokeExpr);
+			Expression rhs;
+			if (call.getArg(0).getType() instanceof RefType) {
+				Value thisValue = ((InstanceInvokeExpr) call).getBase();
+				thisValue.apply(valueSwitch);
+				Expression a = valueSwitch.popExpression();
+				a = getExpressionOrSelf(a);
+				Value otherValue = call.getArg(0);
+				otherValue.apply(valueSwitch);
+				Expression b = valueSwitch.popExpression();
+				b = getExpressionOrSelf(b);
+				rhs = new BinaryExpression(srcLoc, BinaryOperator.StartsWith, a, b);
+			} else {
+				throw new RuntimeException("String.startsWith(NonObject) not implemented");
 			}
 			if (optionalLhs != null) {
 				optionalLhs.apply(valueSwitch);
