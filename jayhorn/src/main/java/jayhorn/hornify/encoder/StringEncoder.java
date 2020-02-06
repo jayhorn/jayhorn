@@ -3,6 +3,8 @@ package jayhorn.hornify.encoder;
 import jayhorn.hornify.HornHelper;
 import jayhorn.solver.*;
 import soottocfg.cfg.expression.UnaryExpression;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
+import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
@@ -13,6 +15,7 @@ import jayhorn.Options;
 
 import com.google.common.base.Verify;
 
+import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +35,9 @@ public class StringEncoder {
 
     public static final String STRING_CONCAT = "string_concat";
     public static final String STRING_CONCAT_ITERATIVE = STRING_CONCAT + "_it";
+
+    public static final String INT_STRING = "int_string";
+    public static final String INT_STRING_TEMPLATE = "str(%s)";
 
     public static final String STRING_STARTS_WITH = "string_starts_with";
 
@@ -115,6 +121,14 @@ public class StringEncoder {
                                  });
     }
 
+    private ProverFun mkIntStringProverFun() {
+        ProverType stringADTType = stringADT.getType(0);
+        return p.mkHornPredicate(mkName(INT_STRING),
+                new ProverType[]{
+                        p.getIntType(), stringADTType
+                });
+    }
+
     private ProverFun mkStringStartsWithProverFun() {
         ProverType stringADTType = stringADT.getType(0);
         return p.mkHornPredicate(mkName(STRING_STARTS_WITH),
@@ -189,6 +203,48 @@ public class StringEncoder {
         ));
 
         return predConcat;
+    }
+
+    private ProverFun genIntStringRec() {
+        ProverType stringADTType = stringADT.getType(0);
+        ProverExpr a = p.mkHornVariable("a", stringADTType);
+        ProverExpr b = p.mkHornVariable("b", stringADTType);
+        ProverExpr c = p.mkHornVariable("c", stringADTType);
+        ProverExpr i = p.mkHornVariable("i", p.getIntType());
+        ProverExpr h = p.mkHornVariable("h", p.getIntType());
+
+        ProverFun predIntString = mkIntStringProverFun();
+        ProverFun predConcat = mkStringConcatProverFun();
+
+        storeProverHornClause(p.mkHornClause(
+                predIntString.mkExpr(i, cons(h, nil())),
+                new ProverExpr[0],
+                p.mkAnd(p.mkGeq(i, p.mkLiteral(0)), p.mkLt(i, p.mkLiteral(10)),
+                        p.mkEq(h, p.mkPlus(i, p.mkLiteral((int)'0')))
+                        )
+        ));
+        storeProverHornClause(p.mkHornClause(
+                p.mkLiteral(false),
+                new ProverExpr[] {predIntString.mkExpr(i, a), predIntString.mkExpr(i, b)},
+                p.mkNot(p.mkEq(a, b))
+        ));
+
+        storeProverHornClause(p.mkHornClause(
+                predIntString.mkExpr(i, cons(p.mkLiteral((int)'-'), a)),
+                new ProverExpr[] {predIntString.mkExpr(p.mkNeg(i), a)},
+                p.mkLt(i, p.mkLiteral(0))
+        ));
+
+        storeProverHornClause(p.mkHornClause(
+                predIntString.mkExpr(i, c),
+                new ProverExpr[] {predConcat.mkExpr(a, b, c),
+                        predIntString.mkExpr(p.mkTDiv(i, p.mkLiteral(10)), a),
+                        predIntString.mkExpr(p.mkMinus(i, p.mkMult(p.mkLiteral(10), p.mkTDiv(i, p.mkLiteral(10)))), b)
+                },
+                p.mkGeq(i, p.mkLiteral(10))
+        ));
+
+        return predIntString;
     }
 
     private ProverFun genStartsWithRec() {
@@ -356,6 +412,58 @@ public class StringEncoder {
         );
     }
 
+    public EncodingFacts mkIntString(ProverExpr intPE, ReferenceType stringType) {
+        String resultName = String.format(INT_STRING_TEMPLATE, intPE.toString());
+        ProverExpr result = mkStringHornVariable(p, resultName, stringType);
+        ProverExpr resultString = selectString(result);
+        ProverFun predConcat;
+        StringEncoding enc = Options.v().getStringEncoding();
+        switch (enc) {
+            case recursive:
+                predConcat = genConcatRec();
+                break;
+            case iterative:
+                predConcat = genConcatIter();
+                break;
+            default:
+                throw new RuntimeException("unhandled string encoding");
+        }
+        considerHintedSizeConcat(predConcat);
+        ProverFun predIntString = genIntStringRec();
+        ProverExpr guarantee = predIntString.mkExpr(intPE, resultString);
+        return new EncodingFacts(
+                null, guarantee, result,
+                // need to make sure that the result is non-null
+                p.mkNot(p.mkEq(p.mkTupleSelect(result, 0), p.mkLiteral(0)))
+        );
+    }
+
+    public EncodingFacts mkIntString(long num, ReferenceType stringType) {
+        String resultName = String.format(INT_STRING_TEMPLATE, String.valueOf(num));
+        ProverExpr result = mkStringHornVariable(p, resultName, stringType);
+        ProverExpr resultString = selectString(result);
+        ProverFun predConcat;
+        StringEncoding enc = Options.v().getStringEncoding();
+        switch (enc) {
+            case recursive:
+                predConcat = genConcatRec();
+                break;
+            case iterative:
+                predConcat = genConcatIter();
+                break;
+            default:
+                throw new RuntimeException("unhandled string encoding");
+        }
+        considerHintedSizeConcat(predConcat);
+        ProverFun predIntString = genIntStringRec();
+        ProverExpr guarantee = predIntString.mkExpr(p.mkLiteral(BigInteger.valueOf(num)), resultString);
+        return new EncodingFacts(
+                null, guarantee, result,
+                // need to make sure that the result is non-null
+                p.mkNot(p.mkEq(p.mkTupleSelect(result, 0), p.mkLiteral(0)))
+        );
+    }
+
     public EncodingFacts mkStringStartsWith(ProverExpr left, ProverExpr right) {
         ProverExpr leftString = selectString(left);
         ProverExpr rightString = selectString(right);
@@ -366,6 +474,20 @@ public class StringEncoder {
         considerHintedSizeStartsWith(predStartsWith);
         ProverExpr guarantee = predStartsWith.mkExpr(leftString, rightString, result);
         return new EncodingFacts(null, guarantee, result, p.mkLiteral(true));
+    }
+
+    public EncodingFacts mkStringLength(Expression strExpr, Map<Variable, ProverExpr> varMap) {
+        if (strExpr instanceof StringLiteral) {
+            String str = ((StringLiteral)strExpr).getValue();
+            return new EncodingFacts(null, null, p.mkLiteral(str.length()), p.mkLiteral(true));
+        } else {
+            final ProverExpr stringPE = selectString(strExpr, varMap);
+            final ProverExpr stringVar = varMap.get(((IdentifierExpression) strExpr).getVariable());
+            if (stringVar == null)
+                return null;
+            return new EncodingFacts(null, null, stringADT.mkSizeExpr(stringPE),
+                    p.mkNot(p.mkEq(p.mkTupleSelect(stringVar, 0), p.mkLiteral(0))));
+        }
     }
 
     public EncodingFacts handleStringExpr(Expression e, Map<Variable, ProverExpr> varMap) {
@@ -395,9 +517,20 @@ public class StringEncoder {
                 }
 
                 case ToString: {
-                    Expression stringContainerExpr = be.getLeft();
+                    Expression stringableExpr = be.getLeft();
                     Expression lhsStringExpr = be.getRight();
-                    final ProverExpr internalString = selectString(stringContainerExpr, varMap);
+                    if (stringableExpr.getType() == IntType.instance()) {
+                        if (stringableExpr instanceof IntegerLiteral) {
+                            long num = ((IntegerLiteral)stringableExpr).getValue();
+                            return mkIntString(num, (ReferenceType) lhsStringExpr.getType());
+                        } else {
+                            final ProverExpr intPE = varMap.get(((IdentifierExpression) stringableExpr).getVariable());
+                            if (intPE == null)
+                                return null;
+                            return mkIntString(intPE, (ReferenceType) lhsStringExpr.getType());
+                        }
+                    }
+                    final ProverExpr internalString = selectString(stringableExpr, varMap);
                     if (internalString == null)
                         return null;
                     ProverExpr result = mkStringHornVariable(p, internalString.toString(), (ReferenceType)lhsStringExpr.getType());
@@ -419,8 +552,8 @@ public class StringEncoder {
             final UnaryExpression ue = (UnaryExpression)e;
             switch (ue.getOp()) {
                 case Len: {
-                    final ProverExpr stringPE = selectString(ue.getExpression(), varMap);
-                    return new EncodingFacts(null, null, stringADT.mkSizeExpr(stringPE), p.mkLiteral(true));
+                    Expression strExpr = ue.getExpression();
+                    return mkStringLength(strExpr, varMap);
                 }
 
                 default:

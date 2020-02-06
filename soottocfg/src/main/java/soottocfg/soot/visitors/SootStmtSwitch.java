@@ -520,17 +520,25 @@ public class SootStmtSwitch implements StmtSwitch {
 				thisExpr = getExpressionOrSelf(thisExpr);
 				optionalLhs.apply(valueSwitch);
 				Expression lhs = valueSwitch.popExpression();
-				if (thisExpr instanceof StringLiteral) {
-					rhs = new UnaryExpression(srcLoc, UnaryOperator.Len, thisExpr);
-				}
-				else {
-					rhs = SootTranslationHelpers.v().getMemoryModel()
-							.mkStringLengthExpr(((InstanceInvokeExpr) call).getBase());
-				}
+				rhs = new UnaryExpression(srcLoc, UnaryOperator.Len, thisExpr);
 				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
 			} // else: ignore
 			return true;
 		}
+		if (methodSignature.contains("<java.lang.String: java.lang.String valueOf(int)>")) {
+            assert (call instanceof StaticInvokeExpr);
+            if (optionalLhs != null) {
+                Expression rhs;
+                Value intValue = call.getArg(0);
+                intValue.apply(valueSwitch);
+                Expression intExpr = valueSwitch.popExpression();
+                optionalLhs.apply(valueSwitch);
+                Expression lhs = valueSwitch.popExpression();
+                rhs = new BinaryExpression(srcLoc, BinaryOperator.ToString, intExpr, lhs);
+                currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+            } // else: ignore
+            return true;
+        }
 		if (methodSignature.contains("<java.lang.String: boolean equals(java.lang.Object)>")) {
 			assert (call instanceof  InstanceInvokeExpr);
 			Expression rhs;

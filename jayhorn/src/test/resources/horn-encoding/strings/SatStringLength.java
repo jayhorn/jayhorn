@@ -5,7 +5,7 @@ public class SatStringLength {
         String s = "abc";
         assert (s.length() == 3);
         String e = "";
-        assert (s.length() == 0);
+        assert (e.length() == 0);
     }
 
 }
