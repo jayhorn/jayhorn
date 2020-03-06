@@ -19,6 +19,7 @@
 
 package jayhorn;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import jayhorn.hornify.encoder.StringEncoder;
@@ -190,9 +191,9 @@ public class Options {
 		String outName = "";
 		String in = getJavaInput();
 		if (in != null) {
-			if (in.endsWith("/"))
+			if (in.endsWith(File.separator))
 				in = in.substring(0, in.length() - 1);
-			outName = in.substring(in.lastIndexOf('/') + 1, in.length()).replace(".java", "").replace(".class", "");
+			outName = in.substring(in.lastIndexOf(File.separator) + 1, in.length()).replace(".java", "").replace(".class", "");
 		}
 		if (outName.equals(""))
 			outName = "noname";
