@@ -674,6 +674,7 @@ public class SootStmtSwitch implements StmtSwitch {
 		} else if (call.getMethod().getSignature().equals("<java.util.Random: int nextInt()>")) {
                     translateRandomNondet(IntType.v(), optionalLhs, call,
                                           true, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                    return true;
 		} else if (call.getMethod().getSignature().equals("<java.util.Random: long nextLong()>")) {
                     translateRandomNondet(LongType.v(), optionalLhs, call,
                                           true, Long.MIN_VALUE, Long.MAX_VALUE);
