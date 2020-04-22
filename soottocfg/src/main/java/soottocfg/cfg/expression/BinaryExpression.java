@@ -14,6 +14,7 @@ import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.type.TypeType;
@@ -34,8 +35,8 @@ public class BinaryExpression extends Expression {
 	public enum BinaryOperator {
 		Plus("+"), Minus("-"), Mul("*"), Div("/"), Mod("%"), And("&&"), Or("||"), Xor("^"), Implies("->"), Eq("=="),
 		Ne("!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&"),
-		PoLeq("<:"), StringEq("==="), StringConcat("+++"), StartsWith("startsWith"),
-		ToString("<str>");	// TODO: not an actual BinaryExpression
+		PoLeq("<:"), StringEq("==="), StringConcat("+++"), StartsWith("startsWith"), CharAt("charAt"),
+		ToString("<str>"), BoolToString("<str_b>");	// TODO: not an actual BinaryExpression
 
 		private final String name;
 
@@ -44,7 +45,7 @@ public class BinaryExpression extends Expression {
 		}
 
 		public boolean equalsName(String otherName) {
-			return (otherName == null) ? false : name.equals(otherName);
+			return name.equals(otherName);	// Object.equals(o) returns false when o is null
 		}
 
 		@Override
@@ -86,7 +87,8 @@ public class BinaryExpression extends Expression {
 							((ReferenceType) left.getType()).getClassVariable().equals(((ReferenceType) right.getType()).getClassVariable()))
 						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(right)
 						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(left)
-						|| op == BinaryOperator.ToString,
+						|| op == BinaryOperator.CharAt
+						|| op == BinaryOperator.ToString || op == BinaryOperator.BoolToString,
 				"Types don't match: " + left.getType() + " and " + right.getType() + " for "+left.toString()+op+right.toString());
 		// TODO: more type checking depending on operator
 		this.left = left;
@@ -110,7 +112,7 @@ public class BinaryExpression extends Expression {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("(");
-		if (this.op.equals(BinaryOperator.ToString)) {
+		if (this.op.equals(BinaryOperator.ToString) || this.op.equals(BinaryOperator.BoolToString)) {
 			sb.append(this.op);
 			sb.append(left);
 		} else {
@@ -170,7 +172,12 @@ public class BinaryExpression extends Expression {
 				return BoolType.instance();
 			}
 
-			case ToString: {
+			case CharAt: {
+				return IntType.instance();
+			}
+
+			case ToString:
+			case BoolToString: {
 				return right.getType();
 			}
 

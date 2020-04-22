@@ -535,16 +535,39 @@ public class SootStmtSwitch implements StmtSwitch {
 			} // else: ignore
 			return true;
 		}
-		if (methodSignature.contains("<java.lang.String: java.lang.String valueOf(int)>")) {
+		if (methodSignature.contains("<java.lang.String: char charAt(int)>")) {
+			assert (call instanceof InstanceInvokeExpr);
+			if (optionalLhs != null) {
+				Expression thisExpr = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+				Expression indexExpr = valueToInnerExpr(call.getArg(0));
+				Expression lhs = valueToExpr(optionalLhs);
+				Expression rhs = new BinaryExpression(srcLoc, BinaryOperator.CharAt, thisExpr, indexExpr);
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+			} // else: ignore
+			return true;
+		}
+		if (methodSignature.contains("<java.lang.String: java.lang.String valueOf(int)>") ||
+//			methodSignature.contains("<java.lang.String: java.lang.String valueOf(char)>") ||
+			methodSignature.contains("<java.lang.String: java.lang.String valueOf(long)>")) {
             assert (call instanceof StaticInvokeExpr);
             if (optionalLhs != null) {
-                Expression intExpr = valueToExpr(call.getArg(0));
+                Expression itemExpr = valueToExpr(call.getArg(0));
                 Expression lhs = valueToExpr(optionalLhs);
-				Expression rhs = new BinaryExpression(srcLoc, BinaryOperator.ToString, intExpr, lhs);
+				Expression rhs = new BinaryExpression(srcLoc, BinaryOperator.ToString, itemExpr, lhs);
                 currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
             } // else: ignore
             return true;
         }
+		if (methodSignature.contains("<java.lang.String: java.lang.String valueOf(boolean)>")) {
+			assert (call instanceof StaticInvokeExpr);
+			if (optionalLhs != null) {
+				Expression boolExpr = valueToExpr(call.getArg(0));
+				Expression lhs = valueToExpr(optionalLhs);
+				Expression rhs = new BinaryExpression(srcLoc, BinaryOperator.BoolToString, boolExpr, lhs);
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+			} // else: ignore
+			return true;
+		}
 		if (methodSignature.contains("<java.lang.String: boolean equals(java.lang.Object)>")) {
 			assert (call instanceof InstanceInvokeExpr);
 			if (optionalLhs != null) {

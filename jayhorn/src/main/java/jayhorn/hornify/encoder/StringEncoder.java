@@ -33,12 +33,16 @@ public class StringEncoder {
 //    public static final String STRING_REF_TEMPLATE = "$str_%d";
     public static final String STRING_CONCAT_TEMPLATE = "$contact(%s, %s)";
 
+    public static final String STRING_CHAR_AT_TEMPLATE = "$char_at(%s, %s)";
+
     public static final String STRING_CONCAT = "string_concat";
     public static final String STRING_CONCAT_ITERATIVE = STRING_CONCAT + "_it";
 
     public static final String INT_STRING = "int_string";
+    public static final String BOOL_STRING = "bool_string";
     public static final String INT_STRING_HELPER = "int_string_h";
-    public static final String INT_STRING_TEMPLATE = "str(%s)";
+    public static final String INT_STRING_TEMPLATE = "str_i(%s)";
+    public static final String BOOL_STRING_TEMPLATE = "str_b(%s)";
 
     public static final String STRING_STARTS_WITH = "string_starts_with";
 
@@ -152,9 +156,19 @@ public class StringEncoder {
                 new ProverType[]{p.getIntType(), stringADTType});
     }
 
+    private ProverFun mkBoolToStringProverFun(ProverType stringADTType) {
+        return p.mkHornPredicate(mkName(BOOL_STRING),
+                new ProverType[]{p.getBooleanType(), stringADTType});
+    }
+
     private ProverFun mkStringStartsWithProverFun(ProverType stringADTType) {
         return p.mkHornPredicate(mkName(STRING_STARTS_WITH),
                 new ProverType[]{stringADTType, stringADTType, p.getBooleanType()});
+    }
+
+    private ProverFun mkStringCharAtProverFun(ProverType stringADTType) {
+        return p.mkHornPredicate(mkName(STRING_STARTS_WITH),
+                new ProverType[]{stringADTType, p.getIntType(), p.getIntType()});
     }
 
     private void considerHintedSizeConcat(ProverFun predConcat, ProverType stringADTType) {
@@ -250,26 +264,22 @@ public class StringEncoder {
             EMPTY_PHC_BODY,
             p.mkAnd( p.mkGeq(i, lit(0)) , p.mkLt(i, lit(10)) , p.mkEq(h, digitToChar(i)) )
         );
-
         addPHC(
             predIntToString.mkExpr(i, cons(lit('-'), a)),
             new ProverExpr[] {predIntToString.mkExpr(p.mkNeg(i), a)},
             p.mkLt(i, lit(0))
         );
-
         addPHC(
             predIntToStringHelper.mkExpr(i, i, nil()),
             EMPTY_PHC_BODY,
             p.mkGeq(i, lit(10))
         );
-
         ProverExpr lastDigitOfN = p.mkMinus(n, p.mkMult(lit(10), p.mkTDiv(n, lit(10))));
         addPHC(
             predIntToStringHelper.mkExpr(i, p.mkTDiv(n, lit(10)), cons(digitToChar(lastDigitOfN), s)),
             new ProverExpr[] {predIntToStringHelper.mkExpr(i, n, s)},
             p.mkAnd(p.mkGeq(i, lit(10)), p.mkGt(n, lit(0)))
         );
-
         addPHC(
             predIntToString.mkExpr(i, s),
             new ProverExpr[] {predIntToStringHelper.mkExpr(i, lit(0), s)},
@@ -277,6 +287,25 @@ public class StringEncoder {
         );
 
         return predIntToString;
+    }
+
+    private ProverFun genBoolToString(ProverType stringADTType) {
+        ProverExpr b = booleanHornVar("b");
+
+        ProverFun predBoolToString = mkBoolToStringProverFun(stringADTType);
+
+        addPHC(
+                predBoolToString.mkExpr(b, mkStringPE("true")),
+                EMPTY_PHC_BODY,
+                p.mkEq(b, lit(1))   // TODO: should get real bool ?
+        );
+        addPHC(
+                predBoolToString.mkExpr(b, mkStringPE("false")),
+                EMPTY_PHC_BODY,
+                p.mkNot(p.mkEq(b, lit(1)))
+        );
+
+        return predBoolToString;
     }
 
     private ProverFun genStartsWithRec(ProverType stringADTType) {
@@ -314,6 +343,36 @@ public class StringEncoder {
         );
 
         return predStartsWith;
+    }
+
+    private ProverFun genCharAtRec(ProverType stringADTType) {
+        ProverExpr s = stringHornVar("s", stringADTType);
+        ProverExpr t = stringHornVar("t", stringADTType);
+        ProverExpr h = intHornVar("h");
+        ProverExpr i = intHornVar("i");
+        ProverExpr c = intHornVar("c");
+        ProverExpr NUL = lit('\0');     // TODO: must emit IndexOutOfBoundsException where needed instead of this
+        ProverFun predCharAt = mkStringCharAtProverFun(stringADTType);
+        // base cases
+        addPHC(
+                predCharAt.mkExpr(nil(), i, NUL)
+        );
+        addPHC(
+                predCharAt.mkExpr(cons(h, t), lit(0), h)
+        );
+        addPHC(
+                predCharAt.mkExpr(s, i, NUL),
+                EMPTY_PHC_BODY,
+                p.mkNot(p.mkAnd( p.mkGeq(i, lit(0)) , p.mkLt(i, len(s)) ))
+        );
+        // induction
+        addPHC(
+                predCharAt.mkExpr(cons(h, t), p.mkPlus(i, lit(1)), c),
+                new ProverExpr[] {predCharAt.mkExpr(t, i, c)},
+                p.mkAnd( p.mkGeq(i, lit(0)) , p.mkLt(i, len(t)) )
+        );
+
+        return predCharAt;
     }
 
     private ProverFun genConcatIter(ProverType stringADTType) {
@@ -439,6 +498,16 @@ public class StringEncoder {
         return new EncodingFacts(null, guarantee, result, mkNotNullConstraint(result));
     }
 
+    public EncodingFacts mkBoolToString(ProverExpr boolPE, ReferenceType stringRefType) {
+        ProverType stringADTType = getStringADTType();
+        String resultName = mkName(String.format(BOOL_STRING_TEMPLATE, boolPE.toString()));
+        ProverExpr result = mkRefHornVariable(resultName, stringRefType);
+        ProverExpr resultString = selectString(result);
+        ProverFun predBoolToString = genBoolToString(stringADTType);
+        ProverExpr guarantee = predBoolToString.mkExpr(boolPE, resultString);
+        return new EncodingFacts(null, guarantee, result, mkNotNullConstraint(result));
+    }
+
     public EncodingFacts mkStringStartsWith(ProverExpr leftString, ProverExpr rightString) {
         ProverType stringADTType = getStringADTType();
         String resultName = String.format(BOOLEAN_STARTS_WITH_TEMPLATE, leftString.toString(), rightString.toString());
@@ -448,6 +517,16 @@ public class StringEncoder {
         considerHintedSizeStartsWith(predStartsWith, stringADTType);
         ProverExpr guarantee = predStartsWith.mkExpr(leftString, rightString, result);
         return new EncodingFacts(null, guarantee, result, lit(true));
+    }
+
+    public EncodingFacts mkStringCharAt(ProverExpr strPE, ProverExpr indexPE) {
+        ProverType stringADTType = getStringADTType();
+        String chName = String.format(STRING_CHAR_AT_TEMPLATE, strPE.toString(), indexPE.toString());
+        ProverExpr ch = intHornVar(chName);
+        ProverFun predCharAt;
+        predCharAt = genCharAtRec(stringADTType);           // TODO: Iterative
+        ProverExpr guarantee = predCharAt.mkExpr(strPE, indexPE, ch);
+        return new EncodingFacts(null, guarantee, ch, lit(true));
     }
 
     public EncodingFacts mkStringLengthFromExpression(Expression strExpr, Map<Variable, ProverExpr> varMap) {
@@ -481,6 +560,13 @@ public class StringEncoder {
         }
     }
 
+    public EncodingFacts mkBoolToStringFromExpression(Expression stringableExpr, Expression lhsRefExpr,
+                                                      Map<Variable, ProverExpr> varMap) {
+        ReferenceType lhsRefExprType = (ReferenceType) lhsRefExpr.getType();
+        ProverExpr pe = selectInt(stringableExpr, varMap);  // !(stringableExpr instanceof BooleanLiteral)
+        return mkBoolToString(pe, lhsRefExprType);
+    }
+
     public EncodingFacts handleStringExpr(Expression e, Map<Variable, ProverExpr> varMap) {
         if (e instanceof BinaryExpression) {
             final BinaryExpression be = (BinaryExpression) e;
@@ -505,8 +591,18 @@ public class StringEncoder {
                     return mkStringStartsWith(leftPE, rightPE);
                 }
 
+                case CharAt: {
+                    final ProverExpr strPE = selectString(leftExpr, varMap);
+                    final ProverExpr indexPE = selectInt(rightExpr, varMap);
+                    return mkStringCharAt(strPE, indexPE);
+                }
+
                 case ToString: {
                     return mkToStringFromExpression(leftExpr /* stringable */, rightExpr /* lhsRef */, varMap);
+                }
+
+                case BoolToString: {
+                    return mkBoolToStringFromExpression(leftExpr, rightExpr, varMap);
                 }
 
                 default:
