@@ -314,7 +314,7 @@ public class StatementEncoder {
 
         if (ns.getClassVariable().getName().equals("java/lang/StringBuilder")
                 || ns.getClassVariable().getName().equals("java/lang/StringBuffer")) {
-            tupleElements[offset++] = expEncoder.getStringEncoder().mkString("");
+            tupleElements[offset++] = expEncoder.getStringEncoder().mkStringPE("");
         }
 
         for (int i = offset; i < tupleElements.length; i++) {

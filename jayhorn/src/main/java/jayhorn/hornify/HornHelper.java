@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Verify;
-
 import jayhorn.hornify.encoder.ExpressionEncoder;
 import jayhorn.solver.*;
 import soottocfg.cfg.type.*;
@@ -92,7 +90,7 @@ public class HornHelper {
 				subExprs[i] = p.mkLiteral(NullValue);
 			} else if (types[i] instanceof jayhorn.solver.ProverADTType
 						&& types[i].toString().equals(StringType.instance().toString())) {	// TODO: better check
-				subExprs[i] = expEncoder.getStringEncoder().mkString("");
+				subExprs[i] = expEncoder.getStringEncoder().mkStringPE("");
 			} else if (types[i] instanceof ProverTupleType) {				
 				subExprs[i] = mkNullExpression(p, ((ProverTupleType)types[i]).getSubTypes(), expEncoder);
 			} else {

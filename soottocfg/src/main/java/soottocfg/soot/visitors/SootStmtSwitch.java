@@ -489,6 +489,21 @@ public class SootStmtSwitch implements StmtSwitch {
 		return expr;
 	}
 
+	private Expression valueToExpr(Value value) {
+		value.apply(valueSwitch);
+		return valueSwitch.popExpression();
+	}
+
+	/**
+	 *
+	 * @param value
+	 * @return If the resulting expression is an IdentifierExpression, the expression that it is pointing to
+	 *         will be returned. Otherwise, the resulting expression itself will be returned.
+	 */
+	private Expression valueToInnerExpr(Value value) {
+		return getExpressionOrSelf(valueToExpr(value));
+	}
+
 	/**
 	 * Check if the call is a special case such as System.exit. If so, translate
 	 * it and return true. Otherwise, ignore it and return false.
@@ -513,14 +528,9 @@ public class SootStmtSwitch implements StmtSwitch {
 		if (methodSignature.contains("<java.lang.String: int length()>")) {
 			assert (call instanceof InstanceInvokeExpr);
 			if (optionalLhs != null) {
-				Expression rhs;
-				Value thisValue = ((InstanceInvokeExpr) call).getBase();
-				thisValue.apply(valueSwitch);
-				Expression thisExpr = valueSwitch.popExpression();
-				thisExpr = getExpressionOrSelf(thisExpr);
-				optionalLhs.apply(valueSwitch);
-				Expression lhs = valueSwitch.popExpression();
-				rhs = new UnaryExpression(srcLoc, UnaryOperator.Len, thisExpr);
+				Expression thisExpr = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+				Expression lhs = valueToExpr(optionalLhs);
+				Expression rhs = new UnaryExpression(srcLoc, UnaryOperator.Len, thisExpr);
 				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
 			} // else: ignore
 			return true;
@@ -528,39 +538,29 @@ public class SootStmtSwitch implements StmtSwitch {
 		if (methodSignature.contains("<java.lang.String: java.lang.String valueOf(int)>")) {
             assert (call instanceof StaticInvokeExpr);
             if (optionalLhs != null) {
-                Expression rhs;
-                Value intValue = call.getArg(0);
-                intValue.apply(valueSwitch);
-                Expression intExpr = valueSwitch.popExpression();
-                optionalLhs.apply(valueSwitch);
-                Expression lhs = valueSwitch.popExpression();
-                rhs = new BinaryExpression(srcLoc, BinaryOperator.ToString, intExpr, lhs);
+                Expression intExpr = valueToExpr(call.getArg(0));
+                Expression lhs = valueToExpr(optionalLhs);
+				Expression rhs = new BinaryExpression(srcLoc, BinaryOperator.ToString, intExpr, lhs);
                 currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
             } // else: ignore
             return true;
         }
 		if (methodSignature.contains("<java.lang.String: boolean equals(java.lang.Object)>")) {
-			assert (call instanceof  InstanceInvokeExpr);
-			Expression rhs;
-			if (call.getArg(0).getType() instanceof RefType) {
-				Value thisValue = ((InstanceInvokeExpr) call).getBase();
-				thisValue.apply(valueSwitch);
-				Expression a = valueSwitch.popExpression();
-				a = getExpressionOrSelf(a);
-				Value otherValue = call.getArg(0);
-				otherValue.apply(valueSwitch);
-				Expression b = valueSwitch.popExpression();
-				// TODO: make string constant value present at retVar.variableName
-                Variable retVar = new Variable("$string_" + call.getMethod().getName() + "(" + a + "," + b + ")", BoolType.instance());
-				rhs = new IdentifierExpression(srcLoc, retVar);
-				BinaryExpression equality = new BinaryExpression(srcLoc, BinaryOperator.StringEq, a, b);
-				currentBlock.addStatement(new AssignStatement(srcLoc, retVar.mkExp(srcLoc), equality));
-			} else {
-				rhs = new BooleanLiteral(srcLoc, false);
-			}
+			assert (call instanceof InstanceInvokeExpr);
 			if (optionalLhs != null) {
-				optionalLhs.apply(valueSwitch);
-				Expression lhs = valueSwitch.popExpression();
+				Expression rhs;
+				if (call.getArg(0).getType() instanceof RefType) {
+					Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+					Expression b = valueToExpr(call.getArg(0));
+					// TODO: should make string constant value present at retVar.variableName ?
+					Variable retVar = new Variable("$string_" + call.getMethod().getName() + "(" + a + "," + b + ")", BoolType.instance());
+					rhs = new IdentifierExpression(srcLoc, retVar);
+					BinaryExpression equality = new BinaryExpression(srcLoc, BinaryOperator.StringEq, a, b);
+					currentBlock.addStatement(new AssignStatement(srcLoc, retVar.mkExp(srcLoc), equality));
+				} else {
+					rhs = new BooleanLiteral(srcLoc, false);
+				}
+				Expression lhs = valueToExpr(optionalLhs);
 				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
 			}
 			return true;
@@ -568,63 +568,44 @@ public class SootStmtSwitch implements StmtSwitch {
 		if (methodSignature.contains("<java.lang.String: java.lang.String concat(java.lang.String)>") ||
 			methodSignature.contains("<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>") ||
 			methodSignature.contains("<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>")) {
-			assert (call instanceof  InstanceInvokeExpr);
-			Expression rhs;
-			if (call.getArg(0).getType() instanceof RefType) {
-				Value thisValue = ((InstanceInvokeExpr) call).getBase();
-				thisValue.apply(valueSwitch);
-				Expression a = valueSwitch.popExpression();
-				a = getExpressionOrSelf(a);
-				Value otherValue = call.getArg(0);
-				otherValue.apply(valueSwitch);
-				Expression b = valueSwitch.popExpression();
-				b = getExpressionOrSelf(b);
-                rhs = new BinaryExpression(srcLoc, BinaryOperator.StringConcat, a, b);
-			} else {
-				throw new RuntimeException("String.concat(NonObject) not implemented");
-			}
+			assert (call instanceof InstanceInvokeExpr);
 			if (optionalLhs != null) {
-				optionalLhs.apply(valueSwitch);
-				Expression lhs = valueSwitch.popExpression();
+				Expression rhs;
+				if (call.getArg(0).getType() instanceof RefType) {
+					Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+					Expression b = valueToInnerExpr(call.getArg(0));
+					rhs = new BinaryExpression(srcLoc, BinaryOperator.StringConcat, a, b);
+				} else {
+					throw new RuntimeException("String.concat(NonObject) not implemented");
+				}
+				Expression lhs = valueToExpr(optionalLhs);
 				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
 			}
 			return true;
 		}
 		if (methodSignature.contains("<java.lang.String: boolean startsWith(java.lang.String)>")) {
-			assert (call instanceof  InstanceInvokeExpr);
-			Expression rhs;
-			if (call.getArg(0).getType() instanceof RefType) {
-				Value thisValue = ((InstanceInvokeExpr) call).getBase();
-				thisValue.apply(valueSwitch);
-				Expression a = valueSwitch.popExpression();
-				a = getExpressionOrSelf(a);
-				Value otherValue = call.getArg(0);
-				otherValue.apply(valueSwitch);
-				Expression b = valueSwitch.popExpression();
-				b = getExpressionOrSelf(b);
-				rhs = new BinaryExpression(srcLoc, BinaryOperator.StartsWith, a, b);
-			} else {
-				throw new RuntimeException("String.startsWith(NonObject) not implemented");
-			}
+			assert (call instanceof InstanceInvokeExpr);
 			if (optionalLhs != null) {
-				optionalLhs.apply(valueSwitch);
-				Expression lhs = valueSwitch.popExpression();
+				Expression rhs;
+				if (call.getArg(0).getType() instanceof RefType) {
+					Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+					Expression b = valueToInnerExpr(call.getArg(0));
+					rhs = new BinaryExpression(srcLoc, BinaryOperator.StartsWith, a, b);
+				} else {
+					throw new RuntimeException("String.startsWith(NonObject) not implemented");
+				}
+				Expression lhs = valueToExpr(optionalLhs);
 				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
 			}
 			return true;
 		}
 		if (methodSignature.contains("<java.lang.StringBuilder: java.lang.String toString()>") ||
 			methodSignature.contains("<java.lang.StringBuffer: java.lang.String toString()>")) {
-			assert (call instanceof  InstanceInvokeExpr);
+			assert (call instanceof InstanceInvokeExpr);
 			if (optionalLhs != null) {
-				Expression rhs;
-				Value thisValue = ((InstanceInvokeExpr) call).getBase();
-				thisValue.apply(valueSwitch);
-				Expression thisExpr = valueSwitch.popExpression();
-				thisExpr = getExpressionOrSelf(thisExpr);
-				optionalLhs.apply(valueSwitch);
-				Expression lhs = valueSwitch.popExpression();
-				rhs = new BinaryExpression(srcLoc, BinaryOperator.ToString, thisExpr, lhs);
+				Expression thisExpr = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+				Expression lhs = valueToExpr(optionalLhs);
+				Expression rhs = new BinaryExpression(srcLoc, BinaryOperator.ToString, thisExpr, lhs);
 				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
 			} // else: ignore
 			return true;
