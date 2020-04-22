@@ -806,7 +806,20 @@ public class SootStmtSwitch implements StmtSwitch {
                     currentBlock.addStatement(
                        new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(u), cond));
                     return true;
-		}
+
+		} else if (call.getMethod().getSignature().equals("<java.util.Random: boolean nextBoolean()>")) {
+                    translateRandomNondet(BooleanType.v(), optionalLhs, call,
+                                          false, 0, 0);
+                    return true;
+		} else if (call.getMethod().getSignature().equals("<java.util.Random: int nextInt()>")) {
+                    translateRandomNondet(IntType.v(), optionalLhs, call,
+                                          true, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                    return true;
+		} else if (call.getMethod().getSignature().equals("<java.util.Random: long nextLong()>")) {
+                    translateRandomNondet(LongType.v(), optionalLhs, call,
+                                          true, Long.MIN_VALUE, Long.MAX_VALUE);
+                    return true;
+                }
 
 //System.out.println(methodSignature);
 
@@ -838,6 +851,42 @@ public class SootStmtSwitch implements StmtSwitch {
 
                 if (addBounds)
                 currentBlock.addStatement(
+                        new AssumeStatement(loc,
+                          new BinaryExpression(
+                            loc, BinaryOperator.And,
+                            new BinaryExpression(
+                              loc, BinaryOperator.Le,
+                              new IntegerLiteral(loc, lower), idLhs),
+                            new BinaryExpression(
+                              loc, BinaryOperator.Le,
+                              idLhs, new IntegerLiteral(loc, upper)))));
+            }
+        }
+
+        /**
+         * Method of the Random class, which are replace with a simple
+         * havoc.
+         */
+        private void translateRandomNondet(Type t, Value optionalLhs,
+                                           InvokeExpr call,
+                                           boolean addBounds,
+                                           long lower, long upper) {
+            Verify.verify(call.getArgCount() == 0);
+
+            if (optionalLhs != null) {
+                optionalLhs.apply(valueSwitch);
+                Expression lhs = valueSwitch.popExpression();
+
+                Verify.verify(lhs instanceof IdentifierExpression,
+                              "do not know how to havoc " + lhs);
+                IdentifierExpression idLhs = (IdentifierExpression)lhs;
+
+                final SourceLocation loc = lhs.getSourceLocation();
+
+                currentBlock.addStatement(new HavocStatement(loc, idLhs));
+
+                if (addBounds)
+                    currentBlock.addStatement(
                         new AssumeStatement(loc,
                           new BinaryExpression(
                             loc, BinaryOperator.And,

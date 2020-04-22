@@ -89,10 +89,8 @@ class HornExpr implements ProverHornClause {
     }
 
     public IFormula toFormula() {
-        IFormula f = clause.toFormula();
+        IFormula f = clause.normalize().toFormula();
         f = PartialEvaluator$.MODULE$.apply(f);
-        // Note: this can sometimes produce formulas that are not
-        // Horn, since ite-expressions get split
         f = EquivExpander$.MODULE$.apply(f);
         f = Transform2Prenex$.MODULE$.apply(f);
         return f;
