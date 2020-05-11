@@ -27,8 +27,14 @@ public class StringEncoder {
         iterative
     }
 
+    public enum StringDirection {
+        ltr,    // Right to Left
+        rtl     // Left to Right
+    }
+
 //    public static final String BOOLEAN_REF_TEMPLATE = "$bool_%d";
     public static final String BOOLEAN_STARTS_WITH_TEMPLATE = "$starts_with(%s, %s)";
+    public static final String BOOLEAN_ENDS_WITH_TEMPLATE = "$ends_with(%s, %s)";
 
 //    public static final String STRING_REF_TEMPLATE = "$str_%d";
     public static final String STRING_CONCAT_TEMPLATE = "$contact(%s, %s)";
@@ -45,6 +51,7 @@ public class StringEncoder {
     public static final String BOOL_STRING_TEMPLATE = "str_b(%s)";
 
     public static final String STRING_STARTS_WITH = "string_starts_with";
+    public static final String STRING_ENDS_WITH = "string_ends_with";
 
     public static final int MAX_SIZE_HINT = 8;
 
@@ -62,6 +69,8 @@ public class StringEncoder {
     
     private Prover p;
     private ProverADT stringADT;
+    private StringEncoding stringEncoding;
+    private StringDirection stringDirection;
     private static final int STRING_ADT_TYPE_IDX = 0;
 //    private ProverType stringADTType;
 
@@ -85,6 +94,10 @@ public class StringEncoder {
         this.p = p;
         this.stringADT = stringADT;
 //        this.stringADTType = stringADT.getType(STRING_ADT_TYPE_IDX);
+        this.stringEncoding = Options.v().getStringEncoding();
+        this.stringDirection = Options.v().getStringDirection();
+//        if (this.stringDirection == StringDirection.rtl)
+//            throw new RuntimeException("not implemented");
     }
 
     private void storeProverHornClause(ProverHornClause proverHornClause) {
@@ -108,14 +121,25 @@ public class StringEncoder {
     }
 
     private ProverExpr mkStringPEFromCharArray(char[] chars, ProverADT listADT) {
-        int index = chars.length - 1;
+        // TODO: support Unicode characters
         ProverExpr res = listADT.mkCtorExpr(0, new ProverExpr[0]);
-        while (index >= 0) {
-            // TODO: support Unicode characters
-            res = listADT.mkCtorExpr(1, new ProverExpr[] {
-                    lit(chars[index]), res
-            });
-            --index;
+        int index;
+        if (stringDirection == StringDirection.ltr) {
+            index = chars.length - 1;
+            while (index >= 0) {
+                res = listADT.mkCtorExpr(1, new ProverExpr[]{
+                        lit(chars[index]), res
+                });
+                --index;
+            }
+        } else {
+            index = 0;
+            while (index < chars.length) {
+                res = listADT.mkCtorExpr(1, new ProverExpr[]{
+                        lit(chars[index]), res
+                });
+                ++index;
+            }
         }
         return res;
     }
@@ -187,28 +211,9 @@ public class StringEncoder {
         }
     }
 
-//    private void considerHintedSizeIntString(ProverFun predIntString) {
-//        ProverExpr b = stringHornVar("b");
-//        ProverExpr c = stringHornVar("c");
-//        ProverExpr i = intHornVar("i");
-//        ProverExpr n = i;
-//        ProverExpr lastDigitOfN = p.mkMinus(n, p.mkMult(lit(10), nDiv10));
-//        ProverExpr r = cons(digitToChar(lastDigitOfN), nil());
-//        for (int step = 0; step <= MAX_SIZE_HINT; step++) {
-//            int sepBase = (int)Math.pow(10, step + 1);
-//            addPHC(
-//                predIntString.mkExpr(i, cons(digitToChar(p.mkTDiv(i, lit(sepBase))), r)),
-//                EMPTY_PHC_BODY,
-//                p.mkAnd(p.mkGeq(i, lit(sepBase)), p.mkLt(i, lit(10 * sepBase)))
-//            );
-//            i = p.mkTDiv(i, lit(10));
-//            ProverExpr h = intHornVar("h" + step);
-//            left = cons(h, left);
-//            concat = cons(h, concat);
-//        }
-//    }
-
     private void considerHintedSizeStartsWith(ProverFun predStartsWith, ProverType stringADTType) {
+        if (stringDirection == StringDirection.rtl)
+            throw new RuntimeException("not implemented");
         ProverExpr str = stringHornVar("str", stringADTType), z = intHornVar("z");
         ProverExpr sub = nil();
         for (int subSize = 0; subSize <= MAX_SIZE_HINT; subSize++) {
@@ -254,37 +259,63 @@ public class StringEncoder {
         ProverExpr s = stringHornVar("s", stringADTType);
         ProverExpr i = intHornVar("i");
         ProverExpr n = intHornVar("n");
-        ProverExpr h = intHornVar("h");
 
         ProverFun predIntToStringHelper = mkIntToStringHelperProverFun(stringADTType);
         ProverFun predIntToString = mkIntToStringProverFun(stringADTType);
 
         addPHC(
-            predIntToString.mkExpr(i, cons(h, nil())),
-            EMPTY_PHC_BODY,
-            p.mkAnd( p.mkGeq(i, lit(0)) , p.mkLt(i, lit(10)) , p.mkEq(h, digitToChar(i)) )
+                predIntToString.mkExpr(i, cons(digitToChar(i), nil())),
+                EMPTY_PHC_BODY,
+                p.mkAnd( p.mkGeq(i, lit(0)) , p.mkLt(i, lit(10)) )
         );
         addPHC(
-            predIntToString.mkExpr(i, cons(lit('-'), a)),
-            new ProverExpr[] {predIntToString.mkExpr(p.mkNeg(i), a)},
-            p.mkLt(i, lit(0))
+                predIntToStringHelper.mkExpr(i, i, nil()),
+                EMPTY_PHC_BODY,
+                p.mkGeq(i, lit(10))
         );
         addPHC(
-            predIntToStringHelper.mkExpr(i, i, nil()),
-            EMPTY_PHC_BODY,
-            p.mkGeq(i, lit(10))
+                predIntToString.mkExpr(i, s),
+                new ProverExpr[]{predIntToStringHelper.mkExpr(i, lit(0), s)},
+                p.mkAnd(p.mkGeq(i, lit(10)))
         );
-        ProverExpr lastDigitOfN = p.mkMinus(n, p.mkMult(lit(10), p.mkTDiv(n, lit(10))));
-        addPHC(
-            predIntToStringHelper.mkExpr(i, p.mkTDiv(n, lit(10)), cons(digitToChar(lastDigitOfN), s)),
-            new ProverExpr[] {predIntToStringHelper.mkExpr(i, n, s)},
-            p.mkAnd(p.mkGeq(i, lit(10)), p.mkGt(n, lit(0)))
-        );
-        addPHC(
-            predIntToString.mkExpr(i, s),
-            new ProverExpr[] {predIntToStringHelper.mkExpr(i, lit(0), s)},
-            p.mkAnd(p.mkGeq(i, lit(10)))
-        );
+        if (stringDirection == StringDirection.ltr) {
+            addPHC(
+                    predIntToString.mkExpr(i, cons(lit('-'), a)),
+                    new ProverExpr[]{predIntToString.mkExpr(p.mkNeg(i), a)},
+                    p.mkLt(i, lit(0))
+            );
+            ProverExpr lastDigitOfN = p.mkMinus(n, p.mkMult(lit(10), p.mkTDiv(n, lit(10))));
+            addPHC(
+                    predIntToStringHelper.mkExpr(i, p.mkTDiv(n, lit(10)), cons(digitToChar(lastDigitOfN), s)),
+                    new ProverExpr[]{predIntToStringHelper.mkExpr(i, n, s)},
+                    p.mkAnd(p.mkGeq(i, lit(10)), p.mkGt(n, lit(0)))
+            );
+        } else {
+            addPHC(
+                    predIntToStringHelper.mkExpr(i, p.mkNeg(i), cons(lit('-'), nil())),
+                    EMPTY_PHC_BODY,
+                    p.mkLt(i, lit(0))
+            );
+            // TODO: optimize
+            long rngStart = 1;
+            while (rngStart < Long.MAX_VALUE / 10) {
+                ProverExpr firstDigitOfN = p.mkTDiv(n, lit(rngStart));
+                ProverExpr restOfN = p.mkMinus(n, p.mkMult(lit(rngStart), firstDigitOfN));
+                addPHC(
+                        predIntToStringHelper.mkExpr(i, restOfN, cons(digitToChar(firstDigitOfN), s)),
+                        new ProverExpr[]{predIntToStringHelper.mkExpr(i, n, s)},
+                        p.mkAnd(p.mkGeq(i, lit(10)), p.mkGeq(n, lit(rngStart)), p.mkLt(n, lit(10 * rngStart)))
+                );
+                rngStart *= 10;
+            }
+            ProverExpr firstDigitOfN = p.mkTDiv(n, lit(rngStart));
+            ProverExpr restOfN = p.mkMinus(n, p.mkMult(lit(rngStart), firstDigitOfN));
+            addPHC(
+                    predIntToStringHelper.mkExpr(i, restOfN, cons(digitToChar(firstDigitOfN), s)),
+                    new ProverExpr[]{predIntToStringHelper.mkExpr(i, n, s)},
+                    p.mkAnd(p.mkGeq(i, lit(10)), p.mkGeq(n, lit(rngStart)))
+            );
+        }
 
         return predIntToString;
     }
@@ -309,6 +340,8 @@ public class StringEncoder {
     }
 
     private ProverFun genStartsWithRec(ProverType stringADTType) {
+        if (stringDirection == StringDirection.rtl)
+            throw new RuntimeException("not implemented");
         ProverExpr a = stringHornVar("a", stringADTType);
         ProverExpr b = stringHornVar("b", stringADTType);
         ProverExpr h = intHornVar("h");
@@ -358,19 +391,31 @@ public class StringEncoder {
                 predCharAt.mkExpr(nil(), i, NUL)
         );
         addPHC(
-                predCharAt.mkExpr(cons(h, t), lit(0), h)
-        );
-        addPHC(
                 predCharAt.mkExpr(s, i, NUL),
                 EMPTY_PHC_BODY,
                 p.mkNot(p.mkAnd( p.mkGeq(i, lit(0)) , p.mkLt(i, len(s)) ))
         );
-        // induction
-        addPHC(
-                predCharAt.mkExpr(cons(h, t), p.mkPlus(i, lit(1)), c),
-                new ProverExpr[] {predCharAt.mkExpr(t, i, c)},
-                p.mkAnd( p.mkGeq(i, lit(0)) , p.mkLt(i, len(t)) )
-        );
+        if (stringDirection == StringDirection.ltr) {
+            addPHC(
+                    predCharAt.mkExpr(cons(h, t), lit(0), h)
+            );
+            // induction
+            addPHC(
+                    predCharAt.mkExpr(cons(h, t), p.mkPlus(i, lit(1)), c),
+                    new ProverExpr[] {predCharAt.mkExpr(t, i, c)},
+                    p.mkAnd( p.mkGeq(i, lit(0)) , p.mkLt(i, len(t)) )
+            );
+        } else {
+            addPHC(
+                    predCharAt.mkExpr(cons(h, t), len(t), h)
+            );
+            // induction
+            addPHC(
+                    predCharAt.mkExpr(cons(h, t), p.mkMinus(len(t), i), c),             // needs len(t) to make progress
+                    new ProverExpr[] {predCharAt.mkExpr(t, p.mkMinus(len(t), i), c)},
+                    p.mkAnd( p.mkGeq(i, lit(0)) , p.mkLt(i, len(t)) )
+            );
+        }
 
         return predCharAt;
     }
@@ -471,8 +516,7 @@ public class StringEncoder {
         ProverExpr concat = mkRefHornVariable(concatName, stringRefType);
         ProverExpr concatString = selectString(concat);
         ProverFun predConcat;
-        StringEncoding enc = Options.v().getStringEncoding();
-        switch (enc) {
+        switch (stringEncoding) {
             case recursive:
                 predConcat = genConcatRec(stringADTType);
                 break;

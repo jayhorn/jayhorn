@@ -90,6 +90,18 @@ public class Options {
 		this.stringEncoding = stringEncoding;
 	}
 
+
+	@Option(name = "-string-direction", usage = "Sets the string ADT direction")
+	private StringEncoder.StringDirection stringDirection = StringEncoder.StringDirection.ltr;
+
+	public StringEncoder.StringDirection getStringDirection() {
+		return stringDirection;
+	}
+
+	public void setStringDirection(StringEncoder.StringDirection stringDirection) {
+		this.stringDirection = stringDirection;
+	}
+
 	/**
 	 * JAR file
 	 */
