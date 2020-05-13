@@ -197,16 +197,22 @@ public class StringEncoder {
 
     private void considerHintedSizeConcat(ProverFun predConcat, ProverType stringADTType) {
         ProverExpr b = stringHornVar("b", stringADTType), c = stringHornVar("c", stringADTType);
-        ProverExpr left = nil();
+        ProverExpr exp = nil();
         ProverExpr concat = c;
         for (int leftSize = 0; leftSize <= MAX_SIZE_HINT; leftSize++) {
+            ProverExpr headPE;
+            if (stringDirection == StringDirection.ltr) {
+                headPE = predConcat.mkExpr(exp, b, concat);
+            } else {
+                headPE = predConcat.mkExpr(b, exp, concat);
+            }
             addPHC(
-                predConcat.mkExpr(left, b, concat),
+                headPE,
                 EMPTY_PHC_BODY,
                 p.mkEq(b, c)
             );
             ProverExpr h = intHornVar("h" + leftSize);
-            left = cons(h, left);
+            exp = cons(h, exp);
             concat = cons(h, concat);
         }
     }
@@ -234,21 +240,35 @@ public class StringEncoder {
         ProverExpr b = stringHornVar("b", stringADTType);
         ProverExpr c = stringHornVar("c", stringADTType);
         ProverExpr h = intHornVar("h");
+        ProverExpr hc = cons(h, c);
         // String Concatenation
         ProverFun predConcat = mkStringConcatProverFun(stringADTType);
-        // string_concat nil case
-        addPHC(
-            predConcat.mkExpr(nil(), b, b)
-        );
-        ProverExpr ha = cons(h, a);
-        ProverExpr hc = cons(h, c);
-        // string_concat cons case
-        addPHC(
-            predConcat.mkExpr(ha, b, hc),
-            new ProverExpr[] {predConcat.mkExpr(a, b, c)}
-//            , p.mkGt(len(ha), lit(MAX_SIZE_HINT))
-        );
 
+        if (stringDirection == StringDirection.ltr) {
+            // string_concat nil case
+            addPHC(
+                    predConcat.mkExpr(nil(), b, b)
+            );
+            // string_concat cons case
+            ProverExpr ha = cons(h, a);
+            addPHC(
+                    predConcat.mkExpr(ha, b, hc),
+                    new ProverExpr[]{predConcat.mkExpr(a, b, c)}
+//            , p.mkGt(len(ha), lit(MAX_SIZE_HINT))
+            );
+        } else {
+            // string_concat nil case
+            addPHC(
+                    predConcat.mkExpr(a, nil(), a)
+            );
+            // string_concat cons case
+            ProverExpr hb = cons(h, b);
+            addPHC(
+                    predConcat.mkExpr(a, hb, hc),
+                    new ProverExpr[]{predConcat.mkExpr(a, b, c)}
+//            , p.mkGt(len(hb), lit(MAX_SIZE_HINT))
+            );
+        }
         return predConcat;
     }
 
@@ -430,23 +450,31 @@ public class StringEncoder {
         // String Concatenation
         ProverFun predConcatIter = mkStringConcatIterativeProverFun(stringADTType);
         ProverFun predConcat = mkStringConcatProverFun(stringADTType);
-        // string_concat_iterative initial condition
-        addPHC(
-            predConcatIter.mkExpr(a, b, a, nil(), b)    // base case
-        );
+        // TODO: fix occasional StackOverflow
+        if (stringDirection == StringDirection.ltr) {
+            // string_concat_iterative initial condition
+            addPHC(
+                    predConcatIter.mkExpr(a, b, a, nil(), b)    // base case
+            );
+        } else {
+            // string_concat_iterative initial condition
+            addPHC(
+                    predConcatIter.mkExpr(a, b, b, nil(), a)    // base case
+            );
+        }
         // string_concat_iterative reversing a
         addPHC(
-            predConcatIter.mkExpr(a, b, t, cons(h, r), c),
-            new ProverExpr[] {predConcatIter.mkExpr(a, b, cons(h, t), r, c)}
+                predConcatIter.mkExpr(a, b, t, cons(h, r), c),
+                new ProverExpr[]{predConcatIter.mkExpr(a, b, cons(h, t), r, c)}
         );
         // string_concat_iterative reversing reverse of a at head of b, results concatenation
         addPHC(
-            predConcatIter.mkExpr(a, b, nil(), t, cons(h, c)),
-            new ProverExpr[] {predConcatIter.mkExpr(a, b, nil(), cons(h, t), c)}
+                predConcatIter.mkExpr(a, b, nil(), t, cons(h, c)),
+                new ProverExpr[]{predConcatIter.mkExpr(a, b, nil(), cons(h, t), c)}
         );
         addPHC(
-            predConcat.mkExpr(a, b, c),
-            new ProverExpr[] {predConcatIter.mkExpr(a, b, nil(), nil(), c)}     // (?) problem matching a = nil on base case
+                predConcat.mkExpr(a, b, c),
+                new ProverExpr[]{predConcatIter.mkExpr(a, b, nil(), nil(), c)}     // (?) problem matching a = nil on base case
 //            , p.mkGt(len(a), lit(MAX_SIZE_HINT))
         );
 
