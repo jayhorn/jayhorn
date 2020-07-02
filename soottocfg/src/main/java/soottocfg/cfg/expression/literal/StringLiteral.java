@@ -19,15 +19,22 @@ import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.util.SootTranslationHelpers;
 
+import javax.annotation.Nullable;
+
+
+/**
+ * will be a reference to a nondetString if its value is null
+ */
 public class StringLiteral extends IdentifierExpression {
 
     // TODO: This is a random number distinct from other serialVersionUIDs. Is this the intended value?
     private static final long serialVersionUID = 2832524893670085097L;
 
+    @Nullable
     private final String value;
 
 
-    public StringLiteral(SourceLocation loc, Variable variable, String value) {
+    public StringLiteral(SourceLocation loc, Variable variable, @Nullable String value) {
         super(loc, variable);
         this.value = value;
     }
@@ -48,7 +55,10 @@ public class StringLiteral extends IdentifierExpression {
 
     @Override
     public String toString() {
-        return StringLiteral.escape(this.value);
+        if (this.value != null)
+            return StringLiteral.escape(this.value);
+        else
+            return "<nondetString>";
     }
 
     @Override
@@ -62,6 +72,7 @@ public class StringLiteral extends IdentifierExpression {
         return new HashSet<Variable>();
     }
 
+    @Nullable
     public String getValue() {
         return value;
     }
@@ -70,13 +81,19 @@ public class StringLiteral extends IdentifierExpression {
     public int hashCode() {
         // resolve FindBugs Report:
         //		HE_EQUALS_USE_HASHCODE: Class defines equals() and uses Object.hashCode()
-        return this.value.hashCode();
+        if (this.value != null)
+            return this.value.hashCode();
+        else
+            return 0;
     }
 
     @Override
     public boolean equals(Object other) {
         if (other instanceof StringLiteral) {
-            return ((StringLiteral) other).getValue().equals(this.value);
+            StringLiteral otherSL = (StringLiteral)other;
+            if (otherSL.getValue() == null && this.value == null)
+                return true;
+            return otherSL.getValue().equals(this.value);
         }
         return false;
     }

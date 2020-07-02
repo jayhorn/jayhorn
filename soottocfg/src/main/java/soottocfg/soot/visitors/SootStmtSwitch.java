@@ -766,105 +766,89 @@ public class SootStmtSwitch implements StmtSwitch {
 
 			}
 
-        // TODO: For general cases, cover Random().next<TYPE>() and similar functions.
-
-		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: boolean nondetBoolean()>")) {
-                    translateVerifierNondet(BooleanType.v(), optionalLhs, call,
-                                            false, 0, 0);
-                    return true;
+		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: boolean nondetBoolean()>") ||
+				   methodSignature.equals("<java.util.Random: boolean nextBoolean()>")) {
+			translateRandomNondet(BooleanType.v(), optionalLhs, call, false, 0, 0);
+			return true;
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: byte nondetByte()>")) {
-                    translateVerifierNondet(ByteType.v(), optionalLhs, call,
-                                            true, Byte.MIN_VALUE, Byte.MAX_VALUE);
-                    return true;
+			translateRandomNondet(ByteType.v(), optionalLhs, call,true, Byte.MIN_VALUE, Byte.MAX_VALUE);
+			return true;
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: char nondetChar()>")) {
-                    translateVerifierNondet(CharType.v(), optionalLhs, call,
-                                            true, Character.MIN_VALUE, Character.MAX_VALUE);
-                    return true;
+			translateRandomNondet(CharType.v(), optionalLhs, call,true, Character.MIN_VALUE, Character.MAX_VALUE);
+			return true;
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: short nondetShort()>")) {
-                    translateVerifierNondet(ShortType.v(), optionalLhs, call,
-                                            true, Short.MIN_VALUE, Short.MAX_VALUE);
-                    return true;
-		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetInt()>")) {
-                    translateVerifierNondet(IntType.v(), optionalLhs, call,
-                                            true, Integer.MIN_VALUE, Integer.MAX_VALUE);
-                    return true;
-		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: long nondetLong()>")) {
-                    translateVerifierNondet(LongType.v(), optionalLhs, call,
-                                            true, Long.MIN_VALUE, Long.MAX_VALUE);
-                    return true;
+			translateRandomNondet(ShortType.v(), optionalLhs, call,true, Short.MIN_VALUE, Short.MAX_VALUE);
+			return true;
+		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetInt()>") ||
+				   methodSignature.equals("<java.util.Random: int nextInt()>")) {
+			translateRandomNondet(IntType.v(), optionalLhs, call,true, Integer.MIN_VALUE, Integer.MAX_VALUE);
+			return true;
+		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: long nondetLong()>") ||
+				   methodSignature.equals("<java.util.Random: long nextLong()>")) {
+			translateRandomNondet(LongType.v(), optionalLhs, call,true, Long.MIN_VALUE, Long.MAX_VALUE);
+			return true;
 		// TODO: cover other nondeterministic Verifier functions
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: String nondetString()>")) {
-					translateVerifierNondet(RefType.v(), optionalLhs, call,
-							false, 0, 0);
-					return true;
+			translateNondetString(RefType.v(), optionalLhs, call);
+			return true;
 
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: void assume(boolean)>")) {
-                    Verify.verify(optionalLhs == null);
-                    Verify.verify(call.getArgCount() == 1);
-                    call.getArg(0).apply(valueSwitch);
-                    Expression cond = valueSwitch.popExpression();
-                    currentBlock.addStatement(
-                       new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(u), cond));
-                    return true;
-
-		} else if (call.getMethod().getSignature().equals("<java.util.Random: boolean nextBoolean()>")) {
-                    translateRandomNondet(BooleanType.v(), optionalLhs, call,
-                                          false, 0, 0);
-                    return true;
-		} else if (call.getMethod().getSignature().equals("<java.util.Random: int nextInt()>")) {
-                    translateRandomNondet(IntType.v(), optionalLhs, call,
-                                          true, Integer.MIN_VALUE, Integer.MAX_VALUE);
-                    return true;
-		} else if (call.getMethod().getSignature().equals("<java.util.Random: long nextLong()>")) {
-                    translateRandomNondet(LongType.v(), optionalLhs, call,
-                                          true, Long.MIN_VALUE, Long.MAX_VALUE);
-                    return true;
-                }
+			Verify.verify(optionalLhs == null);
+			Verify.verify(call.getArgCount() == 1);
+			call.getArg(0).apply(valueSwitch);
+			Expression cond = valueSwitch.popExpression();
+			currentBlock.addStatement(
+			   new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(u), cond)
+			);
+			return true;
+		}
 
 //System.out.println(methodSignature);
 
 		return false;
 	}
 
+// replaced by translateRandomNondet()
+
+//        /**
+//         * Method nondet*() of the Verifier class used to formula
+//         * SV-COMP problems.  Replace those method with a simple
+//         * havoc.
+//         */
+//        private void translateVerifierNondet(Type t, Value optionalLhs,
+//                                             InvokeExpr call,
+//                                             boolean addBounds,
+//                                             long lower, long upper) {
+//            Verify.verify(call.getArgCount() == 0);
+//
+//            if (optionalLhs != null) {
+//                optionalLhs.apply(valueSwitch);
+//                Expression lhs = valueSwitch.popExpression();
+//
+//                Verify.verify(lhs instanceof IdentifierExpression,
+//                              "do not know how to havoc " + lhs);
+//                IdentifierExpression idLhs = (IdentifierExpression)lhs;
+//
+//                final SourceLocation loc = lhs.getSourceLocation();
+//
+//                currentBlock.addStatement(new HavocStatement(loc, idLhs));
+//
+//                if (addBounds)
+//                currentBlock.addStatement(
+//                        new AssumeStatement(loc,
+//                          new BinaryExpression(
+//                            loc, BinaryOperator.And,
+//                            new BinaryExpression(
+//                              loc, BinaryOperator.Le,
+//                              new IntegerLiteral(loc, lower), idLhs),
+//                            new BinaryExpression(
+//                              loc, BinaryOperator.Le,
+//                              idLhs, new IntegerLiteral(loc, upper)))));
+//            }
+//        }
+
         /**
-         * Method nondet*() of the Verifier class used to formula
-         * SV-COMP problems.  Replace those method with a simple
-         * havoc.
-         */
-        private void translateVerifierNondet(Type t, Value optionalLhs,
-                                             InvokeExpr call,
-                                             boolean addBounds,
-                                             long lower, long upper) {
-            Verify.verify(call.getArgCount() == 0);
-
-            if (optionalLhs != null) {
-                optionalLhs.apply(valueSwitch);
-                Expression lhs = valueSwitch.popExpression();
-
-                Verify.verify(lhs instanceof IdentifierExpression,
-                              "do not know how to havoc " + lhs);
-                IdentifierExpression idLhs = (IdentifierExpression)lhs;
-
-                final SourceLocation loc = lhs.getSourceLocation();
-
-                currentBlock.addStatement(new HavocStatement(loc, idLhs));
-
-                if (addBounds)
-                currentBlock.addStatement(
-                        new AssumeStatement(loc,
-                          new BinaryExpression(
-                            loc, BinaryOperator.And,
-                            new BinaryExpression(
-                              loc, BinaryOperator.Le,
-                              new IntegerLiteral(loc, lower), idLhs),
-                            new BinaryExpression(
-                              loc, BinaryOperator.Le,
-                              idLhs, new IntegerLiteral(loc, upper)))));
-            }
-        }
-
-        /**
-         * Method of the Random class, which are replace with a simple
+         * Method of the Random (or similar) class, which is replaced with a simple
          * havoc.
          */
         private void translateRandomNondet(Type t, Value optionalLhs,
@@ -898,6 +882,31 @@ public class SootStmtSwitch implements StmtSwitch {
                               idLhs, new IntegerLiteral(loc, upper)))));
             }
         }
+
+	private void translateNondetString(Type t, Value optionalLhs, InvokeExpr call) {
+
+		Verify.verify(call.getArgCount() == 0);
+
+		if (optionalLhs != null) {
+			optionalLhs.apply(valueSwitch);
+			Expression lhs = valueSwitch.popExpression();
+
+			Verify.verify(lhs instanceof IdentifierExpression,
+					"do not know how to havoc " + lhs);
+			IdentifierExpression idLhs = (IdentifierExpression)lhs;
+
+			final SourceLocation loc = lhs.getSourceLocation();
+
+			// There is no soottocfg.cfg.expression.IdentifierExpression equivalent for the internal string,
+			// so new HavocStatement(loc, internalString) is not possible.
+			StringLiteral nondetStrIdExp = new StringLiteral(loc, idLhs.getVariable(), null);
+			// see jayhorn.hornify.encoder.StringEncoder.mkStringPE(String value)
+
+			currentBlock.addStatement(new AssumeStatement(loc,
+					new BinaryExpression(loc, BinaryOperator.Eq, idLhs, nondetStrIdExp)
+			));
+		}
+	}
 
 	private void translateDefinitionStmt(DefinitionStmt def) {
 

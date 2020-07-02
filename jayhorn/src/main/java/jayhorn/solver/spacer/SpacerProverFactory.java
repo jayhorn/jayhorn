@@ -44,6 +44,11 @@ public class SpacerProverFactory implements ProverFactory {
 			}
 
 			@Override
+			public ProverExpr mkHavocExpr(int typeIndex) {
+				throw new RuntimeException("not implemented");
+			}
+
+			@Override
 			public ProverExpr mkCtorExpr(int ctorIndex, ProverExpr[] args) {
 				throw new RuntimeException("not implemented");
 			}

@@ -50,6 +50,11 @@ public class PrincessADT implements ProverADT {
         return new PrincessADTType (adt.sorts().apply(typeIndex));
     }
 
+    @Override
+    public ProverExpr mkHavocExpr(int typeIndex) {
+        throw new RuntimeException("not implemented");
+    }
+
     public ProverExpr mkCtorExpr(int ctorIndex, ProverExpr[] args) {
         return constructors[ctorIndex].mkExpr(args);
     }

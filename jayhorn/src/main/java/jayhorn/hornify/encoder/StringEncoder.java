@@ -15,6 +15,7 @@ import jayhorn.Options;
 
 import com.google.common.base.Verify;
 
+import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
@@ -144,9 +145,12 @@ public class StringEncoder {
         return res;
     }
 
-    public ProverExpr mkStringPE(String value) {
+    public ProverExpr mkStringPE(@Nullable String value) {
         // TODO: support different types of stringADT
-        return mkStringPEFromCharArray(value.toCharArray(), stringADT);
+        if (value != null)
+            return mkStringPEFromCharArray(value.toCharArray(), stringADT);
+        else
+            return stringADT.mkHavocExpr(STRING_ADT_TYPE_IDX);
     }
 
     private int nameCounter = 0;
@@ -604,6 +608,7 @@ public class StringEncoder {
     public EncodingFacts mkStringLengthFromExpression(Expression strExpr, Map<Variable, ProverExpr> varMap) {
         if (strExpr instanceof StringLiteral) {
             String str = ((StringLiteral)strExpr).getValue();
+            Verify.verify(str != null, "unsupported expression");
             return new EncodingFacts(null, null, lit(str.length()), lit(true));
         } else {
             final ProverExpr pe = ProverExprFromIdExpr((IdentifierExpression)strExpr, varMap);
