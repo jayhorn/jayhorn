@@ -577,9 +577,9 @@ public class SootStmtSwitch implements StmtSwitch {
 					Expression b = valueToExpr(call.getArg(0));
 					// TODO: should make string constant value present at retVar.variableName ?
 					Variable retVar = new Variable("$string_" + call.getMethod().getName() + "(" + a + "," + b + ")", BoolType.instance());
-					rhs = new IdentifierExpression(srcLoc, retVar);
+					rhs = retVar.mkExp(srcLoc);
 					BinaryExpression equality = new BinaryExpression(srcLoc, BinaryOperator.StringEq, a, b);
-					currentBlock.addStatement(new AssignStatement(srcLoc, retVar.mkExp(srcLoc), equality));
+					currentBlock.addStatement(new AssignStatement(srcLoc, rhs, equality));
 				} else {
 					rhs = new BooleanLiteral(srcLoc, false);
 				}
@@ -588,9 +588,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 			return true;
 		}
-		if (methodSignature.contains("<java.lang.String: java.lang.String concat(java.lang.String)>") ||
-			methodSignature.contains("<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>") ||
-			methodSignature.contains("<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>")) {
+		if (methodSignature.contains("<java.lang.String: java.lang.String concat(java.lang.String)>")) {
 			assert (call instanceof InstanceInvokeExpr);
 			if (optionalLhs != null) {
 				Expression rhs;
@@ -622,22 +620,6 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 			return true;
 		}
-		if (methodSignature.contains("<java.lang.StringBuilder: java.lang.String toString()>") ||
-			methodSignature.contains("<java.lang.StringBuffer: java.lang.String toString()>")) {
-			assert (call instanceof InstanceInvokeExpr);
-			if (optionalLhs != null) {
-				Expression thisExpr = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
-				Expression lhs = valueToExpr(optionalLhs);
-				Expression rhs = new BinaryExpression(srcLoc, BinaryOperator.ToString, thisExpr, lhs);
-				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
-			} // else: ignore
-			return true;
-		}
-//		if (methodSignature.contains("<java.lang.StringBuilder: void <init>()>") ||
-//			methodSignature.contains("<java.lang.StringBuffer: void <init>()>")) {
-//			assert (call instanceof InstanceInvokeExpr);
-//			// ignore for now
-//		}
 		if (methodSignature.contains("<java.lang.System: void exit(int)>") ||
                     methodSignature.contains("<java.lang.Runtime: void halt(int)>")) {
 			// TODO: this is not sufficient for interprocedural analysis.
@@ -788,9 +770,9 @@ public class SootStmtSwitch implements StmtSwitch {
 			translateRandomNondet(LongType.v(), optionalLhs, call,true, Long.MIN_VALUE, Long.MAX_VALUE);
 			return true;
 		// TODO: cover other nondeterministic Verifier functions
-		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: String nondetString()>")) {
-			translateNondetString(RefType.v(), optionalLhs, call);
-			return true;
+//		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: java.lang.String nondetString()>")) {
+//			translateNondetString(RefType.v(), optionalLhs, call);
+//			return true;
 
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: void assume(boolean)>")) {
 			Verify.verify(optionalLhs == null);

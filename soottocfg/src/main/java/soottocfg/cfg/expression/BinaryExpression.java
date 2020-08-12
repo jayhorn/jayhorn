@@ -88,7 +88,9 @@ public class BinaryExpression extends Expression {
 						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(right)
 						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(left)
 						|| op == BinaryOperator.CharAt
-						|| op == BinaryOperator.ToString || op == BinaryOperator.BoolToString,
+						|| op == BinaryOperator.ToString || op == BinaryOperator.BoolToString
+						|| (op == BinaryOperator.StringConcat &&
+							(left.getType() instanceof ReferenceType || right.getType() instanceof ReferenceType)),
 				"Types don't match: " + left.getType() + " and " + right.getType() + " for "+left.toString()+op+right.toString());
 		// TODO: more type checking depending on operator
 		this.left = left;

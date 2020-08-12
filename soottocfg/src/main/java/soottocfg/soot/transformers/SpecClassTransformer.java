@@ -23,6 +23,7 @@ import soot.jimple.InvokeExpr;
 import soot.jimple.JimpleBody;
 import soot.jimple.Stmt;
 import soottocfg.spec.ListSimpleSpec;
+import soottocfg.spec.StringBuilderSpec;
 
 /**
  * @author schaef
@@ -47,6 +48,9 @@ public class SpecClassTransformer extends AbstractSceneTransformer {
 		SootClass listSpec = Scene.v().loadClass(ListSimpleSpec.class.getName(), SootClass.SIGNATURES);
 		replacementMap.put(Scene.v().getSootClass(java.util.LinkedList.class.getName()), listSpec);
 		replacementMap.put(Scene.v().getSootClass(java.util.List.class.getName()), listSpec);
+		SootClass stringBuilderSpec = Scene.v().loadClass(StringBuilderSpec.class.getName(), SootClass.SIGNATURES);
+		replacementMap.put(Scene.v().getSootClass(java.lang.StringBuilder.class.getName()), stringBuilderSpec);
+//		replacementMap.put(Scene.v().getSootClass(java.lang.StringBuffer.class.getName()), stringBuilderSpec);
 	}
 
 	/*
