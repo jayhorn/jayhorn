@@ -47,9 +47,11 @@ public class StringEncoder {
 
     public static final String INT_STRING = "int_string";
     public static final String BOOL_STRING = "bool_string";
+    public static final String CHAR_STRING = "char_string";
     public static final String INT_STRING_HELPER = "int_string_h";
     public static final String INT_STRING_TEMPLATE = "str_i(%s)";
     public static final String BOOL_STRING_TEMPLATE = "str_b(%s)";
+    public static final String CHAR_STRING_TEMPLATE = "str_c(%s)";
 
     public static final String STRING_STARTS_WITH = "string_starts_with";
     public static final String STRING_ENDS_WITH = "string_ends_with";
@@ -88,6 +90,7 @@ public class StringEncoder {
     private ProverExpr stringHornVar(String name, ProverType stringADTType) { return p.mkHornVariable(name, stringADTType); }
     private ProverExpr intHornVar(String name) { return p.mkHornVariable(name, p.getIntType()); }
     private ProverExpr booleanHornVar(String name) { return p.mkHornVariable(name, p.getBooleanType()); }
+    private ProverExpr charHornVar(String name) { return p.mkHornVariable(name, p.getIntType()); }
 
     private LinkedList<ProverHornClause> clauses = new LinkedList<>();
 
@@ -189,6 +192,11 @@ public class StringEncoder {
                 new ProverType[]{p.getBooleanType(), stringADTType});
     }
 
+    private ProverFun mkCharToStringProverFun(ProverType stringADTType) {
+        return p.mkHornPredicate(mkName(CHAR_STRING),
+                new ProverType[]{p.getIntType(), stringADTType});
+    }
+
     private ProverFun mkStringStartsWithProverFun(ProverType stringADTType) {
         return p.mkHornPredicate(mkName(STRING_STARTS_WITH),
                 new ProverType[]{stringADTType, stringADTType, p.getBooleanType()});
@@ -277,6 +285,22 @@ public class StringEncoder {
     }
 
     private ProverExpr digitToChar(ProverExpr digit) { return p.mkPlus(digit, lit('0')); }
+
+    private ProverFun genCharToString(ProverType stringADTType) {
+        ProverExpr c = charHornVar("c");
+        ProverExpr s = stringHornVar("s", stringADTType);
+
+        ProverFun predCharToString = mkCharToStringProverFun(stringADTType);
+
+        addPHC(
+                predCharToString.mkExpr(c, s),
+                EMPTY_PHC_BODY,
+//                p.mkAnd(p.mkEq(len(s), lit(1)), p.mkEq(head(s), c))
+                p.mkEq(s, cons(c, nil()))
+        );
+
+        return predCharToString;
+    }
 
     private ProverFun genIntToString(ProverType stringADTType) {
         ProverExpr a = stringHornVar("a", stringADTType);
@@ -574,6 +598,17 @@ public class StringEncoder {
         return new EncodingFacts(null, guarantee, result, mkNotNullConstraint(result));
     }
 
+    public EncodingFacts mkCharToString(ProverExpr charPE, ReferenceType stringRefType) {
+        ProverType stringADTType = getStringADTType();
+        String resultName = mkName(String.format(CHAR_STRING_TEMPLATE, charPE.toString()));
+        ProverExpr result = mkRefHornVariable(resultName, stringRefType);
+        ProverExpr resultString = selectString(result);
+        ProverFun predCharToString = genCharToString(stringADTType);
+//        considerHintedSizeIntString(predCharToString);
+        ProverExpr guarantee = predCharToString.mkExpr(charPE, resultString);
+        return new EncodingFacts(null, guarantee, result, mkNotNullConstraint(result));
+    }
+
     public EncodingFacts mkBoolToString(ProverExpr boolPE, ReferenceType stringRefType) {
         ProverType stringADTType = getStringADTType();
         String resultName = mkName(String.format(BOOL_STRING_TEMPLATE, boolPE.toString()));
@@ -644,6 +679,13 @@ public class StringEncoder {
         return mkBoolToString(pe, lhsRefExprType);
     }
 
+    public EncodingFacts mkCharToStringFromExpression(Expression stringableExpr, Expression lhsRefExpr,
+                                                      Map<Variable, ProverExpr> varMap) {
+        ReferenceType lhsRefExprType = (ReferenceType) lhsRefExpr.getType();
+        ProverExpr pe = selectInt(stringableExpr, varMap);
+        return mkCharToString(pe, lhsRefExprType);
+    }
+
     public EncodingFacts handleStringExpr(Expression e, Map<Variable, ProverExpr> varMap) {
         if (e instanceof BinaryExpression) {
             final BinaryExpression be = (BinaryExpression) e;
@@ -680,6 +722,10 @@ public class StringEncoder {
 
                 case BoolToString: {
                     return mkBoolToStringFromExpression(leftExpr, rightExpr, varMap);
+                }
+
+                case CharToString: {
+                    return mkCharToStringFromExpression(leftExpr, rightExpr, varMap);
                 }
 
                 default:

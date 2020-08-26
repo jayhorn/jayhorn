@@ -36,7 +36,7 @@ public class BinaryExpression extends Expression {
 		Plus("+"), Minus("-"), Mul("*"), Div("/"), Mod("%"), And("&&"), Or("||"), Xor("^"), Implies("->"), Eq("=="),
 		Ne("!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&"),
 		PoLeq("<:"), StringEq("==="), StringConcat("+++"), StartsWith("startsWith"), CharAt("charAt"),
-		ToString("<str>"), BoolToString("<str_b>");	// TODO: not an actual BinaryExpression
+		ToString("<str>"), BoolToString("<str_b>"), CharToString("<str_c>");	// TODO: not an actual BinaryExpression
 
 		private final String name;
 
@@ -88,7 +88,7 @@ public class BinaryExpression extends Expression {
 						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(right)
 						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(left)
 						|| op == BinaryOperator.CharAt
-						|| op == BinaryOperator.ToString || op == BinaryOperator.BoolToString
+						|| op == BinaryOperator.ToString || op == BinaryOperator.BoolToString || op == BinaryOperator.CharToString
 						|| (op == BinaryOperator.StringConcat &&
 							(left.getType() instanceof ReferenceType || right.getType() instanceof ReferenceType)),
 				"Types don't match: " + left.getType() + " and " + right.getType() + " for "+left.toString()+op+right.toString());
@@ -114,7 +114,8 @@ public class BinaryExpression extends Expression {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("(");
-		if (this.op.equals(BinaryOperator.ToString) || this.op.equals(BinaryOperator.BoolToString)) {
+		if (this.op.equals(BinaryOperator.ToString) || this.op.equals(BinaryOperator.BoolToString) ||
+			this.op.equals(BinaryOperator.CharToString)) {
 			sb.append(this.op);
 			sb.append(left);
 		} else {
@@ -179,7 +180,8 @@ public class BinaryExpression extends Expression {
 			}
 
 			case ToString:
-			case BoolToString: {
+			case BoolToString:
+			case CharToString: {
 				return right.getType();
 			}
 

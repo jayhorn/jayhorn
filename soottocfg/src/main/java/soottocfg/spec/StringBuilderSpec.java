@@ -19,32 +19,32 @@ public class StringBuilderSpec {    // TODO: should extend StringBuilder or Abst
     }
 
     public StringBuilderSpec append(boolean b) {
-        this.s = this.s.concat(Boolean.toString(b));
+        this.s = this.s.concat(String.valueOf(b));
         return this;
     }
 
     public StringBuilderSpec append(char c) {
-        this.s = this.s.concat(Character.toString(c));
+        this.s = this.s.concat(String.valueOf(c));
         return this;
     }
 
     public StringBuilderSpec append(int i) {
-        this.s = this.s.concat(Integer.toString(i));
+        this.s = this.s.concat(String.valueOf(i));
         return this;
     }
 
     public StringBuilderSpec append(long lng) {
-        this.s = this.s.concat(Long.toString(lng));
+        this.s = this.s.concat(String.valueOf(lng));
         return this;
     }
 
     public StringBuilderSpec append(float f) {
-        this.s = this.s.concat(Float.toString(f));
+        this.s = this.s.concat(String.valueOf(f));
         return this;
     }
 
     public StringBuilderSpec append(double d) {
-        this.s = this.s.concat(Double.toString(d));
+        this.s = this.s.concat(String.valueOf(d));
         return this;
     }
 

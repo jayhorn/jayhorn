@@ -547,7 +547,6 @@ public class SootStmtSwitch implements StmtSwitch {
 			return true;
 		}
 		if (methodSignature.contains("<java.lang.String: java.lang.String valueOf(int)>") ||
-//			methodSignature.contains("<java.lang.String: java.lang.String valueOf(char)>") ||
 			methodSignature.contains("<java.lang.String: java.lang.String valueOf(long)>")) {
             assert (call instanceof StaticInvokeExpr);
             if (optionalLhs != null) {
@@ -558,6 +557,16 @@ public class SootStmtSwitch implements StmtSwitch {
             } // else: ignore
             return true;
         }
+		if (methodSignature.contains("<java.lang.String: java.lang.String valueOf(char)>")) {
+			assert (call instanceof StaticInvokeExpr);
+			if (optionalLhs != null) {
+				Expression itemExpr = valueToExpr(call.getArg(0));
+				Expression lhs = valueToExpr(optionalLhs);
+				Expression rhs = new BinaryExpression(srcLoc, BinaryOperator.CharToString, itemExpr, lhs);
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+			} // else: ignore
+			return true;
+		}
 		if (methodSignature.contains("<java.lang.String: java.lang.String valueOf(boolean)>")) {
 			assert (call instanceof StaticInvokeExpr);
 			if (optionalLhs != null) {
