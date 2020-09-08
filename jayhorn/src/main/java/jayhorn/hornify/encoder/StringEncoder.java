@@ -288,15 +288,12 @@ public class StringEncoder {
 
     private ProverFun genCharToString(ProverType stringADTType) {
         ProverExpr c = charHornVar("c");
-        ProverExpr s = stringHornVar("s", stringADTType);
 
         ProverFun predCharToString = mkCharToStringProverFun(stringADTType);
 
         addPHC(
-                predCharToString.mkExpr(c, s),
-                EMPTY_PHC_BODY,
-//                p.mkAnd(p.mkEq(len(s), lit(1)), p.mkEq(head(s), c))
-                p.mkEq(s, cons(c, nil()))
+                predCharToString.mkExpr(c, cons(c, nil())),
+                EMPTY_PHC_BODY
         );
 
         return predCharToString;
