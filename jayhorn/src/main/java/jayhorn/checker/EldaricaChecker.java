@@ -172,22 +172,23 @@ public class EldaricaChecker extends Checker {
                                                      HornEncoderContext.GeneratedAssertions generatedAssertions) {
         List<ProverHornClause> allClauses = new LinkedList<ProverHornClause>();
         Log.info("Hornify  ... ");
-        Hornify hf = new Hornify(factory);
-        Stopwatch toHornTimer = Stopwatch.createStarted();
-        HornEncoderContext hornContext =
-            hf.toHorn(program, explicitHeapSize, generatedAssertions);
-        hasDroppedStatements =
-            hornContext.encodingHasDroppedApproximatedStatements();
-        Stats.stats().add("ToHorn", String.valueOf(toHornTimer.stop()));
-        prover = hf.getProver();
-        allClauses.addAll(hf.clauses);
-
-        if (Options.v().getPrintHorn()) {
-            System.out.println(hf.writeHorn());
-        }
-
         ProverResult result = ProverResult.Unknown;
+
         try {
+            Hornify hf = new Hornify(factory);
+            Stopwatch toHornTimer = Stopwatch.createStarted();
+            HornEncoderContext hornContext =
+                hf.toHorn(program, explicitHeapSize, generatedAssertions);
+            hasDroppedStatements =
+                hornContext.encodingHasDroppedApproximatedStatements();
+            Stats.stats().add("ToHorn", String.valueOf(toHornTimer.stop()));
+            prover = hf.getProver();
+            allClauses.addAll(hf.clauses);
+
+            if (Options.v().getPrintHorn()) {
+                System.out.println(hf.writeHorn());
+            }
+
             final Method entryPoint = program.getEntryPoint();
 
             Log.info("Running from entry point: " + entryPoint.getMethodName());
