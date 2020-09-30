@@ -822,7 +822,7 @@ public class PrincessProver implements Prover {
             return mkTuple(res);
         } else {
             // always use terms as Horn variables/arguments
-            return new TermExpr(api.createConstant(name), type);
+            return new TermExpr(api.createConstant(name, type2Sort(type)), type);
         }
     }
 
@@ -852,6 +852,9 @@ public class PrincessProver implements Prover {
 
 		final HornClauses.Clause clause = SimpleWrapper.clause((IAtom) rawHead, rawBody.toList(),
 				((PrincessProverExpr) constraint).toFormula());
+
+                // TODO: only execute this when assertions are switched on?
+                SimpleWrapper.typeCheck(clause);
 
 		return new HornExpr(clause);
 	}
