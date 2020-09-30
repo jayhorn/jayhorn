@@ -74,6 +74,13 @@ public class BoundedStringTest {
 	}
 
 	@Test
+	public void testWithPrincessRecursiveWithPrecLTR() {
+		jayhorn.Options.v().setStringEncoding(StringEncoder.StringEncoding.recursiveWithPrec);
+		jayhorn.Options.v().setStringDirection(StringEncoder.StringDirection.ltr);
+		verifyAssertions(new PrincessProverFactory());
+	}
+
+	@Test
 	public void testWithPrincessIterativeLTR() {
 		jayhorn.Options.v().setStringEncoding(StringEncoder.StringEncoding.iterative);
 		jayhorn.Options.v().setStringDirection(StringEncoder.StringDirection.ltr);
@@ -83,6 +90,13 @@ public class BoundedStringTest {
 	@Test
 	public void testWithPrincessRecursiveRTL() {
 		jayhorn.Options.v().setStringEncoding(StringEncoder.StringEncoding.recursive);
+		jayhorn.Options.v().setStringDirection(StringEncoder.StringDirection.rtl);
+		verifyAssertions(new PrincessProverFactory());
+	}
+
+	@Test
+	public void testWithPrincessRecursiveWithPrecRTL() {
+		jayhorn.Options.v().setStringEncoding(StringEncoder.StringEncoding.recursiveWithPrec);
 		jayhorn.Options.v().setStringDirection(StringEncoder.StringDirection.rtl);
 		verifyAssertions(new PrincessProverFactory());
 	}

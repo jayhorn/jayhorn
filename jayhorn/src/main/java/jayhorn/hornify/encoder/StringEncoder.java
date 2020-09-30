@@ -25,6 +25,7 @@ public class StringEncoder {
 
     public enum StringEncoding {
         recursive,
+        recursiveWithPrec,
         iterative
     }
 
@@ -43,6 +44,7 @@ public class StringEncoder {
     public static final String STRING_CHAR_AT_TEMPLATE = "$char_at(%s, %s)";
 
     public static final String STRING_CONCAT = "string_concat";
+    public static final String STRING_CONCAT_WITH_PREC = STRING_CONCAT + "_prec";
     public static final String STRING_CONCAT_ITERATIVE = STRING_CONCAT + "_it";
 
     public static final String INT_STRING = "int_string";
@@ -177,6 +179,11 @@ public class StringEncoder {
                 new ProverType[]{stringADTType, stringADTType, stringADTType});
     }
 
+    private ProverFun mkStringConcatPreconditionProverFun(ProverType stringADTType) {
+        return p.mkHornPredicate(mkName(STRING_CONCAT_WITH_PREC),
+                new ProverType[]{stringADTType, stringADTType});
+    }
+
     private ProverFun mkIntToStringHelperProverFun(ProverType stringADTType) {
         return p.mkHornPredicate(mkName(INT_STRING_HELPER),
                 new ProverType[]{p.getIntType(), p.getIntType(), stringADTType});
@@ -281,6 +288,56 @@ public class StringEncoder {
 //            , p.mkGt(len(hb), lit(MAX_SIZE_HINT))
             );
         }
+        return predConcat;
+    }
+
+    private ProverFun genConcatRecPrec(ProverType stringADTType, List<ProverFun> helpers) {
+        ProverExpr a = stringHornVar("a", stringADTType);
+        ProverExpr b = stringHornVar("b", stringADTType);
+        ProverExpr c = stringHornVar("c", stringADTType);
+        ProverExpr h = intHornVar("h");
+        ProverExpr hc = cons(h, c);
+        // String Concatenation
+        ProverFun predConcat = mkStringConcatProverFun(stringADTType);
+        ProverFun prec = mkStringConcatPreconditionProverFun(stringADTType);
+
+        if (stringDirection == StringDirection.ltr) {
+
+            ProverExpr ha = cons(h, a);
+
+            addPHC(
+                    predConcat.mkExpr(nil(), a, a),
+                    new ProverExpr[]{prec.mkExpr(nil(), a)}
+            );
+            addPHC(
+                    prec.mkExpr(a, b),
+                    new ProverExpr[]{prec.mkExpr(ha, b)}
+            );
+            addPHC(
+                    predConcat.mkExpr(ha, b, hc),
+                    new ProverExpr[]{prec.mkExpr(ha, b), predConcat.mkExpr(a, b, c)}
+            );
+
+        } else {
+
+            ProverExpr hb = cons(h, b);
+
+            addPHC(
+                    predConcat.mkExpr(a, nil(), a),
+                    new ProverExpr[]{prec.mkExpr(a, nil())}
+            );
+            addPHC(
+                    prec.mkExpr(a, b),
+                    new ProverExpr[]{prec.mkExpr(a, hb)}
+            );
+            addPHC(
+                    predConcat.mkExpr(a, hb, hc),
+                    new ProverExpr[]{prec.mkExpr(a, hb), predConcat.mkExpr(a, b, c)}
+            );
+
+        }
+
+        helpers.add(prec);
         return predConcat;
     }
 
@@ -569,19 +626,33 @@ public class StringEncoder {
         ProverExpr concat = mkRefHornVariable(concatName, stringRefType);
         ProverExpr concatString = selectString(concat);
         ProverFun predConcat;
+        ProverFun prec;
         switch (stringEncoding) {
             case recursive:
                 predConcat = genConcatRec(stringADTType);
+                prec = null;
+                break;
+            case recursiveWithPrec:
+                LinkedList<ProverFun> helpers = new LinkedList<ProverFun>();
+                predConcat = genConcatRecPrec(stringADTType, helpers);
+                prec = helpers.get(0);
                 break;
             case iterative:
                 predConcat = genConcatIter(stringADTType);
+                prec = null;
                 break;
             default:
                 throw new RuntimeException("unhandled string encoding");
         }
-        considerHintedSizeConcat(predConcat, stringADTType);
+//        considerHintedSizeConcat(predConcat, stringADTType);
         ProverExpr guarantee = predConcat.mkExpr(leftString, rightString, concatString);
-        return new EncodingFacts(null, guarantee, concat, mkNotNullConstraint(concat));
+        ProverExpr rely;
+        if (prec != null) {
+            rely = prec.mkExpr(leftString, rightString);
+        } else {
+            rely = null;
+        }
+        return new EncodingFacts(rely, guarantee, concat, mkNotNullConstraint(concat));
     }
 
     public EncodingFacts mkIntToString(ProverExpr intPE, ReferenceType stringRefType) {
