@@ -40,6 +40,7 @@ public class StringEncoder {
 
 //    public static final String STRING_REF_TEMPLATE = "$str_%d";
     public static final String STRING_CONCAT_TEMPLATE = "$contact(%s, %s)";
+    public static final String STRING_COMPARE_TEMPLATE = "$compare(%s, %s)";
 
     public static final String STRING_CHAR_AT_TEMPLATE = "$char_at(%s, %s)";
 
@@ -57,6 +58,8 @@ public class StringEncoder {
 
     public static final String STRING_STARTS_WITH = "string_starts_with";
     public static final String STRING_ENDS_WITH = "string_ends_with";
+
+    public static final String STRING_COMPARE = "string_compare";
 
     public static final int MAX_SIZE_HINT = 8;
 
@@ -212,6 +215,11 @@ public class StringEncoder {
     private ProverFun mkStringCharAtProverFun(ProverType stringADTType) {
         return p.mkHornPredicate(mkName(STRING_STARTS_WITH),
                 new ProverType[]{stringADTType, p.getIntType(), p.getIntType()});
+    }
+
+    private ProverFun mkStringCompareToProverFun(ProverType stringADTType) {
+        return p.mkHornPredicate(mkName(STRING_COMPARE),
+                new ProverType[]{stringADTType, stringADTType, p.getIntType()});
     }
 
     private void considerHintedSizeConcat(ProverFun predConcat, ProverType stringADTType) {
@@ -563,6 +571,41 @@ public class StringEncoder {
         return predConcat;
     }
 
+    private ProverFun genCompareTo(ProverType stringADTType) {
+        ProverExpr a = stringHornVar("a", stringADTType);
+        ProverExpr b = stringHornVar("b", stringADTType);
+        ProverExpr h = intHornVar("h");
+        ProverExpr k = intHornVar("k");
+        ProverExpr c = intHornVar("c");
+
+        ProverFun predCompareTo = mkStringCompareToProverFun(stringADTType);
+
+        if (stringDirection == StringDirection.ltr) {
+            addPHC(
+                    predCompareTo.mkExpr(nil(), nil(), lit(0))
+            );
+            addPHC(
+                    predCompareTo.mkExpr(cons(h, a), nil(), len(cons(h, a)))
+            );
+            addPHC(
+                    predCompareTo.mkExpr(nil(), cons(h, b), p.mkNeg(len(cons(h, b))))
+            );
+            addPHC(
+                    predCompareTo.mkExpr(cons(h, a), cons(k, b), p.mkMinus(h, k)),
+                    new ProverExpr[0],
+                    p.mkNot(p.mkEq(h, k))
+            );
+            addPHC(
+                    predCompareTo.mkExpr(cons(h, a), cons(h, b), c),
+                    new ProverExpr[]{predCompareTo.mkExpr(a, b, c)}
+            );
+        } else {
+            throw new RuntimeException("not implemented");
+        }
+
+        return predCompareTo;
+    }
+
     private ProverExpr head(ProverExpr expr) { return stringADT.mkSelExpr(1, 0, expr); }
 
     private ProverExpr tail(ProverExpr expr) { return stringADT.mkSelExpr(1, 1, expr); }
@@ -653,6 +696,15 @@ public class StringEncoder {
             rely = null;
         }
         return new EncodingFacts(rely, guarantee, concat, mkNotNullConstraint(concat));
+    }
+
+    public EncodingFacts mkStringCompareTo(ProverExpr leftString, ProverExpr rightString, ReferenceType stringRefType) {
+        ProverType stringADTType = getStringADTType();
+        String resultName = String.format(STRING_COMPARE_TEMPLATE, leftString.toString(), rightString.toString());
+        ProverExpr result = intHornVar(resultName);
+        ProverFun predCompareTo = genCompareTo(stringADTType);
+        ProverExpr guarantee = predCompareTo.mkExpr(leftString, rightString, result);
+        return new EncodingFacts(null, guarantee, result, lit(true));
     }
 
     public EncodingFacts mkIntToString(ProverExpr intPE, ReferenceType stringRefType) {
@@ -764,6 +816,12 @@ public class StringEncoder {
                     final ProverExpr leftPE = selectString(leftExpr, varMap);
                     final ProverExpr rightPE = selectString(rightExpr, varMap);
                     return mkStringConcat(leftPE, rightPE, (ReferenceType)leftExpr.getType());
+                }
+
+                case StringCompareTo: {
+                    final ProverExpr leftPE = selectString(leftExpr, varMap);
+                    final ProverExpr rightPE = selectString(rightExpr, varMap);
+                    return mkStringCompareTo(leftPE, rightPE, (ReferenceType)leftExpr.getType());
                 }
 
                 case StringEq: {

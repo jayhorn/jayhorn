@@ -10,6 +10,7 @@ import java.util.Set;
 
 import com.google.common.base.Verify;
 
+import jayhorn.Options;
 import jayhorn.hornify.HornEncoderContext;
 import jayhorn.hornify.HornHelper;
 import jayhorn.hornify.HornPredicate;
@@ -289,15 +290,22 @@ public class StatementEncoder {
         List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
         Verify.verify(ns.getLeft() instanceof IdentifierExpression,
-                      "only assignments to variables are supported, not to " + ns.getLeft());
+                "only assignments to variables are supported, not to " + ns.getLeft());
         final IdentifierExpression idLhs = (IdentifierExpression) ns.getLeft();
 
         ReferenceType rightType = new ReferenceType(ns.getClassVariable());
-        ProverExpr[] tupleElements = new ProverExpr[rightType.getElementTypeList().size()];
+        int extraElementsCount = 0;
+        if (!Options.v().useSpecs) {
+            if (ns.getClassVariable().getName().equals("java/lang/StringBuilder")
+                    || ns.getClassVariable().getName().equals("java/lang/StringBuffer")) {
+                extraElementsCount++;
+            }
+        }
+        ProverExpr[] tupleElements = new ProverExpr[rightType.getElementTypeList().size() + extraElementsCount];
 
         final ProverExpr heapCounter =
-            expEncoder.exprToProverExpr(
-                new IdentifierExpression(ns.getSourceLocation(), ns.getCounterVar()), varMap);
+                expEncoder.exprToProverExpr(
+                        new IdentifierExpression(ns.getSourceLocation(), ns.getCounterVar()), varMap);
         int offset = 0;
         tupleElements[offset++] = heapCounter;
         tupleElements[offset++] = p.mkLiteral(hornContext.getTypeID(ns.getClassVariable()));
@@ -307,9 +315,16 @@ public class StatementEncoder {
             tupleElements[offset++] = p.mkLiteral(HornHelper.hh().newVarNum());
         }
 
+        if (!Options.v().useSpecs) {
+            if (ns.getClassVariable().getName().equals("java/lang/StringBuilder")
+                    || ns.getClassVariable().getName().equals("java/lang/StringBuffer")) {
+                tupleElements[offset++] = expEncoder.getStringEncoder().mkStringPE("");
+            }
+        }
+
         for (int i = offset; i < tupleElements.length; i++) {
             tupleElements[i] = p.mkHornVariable("$new" + i,
-                                            HornHelper.hh().getProverType(p, rightType.getElementTypeList().get(i)));
+                    HornHelper.hh().getProverType(p, rightType.getElementTypeList().get(i - extraElementsCount)));
         }
         varMap.put(idLhs.getVariable(), p.mkTuple(tupleElements));
 
@@ -321,14 +336,14 @@ public class StatementEncoder {
 
         final ProverExpr postAtom = postPred.instPredicate(varMap);
         final ProverExpr validHeapCounter =
-            hornContext.validHeapCounterConstraint(heapCounter);
+                hornContext.validHeapCounterConstraint(heapCounter);
 
         clauses.add(p.mkHornClause(postAtom, new ProverExpr[]{preAtom},
-                                   validHeapCounter));
+                validHeapCounter));
 
         if (hornContext.genHeapBoundAssertions())
             clauses.add(p.mkHornClause(p.mkLiteral(false), new ProverExpr[]{preAtom},
-                                       p.mkNot(validHeapCounter)));
+                    p.mkNot(validHeapCounter)));
 
         return clauses;
     }

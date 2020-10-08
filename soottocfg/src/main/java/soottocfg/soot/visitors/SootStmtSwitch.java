@@ -70,6 +70,7 @@ import soot.jimple.StmtSwitch;
 import soot.jimple.TableSwitchStmt;
 import soot.jimple.ThrowStmt;
 import soot.toolkits.graph.CompleteUnitGraph;
+import soottocfg.Options;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
@@ -613,6 +614,41 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 			return true;
 		}
+		if (methodSignature.contains("<java.lang.String: int compareTo(java.lang.String)>")) {
+			assert (call instanceof InstanceInvokeExpr);
+			if (optionalLhs != null) {
+				Expression rhs;
+				if (call.getArg(0).getType() instanceof RefType) {
+					Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+					Expression b = valueToInnerExpr(call.getArg(0));
+					rhs = new BinaryExpression(srcLoc, BinaryOperator.StringCompareTo, a, b);
+				} else {
+					throw new RuntimeException("String.compareTo(NonObject) not implemented");
+				}
+				Expression lhs = valueToExpr(optionalLhs);
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+			}
+			return true;
+		}
+		if (!Options.v().useBuiltInSpecs()) {
+			if (methodSignature.contains("<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>") ||
+					methodSignature.contains("<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>")) {
+				assert (call instanceof InstanceInvokeExpr);
+				if (optionalLhs != null) {
+					Expression rhs;
+					if (call.getArg(0).getType() instanceof RefType) {
+						Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+						Expression b = valueToInnerExpr(call.getArg(0));
+						rhs = new BinaryExpression(srcLoc, BinaryOperator.StringConcat, a, b);
+					} else {
+						throw new RuntimeException("String.concat(NonObject) not implemented");
+					}
+					Expression lhs = valueToExpr(optionalLhs);
+					currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+				}
+				return true;
+			}
+		}
 		if (methodSignature.contains("<java.lang.String: boolean startsWith(java.lang.String)>")) {
 			assert (call instanceof InstanceInvokeExpr);
 			if (optionalLhs != null) {
@@ -628,6 +664,24 @@ public class SootStmtSwitch implements StmtSwitch {
 				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
 			}
 			return true;
+		}
+		if (!Options.v().useBuiltInSpecs()) {
+			if (methodSignature.contains("<java.lang.StringBuilder: java.lang.String toString()>") ||
+					methodSignature.contains("<java.lang.StringBuffer: java.lang.String toString()>")) {
+				assert (call instanceof InstanceInvokeExpr);
+				if (optionalLhs != null) {
+					Expression thisExpr = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+					Expression lhs = valueToExpr(optionalLhs);
+					Expression rhs = new BinaryExpression(srcLoc, BinaryOperator.ToString, thisExpr, lhs);
+					currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+				} // else: ignore
+				return true;
+			}
+//			if (methodSignature.contains("<java.lang.StringBuilder: void <init>()>") ||
+//				methodSignature.contains("<java.lang.StringBuffer: void <init>()>")) {
+//				assert (call instanceof InstanceInvokeExpr);
+//				// ignore for now
+//			}
 		}
 		if (methodSignature.contains("<java.lang.System: void exit(int)>") ||
                     methodSignature.contains("<java.lang.Runtime: void halt(int)>")) {
@@ -779,9 +833,10 @@ public class SootStmtSwitch implements StmtSwitch {
 			translateRandomNondet(LongType.v(), optionalLhs, call,true, Long.MIN_VALUE, Long.MAX_VALUE);
 			return true;
 		// TODO: cover other nondeterministic Verifier functions
-//		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: java.lang.String nondetString()>")) {
-//			translateNondetString(RefType.v(), optionalLhs, call);
-//			return true;
+		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: java.lang.String nondetString()>") &&
+					!Options.v().useBuiltInSpecs()) {
+			translateNondetString(RefType.v(), optionalLhs, call);
+			return true;
 
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: void assume(boolean)>")) {
 			Verify.verify(optionalLhs == null);
