@@ -906,7 +906,7 @@ public class PrincessProver implements Prover {
             }
 
             allPreds.$minus$eq(SimpleWrapper.FALSEAtom().pred());
-
+System.out.println("all preds: " + allPreds);
             PrintStream originalOut = scala.Console.out();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintStream newOut = new PrintStream(baos);
