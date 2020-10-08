@@ -41,6 +41,7 @@ import ap.parser.IPlus;
 import ap.parser.ITerm;
 import ap.parser.ITermITE;
 import ap.parser.IVariable;
+import ap.parser.ISortedVariable;
 import ap.parser.PredicateSubstVisitor$;
 import ap.parser.SymbolCollector$;
 import ap.terfor.ConstantTerm;
@@ -155,11 +156,16 @@ public class PrincessProver implements Prover {
 	public ProverExpr mkBoundVariable(int deBruijnIndex, ProverType type) {
             // TODO: handle tuples
             assert(!(type instanceof ProverTupleType));
-		if (type.equals(getBooleanType())) {
-			return mkEq(new TermExpr(new IVariable(deBruijnIndex), getIntType()), mkLiteral(0));
-		} else {
-			return new TermExpr(new IVariable(deBruijnIndex), type);
-		}
+            if (type.equals(getBooleanType())) {
+                return mkEq(new TermExpr
+                            (new ISortedVariable(deBruijnIndex,
+                                                 Sort.Integer$.MODULE$),
+                             getIntType()), mkLiteral(0));
+            } else {
+                return new TermExpr(new ISortedVariable(deBruijnIndex,
+                                                        type2Sort(type)),
+                                    type);
+            }
 	}
 
     protected static ProverType sort2Type(Sort sort) {
