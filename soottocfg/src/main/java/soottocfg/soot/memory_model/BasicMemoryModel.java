@@ -244,12 +244,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 			if (typeSootClass.equals(Scene.v().getSootClass("java.lang.Class"))) {
 				return new TypeType();
 			}
-			if (typeSootClass.equals(Scene.v().getSootClass("java.lang.String")) ||
-					(!Options.v().useBuiltInSpecs() &&
-							(typeSootClass.equals(Scene.v().getSootClass("java.lang.StringBuilder")) ||
-							typeSootClass.equals(Scene.v().getSootClass("java.lang.StringBuffer")))
-					)
-			) {
+			if (typeSootClass.equals(Scene.v().getSootClass("java.lang.String"))) {
 				LinkedHashMap<String, Type> elementTypes = ReferenceType.mkDefaultElementTypes();
 				elementTypes.put("$String", StringType.instance());
 				return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)), elementTypes);
