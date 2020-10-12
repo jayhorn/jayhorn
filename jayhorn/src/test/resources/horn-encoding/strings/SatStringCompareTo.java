@@ -12,6 +12,7 @@ public class SatStringCompareTo {
         assert (s.compareTo(a) == 2);
         assert (s.compareTo(x) == -21);
         assert (x.compareTo(s) == 21);
+        assert (e.compareTo(e) == 0);
         assert (s.compareTo(s) == 0);
     }
 

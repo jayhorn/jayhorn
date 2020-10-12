@@ -39,7 +39,7 @@ public class StringEncoder {
     public static final String BOOLEAN_ENDS_WITH_TEMPLATE = "$ends_with(%s, %s)";
 
 //    public static final String STRING_REF_TEMPLATE = "$str_%d";
-    public static final String STRING_CONCAT_TEMPLATE = "$contact(%s, %s)";
+    public static final String STRING_CONCAT_TEMPLATE = "$concat(%s, %s)";
     public static final String STRING_COMPARE_TEMPLATE = "$compare(%s, %s)";
 
     public static final String STRING_CHAR_AT_TEMPLATE = "$char_at(%s, %s)";
@@ -571,7 +571,7 @@ public class StringEncoder {
         return predConcat;
     }
 
-    private ProverFun genCompareTo(ProverType stringADTType) {
+    private ProverFun genCompareToRec(ProverType stringADTType) {
         ProverExpr a = stringHornVar("a", stringADTType);
         ProverExpr b = stringHornVar("b", stringADTType);
         ProverExpr h = intHornVar("h");
@@ -582,13 +582,12 @@ public class StringEncoder {
 
         if (stringDirection == StringDirection.ltr) {
             addPHC(
-                    predCompareTo.mkExpr(nil(), nil(), lit(0))
+                    predCompareTo.mkExpr(a, nil(), len(a))
             );
             addPHC(
-                    predCompareTo.mkExpr(cons(h, a), nil(), len(cons(h, a)))
-            );
-            addPHC(
-                    predCompareTo.mkExpr(nil(), cons(h, b), p.mkNeg(len(cons(h, b))))
+                    predCompareTo.mkExpr(nil(), b, p.mkNeg(len(b))),
+                    new ProverExpr[0],
+                    p.mkGt(len(b), lit(0))
             );
             addPHC(
                     predCompareTo.mkExpr(cons(h, a), cons(k, b), p.mkMinus(h, k)),
@@ -702,7 +701,18 @@ public class StringEncoder {
         ProverType stringADTType = getStringADTType();
         String resultName = String.format(STRING_COMPARE_TEMPLATE, leftString.toString(), rightString.toString());
         ProverExpr result = intHornVar(resultName);
-        ProverFun predCompareTo = genCompareTo(stringADTType);
+        ProverFun predCompareTo;
+        switch (stringEncoding) {
+            case recursive:
+                predCompareTo = genCompareToRec(stringADTType);
+                break;
+            case recursiveWithPrec:
+                throw new RuntimeException("not implemented");
+            case iterative:
+                throw new RuntimeException("not implemented");
+            default:
+                throw new RuntimeException("unhandled string encoding");
+        }
         ProverExpr guarantee = predCompareTo.mkExpr(leftString, rightString, result);
         return new EncodingFacts(null, guarantee, result, lit(true));
     }
