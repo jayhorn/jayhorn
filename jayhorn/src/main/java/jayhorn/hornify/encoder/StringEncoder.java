@@ -84,7 +84,7 @@ public class StringEncoder {
 
     private ProverType getStringADTType() { return stringADT.getType(STRING_ADT_TYPE_IDX); }
 
-    private ProverExpr len(ProverExpr stringPE) { return stringADT.mkSizeExpr(stringPE); }
+    private ProverExpr len(ProverExpr stringPE) { return p.mkMinus(stringADT.mkSizeExpr(stringPE), lit(1)); }
 
     private ProverExpr lit(int value) { return p.mkLiteral(value); }
     private ProverExpr lit(char value) { return p.mkLiteral(value); }
@@ -591,7 +591,7 @@ public class StringEncoder {
             );
             addPHC(
                     predCompareTo.mkExpr(cons(h, a), cons(k, b), p.mkMinus(h, k)),
-                    new ProverExpr[0],
+                    EMPTY_PHC_BODY,
                     p.mkNot(p.mkEq(h, k))
             );
             addPHC(
