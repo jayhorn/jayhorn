@@ -148,9 +148,11 @@ public class BoundedStringTest {
 //			soottocfg.Options.v().setMemPrecision(1);
 			jayhorn.Options.v().setInitialHeapSize(initialHeapSize);
 			jayhorn.Options.v().setBoundedHeapSize(boundedHeapSize);
+			jayhorn.Options.v().useSpecs = true;
 			classDir = Util.compileJavaFile(this.sourceFile);
 			SootToCfg soot2cfg = new SootToCfg();
 //			soottocfg.Options.v().setPrintCFG(true);
+			soottocfg.Options.v().setBuiltInSpecs(true);
 			soot2cfg.run(classDir.getAbsolutePath(), null);
 			jayhorn.Options.v().setPrintHorn(true);
 
