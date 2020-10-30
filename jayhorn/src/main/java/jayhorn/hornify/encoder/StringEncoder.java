@@ -386,7 +386,7 @@ public class StringEncoder {
         addPHC(
                 predIntToString.mkExpr(i, s),
                 new ProverExpr[]{predIntToStringHelper.mkExpr(i, lit(0), s)},
-                p.mkAnd(p.mkGeq(i, lit(10)))
+                p.mkOr(p.mkLt(i, lit(0)), p.mkGeq(i, lit(10)))
         );
         if (stringDirection == StringDirection.ltr) {
             addPHC(
@@ -398,7 +398,7 @@ public class StringEncoder {
             addPHC(
                     predIntToStringHelper.mkExpr(i, p.mkTDiv(n, lit(10)), cons(digitToChar(lastDigitOfN), s)),
                     new ProverExpr[]{predIntToStringHelper.mkExpr(i, n, s)},
-                    p.mkAnd(p.mkGeq(i, lit(10)), p.mkGt(n, lit(0)))
+                    p.mkGt(n, lit(0))
             );
         } else {
             addPHC(
@@ -406,25 +406,21 @@ public class StringEncoder {
                     EMPTY_PHC_BODY,
                     p.mkLt(i, lit(0))
             );
-            // TODO: optimize
-            long rngStart = 1;
-            while (rngStart < Long.MAX_VALUE / 10) {
-                ProverExpr firstDigitOfN = p.mkTDiv(n, lit(rngStart));
-                ProverExpr restOfN = p.mkMinus(n, p.mkMult(lit(rngStart), firstDigitOfN));
+            long bndLeft;
+            long bndRight = 1L;
+            do {
+                bndLeft = bndRight;
+                bndRight *= 10L;
+                ProverExpr firstDigitOfN = p.mkTDiv(n, lit(bndLeft));
+                ProverExpr restOfN = p.mkMinus(n, p.mkMult(lit(bndLeft), firstDigitOfN));
                 addPHC(
                         predIntToStringHelper.mkExpr(i, restOfN, cons(digitToChar(firstDigitOfN), s)),
                         new ProverExpr[]{predIntToStringHelper.mkExpr(i, n, s)},
-                        p.mkAnd(p.mkGeq(i, lit(10)), p.mkGeq(n, lit(rngStart)), p.mkLt(n, lit(10 * rngStart)))
+                        bndLeft <= Long.MAX_VALUE / 10 ?
+                                p.mkAnd(p.mkGeq(n, lit(bndLeft)), p.mkLt(n, lit(bndRight))) :
+                                p.mkAnd(p.mkGeq(n, lit(bndLeft)), p.mkLeq(n, lit(Long.MAX_VALUE)))
                 );
-                rngStart *= 10;
-            }
-            ProverExpr firstDigitOfN = p.mkTDiv(n, lit(rngStart));
-            ProverExpr restOfN = p.mkMinus(n, p.mkMult(lit(rngStart), firstDigitOfN));
-            addPHC(
-                    predIntToStringHelper.mkExpr(i, restOfN, cons(digitToChar(firstDigitOfN), s)),
-                    new ProverExpr[]{predIntToStringHelper.mkExpr(i, n, s)},
-                    p.mkAnd(p.mkGeq(i, lit(10)), p.mkGeq(n, lit(rngStart)))
-            );
+            } while (bndLeft <= Long.MAX_VALUE / 10);
         }
 
         return predIntToString;
