@@ -1,6 +1,6 @@
 package soottocfg.spec;
 
-public class StringBuilderSpec {    // TODO: should extend StringBuilder or AbstractStringBuilder ?
+public class StringBuilderSpec {
 
     String s = "";
 
@@ -8,10 +8,11 @@ public class StringBuilderSpec {    // TODO: should extend StringBuilder or Abst
     }
 
     public StringBuilderSpec(CharSequence seq) {
-        throw new RuntimeException("not specified");
+        (new java.util.Random()).nextInt(42);   // over-approximate
     }
 
     public StringBuilderSpec(int capacity) {
+        (new java.util.Random()).nextInt(42);   // over-approximate
     }
 
     public StringBuilderSpec(String str) {
@@ -64,105 +65,122 @@ public class StringBuilderSpec {    // TODO: should extend StringBuilder or Abst
     }
 
     public StringBuilderSpec appendCodePoint(int codePoint) {
-        throw new RuntimeException("not specified");
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public StringBuilderSpec delete(int start, int end) {
-        throw new RuntimeException("not specified");
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public StringBuilderSpec deleteCharAt(int index) {
-        throw new RuntimeException("not specified");
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public StringBuilderSpec replace(int start, int end, String str) {
-        throw new RuntimeException("not specified");
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public StringBuilderSpec insert(int index,
-                                char[] str,
-                                int offset,
-                                int len) {
-        throw new RuntimeException("not specified");
+                                    char[] str,
+                                    int offset,
+                                    int len) {
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public StringBuilderSpec insert(int offset,
-                                Object obj) {
-        throw new RuntimeException("not specified");
+                                    Object obj) {
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public StringBuilderSpec insert(int offset,
-                                String str) {
-        throw new RuntimeException("not specified");
+                                    String str) {
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public StringBuilderSpec insert(int offset,
-                                char[] str) {
-        throw new RuntimeException("not specified");
+                                    char[] str) {
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public StringBuilderSpec insert(int dstOffset,
-                                CharSequence s) {
-        throw new RuntimeException("not specified");
+                                    CharSequence s) {
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public StringBuilderSpec insert(int dstOffset,
-                                CharSequence s,
-                                int start,
-                                int end) {
-        throw new RuntimeException("not specified");
+                                    CharSequence s,
+                                    int start,
+                                    int end) {
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public StringBuilderSpec insert(int offset,
-                                boolean b) {
-        throw new RuntimeException("not specified");
+                                    boolean b) {
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public StringBuilderSpec insert(int offset,
-                                char c) {
-        throw new RuntimeException("not specified");
+                                    char c) {
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public StringBuilderSpec insert(int offset,
-                                int i) {
-        throw new RuntimeException("not specified");
+                                    int i) {
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public StringBuilderSpec insert(int offset,
-                                long l) {
-        throw new RuntimeException("not specified");
+                                    long l) {
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public StringBuilderSpec insert(int offset,
-                                float f) {
-        throw new RuntimeException("not specified");
+                                    float f) {
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public StringBuilderSpec insert(int offset,
-                                double d) {
-        throw new RuntimeException("not specified");
+                                    double d) {
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public int indexOf(String str) {
-        throw new RuntimeException("not specified");
+        return (new java.util.Random()).nextInt(42);   // over-approximate
     }
 
     public int indexOf(String str,
                        int fromIndex) {
-        throw new RuntimeException("not specified");
+        return (new java.util.Random()).nextInt(42);   // over-approximate
     }
 
     public int lastIndexOf(String str) {
-        throw new RuntimeException("not specified");
+        return (new java.util.Random()).nextInt(42);   // over-approximate
     }
 
     public int lastIndexOf(String str,
                            int fromIndex) {
-        throw new RuntimeException("not specified");
+        return (new java.util.Random()).nextInt(42);   // over-approximate
     }
 
     public StringBuilderSpec reverse() {
-        throw new RuntimeException("not specified");
+        (new java.util.Random()).nextInt(42);   // over-approximate
+        return this;
     }
 
     public String toString() {
@@ -174,19 +192,19 @@ public class StringBuilderSpec {    // TODO: should extend StringBuilder or Abst
     }
 
     public int capacity() {
-        throw new RuntimeException("not specified");
+        return (new java.util.Random()).nextInt(42);   // over-approximate
     }
 
     public void ensureCapacity(int minimumCapacity) {
-        throw new RuntimeException("not specified");
+        (new java.util.Random()).nextInt(42);   // over-approximate
     }
 
     public void trimToSize() {
-        throw new RuntimeException("not specified");
+        (new java.util.Random()).nextInt(42);   // over-approximate
     }
 
     public void setLength(int newLength) {
-        throw new RuntimeException("not specified");
+        (new java.util.Random()).nextInt(42);   // over-approximate
     }
 
     public char charAt(int index) {
@@ -215,12 +233,12 @@ public class StringBuilderSpec {    // TODO: should extend StringBuilder or Abst
                          int srcEnd,
                          char[] dst,
                          int dstBegin) {
-        throw new RuntimeException("not specified");
+        (new java.util.Random()).nextInt(42);   // over-approximate
     }
 
     public void setCharAt(int index,
                           char ch) {
-        throw new RuntimeException("not specified");
+        (new java.util.Random()).nextInt(42);   // over-approximate
     }
 
     public String substring(int start) {
@@ -229,6 +247,7 @@ public class StringBuilderSpec {    // TODO: should extend StringBuilder or Abst
 
     public CharSequence subSequence(int start,
                                     int end) {
+        (new java.util.Random()).nextInt(42);   // over-approximate
         throw new RuntimeException("not specified");
     }
 
