@@ -543,6 +543,8 @@ public class SootStmtSwitch implements StmtSwitch {
 				Expression indexExpr = valueToInnerExpr(call.getArg(0));
 				Expression lhs = valueToExpr(optionalLhs);
 				Expression rhs = new BinaryExpression(srcLoc, BinaryOperator.CharAt, thisExpr, indexExpr);
+				currentBlock.addStatement(new AssertStatement(srcLoc,
+						new BinaryExpression(srcLoc, BinaryOperator.IndexInString, thisExpr, indexExpr)));
 				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
 			} // else: ignore
 			return true;

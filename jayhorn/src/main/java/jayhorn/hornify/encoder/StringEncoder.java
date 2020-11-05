@@ -161,6 +161,25 @@ public class StringEncoder {
             return stringADT.mkHavocExpr(STRING_ADT_TYPE_IDX);
     }
 
+    public ProverExpr mkIndexInString(Expression e, Map<Variable, ProverExpr> varMap) {
+        if (e instanceof BinaryExpression) {
+            final BinaryExpression be = (BinaryExpression) e;
+            Expression leftExpr = be.getLeft();
+            Expression rightExpr = be.getRight();
+            switch (be.getOp()) {
+                case IndexInString: {
+                    final ProverExpr strPE = selectString(leftExpr, varMap);
+                    final ProverExpr indexPE = selectInt(rightExpr, varMap);
+                    return p.mkAnd(p.mkGeq(indexPE, lit(0)), p.mkLt(indexPE, len(strPE)));
+                }
+                default:
+                    return null;
+            }
+        }
+
+        return null;
+    }
+
     private int nameCounter = 0;
 
     private String mkName(String base) {
@@ -490,17 +509,7 @@ public class StringEncoder {
         ProverExpr h = intHornVar("h");
         ProverExpr i = intHornVar("i");
         ProverExpr c = intHornVar("c");
-        ProverExpr NUL = lit('\0');     // TODO: must emit IndexOutOfBoundsException where needed instead of this
         ProverFun predCharAt = mkStringCharAtProverFun(stringADTType);
-        // base cases
-        addPHC(
-                predCharAt.mkExpr(nil(), i, NUL)
-        );
-        addPHC(
-                predCharAt.mkExpr(s, i, NUL),
-                EMPTY_PHC_BODY,
-                p.mkNot(p.mkAnd( p.mkGeq(i, lit(0)) , p.mkLt(i, len(s)) ))
-        );
         if (stringDirection == StringDirection.ltr) {
             addPHC(
                     predCharAt.mkExpr(cons(h, t), lit(0), h)

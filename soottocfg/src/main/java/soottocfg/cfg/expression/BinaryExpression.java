@@ -36,7 +36,7 @@ public class BinaryExpression extends Expression {
 		Plus("+"), Minus("-"), Mul("*"), Div("/"), Mod("%"), And("&&"), Or("||"), Xor("^"), Implies("->"), Eq("=="),
 		Ne("!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&"),
 		PoLeq("<:"), StringEq("==="), StringConcat("+++"), StringCompareTo("<?>"), StartsWith("startsWith"), CharAt("charAt"),
-		ToString("<str>"), BoolToString("<str_b>"), CharToString("<str_c>");	// TODO: not an actual BinaryExpression
+		ToString("<str>"), BoolToString("<str_b>"), CharToString("<str_c>"), IndexInString("<idx_str>");	// TODO: not an actual BinaryExpression
 
 		private final String name;
 
@@ -87,7 +87,7 @@ public class BinaryExpression extends Expression {
 							((ReferenceType) left.getType()).getClassVariable().equals(((ReferenceType) right.getType()).getClassVariable()))
 						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(right)
 						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(left)
-						|| op == BinaryOperator.CharAt
+						|| op == BinaryOperator.CharAt || op == BinaryOperator.IndexInString
 						|| op == BinaryOperator.ToString || op == BinaryOperator.BoolToString || op == BinaryOperator.CharToString
 						|| ((op == BinaryOperator.StringConcat || op == BinaryOperator.StringCompareTo) &&
 							(left.getType() instanceof ReferenceType || right.getType() instanceof ReferenceType)),
@@ -171,7 +171,8 @@ public class BinaryExpression extends Expression {
 			}
 
 			case PoLeq:
-			case StartsWith: {
+			case StartsWith:
+			case IndexInString: {
 				return BoolType.instance();
 			}
 

@@ -204,6 +204,8 @@ public class ExpressionEncoder {
 				return p.mkOr(left, right);
 			case Implies:
 				return p.mkImplies(left, right);
+			case IndexInString:
+				return stringEncoder.mkIndexInString(e, varMap);
 			case Shl:
 			case Shr:
 			case Ushr:
