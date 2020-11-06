@@ -2,8 +2,8 @@
 public class UnsatStringStartsWith {
 
     public static void main(String[] args) {
-        String s = "";
-        assert (s.startsWith("b"));
+        String s = "abcde";
+        assert (s.startsWith("abxde"));
     }
 
 }

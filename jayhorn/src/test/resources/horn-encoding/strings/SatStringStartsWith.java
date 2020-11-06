@@ -5,7 +5,7 @@ public class SatStringStartsWith {
         String s = "abcdef";
         assert (s.startsWith(""));
         assert (s.startsWith("a"));
-        assert (s.startsWith("abc"));
+        assert (s.startsWith("abcdef"));
     }
 
 }

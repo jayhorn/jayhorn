@@ -264,20 +264,20 @@ public class StringEncoder {
     }
 
     private void considerHintedSizeStartsWith(ProverFun predStartsWith, ProverType stringADTType) {
-        if (stringDirection == StringDirection.rtl)
-            throw new RuntimeException("not implemented");
-        ProverExpr str = stringHornVar("str", stringADTType), z = intHornVar("z");
-        ProverExpr sub = nil();
-        for (int subSize = 0; subSize <= MAX_SIZE_HINT; subSize++) {
-            addPHC(
-                predStartsWith.mkExpr(str, sub, lit(true))
-            );
-            addPHC(
-                predStartsWith.mkExpr(sub, cons(z, str), lit(false))
-            );
-            ProverExpr h = intHornVar("h" + subSize);
-            str = cons(h, str);
-            sub = cons(h, sub);
+        if (stringDirection == StringDirection.ltr) {
+            ProverExpr str = stringHornVar("str", stringADTType), z = intHornVar("z");
+            ProverExpr sub = nil();
+            for (int subSize = 0; subSize <= MAX_SIZE_HINT; subSize++) {
+                addPHC(
+                        predStartsWith.mkExpr(str, sub, lit(true))
+                );
+                addPHC(
+                        predStartsWith.mkExpr(sub, cons(z, str), lit(false))
+                );
+                ProverExpr h = intHornVar("h" + subSize);
+                str = cons(h, str);
+                sub = cons(h, sub);
+            }
         }
     }
 
@@ -465,8 +465,6 @@ public class StringEncoder {
     }
 
     private ProverFun genStartsWithRec(ProverType stringADTType) {
-        if (stringDirection == StringDirection.rtl)
-            throw new RuntimeException("not implemented");
         ProverExpr a = stringHornVar("a", stringADTType);
         ProverExpr b = stringHornVar("b", stringADTType);
         ProverExpr h = intHornVar("h");
@@ -479,26 +477,55 @@ public class StringEncoder {
         ProverExpr kb = cons(k, b);
         // String StartsWith
         ProverFun predStartsWith = mkStringStartsWithProverFun(stringADTType);
-        // nil case
+
         addPHC(
-            predStartsWith.mkExpr(a, nil(), lit(true))
-        );
-//        addPHC(
-//            predStartsWith.mkExpr(nil(), cons(z, a), lit(false))  // TODO: needed?
-//        );
-        // cons case
-        addPHC(
-            predStartsWith.mkExpr(ha, hb, lit(true)),
-            new ProverExpr[] {predStartsWith.mkExpr(a, b, lit(true))},
-            p.mkAnd( p.mkGeq(len(ha), len(hb)), p.mkGt(len(hb), lit(MAX_SIZE_HINT)) )
-//            lit(true)
+                predStartsWith.mkExpr(a, nil(), lit(true))
         );
         addPHC(
-            predStartsWith.mkExpr(ja, kb, lit(false)),
-            EMPTY_PHC_BODY,
-            p.mkNot(p.mkEq(j, k))
-//            lit(true)
+                predStartsWith.mkExpr(a, a, lit(true))
         );
+        addPHC(
+                predStartsWith.mkExpr(nil(), b, lit(false)),
+                EMPTY_PHC_BODY,
+                p.mkGt(len(b), lit(0))
+        );
+        addPHC(
+                predStartsWith.mkExpr(ja, kb, lit(false)),
+                new ProverExpr[]{predStartsWith.mkExpr(a, b, lit(false))}
+        );
+
+        if (stringDirection == StringDirection.ltr) {
+            addPHC(
+                    predStartsWith.mkExpr(ha, hb, lit(true)),
+                    new ProverExpr[]{predStartsWith.mkExpr(a, b, lit(true))}
+            );
+            addPHC(
+                    predStartsWith.mkExpr(ja, kb, lit(false)),
+                    EMPTY_PHC_BODY,
+                    p.mkNot(p.mkEq(j, k))
+                    //            lit(true)
+            );
+        } else {
+            addPHC(
+                    predStartsWith.mkExpr(ha, b, lit(true)),
+                    new ProverExpr[]{predStartsWith.mkExpr(a, b, lit(true))}
+            );
+            addPHC(
+                    predStartsWith.mkExpr(cons(j, a), cons(k, a), lit(false)),
+                    EMPTY_PHC_BODY,
+                    p.mkNot(p.mkEq(j, k))
+                    //            lit(true)
+            );
+            addPHC(
+                    predStartsWith.mkExpr(ha, b, lit(false)),
+                    new ProverExpr[]{predStartsWith.mkExpr(a, b, lit(false))},
+                    p.mkGeq(len(a), len(b))
+            );
+            addPHC(
+                    predStartsWith.mkExpr(a, hb, lit(false)),
+                    new ProverExpr[]{predStartsWith.mkExpr(a, b, lit(false))}
+            );
+        }
 
         return predStartsWith;
     }
@@ -760,7 +787,7 @@ public class StringEncoder {
         ProverExpr result = booleanHornVar(resultName);
         ProverFun predStartsWith;
         predStartsWith = genStartsWithRec(stringADTType);    // TODO: Iterative
-        considerHintedSizeStartsWith(predStartsWith, stringADTType);
+//        considerHintedSizeStartsWith(predStartsWith, stringADTType);
         ProverExpr guarantee = predStartsWith.mkExpr(leftString, rightString, result);
         return new EncodingFacts(null, guarantee, result, lit(true));
     }
