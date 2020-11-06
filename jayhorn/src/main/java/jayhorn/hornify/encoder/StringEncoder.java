@@ -607,24 +607,27 @@ public class StringEncoder {
         ProverExpr a = stringHornVar("a", stringADTType);
         ProverExpr b = stringHornVar("b", stringADTType);
         ProverExpr h = intHornVar("h");
+        ProverExpr j = intHornVar("j");
         ProverExpr k = intHornVar("k");
         ProverExpr c = intHornVar("c");
 
         ProverFun predCompareTo = mkStringCompareToProverFun(stringADTType);
 
+        addPHC(
+                predCompareTo.mkExpr(a, nil(), len(a))
+        );
+        addPHC(
+                predCompareTo.mkExpr(nil(), b, p.mkNeg(len(b)))
+        );
+        addPHC(
+                predCompareTo.mkExpr(a, a, lit(0))
+        );
+
         if (stringDirection == StringDirection.ltr) {
             addPHC(
-                    predCompareTo.mkExpr(a, nil(), len(a))
-            );
-            addPHC(
-                    predCompareTo.mkExpr(nil(), b, p.mkNeg(len(b))),
-                    new ProverExpr[0],
-                    p.mkGt(len(b), lit(0))
-            );
-            addPHC(
-                    predCompareTo.mkExpr(cons(h, a), cons(k, b), p.mkMinus(h, k)),
+                    predCompareTo.mkExpr(cons(j, a), cons(k, b), p.mkMinus(j, k)),
                     EMPTY_PHC_BODY,
-                    p.mkNot(p.mkEq(h, k))
+                    p.mkNot(p.mkEq(j, k))
             );
             addPHC(
                     predCompareTo.mkExpr(cons(h, a), cons(h, b), c),
@@ -736,14 +739,16 @@ public class StringEncoder {
         ProverFun predCompareTo;
         switch (stringEncoding) {
             case recursive:
+            default:
                 predCompareTo = genCompareToRec(stringADTType);
                 break;
-            case recursiveWithPrec:
-                throw new RuntimeException("not implemented");
-            case iterative:
-                throw new RuntimeException("not implemented");
-            default:
-                throw new RuntimeException("unhandled string encoding");
+            // TODO: other encodings
+//            case recursiveWithPrec:
+//                throw new RuntimeException("not implemented");
+//            case iterative:
+//                throw new RuntimeException("not implemented");
+//            default:
+//                throw new RuntimeException("unhandled string encoding");
         }
         ProverExpr guarantee = predCompareTo.mkExpr(leftString, rightString, result);
         return new EncodingFacts(null, guarantee, result, lit(true));
