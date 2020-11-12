@@ -234,7 +234,7 @@ public class StringEncoder {
     }
 
     private ProverFun mkStringCharAtProverFun(ProverType stringADTType) {
-        return p.mkHornPredicate(mkName(STRING_STARTS_WITH),
+        return p.mkHornPredicate(mkName(STRING_CHAR_AT),
                 new ProverType[]{stringADTType, p.getIntType(), p.getIntType()});
     }
 
