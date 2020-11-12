@@ -35,7 +35,7 @@ public class BinaryExpression extends Expression {
 	public enum BinaryOperator {
 		Plus("+"), Minus("-"), Mul("*"), Div("/"), Mod("%"), And("&&"), Or("||"), Xor("^"), Implies("->"), Eq("=="),
 		Ne("!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&"),
-		PoLeq("<:"), StringEq("==="), StringConcat("+++"), StringCompareTo("<?>"), StartsWith("startsWith"), CharAt("charAt"),
+		PoLeq("<:"), StringEq("==="), StringConcat("+++"), StringCompareTo("<?>"), StartsWith("startsWith"), EndsWith("endsWith"), CharAt("charAt"),
 		ToString("<str>"), BoolToString("<str_b>"), CharToString("<str_c>"), IndexInString("<idx_str>");	// TODO: not an actual BinaryExpression
 
 		private final String name;
@@ -172,6 +172,7 @@ public class BinaryExpression extends Expression {
 
 			case PoLeq:
 			case StartsWith:
+			case EndsWith:
 			case IndexInString: {
 				return BoolType.instance();
 			}

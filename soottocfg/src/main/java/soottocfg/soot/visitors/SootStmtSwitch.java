@@ -667,6 +667,22 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 			return true;
 		}
+		if (methodSignature.contains("<java.lang.String: boolean endsWith(java.lang.String)>")) {
+			assert (call instanceof InstanceInvokeExpr);
+			if (optionalLhs != null) {
+				Expression rhs;
+				if (call.getArg(0).getType() instanceof RefType) {
+					Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+					Expression b = valueToInnerExpr(call.getArg(0));
+					rhs = new BinaryExpression(srcLoc, BinaryOperator.EndsWith, a, b);
+				} else {
+					throw new RuntimeException("String.endsWith(NonObject) not implemented");
+				}
+				Expression lhs = valueToExpr(optionalLhs);
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+			}
+			return true;
+		}
 		if (!Options.v().useBuiltInSpecs()) {
 			if (methodSignature.contains("<java.lang.StringBuilder: java.lang.String toString()>") ||
 					methodSignature.contains("<java.lang.StringBuffer: java.lang.String toString()>")) {

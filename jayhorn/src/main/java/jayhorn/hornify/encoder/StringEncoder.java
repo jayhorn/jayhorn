@@ -58,6 +58,7 @@ public class StringEncoder {
 
     public static final String STRING_STARTS_WITH = "string_starts_with";
     public static final String STRING_ENDS_WITH = "string_ends_with";
+    public static final String STRING_CHAR_AT = "string_char_at";
 
     public static final String STRING_COMPARE = "string_compare";
 
@@ -226,8 +227,9 @@ public class StringEncoder {
                 new ProverType[]{p.getIntType(), stringADTType});
     }
 
-    private ProverFun mkStringStartsWithProverFun(ProverType stringADTType) {
-        return p.mkHornPredicate(mkName(STRING_STARTS_WITH),
+    private ProverFun mkStringEdgesWithProverFun(ProverType stringADTType, boolean startEdge) {
+        String predicateName = startEdge ? STRING_STARTS_WITH : STRING_ENDS_WITH;
+        return p.mkHornPredicate(mkName(predicateName),
                 new ProverType[]{stringADTType, stringADTType, p.getBooleanType()});
     }
 
@@ -464,7 +466,7 @@ public class StringEncoder {
         return predBoolToString;
     }
 
-    private ProverFun genStartsWithRec(ProverType stringADTType) {
+    private ProverFun genEdgesWithRec(ProverType stringADTType, boolean startEdge) {
         ProverExpr a = stringHornVar("a", stringADTType);
         ProverExpr b = stringHornVar("b", stringADTType);
         ProverExpr h = intHornVar("h");
@@ -475,59 +477,60 @@ public class StringEncoder {
         ProverExpr hb = cons(h, b);
         ProverExpr ja = cons(j, a);
         ProverExpr kb = cons(k, b);
-        // String StartsWith
-        ProverFun predStartsWith = mkStringStartsWithProverFun(stringADTType);
+
+        ProverFun predEdgesWith = mkStringEdgesWithProverFun(stringADTType, startEdge);
 
         addPHC(
-                predStartsWith.mkExpr(a, nil(), lit(true))
+                predEdgesWith.mkExpr(a, nil(), lit(true))
         );
         addPHC(
-                predStartsWith.mkExpr(a, a, lit(true))
+                predEdgesWith.mkExpr(a, a, lit(true))
         );
         addPHC(
-                predStartsWith.mkExpr(nil(), b, lit(false)),
+                predEdgesWith.mkExpr(nil(), b, lit(false)),
                 EMPTY_PHC_BODY,
                 p.mkGt(len(b), lit(0))
         );
         addPHC(
-                predStartsWith.mkExpr(ja, kb, lit(false)),
-                new ProverExpr[]{predStartsWith.mkExpr(a, b, lit(false))}
+                predEdgesWith.mkExpr(ja, kb, lit(false)),
+                new ProverExpr[]{predEdgesWith.mkExpr(a, b, lit(false))}
         );
 
-        if (stringDirection == StringDirection.ltr) {
+        if ((startEdge && stringDirection == StringDirection.ltr)
+        || (!startEdge && stringDirection == StringDirection.rtl)) {
             addPHC(
-                    predStartsWith.mkExpr(ha, hb, lit(true)),
-                    new ProverExpr[]{predStartsWith.mkExpr(a, b, lit(true))}
+                    predEdgesWith.mkExpr(ha, hb, lit(true)),
+                    new ProverExpr[]{predEdgesWith.mkExpr(a, b, lit(true))}
             );
             addPHC(
-                    predStartsWith.mkExpr(ja, kb, lit(false)),
+                    predEdgesWith.mkExpr(ja, kb, lit(false)),
                     EMPTY_PHC_BODY,
                     p.mkNot(p.mkEq(j, k))
                     //            lit(true)
             );
         } else {
             addPHC(
-                    predStartsWith.mkExpr(ha, b, lit(true)),
-                    new ProverExpr[]{predStartsWith.mkExpr(a, b, lit(true))}
+                    predEdgesWith.mkExpr(ha, b, lit(true)),
+                    new ProverExpr[]{predEdgesWith.mkExpr(a, b, lit(true))}
             );
             addPHC(
-                    predStartsWith.mkExpr(cons(j, a), cons(k, a), lit(false)),
+                    predEdgesWith.mkExpr(cons(j, a), cons(k, a), lit(false)),
                     EMPTY_PHC_BODY,
                     p.mkNot(p.mkEq(j, k))
                     //            lit(true)
             );
             addPHC(
-                    predStartsWith.mkExpr(ha, b, lit(false)),
-                    new ProverExpr[]{predStartsWith.mkExpr(a, b, lit(false))},
+                    predEdgesWith.mkExpr(ha, b, lit(false)),
+                    new ProverExpr[]{predEdgesWith.mkExpr(a, b, lit(false))},
                     p.mkGeq(len(a), len(b))
             );
             addPHC(
-                    predStartsWith.mkExpr(a, hb, lit(false)),
-                    new ProverExpr[]{predStartsWith.mkExpr(a, b, lit(false))}
+                    predEdgesWith.mkExpr(a, hb, lit(false)),
+                    new ProverExpr[]{predEdgesWith.mkExpr(a, b, lit(false))}
             );
         }
 
-        return predStartsWith;
+        return predEdgesWith;
     }
 
     private ProverFun genCharAtRec(ProverType stringADTType) {
@@ -786,12 +789,12 @@ public class StringEncoder {
         return new EncodingFacts(null, guarantee, result, mkNotNullConstraint(result));
     }
 
-    public EncodingFacts mkStringStartsWith(ProverExpr leftString, ProverExpr rightString) {
+    public EncodingFacts mkStringEdgesWith(ProverExpr leftString, ProverExpr rightString, boolean startEdge) {
         ProverType stringADTType = getStringADTType();
         String resultName = String.format(BOOLEAN_STARTS_WITH_TEMPLATE, leftString.toString(), rightString.toString());
         ProverExpr result = booleanHornVar(resultName);
         ProverFun predStartsWith;
-        predStartsWith = genStartsWithRec(stringADTType);    // TODO: Iterative
+        predStartsWith = genEdgesWithRec(stringADTType, startEdge);    // TODO: Iterative
 //        considerHintedSizeStartsWith(predStartsWith, stringADTType);
         ProverExpr guarantee = predStartsWith.mkExpr(leftString, rightString, result);
         return new EncodingFacts(null, guarantee, result, lit(true));
@@ -880,7 +883,13 @@ public class StringEncoder {
                 case StartsWith: {
                     final ProverExpr leftPE = selectString(leftExpr, varMap);
                     final ProverExpr rightPE = selectString(rightExpr, varMap);
-                    return mkStringStartsWith(leftPE, rightPE);
+                    return mkStringEdgesWith(leftPE, rightPE, true);
+                }
+
+                case EndsWith: {
+                    final ProverExpr leftPE = selectString(leftExpr, varMap);
+                    final ProverExpr rightPE = selectString(rightExpr, varMap);
+                    return mkStringEdgesWith(leftPE, rightPE, false);
                 }
 
                 case CharAt: {
