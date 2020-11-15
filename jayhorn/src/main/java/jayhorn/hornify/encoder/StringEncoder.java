@@ -3,8 +3,8 @@ package jayhorn.hornify.encoder;
 import jayhorn.hornify.HornHelper;
 import jayhorn.solver.*;
 import soottocfg.cfg.expression.UnaryExpression;
+import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
-import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
@@ -217,9 +217,9 @@ public class StringEncoder {
                 new ProverType[]{p.getIntType(), stringADTType});
     }
 
-    private ProverFun mkBoolToStringProverFun(ProverType stringADTType) {
-        return p.mkHornPredicate(mkName(BOOL_STRING),
-                new ProverType[]{p.getBooleanType(), stringADTType});
+    private ProverFun mkBoolToStringProverFun(ProverType boolType, ProverType stringADTType) {
+        return p.mkHornPredicate(mkName("bool_string"),
+                new ProverType[]{(boolType instanceof BoolType) ? p.getBooleanType() : p.getIntType(), stringADTType});
     }
 
     private ProverFun mkCharToStringProverFun(ProverType stringADTType) {
@@ -452,20 +452,21 @@ public class StringEncoder {
         return predIntToString;
     }
 
-    private ProverFun genBoolToString(ProverType stringADTType) {
-        ProverExpr b = booleanHornVar("b");
+    private ProverFun genBoolToString(ProverType boolType, ProverType stringADTType) {
+        ProverExpr b = (boolType instanceof BoolType) ? booleanHornVar("b") : intHornVar("b");
+        ProverExpr TRUE = (boolType instanceof BoolType) ? lit(true) : lit(1);
 
-        ProverFun predBoolToString = mkBoolToStringProverFun(stringADTType);
+        ProverFun predBoolToString = mkBoolToStringProverFun(boolType, stringADTType);
 
         addPHC(
                 predBoolToString.mkExpr(b, mkStringPE("true")),
                 EMPTY_PHC_BODY,
-                p.mkEq(b, lit(1))   // TODO: should get real bool ?
+                p.mkEq(b, TRUE)
         );
         addPHC(
                 predBoolToString.mkExpr(b, mkStringPE("false")),
                 EMPTY_PHC_BODY,
-                p.mkNot(p.mkEq(b, lit(1)))
+                p.mkNot(p.mkEq(b, TRUE))
         );
 
         return predBoolToString;
@@ -732,6 +733,20 @@ public class StringEncoder {
         }
     }
 
+    private ProverExpr selectBool(Expression expr, Map<Variable, ProverExpr> varMap) {
+        if (expr instanceof BooleanLiteral) {   // TODO: does not happen; should completely ignore this case?
+            boolean b = ((BooleanLiteral) expr).getValue();
+            return lit(b);
+        } else if (expr instanceof IntegerLiteral) {
+            long num = ((IntegerLiteral)expr).getValue();
+            return lit(num);
+        } else {
+            ProverExpr pe = ProverExprFromIdExpr((IdentifierExpression)expr, varMap);
+            Verify.verify(pe != null, "cannot extract boolean from " + expr);
+            return pe;
+        }
+    }
+
     private ProverExpr mkNotNullConstraint(ProverExpr refPE) {
         return p.mkNot(p.mkEq(p.mkTupleSelect(refPE, 0), lit(0)));
     }
@@ -825,7 +840,7 @@ public class StringEncoder {
         String resultName = mkName(String.format(BOOL_STRING_TEMPLATE, boolPE.toString()));
         ProverExpr result = mkRefHornVariable(resultName, stringRefType);
         ProverExpr resultString = selectString(result);
-        ProverFun predBoolToString = genBoolToString(stringADTType);
+        ProverFun predBoolToString = genBoolToString(boolPE.getType(), stringADTType);
         ProverExpr guarantee = predBoolToString.mkExpr(boolPE, resultString);
         return new EncodingFacts(null, guarantee, result, mkNotNullConstraint(result));
     }
@@ -868,7 +883,7 @@ public class StringEncoder {
     public EncodingFacts mkToStringFromExpression(Expression stringableExpr, Expression lhsRefExpr,
                                                    Map<Variable, ProverExpr> varMap) {
         ReferenceType lhsRefExprType = (ReferenceType) lhsRefExpr.getType();
-        if (stringableExpr.getType() == IntType.instance()) {
+        if (stringableExpr.getType() == soottocfg.cfg.type.IntType.instance()) {
             ProverExpr pe = selectInt(stringableExpr, varMap);
             return mkIntToString(pe, lhsRefExprType);
         } else {
@@ -886,8 +901,13 @@ public class StringEncoder {
     public EncodingFacts mkBoolToStringFromExpression(Expression stringableExpr, Expression lhsRefExpr,
                                                       Map<Variable, ProverExpr> varMap) {
         ReferenceType lhsRefExprType = (ReferenceType) lhsRefExpr.getType();
-        ProverExpr pe = selectInt(stringableExpr, varMap);  // !(stringableExpr instanceof BooleanLiteral)
-        return mkBoolToString(pe, lhsRefExprType);
+        if (stringableExpr.getType() == soottocfg.cfg.type.BoolType.instance() ||
+                stringableExpr.getType() == soottocfg.cfg.type.IntType.instance()) {
+            ProverExpr pe = selectBool(stringableExpr, varMap);
+            return mkBoolToString(pe, lhsRefExprType);
+        } else {
+            return null;
+        }
     }
 
     public EncodingFacts mkCharToStringFromExpression(Expression stringableExpr, Expression lhsRefExpr,
