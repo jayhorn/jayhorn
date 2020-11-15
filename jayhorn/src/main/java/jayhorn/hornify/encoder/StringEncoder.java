@@ -847,7 +847,10 @@ public class StringEncoder {
 
     public EncodingFacts mkStringEdgesWith(ProverExpr leftString, ProverExpr rightString, boolean startEdge) {
         ProverType stringADTType = getStringADTType();
-        String resultName = String.format(BOOLEAN_STARTS_WITH_TEMPLATE, leftString.toString(), rightString.toString());
+        String resultName = String.format(
+                startEdge ? "$starts_with(%s, %s)" : "$ends_with(%s, %s)",
+                leftString.toString(), rightString.toString()
+        );
         ProverExpr result = booleanHornVar(resultName);
         ProverFun predStartsWith;
         predStartsWith = genEdgesWithRec(stringADTType, startEdge);    // TODO: Iterative
