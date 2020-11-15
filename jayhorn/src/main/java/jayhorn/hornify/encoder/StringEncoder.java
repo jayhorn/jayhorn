@@ -34,34 +34,6 @@ public class StringEncoder {
         rtl     // Left to Right
     }
 
-//    public static final String BOOLEAN_REF_TEMPLATE = "$bool_%d";
-    public static final String BOOLEAN_STARTS_WITH_TEMPLATE = "$starts_with(%s, %s)";
-    public static final String BOOLEAN_ENDS_WITH_TEMPLATE = "$ends_with(%s, %s)";
-
-//    public static final String STRING_REF_TEMPLATE = "$str_%d";
-    public static final String STRING_CONCAT_TEMPLATE = "$concat(%s, %s)";
-    public static final String STRING_COMPARE_TEMPLATE = "$compare(%s, %s)";
-
-    public static final String STRING_CHAR_AT_TEMPLATE = "$char_at(%s, %s)";
-
-    public static final String STRING_CONCAT = "string_concat";
-    public static final String STRING_CONCAT_WITH_PREC = STRING_CONCAT + "_prec";
-    public static final String STRING_CONCAT_ITERATIVE = STRING_CONCAT + "_it";
-
-    public static final String INT_STRING = "int_string";
-    public static final String BOOL_STRING = "bool_string";
-    public static final String CHAR_STRING = "char_string";
-    public static final String INT_STRING_HELPER = "int_string_h";
-    public static final String INT_STRING_TEMPLATE = "str_i(%s)";
-    public static final String BOOL_STRING_TEMPLATE = "str_b(%s)";
-    public static final String CHAR_STRING_TEMPLATE = "str_c(%s)";
-
-    public static final String STRING_STARTS_WITH = "string_starts_with";
-    public static final String STRING_ENDS_WITH = "string_ends_with";
-    public static final String STRING_CHAR_AT = "string_char_at";
-
-    public static final String STRING_COMPARE = "string_compare";
-
     public static final int MAX_SIZE_HINT = 8;
 
     public static final ProverExpr[] EMPTY_PHC_BODY = {};   // prevent redundant creation of arrays
@@ -193,27 +165,27 @@ public class StringEncoder {
     }
 
     private ProverFun mkStringConcatIterativeProverFun(ProverType stringADTType) {
-        return p.mkHornPredicate(mkName(STRING_CONCAT_ITERATIVE),
+        return p.mkHornPredicate(mkName("string_concat_it"),
                 new ProverType[]{stringADTType, stringADTType, stringADTType, stringADTType, stringADTType});
     }
 
     private ProverFun mkStringConcatProverFun(ProverType stringADTType) {
-        return p.mkHornPredicate(mkName(STRING_CONCAT),
+        return p.mkHornPredicate(mkName("string_concat"),
                 new ProverType[]{stringADTType, stringADTType, stringADTType});
     }
 
     private ProverFun mkStringConcatPreconditionProverFun(ProverType stringADTType) {
-        return p.mkHornPredicate(mkName(STRING_CONCAT_WITH_PREC),
+        return p.mkHornPredicate(mkName("string_concat_prec"),
                 new ProverType[]{stringADTType, stringADTType});
     }
 
     private ProverFun mkIntToStringHelperProverFun(ProverType stringADTType) {
-        return p.mkHornPredicate(mkName(INT_STRING_HELPER),
+        return p.mkHornPredicate(mkName("int_string_h"),
                 new ProverType[]{p.getIntType(), p.getIntType(), stringADTType});
     }
 
     private ProverFun mkIntToStringProverFun(ProverType stringADTType) {
-        return p.mkHornPredicate(mkName(INT_STRING),
+        return p.mkHornPredicate(mkName("int_string"),
                 new ProverType[]{p.getIntType(), stringADTType});
     }
 
@@ -223,22 +195,23 @@ public class StringEncoder {
     }
 
     private ProverFun mkCharToStringProverFun(ProverType stringADTType) {
-        return p.mkHornPredicate(mkName(CHAR_STRING),
+        return p.mkHornPredicate(mkName("char_string"),
                 new ProverType[]{p.getIntType(), stringADTType});
     }
 
     private ProverFun mkStringEdgesWithProverFun(ProverType stringADTType, boolean startEdge) {
-        String predicateName = startEdge ? STRING_STARTS_WITH : STRING_ENDS_WITH;
+        String predicateName = startEdge ? "string_starts_with" : "string_ends_with";
         return p.mkHornPredicate(mkName(predicateName),
                 new ProverType[]{stringADTType, stringADTType, p.getBooleanType()});
     }
 
     private ProverFun mkStringCharAtProverFun(ProverType stringADTType) {
-        return p.mkHornPredicate(mkName(STRING_CHAR_AT),
+        return p.mkHornPredicate(mkName("string_char_at"),
                 new ProverType[]{stringADTType, p.getIntType(), p.getIntType()});
     }
 
     private ProverFun mkStringCompareToProverFun(ProverType stringADTType) {
+        final String STRING_COMPARE = "string_compare";
         if (stringDirection == StringDirection.ltr) {
             return p.mkHornPredicate(mkName(STRING_COMPARE),
                     new ProverType[]{stringADTType, stringADTType, p.getIntType()});
@@ -753,7 +726,7 @@ public class StringEncoder {
 
     public EncodingFacts mkStringConcat(ProverExpr leftString, ProverExpr rightString, ReferenceType stringRefType) {
         ProverType stringADTType = getStringADTType();
-        String concatName = String.format(STRING_CONCAT_TEMPLATE, leftString.toString(), rightString.toString());
+        String concatName = String.format("$concat(%s, %s)", leftString.toString(), rightString.toString());
         ProverExpr concat = mkRefHornVariable(concatName, stringRefType);
         ProverExpr concatString = selectString(concat);
         ProverFun predConcat;
@@ -788,7 +761,7 @@ public class StringEncoder {
 
     public EncodingFacts mkStringCompareTo(ProverExpr leftString, ProverExpr rightString, ReferenceType stringRefType) {
         ProverType stringADTType = getStringADTType();
-        String resultName = String.format(STRING_COMPARE_TEMPLATE, leftString.toString(), rightString.toString());
+        String resultName = String.format("$compare(%s, %s)", leftString.toString(), rightString.toString());
         ProverExpr result = intHornVar(resultName);
         ProverFun predCompareTo;
         switch (stringEncoding) {
@@ -815,7 +788,7 @@ public class StringEncoder {
 
     public EncodingFacts mkIntToString(ProverExpr intPE, ReferenceType stringRefType) {
         ProverType stringADTType = getStringADTType();
-        String resultName = mkName(String.format(INT_STRING_TEMPLATE, intPE.toString()));
+        String resultName = mkName(String.format("str_i(%s)", intPE.toString()));
         ProverExpr result = mkRefHornVariable(resultName, stringRefType);
         ProverExpr resultString = selectString(result);
         ProverFun predIntToString = genIntToString(stringADTType);
@@ -826,7 +799,7 @@ public class StringEncoder {
 
     public EncodingFacts mkCharToString(ProverExpr charPE, ReferenceType stringRefType) {
         ProverType stringADTType = getStringADTType();
-        String resultName = mkName(String.format(CHAR_STRING_TEMPLATE, charPE.toString()));
+        String resultName = mkName(String.format("str_c(%s)", charPE.toString()));
         ProverExpr result = mkRefHornVariable(resultName, stringRefType);
         ProverExpr resultString = selectString(result);
         ProverFun predCharToString = genCharToString(stringADTType);
@@ -837,7 +810,7 @@ public class StringEncoder {
 
     public EncodingFacts mkBoolToString(ProverExpr boolPE, ReferenceType stringRefType) {
         ProverType stringADTType = getStringADTType();
-        String resultName = mkName(String.format(BOOL_STRING_TEMPLATE, boolPE.toString()));
+        String resultName = mkName(String.format("str_b(%s)", boolPE.toString()));
         ProverExpr result = mkRefHornVariable(resultName, stringRefType);
         ProverExpr resultString = selectString(result);
         ProverFun predBoolToString = genBoolToString(boolPE.getType(), stringADTType);
@@ -861,7 +834,7 @@ public class StringEncoder {
 
     public EncodingFacts mkStringCharAt(ProverExpr strPE, ProverExpr indexPE) {
         ProverType stringADTType = getStringADTType();
-        String chName = String.format(STRING_CHAR_AT_TEMPLATE, strPE.toString(), indexPE.toString());
+        String chName = String.format("$char_at(%s, %s)", strPE.toString(), indexPE.toString());
         ProverExpr ch = intHornVar(chName);
         ProverFun predCharAt;
         predCharAt = genCharAtRec(stringADTType);           // TODO: Iterative
