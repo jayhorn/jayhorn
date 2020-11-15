@@ -239,8 +239,13 @@ public class StringEncoder {
     }
 
     private ProverFun mkStringCompareToProverFun(ProverType stringADTType) {
-        return p.mkHornPredicate(mkName(STRING_COMPARE),
-                new ProverType[]{stringADTType, stringADTType, p.getIntType()});
+        if (stringDirection == StringDirection.ltr) {
+            return p.mkHornPredicate(mkName(STRING_COMPARE),
+                    new ProverType[]{stringADTType, stringADTType, p.getIntType()});
+        } else {
+            return p.mkHornPredicate(mkName(STRING_COMPARE),
+                    new ProverType[]{stringADTType, stringADTType, p.getIntType(), p.getBooleanType()});
+        }
     }
 
     private void considerHintedSizeConcat(ProverFun predConcat, ProverType stringADTType) {
@@ -616,17 +621,17 @@ public class StringEncoder {
 
         ProverFun predCompareTo = mkStringCompareToProverFun(stringADTType);
 
-        addPHC(
-                predCompareTo.mkExpr(a, nil(), len(a))
-        );
-        addPHC(
-                predCompareTo.mkExpr(nil(), b, p.mkNeg(len(b)))
-        );
-        addPHC(
-                predCompareTo.mkExpr(a, a, lit(0))
-        );
 
         if (stringDirection == StringDirection.ltr) {
+            addPHC(
+                    predCompareTo.mkExpr(a, nil(), len(a))
+            );
+            addPHC(
+                    predCompareTo.mkExpr(nil(), b, p.mkNeg(len(b)))
+            );
+            addPHC(
+                    predCompareTo.mkExpr(a, a, lit(0))
+            );
             addPHC(
                     predCompareTo.mkExpr(cons(j, a), cons(k, b), p.mkMinus(j, k)),
                     EMPTY_PHC_BODY,
@@ -637,7 +642,38 @@ public class StringEncoder {
                     new ProverExpr[]{predCompareTo.mkExpr(a, b, c)}
             );
         } else {
-            throw new RuntimeException("not implemented");
+            addPHC(
+                    predCompareTo.mkExpr(a, nil(), len(a), lit(false))
+            );
+            addPHC(
+                    predCompareTo.mkExpr(nil(), b, p.mkNeg(len(b)), lit(false))
+            );
+            addPHC(
+                    predCompareTo.mkExpr(a, a, lit(0), lit(false))
+            );
+            addPHC(
+                    predCompareTo.mkExpr(cons(h, a), b, p.mkPlus(c, lit(1)), lit(false)),
+                    new ProverExpr[]{predCompareTo.mkExpr(a, b, c, lit(false))},
+                    p.mkGeq(len(a), len(b))
+            );
+            addPHC(
+                    predCompareTo.mkExpr(a, cons(h, b), p.mkMinus(c, lit(1)), lit(false)),
+                    new ProverExpr[]{predCompareTo.mkExpr(a, b, c, lit(false))},
+                    p.mkLeq(len(a), len(b))
+            );
+            addPHC(
+                    predCompareTo.mkExpr(cons(j, a), cons(k, a), p.mkMinus(j, k), lit(true)),
+                    EMPTY_PHC_BODY,
+                    p.mkNot(p.mkEq(j, k))
+            );
+            addPHC(
+                    predCompareTo.mkExpr(cons(h, a), b, c, lit(true)),
+                    new ProverExpr[]{predCompareTo.mkExpr(a, b, c, lit(true))}
+            );
+            addPHC(
+                    predCompareTo.mkExpr(a, cons(h, b), c, lit(true)),
+                    new ProverExpr[]{predCompareTo.mkExpr(a, b, c, lit(true))}
+            );
         }
 
         return predCompareTo;
@@ -753,7 +789,12 @@ public class StringEncoder {
 //            default:
 //                throw new RuntimeException("unhandled string encoding");
         }
-        ProverExpr guarantee = predCompareTo.mkExpr(leftString, rightString, result);
+        ProverExpr guarantee;
+        if (stringDirection == StringDirection.ltr) {
+            guarantee = predCompareTo.mkExpr(leftString, rightString, result);
+        } else {
+            guarantee = predCompareTo.mkExpr(leftString, rightString, result, booleanHornVar(mkName("$tmp")));
+        }
         return new EncodingFacts(null, guarantee, result, lit(true));
     }
 
