@@ -912,7 +912,8 @@ public class SootStmtSwitch implements StmtSwitch {
 //        }
 
         /**
-         * Method of the Random (or similar) class, which is replaced with a simple
+         * Method nondet*() of the Verifier class used to formulate
+         * SV-COMP problems.  Replace those method with a simple
          * havoc.
          */
         private void translateRandomNondet(Type t, Value optionalLhs,
@@ -947,6 +948,10 @@ public class SootStmtSwitch implements StmtSwitch {
             }
         }
 
+	/**
+	 * Method of the Random class, which are replaced with a simple
+	 * havoc.
+	 */
 	private void translateNondetString(Type t, Value optionalLhs, InvokeExpr call) {
 
 		Verify.verify(call.getArgCount() == 0);

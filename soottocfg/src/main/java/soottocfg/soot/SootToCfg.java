@@ -296,8 +296,9 @@ public class SootToCfg {
 				body = sm.retrieveActiveBody();
 				performSootOptimizations(body);
 			} catch (RuntimeException e) {
-				// TODO: print warning that body couldn't be retrieved.
-				return;
+                            System.err.println("Could not retrieve body of method " +
+                                               sm.getName());
+                            throw e;
 			}
 			MethodInfo mi = new MethodInfo(body.getMethod(), SootTranslationHelpers.v().getCurrentSourceFileName());
 
@@ -423,7 +424,13 @@ public class SootToCfg {
 		soot.jimple.toolkits.scalar.CopyPropagator.v().transform(body);
 		// soot.jimple.toolkits.scalar.UnreachableCodeEliminator.v().transform(body);
 		soot.jimple.toolkits.scalar.ConstantCastEliminator.v().transform(body);
-		soot.jimple.toolkits.scalar.ConstantPropagatorAndFolder.v().transform(body);
+                try {
+                    soot.jimple.toolkits.scalar.ConstantPropagatorAndFolder.v().transform(body);
+                } catch (RuntimeException e) {
+                    System.err.println(
+                      "soot.jimple.toolkits.scalar.ConstantPropagatorAndFolder" +
+                      " failed, ignoring ...");
+                }
 		soot.jimple.toolkits.scalar.DeadAssignmentEliminator.v().transform(body);
 		soot.jimple.toolkits.scalar.EmptySwitchEliminator.v().transform(body);
 	}
