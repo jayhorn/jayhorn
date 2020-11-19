@@ -687,7 +687,7 @@ public class SootStmtSwitch implements StmtSwitch {
 	}
 
         /**
-         * Method nondet*() of the Verifier class used to formula
+         * Method nondet*() of the Verifier class used to formulate
          * SV-COMP problems.  Replace those method with a simple
          * havoc.
          */
@@ -724,7 +724,7 @@ public class SootStmtSwitch implements StmtSwitch {
         }
 
         /**
-         * Method of the Random class, which are replace with a simple
+         * Method of the Random class, which are replaced with a simple
          * havoc.
          */
         private void translateRandomNondet(Type t, Value optionalLhs,
