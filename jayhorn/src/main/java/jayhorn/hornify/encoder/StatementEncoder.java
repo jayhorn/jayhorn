@@ -228,7 +228,7 @@ public class StatementEncoder {
             expEncoder.getStringEncoder().handleStringExpr(as.getRight(), varMap);
         if (stringConstraints != null)
             return generateStringClauses(stringConstraints, idLhs, postPred, preAtom, varMap);
-        
+
         ProverExpr right = expEncoder.exprToProverExpr(as.getRight(), varMap);
         if (as.getRight() instanceof NullLiteral) {
             ProverTupleType pttLeft = (ProverTupleType) HornHelper.hh().getProverType(p, idLhs.getType());
@@ -386,6 +386,19 @@ public class StatementEncoder {
         for (Expression e : cs.getReceiver()) {
             receiverVars.add(((IdentifierExpression) e).getVariable());
         }
+
+        if (Options.v().strictlySound() && hornContext.elimOverApprox() &&
+            calledMethod.isArrayGet()) {
+            for (Variable v : receiverVars) {
+                if (v.getType().toString().equals("java.lang.String")) {
+                    Log.info("Dropping call to over-approximated " +
+                             calledMethod.getMethodName());
+                    hornContext.droppedApproximatedStatement();
+                    return clauses;
+                }
+            }
+        }
+
         // final List<ProverExpr> receiverExprs =
         HornHelper.hh().findOrCreateProverVar(p, receiverVars, varMap);
 
@@ -421,7 +434,7 @@ public class StatementEncoder {
                     for (int i = 0; i < ptt.getArity(); i++) {
                         smallTuple[i] = pte.getSubExpr(i);
                     }
-                    expr = new ProverTupleExpr(smallTuple);
+                    expr = new ProverTupleExpr(smallTuple);     // TODO: support arbitrary size in param type
                 }
             }
 
