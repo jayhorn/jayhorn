@@ -62,7 +62,7 @@ public class StringEncoder {
     private ProverExpr lit(int value) { return p.mkLiteral(value); }
     private ProverExpr lit(char value) { return p.mkLiteral(value); }
     private ProverExpr lit(boolean value) { return p.mkLiteral(value); }
-    private ProverExpr lit(BigInteger value) { return p.mkLiteral(value); }
+//    private ProverExpr lit(BigInteger value) { return p.mkLiteral(value); }
     private ProverExpr lit(long value) { return p.mkLiteral(BigInteger.valueOf(value)); }
 
     private ProverExpr stringHornVar(String name, ProverType stringADTType) { return p.mkHornVariable(name, stringADTType); }
@@ -451,7 +451,6 @@ public class StringEncoder {
         ProverExpr h = intHornVar("h");
         ProverExpr j = intHornVar("j");
         ProverExpr k = intHornVar("k");
-        ProverExpr z = intHornVar("z");
         ProverExpr ha = cons(h, a);
         ProverExpr hb = cons(h, b);
         ProverExpr ja = cons(j, a);
@@ -513,7 +512,6 @@ public class StringEncoder {
     }
 
     private ProverFun genCharAtRec(ProverType stringADTType) {
-        ProverExpr s = stringHornVar("s", stringADTType);
         ProverExpr t = stringHornVar("t", stringADTType);
         ProverExpr h = intHornVar("h");
         ProverExpr i = intHornVar("i");
@@ -670,7 +668,7 @@ public class StringEncoder {
         return p.mkHornVariable(name, proverType);
     }
 
-    public static ProverExpr ProverExprFromIdExpr(IdentifierExpression ie, Map<Variable, ProverExpr> varMap) {
+    public static ProverExpr proverExprFromIdExpr(IdentifierExpression ie, Map<Variable, ProverExpr> varMap) {
         return varMap.get(ie.getVariable());
     }
 
@@ -686,7 +684,7 @@ public class StringEncoder {
         if (expr instanceof StringLiteral) {
             return mkStringPE(((StringLiteral)expr).getValue());
         } else if (expr instanceof IdentifierExpression) {
-            ProverExpr pe = ProverExprFromIdExpr((IdentifierExpression)expr, varMap);
+            ProverExpr pe = proverExprFromIdExpr((IdentifierExpression)expr, varMap);
             Verify.verify(pe != null, "cannot extract string from " + expr);
             return selectString(pe);
         } else {
@@ -700,7 +698,7 @@ public class StringEncoder {
             long num = ((IntegerLiteral)expr).getValue();
             return lit(num);
         } else {
-            ProverExpr pe = ProverExprFromIdExpr((IdentifierExpression)expr, varMap);
+            ProverExpr pe = proverExprFromIdExpr((IdentifierExpression)expr, varMap);
             Verify.verify(pe != null, "cannot extract int from " + expr);
             return pe;
         }
@@ -714,7 +712,7 @@ public class StringEncoder {
             long num = ((IntegerLiteral)expr).getValue();
             return lit(num);
         } else {
-            ProverExpr pe = ProverExprFromIdExpr((IdentifierExpression)expr, varMap);
+            ProverExpr pe = proverExprFromIdExpr((IdentifierExpression)expr, varMap);
             Verify.verify(pe != null, "cannot extract boolean from " + expr);
             return pe;
         }
@@ -848,7 +846,7 @@ public class StringEncoder {
             Verify.verify(str != null, "unsupported expression");
             return new EncodingFacts(null, null, lit(str.length()), lit(true));
         } else {
-            final ProverExpr pe = ProverExprFromIdExpr((IdentifierExpression)strExpr, varMap);
+            final ProverExpr pe = proverExprFromIdExpr((IdentifierExpression)strExpr, varMap);
             if (pe == null)
                 return null;
             final ProverExpr strPE = selectString(pe);
