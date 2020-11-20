@@ -11,6 +11,7 @@ import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
+import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
@@ -141,6 +142,11 @@ public class CfgScanner extends CfgVisitor {
 	protected Expression processExpression(IntegerLiteral e) {
 		return e;
 	}
+
+//	@Override
+//	protected Expression processExpression(StringLiteral e) {
+//		return e;
+//	}
 
 	@Override
 	protected Expression processExpression(NullLiteral e) {

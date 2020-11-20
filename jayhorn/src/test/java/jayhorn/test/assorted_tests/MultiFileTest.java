@@ -27,7 +27,7 @@ import soottocfg.soot.SootToCfg;
  *
  */
 @RunWith(Parameterized.class)
-public class MutliFileTest {
+public class MultiFileTest {
 
 	private static final String userDir = System.getProperty("user.dir") + "/";
 	private static final String testRoot = userDir + "src/test/resources/";
@@ -68,7 +68,7 @@ public class MutliFileTest {
 
 	private final String benchmarkName;
 	
-	public MutliFileTest(File source, String name, String benchmarkName) {
+	public MultiFileTest(File source, String name, String benchmarkName) {
 		this.sourceFile = source;
 		this.benchmarkName = benchmarkName;
 	}

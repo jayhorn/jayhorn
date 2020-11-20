@@ -35,6 +35,7 @@ public class MethodEncoder {
 
     private final Map<CfgBlock, HornPredicate> blockPredicates = new LinkedHashMap<CfgBlock, HornPredicate>();
     private final List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
+    // TODO: What is the purpose of tsClauses?
     private final List<ProverHornClause> tsClauses = new LinkedList<ProverHornClause>(); // keep track of
     private final ExpressionEncoder expEnc;
 
@@ -69,7 +70,16 @@ public class MethodEncoder {
         blocksToHorn(liveVariables);
         S2H.sh().addClause((Statement) null, tsClauses);
 
+        encodeExtraClauses();
+
         return clauses;
+    }
+
+    private void encodeExtraClauses() {
+        List<ProverHornClause> extraClauses = expEnc.getExtraEncodedClauses();
+        tsClauses.addAll(extraClauses);
+        S2H.sh().addClause((Statement) null, tsClauses);
+        clauses.addAll(extraClauses);
     }
 
     public Map<CfgBlock, HornPredicate> getBlockPredicates() {
@@ -107,7 +117,7 @@ public class MethodEncoder {
         // the same values as the local variables
         for (int i = 0; i < hornContext.getExtraPredicateArgs().size(); ++i)
             varMap.put(hornContext.getExtraPredicateArgs().get(i),
-                       varMap.get(hornContext.getExtraPredicatePreArgs().get(i)));
+                    varMap.get(hornContext.getExtraPredicatePreArgs().get(i)));
 
         final ProverExpr entryAtom = blockPredicates.get(method.getSource()).instPredicate(varMap);
         final ProverHornClause clause = p.mkHornClause(entryAtom, new ProverExpr[]{preAtom}, p.mkLiteral(true));
@@ -139,7 +149,7 @@ public class MethodEncoder {
 
             sortedVars.addAll(HornHelper.hh().setToSortedList(allLive));
             blockPredicates.put(entry.getKey(),
-                                freshHornPredicate(method.getMethodName() + "_" + entry.getKey().getLabel(), sortedVars));
+                    freshHornPredicate(method.getMethodName() + "_" + entry.getKey().getLabel(), sortedVars));
         }
     }
 
@@ -179,26 +189,26 @@ public class MethodEncoder {
             CfgBlock current = todo.remove(0);
             done.add(current);
             /*
-			 * Translate the body of the CfgBlock using blockToHorn.
-			 * This gives us the exitPred which is the last predicate
-			 * used in this basic block.
-			 */
+             * Translate the body of the CfgBlock using blockToHorn.
+             * This gives us the exitPred which is the last predicate
+             * used in this basic block.
+             */
             final HornPredicate exitPred = blockToHorn(current, liveVariables.liveOut.get(current));
             //reset the varMap here.
             Map<Variable, ProverExpr> varMap = new HashMap<Variable, ProverExpr>();
-			/*
-			 * Now distinguish two cases: 
-			 * THEN-CASE: Our block has no successors and leaves the method.
-			 *   In this case, we have to connect exitPred to the predicate
-			 *   associated with the postcondition of the method. That is,
-			 *   we generate a Horn clause of the form
-			 *   exitPred(...) -> postPred(...)
-			 * ELSE-CASE: Our block has at least one successor. In this case,
-			 *   we have to create a clause that connects exitPred with the
-			 *   predicate associated with the entry into the next block: succPred.
-			 *   And we have to add the next block to the todo list if we haven't
-			 *   processed it already.
-			 */
+            /*
+             * Now distinguish two cases:
+             * THEN-CASE: Our block has no successors and leaves the method.
+             *   In this case, we have to connect exitPred to the predicate
+             *   associated with the postcondition of the method. That is,
+             *   we generate a Horn clause of the form
+             *   exitPred(...) -> postPred(...)
+             * ELSE-CASE: Our block has at least one successor. In this case,
+             *   we have to create a clause that connects exitPred with the
+             *   predicate associated with the entry into the next block: succPred.
+             *   And we have to add the next block to the todo list if we haven't
+             *   processed it already.
+             */
             if (method.outgoingEdgesOf(current).isEmpty()) {
                 // block ends with a return
                 final ProverExpr postAtom = postcondition.instPredicate(varMap);

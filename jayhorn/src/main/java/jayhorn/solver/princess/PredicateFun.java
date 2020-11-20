@@ -19,7 +19,7 @@ class PredicateFun implements ProverFun {
                 this.argTypes = argTypes;
 	}
 
-	public ProverExpr mkExpr(ProverExpr[] args) {
+	public ProverExpr mkExpr(ProverExpr ... args) {
             try {
             checkArgTypes(argTypes, args);
             } catch(RuntimeException e) {

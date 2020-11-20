@@ -15,6 +15,7 @@ import com.google.common.base.Verify;
 import jayhorn.Log;
 import jayhorn.Options;
 import jayhorn.solver.Prover;
+import jayhorn.solver.ProverADT;
 import jayhorn.solver.ProverType;
 import jayhorn.solver.ProverExpr;
 import jayhorn.utils.GhostRegister;
@@ -190,9 +191,10 @@ public class HornEncoderContext {
         }
     }
 
-    public HornEncoderContext(Prover p, Program prog, int explicitHeapSize, GeneratedAssertions generatedAssertions) {
+    public HornEncoderContext(Prover p, Program prog, ProverADT stringADT, int explicitHeapSize, GeneratedAssertions generatedAssertions) {
         this.program = prog;
         this.p = p;
+        HornHelper.hh().setStringADT(stringADT);
         this.explicitHeapSize = explicitHeapSize;
         this.genAssertions = generatedAssertions;
         for (ClassVariable var : program.getTypeGraph().vertexSet()) {

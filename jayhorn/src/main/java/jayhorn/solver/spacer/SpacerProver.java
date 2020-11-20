@@ -2,15 +2,8 @@
 package jayhorn.solver.spacer;
 
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,7 +41,6 @@ import jayhorn.solver.ProverResult;
 import jayhorn.solver.ProverTupleExpr;
 import jayhorn.solver.ProverTupleType;
 import jayhorn.solver.ProverType;
-import jayhorn.solver.ProverADT;
 
 /**
  * @author teme
@@ -58,8 +50,9 @@ public class SpacerProver implements Prover {
 
 	private Context ctx;
 	private Solver solver;
-	
-	
+
+//	private boolean initStringHornClauses = false;
+
 	private HashMap<String, String> cfg = new HashMap<String, String>();
 	private Fixedpoint fx;
 
@@ -226,20 +219,6 @@ public class SpacerProver implements Prover {
 	}
 
 	@Override
-	public ProverADT mkADT(String[]       typeNames,
-                               String[]       ctorNames,
-                               int[]          ctorTypes,
-                               ProverType[][] ctorArgTypes,
-                               String[][]     selectorNames) {
-            throw new UnsupportedOperationException();
-        }
-
-	@Override
-	public ProverType getADTTempType(int n) {
-            throw new UnsupportedOperationException();
-        }
-
-	@Override
 	public ProverExpr mkBoundVariable(int deBruijnIndex, ProverType type) {
 		try{
 			return new SpacerTermExpr(ctx.mkBound(deBruijnIndex, unpack(type)), type);
@@ -397,7 +376,7 @@ public class SpacerProver implements Prover {
 
 
 	@Override
-	public ProverExpr mkAnd(ProverExpr[] args)  {
+	public ProverExpr mkAnd(ProverExpr ... args)  {
 		try {
 			BoolExpr[] bargs = new BoolExpr[args.length];
 			for (int i = 0; i < args.length; i++) {
@@ -421,7 +400,7 @@ public class SpacerProver implements Prover {
 	}
 
 	@Override
-	public ProverExpr mkOr(ProverExpr[] args) {
+	public ProverExpr mkOr(ProverExpr ... args) {
 		try {
 			BoolExpr[] bargs = new BoolExpr[args.length];
 			for (int i = 0; i < args.length; i++) {
@@ -1032,11 +1011,32 @@ public class SpacerProver implements Prover {
 	 * The head literal can either be constructed using
 	 * <code>mkHornPredicate</code>, or be the formula <code>false</code>.
 	 */
-	public ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body,
-			ProverExpr constraint) {
+	@Override
+	public ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body, ProverExpr constraint
+//			, String name
+	) {
 		return new SpacerHornExpr(head, body, constraint);
 	}
-	
+
+//	@Override
+//	public ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body, ProverExpr constraint) {
+//		return mkHornClause(head, body, constraint, null);
+//	}
+
+//	@Override
+//	public void initializeStringHornClauses(Iterable<ProverHornClause> stringHornClauses) {
+//		if (!initStringHornClauses) {
+//			for (ProverHornClause hc : stringHornClauses) {
+//				this.addAssertion(hc);
+//			}
+//			initStringHornClauses = true;
+//		}
+//	}
+//
+//	@Override
+//	public boolean isInitializedStringHornClauses() {
+//		return initStringHornClauses;
+//	}
 
 	@Override
 	public void setHornLogic(boolean b) {

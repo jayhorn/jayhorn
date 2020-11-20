@@ -20,6 +20,7 @@ import soot.jimple.StringConstant;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.ClassVariable;
+import soottocfg.cfg.variable.Variable;
 import soottocfg.soot.visitors.SootStmtSwitch;
 import soottocfg.soot.visitors.SootValueSwitch;
 
@@ -70,6 +71,10 @@ public abstract class MemoryModel {
 	public abstract void mkConstructorCall(Unit u, SootMethod constructor, List<Expression> args);
 
 	public abstract ClassVariable lookupClassVariable(ClassConstant t);
+
+	public abstract void putExpression(Variable variable, Expression expr);
+
+	public abstract Expression lookupExpression(Variable variable);
 
 	public abstract Type lookupType(soot.Type t);
 

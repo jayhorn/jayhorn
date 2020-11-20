@@ -24,7 +24,7 @@ class PrincessFun implements ProverFun {
 		this.resType = resType;
 	}
 
-	public ProverExpr mkExpr(ProverExpr[] args) {
+	public ProverExpr mkExpr(ProverExpr ... args) {
             ProverExpr[] flatArgs = ProverTupleExpr.flatten(args);
             
             final ArrayBuffer<ITerm> argsBuf = new ArrayBuffer<ITerm>();

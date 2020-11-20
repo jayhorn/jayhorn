@@ -7,19 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Verify;
-
-import jayhorn.solver.Prover;
-import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverFun;
-import jayhorn.solver.ProverTupleExpr;
-import jayhorn.solver.ProverTupleType;
-import jayhorn.solver.ProverType;
+import jayhorn.hornify.encoder.ExpressionEncoder;
+import jayhorn.solver.*;
+import soottocfg.cfg.type.*;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
-import soottocfg.cfg.type.ReferenceType;
-import soottocfg.cfg.type.Type;
-import soottocfg.cfg.type.TypeType;
 import soottocfg.cfg.variable.Variable;
 
 public class HornHelper {
@@ -27,6 +19,8 @@ public class HornHelper {
 	public static final int NullValue = 0;
 	
 	private static HornHelper hh;
+
+	private ProverADT stringADT;
 	
 	public static void resetInstance() {
 		hh = null;
@@ -42,6 +36,14 @@ public class HornHelper {
 	private HornHelper() {
 	}
 
+	public void setStringADT(ProverADT stringADT) {
+		this.stringADT = stringADT;
+	}
+
+	public ProverADT getStringADT() {
+		return stringADT;
+	}
+
 	/**
 	 * Creates a ProverType from a Type.
 	 * TODO: not fully implemented.
@@ -54,6 +56,11 @@ public class HornHelper {
 		if (t == IntType.instance()) {
 			return p.getIntType();
 		}
+		if (t == StringType.instance()) {
+			if (stringADT == null)
+				throw new RuntimeException("stringADT is not set");
+			return stringADT.getType(0);
+		}
 		if (t == BoolType.instance()) {
 			return p.getBooleanType();
 		}
@@ -65,8 +72,8 @@ public class HornHelper {
 			}
 			return p.getTupleType(subTypes);
 		}
-                if (t instanceof WrappedProverType)
-                    return ((WrappedProverType)t).getProverType();
+		if (t instanceof WrappedProverType)
+			return ((WrappedProverType)t).getProverType();
 		if (t instanceof TypeType) {
 			return p.getIntType();
 		}
@@ -74,15 +81,18 @@ public class HornHelper {
 		throw new IllegalArgumentException("don't know what to do with " + t);
 	}
 	
-	public ProverTupleExpr mkNullExpression(Prover p, ProverType[] types) {
+	public ProverTupleExpr mkNullExpression(Prover p, ProverType[] types, ExpressionEncoder expEncoder) {
 		ProverExpr[] subExprs = new ProverExpr[types.length];
 		for (int i = 0; i < types.length; i++) {
 			if (types[i] instanceof jayhorn.solver.BoolType) {
 				subExprs[i] = p.mkLiteral(false);
 			} else if (types[i] instanceof jayhorn.solver.IntType) {
 				subExprs[i] = p.mkLiteral(NullValue);
+			} else if (types[i] instanceof jayhorn.solver.ProverADTType
+						&& types[i].toString().equals(StringType.instance().toString())) {	// TODO: better check
+				subExprs[i] = expEncoder.getStringEncoder().mkStringPE("");
 			} else if (types[i] instanceof ProverTupleType) {				
-				subExprs[i] = mkNullExpression(p, ((ProverTupleType)types[i]).getSubTypes());
+				subExprs[i] = mkNullExpression(p, ((ProverTupleType)types[i]).getSubTypes(), expEncoder);
 			} else {
 				throw new RuntimeException("Not implemented " + types[i].getClass());
 			}

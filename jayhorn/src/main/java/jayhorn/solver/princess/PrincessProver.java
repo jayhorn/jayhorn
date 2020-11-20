@@ -60,20 +60,7 @@ import ap.types.Sort$;
 import ap.types.Sort.Integer$;
 import jayhorn.Log;
 import jayhorn.Options;
-import jayhorn.solver.ArrayType;
-import jayhorn.solver.BoolType;
-import jayhorn.solver.IntType;
-import jayhorn.solver.Prover;
-import jayhorn.solver.ProverExpr;
-import jayhorn.solver.ProverFun;
-import jayhorn.solver.ProverHornClause;
-import jayhorn.solver.ProverListener;
-import jayhorn.solver.ProverResult;
-import jayhorn.solver.ProverTupleExpr;
-import jayhorn.solver.ProverTupleType;
-import jayhorn.solver.ProverType;
-import jayhorn.solver.ADTTempType;
-import jayhorn.solver.ProverADT;
+import jayhorn.solver.*;
 import lazabs.horn.bottomup.HornClauses;
 import lazabs.horn.bottomup.HornClauses.Clause;
 import lazabs.horn.bottomup.SimpleWrapper;
@@ -249,7 +236,7 @@ public class PrincessProver implements Prover {
 		};
 	}
 
-	public ProverExpr mkAll(ProverExpr body, ProverType type) {
+	public ProverExpr mkAll(ProverExpr body, ProverType type) {		// TODO: type is not used, why?
             // TODO: handle tuples
 		return new FormulaExpr(IExpression$.MODULE$.all(((PrincessProverExpr) body).toFormula()));
 	}
@@ -304,7 +291,7 @@ public class PrincessProver implements Prover {
 				((PrincessProverExpr) right).toFormula()));
 	}
 
-	public ProverExpr mkAnd(ProverExpr[] args) {
+	public ProverExpr mkAnd(ProverExpr ... args) {
 		final ArrayBuffer<IFormula> argsBuf = new ArrayBuffer<IFormula>();
 		for (int i = 0; i < args.length; ++i)
 			argsBuf.$plus$eq(((PrincessProverExpr) args[i]).toFormula());
@@ -316,7 +303,7 @@ public class PrincessProver implements Prover {
 				((PrincessProverExpr) right).toFormula()));
 	}
 
-	public ProverExpr mkOr(ProverExpr[] args) {
+	public ProverExpr mkOr(ProverExpr ... args) {
 		final ArrayBuffer<IFormula> argsBuf = new ArrayBuffer<IFormula>();
 		for (int i = 0; i < args.length; ++i)
 			argsBuf.$plus$eq(((PrincessProverExpr) args[i]).toFormula());
@@ -911,7 +898,7 @@ public class PrincessProver implements Prover {
         public String toSMTLIBScript(java.util.List<ProverHornClause> clauses) {
             ArrayBuffer<IFormula> clauseFors = new ArrayBuffer<> ();
             HashSet<Predicate> allPreds = new HashSet<> ();
-            
+
             for (ProverHornClause c : clauses) {
                 IFormula f = ((HornExpr)c).toFormula();
                 ((HornExpr)c).collectPreds(allPreds);
@@ -919,12 +906,12 @@ public class PrincessProver implements Prover {
             }
 
             allPreds.$minus$eq(SimpleWrapper.FALSEAtom().pred());
-            
+System.out.println("all preds: " + allPreds);
             PrintStream originalOut = scala.Console.out();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintStream newOut = new PrintStream(baos);
             scala.Console.setOut(newOut);
-            
+
             ap.parser.SMTLineariser.apply("JayHorn-clauses", "HORN", "unknown",
                                           new ArrayBuffer(),
                                           allPreds.toSeq(), // .sortBy(_.name),
@@ -934,7 +921,7 @@ public class PrincessProver implements Prover {
             scala.Console.setOut(originalOut);
             return baos.toString();
         }
-            
+
 	public void parseSMTLIBFormula(final String formula) {
 //		Tuple3<Seq<IFormula>, scala.collection.immutable.Map<IFunction, SMTFunctionType>, scala.collection.immutable.Map<ConstantTerm, SMTType>> triple = 
 				

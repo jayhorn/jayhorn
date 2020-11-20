@@ -10,6 +10,12 @@ public interface ProverADT {
      */
     ProverType getType(int typeIndex);
 
+
+    /**
+     * Build nondeterministic term of the specified ADT type
+     */
+    ProverExpr mkHavocExpr(int typeIndex);
+
     /**
      * Build constructor terms, using the ctorIndex'th constructor
      */
@@ -33,5 +39,3 @@ public interface ProverADT {
     ProverExpr mkSizeExpr(ProverExpr term);
 
 }
-
-

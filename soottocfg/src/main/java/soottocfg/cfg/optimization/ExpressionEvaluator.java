@@ -169,6 +169,7 @@ public class ExpressionEvaluator {
 		throw new RuntimeException("Not handled: " + op);
 	}
 
+
 	public static Expression simplify(IteExpression e) {
 		Expression cond = simplify(e.getCondition());
 		Expression thenExpr = simplify(e.getThenExpr());

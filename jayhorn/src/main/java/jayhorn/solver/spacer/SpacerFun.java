@@ -28,7 +28,7 @@ class SpacerFun implements ProverFun {
 		return this.fun;
 	}
 	
-	public ProverExpr mkExpr(ProverExpr[] args) {
+	public ProverExpr mkExpr(ProverExpr ... args) {
 		ProverExpr[] flatArgs = ProverTupleExpr.flatten(args);
 		final Expr[] z3args = new Expr[flatArgs.length];
 		for (int i=0; i<flatArgs.length; i++) {

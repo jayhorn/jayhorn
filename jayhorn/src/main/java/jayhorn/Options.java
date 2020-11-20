@@ -19,8 +19,10 @@
 
 package jayhorn;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import jayhorn.hornify.encoder.StringEncoder;
 
 import org.kohsuke.args4j.Option;
 
@@ -75,6 +77,29 @@ public class Options {
 	
 	public void setSolverOptions(String so) {
 		solverOptions = so;
+	}
+
+	@Option(name = "-string-encoding", usage = "Sets the string encoding method")
+	private StringEncoder.StringEncoding stringEncoding = StringEncoder.StringEncoding.recursive;
+
+	public StringEncoder.StringEncoding getStringEncoding() {
+		return stringEncoding;
+	}
+
+	public void setStringEncoding(StringEncoder.StringEncoding stringEncoding) {
+		this.stringEncoding = stringEncoding;
+	}
+
+
+	@Option(name = "-string-direction", usage = "Sets the string ADT direction")
+	private StringEncoder.StringDirection stringDirection = StringEncoder.StringDirection.ltr;
+
+	public StringEncoder.StringDirection getStringDirection() {
+		return stringDirection;
+	}
+
+	public void setStringDirection(StringEncoder.StringDirection stringDirection) {
+		this.stringDirection = stringDirection;
 	}
 
 	/**
@@ -178,9 +203,9 @@ public class Options {
 		String outName = "";
 		String in = getJavaInput();
 		if (in != null) {
-			if (in.endsWith("/"))
+			if (in.endsWith(File.separator))
 				in = in.substring(0, in.length() - 1);
-			outName = in.substring(in.lastIndexOf('/') + 1, in.length()).replace(".java", "").replace(".class", "");
+			outName = in.substring(in.lastIndexOf(File.separator) + 1, in.length()).replace(".java", "").replace(".class", "");
 		}
 		if (outName.equals(""))
 			outName = "noname";
