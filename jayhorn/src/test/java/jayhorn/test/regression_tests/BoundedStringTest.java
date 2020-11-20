@@ -66,33 +66,33 @@ public class BoundedStringTest {
 		this.sourceFile = source;
 	}
 
-	@Test
-	public void testWithPrincessRecursiveLTR() {
-		jayhorn.Options.v().setStringEncoding(StringEncoder.StringEncoding.recursive);
-		jayhorn.Options.v().setStringDirection(StringEncoder.StringDirection.ltr);
-		verifyAssertions(new PrincessProverFactory());
-	}
+//	@Test
+//	public void testWithPrincessRecursiveLTR() {
+//		jayhorn.Options.v().setStringEncoding(StringEncoder.StringEncoding.recursive);
+//		jayhorn.Options.v().setStringDirection(StringEncoder.StringDirection.ltr);
+//		verifyAssertions(new PrincessProverFactory());
+//	}
 
-	@Test
-	public void testWithPrincessRecursiveWithPrecLTR() {
-		jayhorn.Options.v().setStringEncoding(StringEncoder.StringEncoding.recursiveWithPrec);
-		jayhorn.Options.v().setStringDirection(StringEncoder.StringDirection.ltr);
-		verifyAssertions(new PrincessProverFactory());
-	}
+//	@Test
+//	public void testWithPrincessRecursiveWithPrecLTR() {
+//		jayhorn.Options.v().setStringEncoding(StringEncoder.StringEncoding.recursiveWithPrec);
+//		jayhorn.Options.v().setStringDirection(StringEncoder.StringDirection.ltr);
+//		verifyAssertions(new PrincessProverFactory());
+//	}
 
-	@Test
-	public void testWithPrincessIterativeLTR() {
-		jayhorn.Options.v().setStringEncoding(StringEncoder.StringEncoding.iterative);
-		jayhorn.Options.v().setStringDirection(StringEncoder.StringDirection.ltr);
-		verifyAssertions(new PrincessProverFactory());
-	}
+//	@Test
+//	public void testWithPrincessIterativeLTR() {
+//		jayhorn.Options.v().setStringEncoding(StringEncoder.StringEncoding.iterative);
+//		jayhorn.Options.v().setStringDirection(StringEncoder.StringDirection.ltr);
+//		verifyAssertions(new PrincessProverFactory());
+//	}
 
-	@Test
-	public void testWithPrincessRecursiveRTL() {
-		jayhorn.Options.v().setStringEncoding(StringEncoder.StringEncoding.recursive);
-		jayhorn.Options.v().setStringDirection(StringEncoder.StringDirection.rtl);
-		verifyAssertions(new PrincessProverFactory());
-	}
+//	@Test
+//	public void testWithPrincessRecursiveRTL() {
+//		jayhorn.Options.v().setStringEncoding(StringEncoder.StringEncoding.recursive);
+//		jayhorn.Options.v().setStringDirection(StringEncoder.StringDirection.rtl);
+//		verifyAssertions(new PrincessProverFactory());
+//	}
 
 	@Test
 	public void testWithPrincessRecursiveWithPrecRTL() {
@@ -101,12 +101,12 @@ public class BoundedStringTest {
 		verifyAssertions(new PrincessProverFactory());
 	}
 
-	@Test
-	public void testWithPrincessIterativeRTL() {
-		jayhorn.Options.v().setStringEncoding(StringEncoder.StringEncoding.iterative);
-		jayhorn.Options.v().setStringDirection(StringEncoder.StringDirection.rtl);
-		verifyAssertions(new PrincessProverFactory());
-	}
+//	@Test
+//	public void testWithPrincessIterativeRTL() {
+//		jayhorn.Options.v().setStringEncoding(StringEncoder.StringEncoding.iterative);
+//		jayhorn.Options.v().setStringDirection(StringEncoder.StringDirection.rtl);
+//		verifyAssertions(new PrincessProverFactory());
+//	}
 
 	public void verifyAssertions(ProverFactory factory) {
 		Program program = getCFG(factory);
