@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ $(uname) = "Linux" ]; then
+    pathCmd="readlink -f"
+elif [ $(uname) = "Darwin" ]; then
+    pathCmd="stat -f %N"
+else
+    pathCmd="realpath"
+fi
+
+export BASEDIR=`dirname $($pathCmd $0)`
+TARGET=`echo $BASEDIR/target/scala-*/Enum*-assembly*.jar`
+LIBDIR=$BASEDIR/lib
+JAVA=java
+export JAVA_OPTS="-Xss20000k -Xmx1500m"
+
+exec $JAVA -cp $TARGET EnumEliminator "$@"
