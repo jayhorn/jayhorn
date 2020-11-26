@@ -180,8 +180,14 @@ public class StringEncoder {
     }
 
     private ProverFun mkIntToStringHelperProverFun(ProverType stringADTType) {
-        return p.mkHornPredicate(mkName("int_string_h"),
-                new ProverType[]{p.getIntType(), p.getIntType(), stringADTType});
+        final String INT_STRING_H = "int_string_h";
+        if (stringDirection == StringDirection.ltr) {
+            return p.mkHornPredicate(mkName(INT_STRING_H),
+                    new ProverType[]{p.getIntType(), p.getIntType(), stringADTType});   // number, remained_number, str_so_far
+        } else {
+            return p.mkHornPredicate(mkName(INT_STRING_H),
+                    new ProverType[]{p.getIntType(), stringADTType, p.getIntType()});   // number, str_so_far, digit_bound
+        }
     }
 
     private ProverFun mkIntToStringProverFun(ProverType stringADTType) {
@@ -368,6 +374,7 @@ public class StringEncoder {
         ProverExpr s = stringHornVar("s", stringADTType);
         ProverExpr i = intHornVar("i");
         ProverExpr n = intHornVar("n");
+        ProverExpr d = intHornVar("d");
 
         ProverFun predIntToStringHelper = mkIntToStringHelperProverFun(stringADTType);
         ProverFun predIntToString = mkIntToStringProverFun(stringADTType);
@@ -377,17 +384,19 @@ public class StringEncoder {
                 EMPTY_PHC_BODY,
                 p.mkAnd( p.mkGeq(i, lit(0)) , p.mkLt(i, lit(10)) )
         );
-        addPHC(
-                predIntToStringHelper.mkExpr(i, i, nil()),
-                EMPTY_PHC_BODY,
-                p.mkGeq(i, lit(10))
-        );
-        addPHC(
-                predIntToString.mkExpr(i, s),
-                new ProverExpr[]{predIntToStringHelper.mkExpr(i, lit(0), s)},
-                p.mkOr(p.mkLt(i, lit(0)), p.mkGeq(i, lit(10)))
-        );
+
         if (stringDirection == StringDirection.ltr) {
+
+            addPHC(
+                    predIntToStringHelper.mkExpr(i, i, nil()),
+                    EMPTY_PHC_BODY,
+                    p.mkGeq(i, lit(10))
+            );
+            addPHC(
+                    predIntToString.mkExpr(i, s),
+                    new ProverExpr[]{predIntToStringHelper.mkExpr(i, lit(0), s)},
+                    p.mkOr(p.mkLt(i, lit(0)), p.mkGeq(i, lit(10)))
+            );
             addPHC(
                     predIntToString.mkExpr(i, cons(lit('-'), a)),
                     new ProverExpr[]{predIntToString.mkExpr(p.mkNeg(i), a)},
@@ -399,27 +408,43 @@ public class StringEncoder {
                     new ProverExpr[]{predIntToStringHelper.mkExpr(i, n, s)},
                     p.mkGt(n, lit(0))
             );
+
         } else {
-            addPHC(
-                    predIntToStringHelper.mkExpr(i, p.mkNeg(i), cons(lit('-'), nil())),
-                    EMPTY_PHC_BODY,
-                    p.mkLt(i, lit(0))
-            );
-            long bndLeft;
-            long bndRight = 1L;
+
+            long bndLo;
+            long bndHi = 1L;
             do {
-                bndLeft = bndRight;
-                bndRight *= 10L;
-                ProverExpr firstDigitOfN = p.mkTDiv(n, lit(bndLeft));
-                ProverExpr restOfN = p.mkMinus(n, p.mkMult(lit(bndLeft), firstDigitOfN));
+                bndLo = bndHi;
+                bndHi *= 10L;
                 addPHC(
-                        predIntToStringHelper.mkExpr(i, restOfN, cons(digitToChar(firstDigitOfN), s)),
-                        new ProverExpr[]{predIntToStringHelper.mkExpr(i, n, s)},
-                        bndLeft <= Long.MAX_VALUE / 10 ?
-                                p.mkAnd(p.mkGeq(n, lit(bndLeft)), p.mkLt(n, lit(bndRight))) :
-                                p.mkAnd(p.mkGeq(n, lit(bndLeft)), p.mkLeq(n, lit(Long.MAX_VALUE)))
+                        predIntToStringHelper.mkExpr(i, nil(), lit(bndLo)),
+                        EMPTY_PHC_BODY,
+                        bndLo <= Long.MAX_VALUE / 10 ?
+                                p.mkAnd(p.mkGeq(i, lit(bndLo)), p.mkLt(i, lit(bndHi))) :
+                                p.mkAnd(p.mkGeq(i, lit(bndLo)), p.mkLeq(i, lit(Long.MAX_VALUE)))
                 );
-            } while (bndLeft <= Long.MAX_VALUE / 10);
+                addPHC(
+                        predIntToStringHelper.mkExpr(i, cons(lit('-'), nil()), lit(-bndLo)),
+                        EMPTY_PHC_BODY,
+                        bndLo <= Long.MAX_VALUE / 10 ?
+                                p.mkAnd(p.mkLeq(i, lit(-bndLo)), p.mkGt(i, lit(-bndHi))) :
+                                p.mkAnd(p.mkLeq(i, lit(-bndLo)), p.mkGeq(i, lit(Long.MIN_VALUE)))
+                );
+            } while (bndLo <= Long.MAX_VALUE / 10);
+
+            addPHC(
+                    predIntToString.mkExpr(i, s),
+                    new ProverExpr[]{predIntToStringHelper.mkExpr(i, s, lit(0))},
+                    p.mkOr(p.mkLt(i, lit(0)), p.mkGeq(i, lit(10)))
+            );
+            ProverExpr digitToLeft = p.mkTDiv(i, d);    // {XYZd}...
+            ProverExpr digit = p.mkMinus(digitToLeft, p.mkMult(lit(10), p.mkTDiv(digitToLeft, lit(10))));
+            addPHC(
+                    predIntToStringHelper.mkExpr(i, cons(digitToChar(digit), s), p.mkTDiv(d, lit(10))),
+                    new ProverExpr[]{predIntToStringHelper.mkExpr(i, s, d)},
+                    p.mkNot(p.mkEq(d, lit(0)))
+            );
+
         }
 
         return predIntToString;
