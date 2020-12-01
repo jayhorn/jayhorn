@@ -2,13 +2,10 @@ package jayhorn.hornify.encoder;
 
 import jayhorn.hornify.HornHelper;
 import jayhorn.solver.*;
-import soottocfg.cfg.expression.UnaryExpression;
+import soottocfg.cfg.expression.*;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.type.ReferenceType;
-import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.variable.Variable;
 import jayhorn.Options;
@@ -211,6 +208,11 @@ public class StringEncoder {
                 new ProverType[]{stringADTType, stringADTType, p.getBooleanType()});
     }
 
+    private ProverFun mkStringEdgesWithOffsetProverFun(ProverType stringADTType, boolean startEdge) {
+        String predicateName = startEdge ? "string_starts_with_offset" : "string_ends_with_offset";
+        return p.mkHornPredicate(mkName(predicateName),
+                new ProverType[]{stringADTType, stringADTType, p.getIntType(), p.getBooleanType()});
+    }
     private ProverFun mkStringCharAtProverFun(ProverType stringADTType) {
         return p.mkHornPredicate(mkName("string_char_at"),
                 new ProverType[]{stringADTType, p.getIntType(), p.getIntType()});
@@ -536,6 +538,109 @@ public class StringEncoder {
         return predEdgesWith;
     }
 
+    private ProverFun genEdgesWithOffsetRec(ProverType stringADTType, boolean startEdge) {
+        ProverExpr a = stringHornVar("a", stringADTType);
+        ProverExpr b = stringHornVar("b", stringADTType);
+        ProverExpr h = intHornVar("h");
+        ProverExpr j = intHornVar("j");
+        ProverExpr k = intHornVar("k");
+        ProverExpr f = intHornVar("f");
+        ProverExpr ha = cons(h, a);
+        ProverExpr hb = cons(h, b);
+        ProverExpr ja = cons(j, a);
+        ProverExpr kb = cons(k, b);
+
+        ProverFun predEdgesWithOffset = mkStringEdgesWithOffsetProverFun(stringADTType, startEdge);
+
+        addPHC(
+                predEdgesWithOffset.mkExpr(a, nil(), f,
+                        p.mkOr(
+                                p.mkAnd(p.mkGeq(f, lit(0)), p.mkLt(f, len(a))),
+                                p.mkAnd(p.mkEq(a, nil()), p.mkEq(f, lit(0)))
+                        )
+                )
+        );
+        addPHC(
+                predEdgesWithOffset.mkExpr(a, a, f, p.mkEq(f, lit(0)))
+        );
+        addPHC(
+                predEdgesWithOffset.mkExpr(a, b, f, lit(false)),
+                EMPTY_PHC_BODY,
+                p.mkAnd(
+                        p.mkGt(len(b), lit(0)),
+                        p.mkOr(p.mkLt(f, lit(0)), p.mkGeq(f, len(a)))
+                )
+
+        );
+        addPHC(
+                predEdgesWithOffset.mkExpr(ja, kb, f, lit(false)),
+                new ProverExpr[]{predEdgesWithOffset.mkExpr(a, b, f, lit(false))},
+                p.mkAnd(p.mkGeq(f, lit(0)), p.mkLt(f, len(a)))
+        );
+
+        if ((startEdge && stringDirection == StringDirection.ltr)
+                || (!startEdge && stringDirection == StringDirection.rtl)) {
+            addPHC(
+                    predEdgesWithOffset.mkExpr(ha, hb, p.mkPlus(f, lit(1)), lit(true)),
+                    new ProverExpr[]{predEdgesWithOffset.mkExpr(a, b, f, lit(true))},
+                    p.mkAnd(p.mkGeq(f, lit(0)), p.mkLt(f, len(a)))
+            );
+            addPHC(
+                    predEdgesWithOffset.mkExpr(ja, kb, lit(0), lit(false)),
+                    EMPTY_PHC_BODY,
+                    p.mkNot(p.mkEq(j, k))
+            );
+            addPHC(
+                    predEdgesWithOffset.mkExpr(ha, b, p.mkPlus(f, lit(1)), lit(false)),
+                    new ProverExpr[]{predEdgesWithOffset.mkExpr(a, b, f, lit(false))},
+                    p.mkAnd(p.mkGeq(f, lit(0)), p.mkLt(f, len(a)))
+            );
+        } else {
+            addPHC(
+                    predEdgesWithOffset.mkExpr(ha, cons(h, nil()), len(a), lit(true))
+            );
+            addPHC(
+                    predEdgesWithOffset.mkExpr(ha, hb, f, lit(true)),
+                    new ProverExpr[]{predEdgesWithOffset.mkExpr(a, b, f, lit(true))},
+                    p.mkAnd(p.mkGt(len(b), lit(0)), p.mkEq(len(a), p.mkPlus(len(b), f)))
+            );
+            addPHC(
+                    predEdgesWithOffset.mkExpr(ha, b, f, lit(true)),
+                    new ProverExpr[]{predEdgesWithOffset.mkExpr(a, b, f, lit(true))}
+            );
+//            addPHC(
+//                    predEdgesWithOffset.mkExpr(ja, kb, f, lit(false)),
+//                    new ProverExpr[]{predEdgesWithOffset.mkExpr(a, b, f, lit(true))},
+//                    p.mkNot(p.mkEq(j, k))
+//            );
+            addPHC(
+                    predEdgesWithOffset.mkExpr(ja, cons(k, nil()), len(a), lit(false)),
+                    EMPTY_PHC_BODY,
+                    p.mkNot(p.mkEq(j, k))
+            );
+            addPHC(
+                    predEdgesWithOffset.mkExpr(ja, kb, f, lit(false)),
+                    new ProverExpr[]{predEdgesWithOffset.mkExpr(a, b, f, lit(false))},
+                    p.mkAnd(p.mkGt(len(b), lit(0)), p.mkEq(len(a), p.mkPlus(len(b), f)))
+            );
+            addPHC(
+                    predEdgesWithOffset.mkExpr(ha, b, f, lit(false)),
+                    new ProverExpr[]{predEdgesWithOffset.mkExpr(a, b, f, lit(false))},
+                    p.mkAnd(
+                            p.mkGeq(len(a), p.mkPlus(len(b), f)),
+                            p.mkGeq(f, lit(0)), p.mkLt(f, len(a))
+                    )
+            );
+//            addPHC(
+//                    predEdgesWithOffset.mkExpr(a, hb, f, lit(false)),
+//                    new ProverExpr[]{predEdgesWithOffset.mkExpr(a, b, f, lit(false))},
+//                    p.mkAnd(p.mkGeq(f, lit(0)), p.mkLt(f, len(a)))
+//            );
+        }
+
+        return predEdgesWithOffset;
+    }
+
     private ProverFun genCharAtRec(ProverType stringADTType) {
         ProverExpr t = stringHornVar("t", stringADTType);
         ProverExpr h = intHornVar("h");
@@ -850,8 +955,21 @@ public class StringEncoder {
         ProverExpr result = booleanHornVar(resultName);
         ProverFun predStartsWith;
         predStartsWith = genEdgesWithRec(stringADTType, startEdge);    // TODO: Iterative
-//        considerHintedSizeStartsWith(predStartsWith, stringADTType);
         ProverExpr guarantee = predStartsWith.mkExpr(leftString, rightString, result);
+        return new EncodingFacts(null, guarantee, result, lit(true));
+    }
+
+    public EncodingFacts mkStringEdgesWithOffset(ProverExpr leftString, ProverExpr rightString,
+                                                 ProverExpr offset, boolean startEdge) {
+        ProverType stringADTType = getStringADTType();
+        String resultName = mkName(String.format(
+                startEdge ? "$starts_with_offset(%s, %s, %s)" : "$ends_with_offset(%s, %s, %s)",
+                leftString.toString(), rightString.toString(), offset.toString()
+        ));
+        ProverExpr result = booleanHornVar(resultName);
+        ProverFun predStartsWithOffset;
+        predStartsWithOffset = genEdgesWithOffsetRec(stringADTType, startEdge);    // TODO: Iterative
+        ProverExpr guarantee = predStartsWithOffset.mkExpr(leftString, rightString, offset, result);
         return new EncodingFacts(null, guarantee, result, lit(true));
     }
 
@@ -973,8 +1091,7 @@ public class StringEncoder {
                 default:
                     return null;
             }
-        }
-        else if (e instanceof UnaryExpression) {
+        } else if (e instanceof UnaryExpression) {
             final UnaryExpression ue = (UnaryExpression)e;
             switch (ue.getOp()) {
                 case Len: {
@@ -982,6 +1099,18 @@ public class StringEncoder {
                     return mkStringLengthFromExpression(strExpr, varMap);
                 }
 
+                default:
+                    return null;
+            }
+        } else if (e instanceof NaryExpression) {
+            final NaryExpression te = (NaryExpression) e;
+            switch (te.getOp()){
+                case StartsWithOffset: {
+                    final ProverExpr leftPE = selectString(te.getExpression(0), varMap);
+                    final ProverExpr rightPE = selectString(te.getExpression(1), varMap);
+                    final ProverExpr offsetPE = selectInt(te.getExpression(2), varMap);
+                    return mkStringEdgesWithOffset(leftPE, rightPE, offsetPE, true);
+                }
                 default:
                     return null;
             }
