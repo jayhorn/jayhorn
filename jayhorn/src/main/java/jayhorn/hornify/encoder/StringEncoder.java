@@ -608,11 +608,11 @@ public class StringEncoder {
                     predEdgesWithOffset.mkExpr(ha, b, f, lit(true)),
                     new ProverExpr[]{predEdgesWithOffset.mkExpr(a, b, f, lit(true))}
             );
-//            addPHC(
-//                    predEdgesWithOffset.mkExpr(ja, kb, f, lit(false)),
-//                    new ProverExpr[]{predEdgesWithOffset.mkExpr(a, b, f, lit(true))},
-//                    p.mkNot(p.mkEq(j, k))
-//            );
+            addPHC(
+                    predEdgesWithOffset.mkExpr(ja, kb, f, lit(false)),
+                    new ProverExpr[]{predEdgesWithOffset.mkExpr(a, b, f, lit(true))},
+                    p.mkAnd(p.mkNot(p.mkEq(j, k)), p.mkEq(len(a), p.mkPlus(len(b), f)))
+            );
             addPHC(
                     predEdgesWithOffset.mkExpr(ja, cons(k, nil()), len(a), lit(false)),
                     EMPTY_PHC_BODY,
@@ -631,11 +631,14 @@ public class StringEncoder {
                             p.mkGeq(f, lit(0)), p.mkLt(f, len(a))
                     )
             );
-//            addPHC(
-//                    predEdgesWithOffset.mkExpr(a, hb, f, lit(false)),
-//                    new ProverExpr[]{predEdgesWithOffset.mkExpr(a, b, f, lit(false))},
-//                    p.mkAnd(p.mkGeq(f, lit(0)), p.mkLt(f, len(a)))
-//            );
+            addPHC(
+                    predEdgesWithOffset.mkExpr(a, hb, f, lit(false)),
+                    new ProverExpr[]{predEdgesWithOffset.mkExpr(a, b, f, lit(false))},
+                    p.mkAnd(
+                            p.mkLeq(len(a), p.mkPlus(len(b), f)),
+                            p.mkGeq(f, lit(0)), p.mkLt(f, len(a))
+                    )
+            );
         }
 
         return predEdgesWithOffset;

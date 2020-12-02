@@ -5,6 +5,10 @@ public class SatStringStartsWithOffset {
         String e = "";
         String s = "abcabc";
         assert (e.startsWith("", 0));
+        assert (s.startsWith("", 0));
+        assert (s.startsWith("a", 0));
+        assert (s.startsWith("abcabc", 0));
+        assert (!s.startsWith("abcabca", 0));
         assert (s.startsWith(e, 2));
         assert (!s.startsWith(e, -1));
         assert (!s.startsWith(e, 6));

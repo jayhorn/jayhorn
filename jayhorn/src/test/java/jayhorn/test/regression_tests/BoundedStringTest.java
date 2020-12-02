@@ -135,7 +135,7 @@ public class BoundedStringTest {
                                  int initialHeapSize,
                                  int boundedHeapSize,
                                  int inline_size) {
-		jayhorn.Options.v().setTimeout(60);
+		jayhorn.Options.v().setTimeout(120);
 		System.out.println("\nRunning test " + this.sourceFile.getName() + " with "+factory.getClass()+"\n");
 		File classDir = null;
 		try {
