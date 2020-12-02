@@ -72,12 +72,8 @@ import soot.jimple.ThrowStmt;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soottocfg.Options;
 import soottocfg.cfg.SourceLocation;
-import soottocfg.cfg.expression.BinaryExpression;
+import soottocfg.cfg.expression.*;
 import soottocfg.cfg.expression.BinaryExpression.BinaryOperator;
-import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.TupleAccessExpression;
-import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
@@ -677,6 +673,23 @@ public class SootStmtSwitch implements StmtSwitch {
 					rhs = new BinaryExpression(srcLoc, BinaryOperator.EndsWith, a, b);
 				} else {
 					throw new RuntimeException("String.endsWith(NonObject) not implemented");
+				}
+				Expression lhs = valueToExpr(optionalLhs);
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+			}
+			return true;
+		}
+		if (methodSignature.contains("<java.lang.String: boolean startsWith(java.lang.String,int)>")) {
+			assert (call instanceof InstanceInvokeExpr);
+			if (optionalLhs != null) {
+				Expression rhs;
+				if (call.getArg(0).getType() instanceof RefType) {
+					Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+					Expression b = valueToInnerExpr(call.getArg(0));
+					Expression c = valueToInnerExpr(call.getArg(1));
+					rhs = new NaryExpression(srcLoc, NaryExpression.NaryOperator.StartsWithOffset, a, b, c);
+				} else {
+					throw new RuntimeException("String.startsWith(NonObject, int) not implemented");
 				}
 				Expression lhs = valueToExpr(optionalLhs);
 				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
