@@ -49,7 +49,7 @@ JayHorn is open-source and distributed under [MIT license](https://github.com/ja
 Libraries used in JayHorn include, in particular:
 - [Soot](https://github.com/soot-oss/soot), which is distributed under [LGPL 2.1 or later](https://github.com/jayhorn/jayhorn/blob/devel/LGPL_LICENSE).
 - [Eldarica](https://github.com/uuverifiers/eldarica), which is distributed under [BSD license](https://github.com/uuverifiers/eldarica/blob/master/LICENSE).
-- [Princess](http://www.philipp.ruemmer.org/princess.shtml), , which is distributed under [LGPL 2.1 or later](https://github.com/jayhorn/jayhorn/blob/devel/LGPL_LICENSE).
+- [Princess](http://www.philipp.ruemmer.org/princess.shtml), which is distributed under [LGPL 2.1 or later](https://github.com/jayhorn/jayhorn/blob/devel/LGPL_LICENSE).
 
 ## Acknowledgments and Disclaimers
 
