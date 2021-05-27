@@ -26,7 +26,7 @@ java -jar jayhorn/build/libs/jayhorn.jar -j example/classes -solution -trace
 
 
 
-## Soundines Statement
+## Soundiness Statement
 This project has been done in the spirit of soundiness. When building practical program analyses, it is often necessary to cut corners. In order to be open about language features that we do not support or support only partially, we are attaching this soundiness statement.
 
 Our analysis does not have a fully sound handling of the following features:
