@@ -1197,12 +1197,20 @@ public class StringEncoder {
             }
         } else if (e instanceof NaryExpression) {
             final NaryExpression te = (NaryExpression) e;
+            System.err.println(te);
             switch (te.getOp()) {
                 case StartsWithOffset: {
                     final ProverExpr leftPE = selectString(te.getExpression(0), varMap);
                     final ProverExpr rightPE = selectString(te.getExpression(1), varMap);
                     final ProverExpr offsetPE = selectInt(te.getExpression(2), varMap);
                     return mkStringEdgesWithOffset(leftPE, rightPE, offsetPE, true);
+                }
+                case Substring: {
+                    final ProverExpr leftPE = selectString(te.getExpression(0), varMap);
+                    final ProverExpr startIndexPE = selectInt(te.getExpression(1), varMap);
+                    final ProverExpr endIndexPE = selectInt(te.getExpression(2), varMap);
+                    System.out.println("HERE BABY!" + startIndexPE.toString());
+                    return mkStringSubstring(leftPE, startIndexPE, endIndexPE, (ReferenceType) te.getExpression(0).getType());
                 }
                 default:
                     return null;

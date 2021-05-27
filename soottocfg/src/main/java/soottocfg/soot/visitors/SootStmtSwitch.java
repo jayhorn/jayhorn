@@ -612,19 +612,15 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 			return true;
 		}
-		if (methodSignature.contains("<java.lang.String: java.lang.String substring(int, int)>")) {
+		if (methodSignature.contains("<java.lang.String: java.lang.String substring(int,int)>")) {
 			assert (call instanceof InstanceInvokeExpr);
 			if (optionalLhs != null) {
-				if (call.getArg(0).getType() instanceof RefType) {
-					Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
-					Expression startIndex = valueToExpr(call.getArg(0));
-					Expression endIndex = valueToExpr(call.getArg(1));
-					Expression rhs = new NaryExpression(srcLoc, NaryExpression.NaryOperator.StartsWithOffset, a, startIndex, endIndex);
-					Expression lhs = valueToExpr(optionalLhs);
-					currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
-				} else {
-					throw new RuntimeException("String.substring(NonObject, int, int) not implemented");
-				}
+				Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+				Expression startIndex = valueToExpr(call.getArg(0));
+				Expression endIndex = valueToExpr(call.getArg(1));
+				Expression rhs = new NaryExpression(srcLoc, NaryExpression.NaryOperator.Substring, a, startIndex, endIndex);
+				Expression lhs = valueToExpr(optionalLhs);
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
 			}
 			return true;
 		}
@@ -767,9 +763,9 @@ public class SootStmtSwitch implements StmtSwitch {
 				Expression binOpRhs = valueSwitch.popExpression();
 				Verify.verify(binOpRhs instanceof IdentifierExpression);
 				Variable rhsVar = ((IdentifierExpression)binOpRhs).getVariable();
-				Verify.verify(rhsVar instanceof ClassVariable);		
+				Verify.verify(rhsVar instanceof ClassVariable);
 				call.getArg(0).apply(valueSwitch);
-				IdentifierExpression binOpLhs = (IdentifierExpression)valueSwitch.popExpression();				
+				IdentifierExpression binOpLhs = (IdentifierExpression)valueSwitch.popExpression();
 				Expression instOf = SootTranslationHelpers.createInstanceOfExpression(getCurrentLoc(), binOpLhs.getVariable(), (ClassVariable)rhsVar);
 				currentBlock.addStatement(
 						new AssignStatement(SootTranslationHelpers.v().getSourceLocation(u), lhs, instOf));
@@ -794,7 +790,7 @@ public class SootStmtSwitch implements StmtSwitch {
 					optionalLhs.apply(valueSwitch);
 					Expression left = valueSwitch.popExpression();
 					currentBlock.addStatement(new AssignStatement(loc, left, new TupleAccessExpression(loc, base.getVariable(), ReferenceType.TypeFieldName)));
-					
+
 				} else if (t instanceof ArrayType) {
 //					typeField = SootTranslationHelpers.getTypeField(Scene.v().getSootClass("java.lang.Object"));
 					throw new RuntimeException("Arrays should be removed first.");
