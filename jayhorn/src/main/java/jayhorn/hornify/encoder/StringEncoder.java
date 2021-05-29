@@ -314,7 +314,8 @@ public class StringEncoder {
         addPHC(
                 predSubstring.mkExpr(a, startIndex, startIndex, nil()),
                 EMPTY_PHC_BODY,
-                p.mkOr(p.mkLt(startIndex, len(a)), p.mkEq(startIndex, lit(0)))
+                p.mkAnd(p.mkGeq(startIndex, lit(0)), p.mkLeq(endIndex, len(a)), p.mkLeq(startIndex, endIndex))
+                // https://docs.oracle.com/javase/8/docs/api/java/lang/String.html#substring-int-int-
         );
         if (stringDirection == StringDirection.ltr) {
             addPHC(
@@ -328,9 +329,8 @@ public class StringEncoder {
         }
         else {
             addPHC(
-                    predSubstring.mkExpr(ja, startIndex, p.mkPlus(endIndex, lit(1)), jb),
-                    new ProverExpr[]{ predSubstring.mkExpr(a, startIndex, endIndex, b) },
-                    p.mkEq(endIndex, len(a))
+                    predSubstring.mkExpr(ja, startIndex, p.mkPlus(len(a), lit(1)), jb),
+                    new ProverExpr[]{ predSubstring.mkExpr(a, startIndex, len(a), b) }
             );
             addPHC(
                     predSubstring.mkExpr(ja, startIndex, endIndex, b),
@@ -1197,7 +1197,6 @@ public class StringEncoder {
             }
         } else if (e instanceof NaryExpression) {
             final NaryExpression te = (NaryExpression) e;
-            System.err.println(te);
             switch (te.getOp()) {
                 case StartsWithOffset: {
                     final ProverExpr leftPE = selectString(te.getExpression(0), varMap);
@@ -1209,7 +1208,6 @@ public class StringEncoder {
                     final ProverExpr leftPE = selectString(te.getExpression(0), varMap);
                     final ProverExpr startIndexPE = selectInt(te.getExpression(1), varMap);
                     final ProverExpr endIndexPE = selectInt(te.getExpression(2), varMap);
-                    System.out.println("HERE BABY!" + startIndexPE.toString());
                     return mkStringSubstring(leftPE, startIndexPE, endIndexPE, (ReferenceType) te.getExpression(0).getType());
                 }
                 default:

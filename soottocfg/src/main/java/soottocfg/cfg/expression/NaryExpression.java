@@ -3,6 +3,7 @@ package soottocfg.cfg.expression;
 import com.google.common.base.Verify;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.type.StringType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;
 
@@ -101,7 +102,7 @@ public class NaryExpression extends Expression {
             case StartsWithOffset:
                 return BoolType.instance();
             case Substring:
-                return this.expressions[0].getType();
+                return StringType.instance();
             default:
                 throw new RuntimeException("not implemented");
         }
