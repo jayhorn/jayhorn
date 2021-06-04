@@ -17,7 +17,7 @@ public class NaryExpression extends Expression {
     private static final long serialVersionUID = 1992559247136566989L;
 
     public enum NaryOperator {
-        StartsWithOffset("startsWithOffset"), Substring("substring");
+        StartsWithOffset("startsWithOffset"), Substring("substring"), SubstringWithOneIndex("substringWithOneIndex");
 
         private final String name;
 
@@ -46,6 +46,10 @@ public class NaryExpression extends Expression {
             case StartsWithOffset:
             case Substring:
                 Verify.verify(expressions.length == 3);
+                this.expressions = Arrays.copyOf(expressions, expressions.length);
+                break;
+            case SubstringWithOneIndex:
+                Verify.verify(expressions.length == 2);
                 this.expressions = Arrays.copyOf(expressions, expressions.length);
                 break;
             default:
@@ -102,6 +106,7 @@ public class NaryExpression extends Expression {
             case StartsWithOffset:
                 return BoolType.instance();
             case Substring:
+            case SubstringWithOneIndex:
                 return StringType.instance();
             default:
                 throw new RuntimeException("not implemented");

@@ -945,6 +945,15 @@ public class StringEncoder {
         return new EncodingFacts(null, guarantee, substring, mkNotNullConstraint(substring));
     }
 
+    public EncodingFacts mkStringSubstring(ProverExpr leftString, ProverExpr index, ReferenceType stringRefType) {
+        String substringName = String.format("$substring(%s, %s)", leftString.toString(), index.toString());
+        ProverExpr substring = mkRefHornVariable(substringName, stringRefType);
+        ProverExpr substringString = selectString(substring);
+        ProverFun predSubstring = genSubstring(getStringADTType());
+        ProverExpr guarantee = predSubstring.mkExpr(leftString, index, len(leftString), substringString);
+        return new EncodingFacts(null, guarantee, substring, mkNotNullConstraint(substring));
+    }
+
     public EncodingFacts mkStringConcat(ProverExpr leftString, ProverExpr rightString, ReferenceType stringRefType) {
         ProverType stringADTType = getStringADTType();
         String concatName = String.format("$concat(%s, %s)", leftString.toString(), rightString.toString());
@@ -1209,6 +1218,11 @@ public class StringEncoder {
                     final ProverExpr startIndexPE = selectInt(te.getExpression(1), varMap);
                     final ProverExpr endIndexPE = selectInt(te.getExpression(2), varMap);
                     return mkStringSubstring(leftPE, startIndexPE, endIndexPE, (ReferenceType) te.getExpression(0).getType());
+                }
+                case SubstringWithOneIndex: {
+                    final ProverExpr leftPE = selectString(te.getExpression(0), varMap);
+                    final ProverExpr indexPE = selectInt(te.getExpression(1), varMap);
+                    return mkStringSubstring(leftPE, indexPE, (ReferenceType) te.getExpression(0).getType());
                 }
                 default:
                     return null;
