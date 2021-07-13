@@ -259,7 +259,7 @@ public class StringEncoder {
 
     private ProverFun mkStringIndexOfProverFun(ProverType stringADTType) {
         final String STRING_INDEX_OF = "string_index_of";
-        return p.mkHornPredicate(mkName(STRING_INDEX_OF), new ProverType[]{stringADTType, stringADTType, p.getIntType(), p.getIntType(), p.getBooleanType()});
+        return p.mkHornPredicate(mkName(STRING_INDEX_OF), new ProverType[]{stringADTType, stringADTType, p.getIntType(), p.getIntType(), p.getIntType(), p.getIntType(), p.getIntType(), p.getBooleanType(), p.getBooleanType()});
     }
 
     private void considerHintedSizeConcat(ProverFun predConcat, ProverType stringADTType) {
@@ -781,8 +781,7 @@ public class StringEncoder {
                     predCompareTo.mkExpr(cons(h, a), cons(h, b), c),
                     new ProverExpr[]{predCompareTo.mkExpr(a, b, c)}
             );
-        }
-        else {
+        } else {
             addPHC(
                     predCompareTo.mkExpr(a, nil(), len(a), lit(false))
             );
@@ -824,34 +823,68 @@ public class StringEncoder {
         ProverExpr a = stringHornVar("a", stringADTType);
         ProverExpr b = stringHornVar("b", stringADTType);
         ProverExpr j = intHornVar("j");
+        ProverExpr k = intHornVar("k");
         ProverExpr si = intHornVar("si");
-        ProverExpr size = intHornVar("size");
+        ProverExpr fi = intHornVar("fi");
+        ProverExpr i = intHornVar("i");
+        ProverExpr size = intHornVar("a_size");
+        ProverExpr bSize = intHornVar("b_size");
         ProverExpr found = booleanHornVar("found");
+        ProverExpr isNotMatched = booleanHornVar("is_not_matched");
 
         final ProverExpr FALSE = p.mkLiteral(false);
         final ProverExpr TRUE = p.mkLiteral(true);
+        final ProverExpr ONE = p.mkLiteral(1);
+        final ProverExpr ZERO = p.mkLiteral(0);
 
         ProverFun predIndexOf = mkStringIndexOfProverFun(stringADTType);
 
         if (stringDirection == StringDirection.ltr) {
+            addPHC(predIndexOf.mkExpr(nil(), nil(), ZERO, ZERO, p.mkLiteral(-1), size, bSize, FALSE, FALSE));
             addPHC(
-                    predIndexOf.mkExpr(a, b, si, size, FALSE),
-                    EMPTY_PHC_BODY,
-                    p.mkEq(p.mkPlus(len(a), len(b)), p.mkMinus(size, si))
+                    predIndexOf.mkExpr(cons(j, a), b, p.mkPlus(i, ONE), si, fi, size, bSize, FALSE, FALSE),
+                    new ProverExpr[]{ predIndexOf.mkExpr(a, b, i, si, fi, size, bSize, FALSE, FALSE) },
+                    p.mkGeq(p.mkMinus(size, i), p.mkPlus(si, bSize))
             );
             addPHC(
-                    predIndexOf.mkExpr(a, b, si, size, TRUE),
-                    new ProverExpr[]{predIndexOf.mkExpr(a, b, si, size, FALSE)},
-                    p.mkEq(len(a), p.mkMinus(size, si))
+                    predIndexOf.mkExpr(cons(j, a), cons(j, b), p.mkPlus(i, ONE), si, fi, size, bSize, FALSE, FALSE),
+                    new ProverExpr[]{ predIndexOf.mkExpr(a, b, i, si, fi, size, bSize, FALSE, FALSE) },
+                    p.mkAnd(p.mkGt(p.mkPlus(si, bSize), p.mkMinus(size, i)), p.mkGeq(p.mkMinus(size, i), si))
             );
             addPHC(
-                    predIndexOf.mkExpr(cons(j, a), b, si, size, TRUE),
-                    new ProverExpr[]{predIndexOf.mkExpr(a, b, si, size, TRUE)}
+                    predIndexOf.mkExpr(cons(j, a), cons(k, b), p.mkPlus(i, ONE), si, fi, size, bSize, FALSE, TRUE),
+                    new ProverExpr[]{ predIndexOf.mkExpr(a, b, i, si, fi, size, bSize, FALSE, FALSE) },
+                    p.mkAnd(p.mkGt(p.mkPlus(si, bSize), p.mkMinus(size, i)), p.mkGeq(p.mkMinus(size, i), si), p.mkNot(p.mkEq(j, k)))
             );
             addPHC(
-                    predIndexOf.mkExpr(cons(j, a), b, si, size, FALSE),
-                    new ProverExpr[]{predIndexOf.mkExpr(a, b, si, size, FALSE)}
-//                    TODO: Add proper constraint to this rule
+                    predIndexOf.mkExpr(cons(j, a), cons(k, b), p.mkPlus(i, ONE), si, fi, size, bSize, FALSE, TRUE),
+                    new ProverExpr[]{ predIndexOf.mkExpr(a, b, i, si, fi, size, bSize, FALSE, TRUE) },
+                    p.mkAnd(p.mkGt(p.mkPlus(si, bSize), p.mkMinus(size, i)), p.mkGeq(p.mkMinus(size, i), si))
+            );
+            addPHC(
+                    predIndexOf.mkExpr(a, b, i, si, fi, size, bSize, TRUE, FALSE),
+                    new ProverExpr[]{ predIndexOf.mkExpr(a, b, i, si, fi, size, bSize, FALSE, FALSE) },
+                    p.mkEq(i, p.mkMinus(size, si))
+            );
+            addPHC(
+                    predIndexOf.mkExpr(a, b, i, si, fi, size, bSize, FALSE, TRUE),
+                    new ProverExpr[]{ predIndexOf.mkExpr(a, b, i, si, fi, size, bSize, FALSE, TRUE) },
+                    p.mkEq(i, p.mkMinus(size, si))
+            );
+            addPHC(
+                    predIndexOf.mkExpr(cons(j, a), b, p.mkPlus(i, ONE), si, fi, size, bSize, found, isNotMatched),
+                    new ProverExpr[]{ predIndexOf.mkExpr(a, b, i, si, fi, size, bSize, found, isNotMatched) },
+                    p.mkGt(si, p.mkMinus(size, i))
+            );
+            addPHC(
+                    predIndexOf.mkExpr(nil(), nil(), ZERO, p.mkPlus(si, ONE), fi, size, bSize, FALSE, FALSE),
+                    new ProverExpr[]{ predIndexOf.mkExpr(a, b, i, si, fi, size, bSize, FALSE, isNotMatched) },
+                    p.mkEq(i, size)
+            );
+            addPHC(
+                    predIndexOf.mkExpr(nil(), nil(), ZERO, p.mkPlus(si, ONE), si, size, bSize, FALSE, FALSE),
+                    new ProverExpr[]{ predIndexOf.mkExpr(a, b, i, si, fi, size, bSize, TRUE, isNotMatched) },
+                    p.mkEq(i, size)
             );
         } else {
 
@@ -936,6 +969,16 @@ public class StringEncoder {
 
     private ProverExpr mkNotNullConstraint(ProverExpr refPE) {
         return p.mkNot(p.mkEq(p.mkTupleSelect(refPE, 0), lit(0)));
+    }
+
+    public EncodingFacts mkStringIndexOf(ProverExpr leftString, ProverExpr rightString, ReferenceType stringRefType) {
+        ProverType stringADTType = getStringADTType();
+        String indexOfName = String.format("$indexOf(%s, %s)", leftString.toString(), rightString.toString());
+        ProverExpr indexOf = mkRefHornVariable(indexOfName, stringRefType);
+        ProverExpr indexOfString = selectString(indexOf);
+        ProverFun predIndexOf = genIndexOf(stringADTType);
+        ProverExpr guarantee = predIndexOf.mkExpr(leftString, rightString, indexOfString);
+        return new EncodingFacts(null, guarantee, indexOf, mkNotNullConstraint(indexOf));
     }
 
     public EncodingFacts mkStringConcat(ProverExpr leftString, ProverExpr rightString, ReferenceType stringRefType) {
