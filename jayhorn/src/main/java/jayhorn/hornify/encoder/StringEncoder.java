@@ -1,5 +1,6 @@
 package jayhorn.hornify.encoder;
 
+import jayhorn.Log;
 import jayhorn.hornify.HornHelper;
 import jayhorn.solver.*;
 import soottocfg.cfg.expression.*;
@@ -839,7 +840,7 @@ public class StringEncoder {
 
         ProverFun predIndexOf = mkStringIndexOfProverFun(stringADTType);
 
-        if (stringDirection == StringDirection.ltr) {
+//        if (stringDirection == StringDirection.ltr) {
             addPHC(predIndexOf.mkExpr(nil(), nil(), ZERO, ZERO, p.mkLiteral(-1), size, bSize, FALSE, FALSE));
             addPHC(
                     predIndexOf.mkExpr(cons(j, a), b, p.mkPlus(i, ONE), si, fi, size, bSize, FALSE, FALSE),
@@ -886,9 +887,7 @@ public class StringEncoder {
                     new ProverExpr[]{ predIndexOf.mkExpr(a, b, i, si, fi, size, bSize, TRUE, isNotMatched) },
                     p.mkEq(i, size)
             );
-        } else {
-
-        }
+//        }
         return predIndexOf;
     }
 
@@ -971,14 +970,17 @@ public class StringEncoder {
         return p.mkNot(p.mkEq(p.mkTupleSelect(refPE, 0), lit(0)));
     }
 
-    public EncodingFacts mkStringIndexOf(ProverExpr leftString, ProverExpr rightString, ReferenceType stringRefType) {
-        ProverType stringADTType = getStringADTType();
-        String indexOfName = String.format("$indexOf(%s, %s)", leftString.toString(), rightString.toString());
-        ProverExpr indexOf = mkRefHornVariable(indexOfName, stringRefType);
-        ProverExpr indexOfString = selectString(indexOf);
-        ProverFun predIndexOf = genIndexOf(stringADTType);
-        ProverExpr guarantee = predIndexOf.mkExpr(leftString, rightString, indexOfString);
-        return new EncodingFacts(null, guarantee, indexOf, mkNotNullConstraint(indexOf));
+    public EncodingFacts mkStringIndexOf(ProverExpr leftString, ProverExpr rightString) {
+        String resultName = String.format("$indexOf(%s, %s)", leftString.toString(), rightString.toString());
+        ProverExpr result = intHornVar(resultName);
+        ProverFun predIndexOf = genIndexOf(getStringADTType());
+        ProverExpr guarantee = predIndexOf.mkExpr(leftString, rightString, intHornVar(mkName("$tmp")), len(leftString)
+                , result, len(leftString), len(rightString), booleanHornVar(mkName("tempB1")), booleanHornVar(mkName("$tmpB2")));
+        Log.info("\n\n\n\n\n\n\n\n");
+        for (ProverHornClause a: clauses)
+            Log.info(a.toString() + '\n');
+        Log.info("\n\n\n\n");
+        return new EncodingFacts(null, guarantee, result, lit(true));
     }
 
     public EncodingFacts mkStringConcat(ProverExpr leftString, ProverExpr rightString, ReferenceType stringRefType) {
@@ -1173,6 +1175,12 @@ public class StringEncoder {
                     final ProverExpr leftPE = selectString(leftExpr, varMap);
                     final ProverExpr rightPE = selectString(rightExpr, varMap);
                     return mkStringConcat(leftPE, rightPE, (ReferenceType) leftExpr.getType());
+                }
+
+                case StringIndexOf: {
+                    final ProverExpr leftPE = selectString(leftExpr, varMap);
+                    final ProverExpr rightPE = selectString(rightExpr, varMap);
+                    return mkStringIndexOf(leftPE, rightPE);
                 }
 
                 case StringCompareTo: {
