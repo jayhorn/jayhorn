@@ -621,7 +621,7 @@ public class SootStmtSwitch implements StmtSwitch {
 					Expression b = valueToInnerExpr(call.getArg(0));
 					rhs = new BinaryExpression(srcLoc, BinaryOperator.StringIndexOf, a, b);
 				} else {
-					throw new RuntimeException("String.compareTo(NonObject) not implemented");
+					throw new RuntimeException("String.indexOf(NonObject) not implemented");
 				}
 				Expression lhs = valueToExpr(optionalLhs);
 				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
