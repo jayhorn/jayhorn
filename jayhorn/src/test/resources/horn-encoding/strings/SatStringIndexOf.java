@@ -13,6 +13,8 @@ public class SatStringIndexOf {
         assert (s.indexOf(d) == -1);
         assert (s.indexOf(e) == -1);
         assert (s.indexOf(s) == 0);
+        assert (s.indexOf(b, 2) == 2);
+        assert (d.indexOf(e, 3) == -1);
     }
 
 }

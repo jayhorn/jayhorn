@@ -3,6 +3,7 @@ package soottocfg.cfg.expression;
 import com.google.common.base.Verify;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;
 
@@ -16,7 +17,7 @@ public class NaryExpression extends Expression {
     private static final long serialVersionUID = 1992559247136566989L;
 
     public enum NaryOperator {
-        StartsWithOffset("startsWithOffset");
+        StartsWithOffset("startsWithOffset"), IndexOfWithOffset("indexOfWithOffset");
 
         private final String name;
 
@@ -43,6 +44,7 @@ public class NaryExpression extends Expression {
         this.op = op;
         switch (this.op) {
             case StartsWithOffset:
+            case IndexOfWithOffset:
                 Verify.verify(expressions.length == 3);
                 this.expressions = Arrays.copyOf(expressions, expressions.length);
                 break;
@@ -99,6 +101,8 @@ public class NaryExpression extends Expression {
         switch (op) {
             case StartsWithOffset:
                 return BoolType.instance();
+            case IndexOfWithOffset:
+                return IntType.instance();
             default:
                 throw new RuntimeException("not implemented");
         }

@@ -6,6 +6,7 @@ public class UnsatStringIndexOf {
         String b = "";
         String s = "babax";
         assert (s.indexOf(a) == 3);
+        assert (s.indexOf(a, 2) == 1);
         assert (s.indexOf(b) == -1);
     }
 
