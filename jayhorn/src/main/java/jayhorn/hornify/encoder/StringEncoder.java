@@ -842,18 +842,16 @@ public class StringEncoder {
         ProverExpr bRev = stringHornVar("b_rev", stringADTType);
         ProverExpr aRevCopy = stringHornVar("a_rev_copy", stringADTType);
         ProverExpr bRevCopy = stringHornVar("b_rev_copy", stringADTType);
-        ProverExpr aCur = stringHornVar("a_cur", stringADTType);
-        ProverExpr bCur = stringHornVar("b_cur", stringADTType);
         ProverExpr j = intHornVar("j");
         ProverExpr k = intHornVar("k");
         ProverExpr si = intHornVar("si");
-        ProverExpr fi = intHornVar("fi");
         ProverExpr i = intHornVar("i");
         ProverExpr aSize = intHornVar("a_size");
         ProverExpr bSize = intHornVar("b_size");
 
         final ProverExpr ONE = lit(1);
         final ProverExpr ZERO = lit(0);
+        final ProverExpr rightStringLength = len(rightString);
 
         ProverFun finalPredIndexOf = mkStringIndexOfProverFun(stringADTType);
         ProverFun predIndexOf = mkStringInnerIndexOfProverFun(stringADTType);
@@ -862,12 +860,12 @@ public class StringEncoder {
         addPHC(
                 finalPredIndexOf.mkExpr(a, b, ZERO),
                 EMPTY_PHC_BODY,
-                p.mkEq(len(rightString), ZERO)
+                p.mkEq(rightStringLength, ZERO)
         );
         addPHC(
                 reverserPredIndexOf.mkExpr(a, b, a, b, nil(), nil()),
                 EMPTY_PHC_BODY,
-                p.mkAnd(p.mkEq(len(a), len(leftString)), p.mkEq(len(b), len(rightString)), p.mkNot(p.mkEq(len(rightString), ZERO)))
+                p.mkAnd(p.mkEq(len(a), len(leftString)), p.mkEq(len(b), rightStringLength), p.mkNot(p.mkEq(rightStringLength, ZERO)))
         );
         if (stringDirection == StringDirection.ltr) {
             //reversing strings
@@ -880,12 +878,12 @@ public class StringEncoder {
                     new ProverExpr[]{reverserPredIndexOf.mkExpr(a, b, nil(), cons(j, bCopy), aRev, bRev)}
             );
             addPHC(
-                    predIndexOf.mkExpr(a, b, aRev, bRev, aRev, bRev, ZERO, startOffset, len(leftString), len(rightString)),
+                    predIndexOf.mkExpr(a, b, aRev, bRev, aRev, bRev, ZERO, startOffset, len(leftString), rightStringLength),
                     new ProverExpr[]{reverserPredIndexOf.mkExpr(a, b, nil(), nil(), aRev, bRev)}
             );
         } else {
             addPHC(
-                    predIndexOf.mkExpr(a, b, a, b, a, b, ZERO, startOffset, len(leftString), len(rightString)),
+                    predIndexOf.mkExpr(a, b, a, b, a, b, ZERO, startOffset, len(leftString), rightStringLength),
                     new ProverExpr[]{ reverserPredIndexOf.mkExpr(a, b, a, b, nil(), nil()) }
             );
         }
@@ -1194,6 +1192,7 @@ public class StringEncoder {
             final BinaryExpression be = (BinaryExpression) e;
             Expression leftExpr = be.getLeft();
             Expression rightExpr = be.getRight();
+            Log.info("\n\n\n\n\nhere " + be.getOp());
             switch (be.getOp()) {
                 case StringConcat: {
                     final ProverExpr leftPE = selectString(leftExpr, varMap);
@@ -1204,6 +1203,12 @@ public class StringEncoder {
                 case StringIndexOf: {
                     final ProverExpr leftPE = selectString(leftExpr, varMap);
                     final ProverExpr rightPE = selectString(rightExpr, varMap);
+                    return mkStringIndexOf(leftPE, rightPE, lit(0));
+                }
+
+                case StringIndexOfChar: {
+                    final ProverExpr leftPE = selectString(leftExpr, varMap);
+                    final ProverExpr rightPE = mkStringPE(((char) selectInt(rightExpr, varMap).getIntLiteralValue().intValue()) + "");
                     return mkStringIndexOf(leftPE, rightPE, lit(0));
                 }
 
@@ -1265,6 +1270,7 @@ public class StringEncoder {
             }
         } else if (e instanceof NaryExpression) {
             final NaryExpression te = (NaryExpression) e;
+            Log.info("\n\n\n\n\nhere te " + te.getOp());
             switch (te.getOp()) {
                 case StartsWithOffset: {
                     final ProverExpr leftPE = selectString(te.getExpression(0), varMap);
@@ -1275,6 +1281,12 @@ public class StringEncoder {
                 case IndexOfWithOffset: {
                     final ProverExpr leftPE = selectString(te.getExpression(0), varMap);
                     final ProverExpr rightPE = selectString(te.getExpression(1), varMap);
+                    final ProverExpr offsetPE = selectInt(te.getExpression(2), varMap);
+                    return mkStringIndexOf(leftPE, rightPE, offsetPE);
+                }
+                case IndexOfCharWithOffset: {
+                    final ProverExpr leftPE = selectString(te.getExpression(0), varMap);
+                    final ProverExpr rightPE = mkStringPE(((char) selectInt(te.getExpression(1), varMap).getIntLiteralValue().intValue()) + "");
                     final ProverExpr offsetPE = selectInt(te.getExpression(2), varMap);
                     return mkStringIndexOf(leftPE, rightPE, offsetPE);
                 }

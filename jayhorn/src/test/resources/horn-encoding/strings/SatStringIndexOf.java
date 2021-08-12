@@ -2,7 +2,7 @@ public class SatStringIndexOf {
 
     public static void main(String[] args) {
         String a = "";
-        String b = "a";
+        char b = 'a';
         String c = "ba";
         String d = "fddsd";
         String e = "ds";

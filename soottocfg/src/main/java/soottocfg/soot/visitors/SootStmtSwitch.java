@@ -612,14 +612,15 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 			return true;
 		}
-		if (methodSignature.contains("<java.lang.String: int indexOf(java.lang.String)>")) {
+		if (methodSignature.contains("<java.lang.String: int indexOf(java.lang.String)>") ||
+				methodSignature.contains("<java.lang.String: int indexOf(int)>")) {
 			assert (call instanceof InstanceInvokeExpr);
 			if (optionalLhs != null) {
 				Expression rhs;
-				if (call.getArg(0).getType() instanceof RefType) {
+				if (call.getArg(0).getType() instanceof RefType || call.getArg(0).getType() instanceof IntType) {
 					Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
 					Expression b = valueToInnerExpr(call.getArg(0));
-					rhs = new BinaryExpression(srcLoc, BinaryOperator.StringIndexOf, a, b);
+					rhs = new BinaryExpression(srcLoc, (call.getArg(0).getType() instanceof IntType) ? BinaryOperator.StringIndexOfChar : BinaryOperator.StringIndexOf, a, b);
 				} else {
 					throw new RuntimeException("String.indexOf(NonObject) not implemented");
 				}
@@ -628,15 +629,16 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 			return true;
 		}
-		if (methodSignature.contains("<java.lang.String: int indexOf(java.lang.String,int)>")) {
+		if (methodSignature.contains("<java.lang.String: int indexOf(java.lang.String,int)>") ||
+				methodSignature.contains("<java.lang.String: int indexOf(int,int)>")) {
 			assert (call instanceof InstanceInvokeExpr);
 			if (optionalLhs != null) {
 				Expression rhs;
-				if (call.getArg(0).getType() instanceof RefType && call.getArg(1).getType() instanceof IntType) {
+				if ((call.getArg(0).getType() instanceof RefType || call.getArg(0).getType() instanceof IntType) && call.getArg(1).getType() instanceof IntType) {
 					Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
 					Expression b = valueToInnerExpr(call.getArg(0));
 					Expression c = valueToExpr(call.getArg(1));
-					rhs = new NaryExpression(srcLoc, NaryExpression.NaryOperator.IndexOfWithOffset, a, b, c);
+					rhs = new NaryExpression(srcLoc, (call.getArg(0).getType() instanceof IntType) ? NaryExpression.NaryOperator.IndexOfCharWithOffset : NaryExpression.NaryOperator.IndexOfWithOffset, a, b, c);
 				} else {
 					throw new RuntimeException("String.indexOf(NonObject, NonObject) not implemented");
 				}
