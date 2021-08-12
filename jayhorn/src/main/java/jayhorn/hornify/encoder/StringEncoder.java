@@ -260,17 +260,20 @@ public class StringEncoder {
 
     private ProverFun mkStringInnerIndexOfProverFun(ProverType stringADTType) {
         final String STRING_INNER_INDEX_OF = "string_inner_index_of";
-        return p.mkHornPredicate(mkName(STRING_INNER_INDEX_OF), new ProverType[]{stringADTType, stringADTType, p.getIntType(), p.getIntType(), p.getIntType(), p.getIntType(), p.getIntType(), p.getBooleanType()});
-    }
-
-    private ProverFun mkStringFoundIndexOfProverFun(ProverType stringADTType) {
-        final String STRING_FOUND_INDEX_OF = "string_found_index_of";
-        return p.mkHornPredicate(mkName(STRING_FOUND_INDEX_OF), new ProverType[]{stringADTType, stringADTType, p.getIntType(), p.getIntType()});
+        return p.mkHornPredicate(
+                mkName(STRING_INNER_INDEX_OF),
+                new ProverType[]{stringADTType, stringADTType, stringADTType, stringADTType, stringADTType, stringADTType, p.getIntType(), p.getIntType(), p.getIntType(), p.getIntType()}
+        );
     }
 
     private ProverFun mkStringIndexOfProverFun(ProverType stringADTType) {
         final String STRING_INDEX_OF = "string_index_of";
         return p.mkHornPredicate(mkName(STRING_INDEX_OF), new ProverType[]{stringADTType, stringADTType, p.getIntType()});
+    }
+
+    private ProverFun mkStringIndexOfReverserProverFUn(ProverType stringADTType) {
+        final String STRING_REVERSER_INDEX_OF = "string_reverser_index_of";
+        return p.mkHornPredicate(mkName(STRING_REVERSER_INDEX_OF), new ProverType[]{ stringADTType, stringADTType, stringADTType, stringADTType, stringADTType, stringADTType });
     }
 
     private void considerHintedSizeConcat(ProverFun predConcat, ProverType stringADTType) {
@@ -833,6 +836,14 @@ public class StringEncoder {
     private ProverFun genIndexOf(ProverType stringADTType, ProverExpr leftString, ProverExpr rightString) {
         ProverExpr a = stringHornVar("a", stringADTType);
         ProverExpr b = stringHornVar("b", stringADTType);
+        ProverExpr aCopy = stringHornVar("a_copy", stringADTType);
+        ProverExpr bCopy = stringHornVar("b_copy", stringADTType);
+        ProverExpr aRev = stringHornVar("a_rev", stringADTType);
+        ProverExpr bRev = stringHornVar("b_rev", stringADTType);
+        ProverExpr aRevCopy = stringHornVar("a_rev_copy", stringADTType);
+        ProverExpr bRevCopy = stringHornVar("b_rev_copy", stringADTType);
+        ProverExpr aCur = stringHornVar("a_cur", stringADTType);
+        ProverExpr bCur = stringHornVar("b_cur", stringADTType);
         ProverExpr j = intHornVar("j");
         ProverExpr k = intHornVar("k");
         ProverExpr si = intHornVar("si");
@@ -841,30 +852,51 @@ public class StringEncoder {
         ProverExpr aSize = intHornVar("a_size");
         ProverExpr bSize = intHornVar("b_size");
 
-        final ProverExpr FALSE = lit(false);
-        final ProverExpr TRUE = lit(true);
         final ProverExpr ONE = lit(1);
         final ProverExpr ZERO = lit(0);
 
         ProverFun finalPredIndexOf = mkStringIndexOfProverFun(stringADTType);
         ProverFun predIndexOf = mkStringInnerIndexOfProverFun(stringADTType);
-        ProverFun foundPredIndexOf = mkStringFoundIndexOfProverFun(stringADTType);
+        ProverFun reverserPredIndexOf = mkStringIndexOfReverserProverFUn(stringADTType);
 
         if (stringDirection == StringDirection.ltr) {
-            addPHC(predIndexOf.mkExpr(nil(), nil(), ZERO, ZERO, p.mkNeg(ONE), len(leftString), len(rightString), FALSE));
+            //reversing strings
             addPHC(
-                    predIndexOf.mkExpr(cons(j, a), b, p.mkPlus(i, ONE), si, fi, aSize, bSize, FALSE),
-                    new ProverExpr[]{predIndexOf.mkExpr(a, b, i, si, fi, aSize, bSize, FALSE)},
+                    finalPredIndexOf.mkExpr(a, b, ZERO),
+                    EMPTY_PHC_BODY,
+                    p.mkEq(len(rightString), ZERO)
+            );
+            addPHC(
+                    reverserPredIndexOf.mkExpr(a, b, a, b, nil(), nil()),
+                    EMPTY_PHC_BODY,
+                    p.mkAnd(p.mkEq(len(a), len(leftString)), p.mkEq(len(b), len(rightString)), p.mkNot(p.mkEq(len(rightString), ZERO)))
+            );
+            addPHC(
+                    reverserPredIndexOf.mkExpr(a, b, aCopy, bCopy, cons(j, aRev), nil()),
+                    new ProverExpr[]{ reverserPredIndexOf.mkExpr(a, b, cons(j, aCopy), bCopy, aRev, nil()) }
+            );
+            addPHC(
+                    reverserPredIndexOf.mkExpr(a, b, nil(), bCopy, aRev, cons(j, bRev)),
+                    new ProverExpr[]{ reverserPredIndexOf.mkExpr(a, b, nil(), cons(j, bCopy), aRev, bRev) }
+            );
+            //matching
+            addPHC(
+                    predIndexOf.mkExpr(a, b, aRev, bRev, aRev, bRev, ZERO, ZERO, len(leftString), len(rightString)),
+                    new ProverExpr[]{ reverserPredIndexOf.mkExpr(a, b, nil(), nil(), aRev, bRev) }
+            );
+            addPHC(
+                    predIndexOf.mkExpr(a, b, aRev, bRev, aRevCopy, bRevCopy, p.mkPlus(i, ONE), si, aSize, bSize),
+                    new ProverExpr[]{ predIndexOf.mkExpr(a, b, aRev, bRev, cons(j, aRevCopy), bRevCopy, i, si, aSize, bSize) },
                     p.mkAnd(p.mkGt(p.mkMinus(aSize, i), p.mkPlus(si, bSize)), p.mkGeq(p.mkMinus(aSize, bSize), si))
             );
             addPHC(
-                    predIndexOf.mkExpr(cons(j, a), cons(j, b), p.mkPlus(i, ONE), si, fi, aSize, bSize, FALSE),
-                    new ProverExpr[]{predIndexOf.mkExpr(a, b, i, si, fi, aSize, bSize, FALSE)},
+                    predIndexOf.mkExpr(a, b, aRev, bRev, aRevCopy, bRevCopy, p.mkPlus(i, ONE), si, aSize, bSize),
+                    new ProverExpr[]{predIndexOf.mkExpr(a, b, aRev, bRev, cons(j, aRevCopy), cons(j, bRevCopy), i, si, aSize, bSize)},
                     p.mkAnd(p.mkLt(si, p.mkMinus(aSize, i)), p.mkLeq(p.mkMinus(aSize, i), p.mkPlus(si, bSize)), p.mkGeq(p.mkMinus(aSize, bSize), si))
             );
             addPHC(
-                    predIndexOf.mkExpr(cons(j, a), cons(k, b), p.mkPlus(i, ONE), si, fi, aSize, bSize, TRUE),
-                    new ProverExpr[]{predIndexOf.mkExpr(a, b, i, si, fi, aSize, bSize, FALSE)},
+                    predIndexOf.mkExpr(a, b, aRev, bRev, aRev, bRev, ZERO, p.mkPlus(si, ONE), aSize, bSize),
+                    new ProverExpr[]{predIndexOf.mkExpr(a, b, aRev, bRev, cons(k, aRevCopy), cons(j, bRevCopy), i, si, aSize, bSize)},
                     p.mkAnd(p.mkLt(si, p.mkMinus(aSize, i)),
                             p.mkLeq(p.mkMinus(aSize, i), p.mkPlus(si, bSize)),
                             p.mkNot(p.mkEq(k, j)),
@@ -872,42 +904,13 @@ public class StringEncoder {
                     )
             );
             addPHC(
-                    predIndexOf.mkExpr(nil(), nil(), ZERO, p.mkPlus(si, ONE), fi, aSize, bSize, FALSE),
-                    new ProverExpr[]{predIndexOf.mkExpr(a, b, i, si, fi, aSize, bSize, TRUE)},
-                    p.mkLt(si, p.mkMinus(aSize, bSize))
-            );
-            addPHC(
-                    predIndexOf.mkExpr(cons(j, a), cons(k, b), p.mkPlus(i, ONE), si, fi, aSize, bSize, TRUE),
-                    new ProverExpr[]{predIndexOf.mkExpr(a, b, i, si, fi, aSize, bSize, TRUE)},
-                    p.mkAnd(p.mkEq(si, p.mkMinus(aSize, bSize)), p.mkLt(i, aSize))
-            );
-            addPHC(
-                    predIndexOf.mkExpr(cons(j, a), b, p.mkPlus(i, ONE), si, fi, aSize, bSize, TRUE),
-                    new ProverExpr[]{predIndexOf.mkExpr(a, b, i, si, fi, aSize, bSize, TRUE)},
-                    p.mkAnd(p.mkEq(si, p.mkMinus(aSize, bSize)), p.mkLt(i, aSize))
-            );
-            addPHC(
-                    finalPredIndexOf.mkExpr(a, b, fi),
-                    new ProverExpr[]{predIndexOf.mkExpr(a, b, aSize, p.mkMinus(aSize, bSize), fi, aSize, bSize, TRUE)}
+                    finalPredIndexOf.mkExpr(a, b, lit(-1)),
+                    new ProverExpr[]{ predIndexOf.mkExpr(a, b, aRev, bRev, aRev, bRev, ZERO, si, aSize, bSize) },
+                    p.mkGt(si, p.mkMinus(aSize, bSize))
             );
             addPHC(
                     finalPredIndexOf.mkExpr(a, b, si),
-                    new ProverExpr[]{predIndexOf.mkExpr(a, b, p.mkMinus(aSize, si), si, p.mkNeg(ONE), aSize, bSize, FALSE)},
-                    p.mkEq(si, ZERO)
-            );
-            addPHC(
-                    foundPredIndexOf.mkExpr(a, b, si, si),
-                    new ProverExpr[]{predIndexOf.mkExpr(a, b, p.mkMinus(aSize, si), si, p.mkNeg(ONE), aSize, bSize, FALSE)},
-                    p.mkNot(p.mkEq(si, ZERO))
-            );
-            addPHC(
-                    foundPredIndexOf.mkExpr(cons(j, a), b, si, p.mkMinus(i, ONE)),
-                    new ProverExpr[]{foundPredIndexOf.mkExpr(a, b, si, i)},
-                    p.mkGt(i, ZERO)
-            );
-            addPHC(
-                    finalPredIndexOf.mkExpr(a, b, si),
-                    new ProverExpr[]{foundPredIndexOf.mkExpr(a, b, si, ZERO)}
+                    new ProverExpr[]{predIndexOf.mkExpr(a, b, aRev, bRev, aRevCopy, nil(), p.mkMinus(aSize, si), si, aSize, bSize)}
             );
         }
         return finalPredIndexOf;

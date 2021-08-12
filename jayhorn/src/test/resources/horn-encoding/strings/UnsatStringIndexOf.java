@@ -3,8 +3,10 @@ public class UnsatStringIndexOf {
 
     public static void main(String[] args) {
         String a = "a";
-        String s = "ba";
-        assert (s.indexOf(a) == 1);
+        String b = "";
+        String s = "babax";
+        assert (s.indexOf(a) == 3);
+        assert (s.indexOf(b) == -1);
     }
 
 }
