@@ -629,6 +629,23 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 			return true;
 		}
+		if (methodSignature.contains("<java.lang.String: int lastIndexOf(java.lang.String)>") ||
+				methodSignature.contains("<java.lang.String: int lastIndexOf(int)>")) {
+			assert (call instanceof InstanceInvokeExpr);
+			if (optionalLhs != null) {
+				Expression rhs;
+				if (call.getArg(0).getType() instanceof RefType || call.getArg(0).getType() instanceof IntType) {
+					Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+					Expression b = valueToInnerExpr(call.getArg(0));
+					rhs = new BinaryExpression(srcLoc, (call.getArg(0).getType() instanceof IntType) ? BinaryOperator.StringLastIndexOfChar : BinaryOperator.StringLastIndexOf, a, b);
+				} else {
+					throw new RuntimeException("String.lastIndexOf(NonObject) not implemented");
+				}
+				Expression lhs = valueToExpr(optionalLhs);
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+			}
+			return true;
+		}
 		if (methodSignature.contains("<java.lang.String: int indexOf(java.lang.String,int)>") ||
 				methodSignature.contains("<java.lang.String: int indexOf(int,int)>")) {
 			assert (call instanceof InstanceInvokeExpr);
@@ -641,6 +658,24 @@ public class SootStmtSwitch implements StmtSwitch {
 					rhs = new NaryExpression(srcLoc, (call.getArg(0).getType() instanceof IntType) ? NaryExpression.NaryOperator.IndexOfCharWithOffset : NaryExpression.NaryOperator.IndexOfWithOffset, a, b, c);
 				} else {
 					throw new RuntimeException("String.indexOf(NonObject, NonObject) not implemented");
+				}
+				Expression lhs = valueToExpr(optionalLhs);
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+			}
+			return true;
+		}
+		if (methodSignature.contains("<java.lang.String: int lastIndexOf(java.lang.String,int)>") ||
+				methodSignature.contains("<java.lang.String: int lastIndexOf(int,int)>")) {
+			assert (call instanceof InstanceInvokeExpr);
+			if (optionalLhs != null) {
+				Expression rhs;
+				if ((call.getArg(0).getType() instanceof RefType || call.getArg(0).getType() instanceof IntType) && call.getArg(1).getType() instanceof IntType) {
+					Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+					Expression b = valueToInnerExpr(call.getArg(0));
+					Expression c = valueToExpr(call.getArg(1));
+					rhs = new NaryExpression(srcLoc, (call.getArg(0).getType() instanceof IntType) ? NaryExpression.NaryOperator.LastIndexOfCharWithOffset : NaryExpression.NaryOperator.LastIndexOfWithOffset, a, b, c);
+				} else {
+					throw new RuntimeException("String.lastIndexOf(NonObject, NonObject) not implemented");
 				}
 				Expression lhs = valueToExpr(optionalLhs);
 				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));

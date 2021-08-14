@@ -36,7 +36,8 @@ public class BinaryExpression extends Expression {
 		Plus("+"), Minus("-"), Mul("*"), Div("/"), Mod("%"), And("&&"), Or("||"), Xor("^"), Implies("->"), Eq("=="),
 		Ne("!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&"),
 		PoLeq("<:"), StringEq("==="), StringConcat("+++"), StringCompareTo("<?>"), StartsWith("startsWith"), EndsWith("endsWith"), CharAt("charAt"),
-		ToString("<str>"), BoolToString("<str_b>"), CharToString("<str_c>"), IndexInString("<idx_str>"), StringIndexOf("<idx_of>"), StringIndexOfChar("<idx_of_char>");	// TODO: not an actual BinaryExpression
+		ToString("<str>"), BoolToString("<str_b>"), CharToString("<str_c>"), IndexInString("<idx_str>"), StringIndexOf("<idx_of>"), StringIndexOfChar("<idx_of_char>"),
+		StringLastIndexOf("<lst_idx_of>"), StringLastIndexOfChar("<lst_idx_of_char>");	// TODO: not an actual BinaryExpression
 
 		private final String name;
 
@@ -88,8 +89,9 @@ public class BinaryExpression extends Expression {
 						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(right)
 						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(left)
 						|| op == BinaryOperator.CharAt || op == BinaryOperator.IndexInString
-						|| op == BinaryOperator.ToString || op == BinaryOperator.BoolToString || op == BinaryOperator.CharToString || op == BinaryOperator.StringIndexOfChar
-						|| ((op == BinaryOperator.StringConcat || op == BinaryOperator.StringCompareTo || op == BinaryOperator.StringIndexOf) &&
+						|| op == BinaryOperator.ToString || op == BinaryOperator.BoolToString || op == BinaryOperator.CharToString
+							|| op == BinaryOperator.StringIndexOfChar || op == BinaryOperator.StringLastIndexOfChar
+						|| ((op == BinaryOperator.StringConcat || op == BinaryOperator.StringCompareTo || op == BinaryOperator.StringIndexOf || op == BinaryOperator.StringLastIndexOf) &&
 							(left.getType() instanceof ReferenceType || right.getType() instanceof ReferenceType)),
 				"Types don't match: " + left.getType() + " and " + right.getType() + " for "+left.toString()+op+right.toString());
 		// TODO: more type checking depending on operator
