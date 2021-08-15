@@ -852,7 +852,8 @@ public class StringEncoder {
         final ProverExpr ONE = lit(1);
         final ProverExpr ZERO = lit(0);
         final ProverExpr rightStringLength = len(rightString);
-        ProverExpr siIsInLimit = (isIndexOf) ? p.mkGeq(p.mkMinus(aSize, bSize), si) : p.mkGeq(si, ZERO);
+        final ProverExpr leftStringLength = len(leftString);
+        ProverExpr siIsInLimit = p.mkAnd(p.mkGeq(p.mkMinus(aSize, bSize), si), p.mkGeq(si, ZERO));
         ProverExpr siExceededLimit = (isIndexOf) ? p.mkGt(si, p.mkMinus(aSize, bSize)) : p.mkGt(ZERO, si);
         ProverExpr nextSi = (isIndexOf) ? p.mkPlus(si, ONE) : p.mkMinus(si, ONE);
 
@@ -868,8 +869,21 @@ public class StringEncoder {
         addPHC(
                 reverserPredIndexOf.mkExpr(a, b, a, b, nil(), nil()),
                 EMPTY_PHC_BODY,
-                p.mkAnd(p.mkEq(len(a), len(leftString)), p.mkEq(len(b), rightStringLength), p.mkNot(p.mkEq(rightStringLength, ZERO)))
+                p.mkAnd(p.mkEq(len(a), leftStringLength), p.mkEq(len(b), rightStringLength), p.mkNot(p.mkEq(rightStringLength, ZERO)))
         );
+        if (isIndexOf) {
+            addPHC(
+                    predIndexOf.mkExpr(a, b, aRev, bRev, aRev, bRev, ZERO, ZERO, leftStringLength, rightStringLength),
+                    new ProverExpr[]{ predIndexOf.mkExpr(a, b, aRev, bRev, aRev, bRev, ZERO, startOffset, leftStringLength, rightStringLength) },
+                    p.mkLt(startOffset, ZERO)
+            );
+        } else {
+            addPHC(
+                    predIndexOf.mkExpr(a, b, aRev, bRev, aRev, bRev, ZERO, p.mkMinus(leftStringLength, rightStringLength), leftStringLength, rightStringLength),
+                    new ProverExpr[]{ predIndexOf.mkExpr(a, b, aRev, bRev, aRev, bRev, ZERO, startOffset, leftStringLength, rightStringLength) },
+                    p.mkGt(startOffset, p.mkMinus(leftStringLength, rightStringLength))
+            );
+        }
         if (stringDirection == StringDirection.ltr) {
             //reversing strings
             addPHC(
@@ -881,12 +895,12 @@ public class StringEncoder {
                     new ProverExpr[]{reverserPredIndexOf.mkExpr(a, b, nil(), cons(j, bCopy), aRev, bRev)}
             );
             addPHC(
-                    predIndexOf.mkExpr(a, b, aRev, bRev, aRev, bRev, ZERO, startOffset, len(leftString), rightStringLength),
+                    predIndexOf.mkExpr(a, b, aRev, bRev, aRev, bRev, ZERO, startOffset, leftStringLength, rightStringLength),
                     new ProverExpr[]{reverserPredIndexOf.mkExpr(a, b, nil(), nil(), aRev, bRev)}
             );
         } else {
             addPHC(
-                    predIndexOf.mkExpr(a, b, a, b, a, b, ZERO, startOffset, len(leftString), rightStringLength),
+                    predIndexOf.mkExpr(a, b, a, b, a, b, ZERO, startOffset, leftStringLength, rightStringLength),
                     new ProverExpr[]{ reverserPredIndexOf.mkExpr(a, b, a, b, nil(), nil()) }
             );
         }
@@ -1001,10 +1015,6 @@ public class StringEncoder {
     }
 
     public EncodingFacts mkStringIndexOf(ProverExpr leftString, ProverExpr rightString, ProverExpr startOffset) {
-//        Log.info("\n\nINJAST\n\n");
-//        Log.info(startOffset.getIntLiteralValue().intValue());
-//        Log.info(leftString.toString().length() - rightString.toString().length());
-//        Log.info("\n\n\n\n");
         String resultName = String.format("$indexOf(%s, %s)", leftString.toString(), rightString.toString());
         ProverExpr result = intHornVar(resultName);
         ProverFun predIndexOf = genIndexOf(getStringADTType(), leftString, rightString, startOffset, true);
@@ -1013,10 +1023,6 @@ public class StringEncoder {
     }
 
     public EncodingFacts mkStringLastIndexOf(ProverExpr leftString, ProverExpr rightString, ProverExpr startOffset) {
-//        Log.info("\n\nINJAST\n\n");
-//        Log.info(startOffset.getIntLiteralValue().intValue());
-//        Log.info(leftString.toString().length() - rightString.toString().length());
-//        Log.info("\n\n\n\n");
         String resultName = String.format("$lastIndexOf(%s, %s)", leftString.toString(), rightString.toString());
         ProverExpr result = intHornVar(resultName);
         ProverFun predIndexOf = genIndexOf(getStringADTType(), leftString, rightString, startOffset, false);

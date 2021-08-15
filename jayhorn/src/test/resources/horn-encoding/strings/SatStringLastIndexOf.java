@@ -6,7 +6,7 @@ public class SatStringLastIndexOf {
         String c = "ba";
         String d = "ddsd";
         String e = "ds";
-        String s = "baax";
+        String s = "baas";
         assert (s.lastIndexOf(a) == 4);
         assert (s.lastIndexOf(b) == 2);
         assert (s.lastIndexOf(d) == -1);
@@ -14,6 +14,7 @@ public class SatStringLastIndexOf {
         assert (s.lastIndexOf(s) == 0);
         assert (s.lastIndexOf(b, 2) == 2);
         assert (d.lastIndexOf(e, 2) == 1);
+        assert (d.lastIndexOf(e, 4) == 1);
     }
 
 }
