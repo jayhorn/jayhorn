@@ -37,7 +37,7 @@ public class BinaryExpression extends Expression {
 		Ne("!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&"),
 		PoLeq("<:"), StringEq("==="), StringConcat("+++"), StringCompareTo("<?>"), StartsWith("startsWith"), EndsWith("endsWith"), CharAt("charAt"),
 		ToString("<str>"), BoolToString("<str_b>"), CharToString("<str_c>"), IndexInString("<idx_str>"), StringIndexOf("<idx_of>"), StringIndexOfChar("<idx_of_char>"),
-		StringLastIndexOf("<lst_idx_of>"), StringLastIndexOfChar("<lst_idx_of_char>");	// TODO: not an actual BinaryExpression
+		StringLastIndexOf("<last_idx_of>"), StringLastIndexOfChar("<last_idx_of_char>");	// TODO: not an actual BinaryExpression
 
 		private final String name;
 
