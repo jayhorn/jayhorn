@@ -262,6 +262,24 @@ public class StringEncoder {
         return p.mkHornPredicate(mkName(STRING_SUBSTRING), new ProverType[]{stringADTType, p.getIntType(), p.getIntType(), stringADTType});
     }
 
+    private ProverFun mkStringInnerIndexOfProverFun(ProverType stringADTType) {
+        final String STRING_INNER_INDEX_OF = "string_inner_index_of";
+        return p.mkHornPredicate(
+                mkName(STRING_INNER_INDEX_OF),
+                new ProverType[]{stringADTType, stringADTType, stringADTType, stringADTType, p.getIntType(), p.getIntType()}
+        );
+    }
+
+    private ProverFun mkStringIndexOfProverFun(ProverType stringADTType) {
+        final String STRING_INDEX_OF = "string_index_of";
+        return p.mkHornPredicate(mkName(STRING_INDEX_OF), new ProverType[]{stringADTType, stringADTType, p.getIntType()});
+    }
+
+    private ProverFun mkStringIndexOfReverserProverFUn(ProverType stringADTType) {
+        final String STRING_REVERSER_INDEX_OF = "string_reverser_index_of";
+        return p.mkHornPredicate(mkName(STRING_REVERSER_INDEX_OF), new ProverType[]{stringADTType, stringADTType, stringADTType, stringADTType, stringADTType, stringADTType});
+    }
+
     private void considerHintedSizeConcat(ProverFun predConcat, ProverType stringADTType) {
         ProverExpr b = stringHornVar("b", stringADTType), c = stringHornVar("c", stringADTType);
         ProverExpr exp = nil();
@@ -857,6 +875,130 @@ public class StringEncoder {
         return predCompareTo;
     }
 
+    private ProverFun genIndexOf(ProverType stringADTType, ProverExpr leftString, ProverExpr rightString, ProverExpr startOffset, boolean isIndexOf) {
+        ProverExpr a = stringHornVar("a", stringADTType);
+        ProverExpr b = stringHornVar("b", stringADTType);
+        ProverExpr aCopy = stringHornVar("a_copy", stringADTType);
+        ProverExpr bCopy = stringHornVar("b_copy", stringADTType);
+        ProverExpr aRev = stringHornVar("a_rev", stringADTType);
+        ProverExpr bRev = stringHornVar("b_rev", stringADTType);
+        ProverExpr aRevCopy = stringHornVar("a_rev_copy", stringADTType);
+        ProverExpr bRevCopy = stringHornVar("b_rev_copy", stringADTType);
+        ProverExpr j = intHornVar("j");
+        ProverExpr k = intHornVar("k");
+        ProverExpr si = intHornVar("si");
+        ProverExpr i = intHornVar("i");
+
+        final ProverExpr ONE = lit(1);
+        final ProverExpr ZERO = lit(0);
+        final ProverExpr rightStringLength = len(rightString);
+        final ProverExpr leftStringLength = len(leftString);
+        ProverExpr siIsInLimit = p.mkAnd(p.mkGeq(p.mkMinus(leftStringLength, rightStringLength), si), p.mkGeq(si, ZERO));
+        ProverExpr siExceededLimit = (isIndexOf) ? p.mkGt(si, p.mkMinus(leftStringLength, rightStringLength)) : p.mkGt(ZERO, si);
+        ProverExpr nextSi = (isIndexOf) ? p.mkPlus(si, ONE) : p.mkMinus(si, ONE);
+
+        ProverFun finalPredIndexOf = mkStringIndexOfProverFun(stringADTType);
+        ProverFun predIndexOf = mkStringInnerIndexOfProverFun(stringADTType);
+        ProverFun reverserPredIndexOf = mkStringIndexOfReverserProverFUn(stringADTType);
+
+        addPHC(
+                finalPredIndexOf.mkExpr(a, b, isIndexOf ? ZERO : len(a)),
+                EMPTY_PHC_BODY,
+                p.mkEq(rightStringLength, ZERO)
+        );
+        addPHC(
+                reverserPredIndexOf.mkExpr(a, b, a, b, nil(), nil()),
+                EMPTY_PHC_BODY,
+                p.mkAnd(p.mkEq(len(a), leftStringLength), p.mkEq(len(b), rightStringLength), p.mkNot(p.mkEq(rightStringLength, ZERO)))
+        );
+        if (isIndexOf) {
+            addPHC(
+                    predIndexOf.mkExpr(a, b, aRev, bRev, ZERO, ZERO),
+                    new ProverExpr[]{predIndexOf.mkExpr(a, b, aRev, bRev, ZERO, startOffset)},
+                    p.mkLt(startOffset, ZERO)
+            );
+        } else {
+            addPHC(
+                    predIndexOf.mkExpr(a, b, aRev, bRev, ZERO, p.mkMinus(leftStringLength, rightStringLength)),
+                    new ProverExpr[]{predIndexOf.mkExpr(a, b, aRev, bRev, ZERO, startOffset)},
+                    p.mkGt(startOffset, p.mkMinus(leftStringLength, rightStringLength))
+            );
+        }
+        if (stringDirection == StringDirection.ltr) {
+            //reversing strings
+            addPHC(
+                    reverserPredIndexOf.mkExpr(a, b, aCopy, bCopy, cons(j, aRev), nil()),
+                    new ProverExpr[]{reverserPredIndexOf.mkExpr(a, b, cons(j, aCopy), bCopy, aRev, nil())}
+            );
+            addPHC(
+                    reverserPredIndexOf.mkExpr(a, b, nil(), bCopy, aRev, cons(j, bRev)),
+                    new ProverExpr[]{reverserPredIndexOf.mkExpr(a, b, nil(), cons(j, bCopy), aRev, bRev)}
+            );
+            addPHC(
+                    predIndexOf.mkExpr(a, b, aRev, bRev, ZERO, startOffset),
+                    new ProverExpr[]{reverserPredIndexOf.mkExpr(a, b, nil(), nil(), aRev, bRev)}
+            );
+            addPHC(
+                    predIndexOf.mkExpr(a, b, aRev, bRev, ZERO, nextSi),
+                    new ProverExpr[]{
+                            predIndexOf.mkExpr(a, b, cons(k, aRevCopy), cons(j, bRevCopy), i, si),
+                            reverserPredIndexOf.mkExpr(a, b, nil(), nil(), aRev, bRev)
+                    },
+                    p.mkAnd(p.mkLt(si, p.mkMinus(leftStringLength, i)),
+                            p.mkLeq(p.mkMinus(leftStringLength, i), p.mkPlus(si, rightStringLength)),
+                            p.mkNot(p.mkEq(k, j)),
+                            siIsInLimit
+                    )
+            );
+        } else {
+            addPHC(
+                    predIndexOf.mkExpr(a, b, a, b, ZERO, startOffset),
+                    new ProverExpr[]{reverserPredIndexOf.mkExpr(a, b, a, b, nil(), nil())}
+            );
+            addPHC(
+                    predIndexOf.mkExpr(a, b, a, b, ZERO, nextSi),
+                    new ProverExpr[]{
+                            predIndexOf.mkExpr(a, b, cons(k, aRevCopy), cons(j, bRevCopy), i, si),
+                            reverserPredIndexOf.mkExpr(a, b, a, b, nil(), nil())
+                    },
+                    p.mkAnd(p.mkLt(si, p.mkMinus(leftStringLength, i)),
+                            p.mkLeq(p.mkMinus(leftStringLength, i), p.mkPlus(si, rightStringLength)),
+                            p.mkNot(p.mkEq(k, j)),
+                            siIsInLimit
+                    )
+            );
+        }
+        addPHC(
+                predIndexOf.mkExpr(a, b, aRevCopy, bRevCopy, p.mkPlus(i, ONE), si),
+                new ProverExpr[]{predIndexOf.mkExpr(a, b, cons(j, aRevCopy), bRevCopy, i, si)},
+                p.mkAnd(p.mkGt(p.mkMinus(leftStringLength, i), p.mkPlus(si, rightStringLength)), siIsInLimit)
+        );
+        addPHC(
+                predIndexOf.mkExpr(a, b, aRevCopy, bRevCopy, p.mkPlus(i, ONE), si),
+                new ProverExpr[]{predIndexOf.mkExpr(a, b, cons(j, aRevCopy), cons(j, bRevCopy), i, si)},
+                p.mkAnd(p.mkLt(si, p.mkMinus(leftStringLength, i)), p.mkLeq(p.mkMinus(leftStringLength, i), p.mkPlus(si, rightStringLength)), siIsInLimit)
+        );
+//        addPHC(
+//                predIndexOf.mkExpr(a, b, aRev, bRev, aRev, bRev, ZERO, nextSi),
+//                new ProverExpr[]{predIndexOf.mkExpr(a, b, aRev, bRev, cons(k, aRevCopy), cons(j, bRevCopy), i, si)},
+//                p.mkAnd(p.mkLt(si, p.mkMinus(leftStringLength, i)),
+//                        p.mkLeq(p.mkMinus(leftStringLength, i), p.mkPlus(si, rightStringLength)),
+//                        p.mkNot(p.mkEq(k, j)),
+//                        siIsInLimit
+//                )
+//        );
+        addPHC(
+                finalPredIndexOf.mkExpr(a, b, lit(-1)),
+                new ProverExpr[]{predIndexOf.mkExpr(a, b, aRev, bRev, ZERO, si)},
+                siExceededLimit
+        );
+        addPHC(
+                finalPredIndexOf.mkExpr(a, b, si),
+                new ProverExpr[]{predIndexOf.mkExpr(a, b, aRevCopy, nil(), p.mkMinus(leftStringLength, si), si)}
+        );
+        return finalPredIndexOf;
+    }
+
     private ProverExpr head(ProverExpr expr) {
         return stringADT.mkSelExpr(1, 0, expr);
     }
@@ -952,6 +1094,22 @@ public class StringEncoder {
         ProverFun predSubstring = genSubstring(getStringADTType());
         ProverExpr guarantee = predSubstring.mkExpr(leftString, index, len(leftString), substringString);
         return new EncodingFacts(null, guarantee, substring, mkNotNullConstraint(substring));
+    }
+
+    public EncodingFacts mkStringIndexOf(ProverExpr leftString, ProverExpr rightString, ProverExpr startOffset) {
+        String resultName = String.format("$indexOf(%s, %s)", leftString.toString(), rightString.toString());
+        ProverExpr result = intHornVar(resultName);
+        ProverFun predIndexOf = genIndexOf(getStringADTType(), leftString, rightString, startOffset, true);
+        ProverExpr guarantee = predIndexOf.mkExpr(leftString, rightString, result);
+        return new EncodingFacts(null, guarantee, result, lit(true));
+    }
+
+    public EncodingFacts mkStringLastIndexOf(ProverExpr leftString, ProverExpr rightString, ProverExpr startOffset) {
+        String resultName = String.format("$lastIndexOf(%s, %s)", leftString.toString(), rightString.toString());
+        ProverExpr result = intHornVar(resultName);
+        ProverFun predIndexOf = genIndexOf(getStringADTType(), leftString, rightString, startOffset, false);
+        ProverExpr guarantee = predIndexOf.mkExpr(leftString, rightString, result);
+        return new EncodingFacts(null, guarantee, result, lit(true));
     }
 
     public EncodingFacts mkStringConcat(ProverExpr leftString, ProverExpr rightString, ReferenceType stringRefType) {
@@ -1148,6 +1306,30 @@ public class StringEncoder {
                     return mkStringConcat(leftPE, rightPE, (ReferenceType) leftExpr.getType());
                 }
 
+                case StringIndexOf: {
+                    final ProverExpr leftPE = selectString(leftExpr, varMap);
+                    final ProverExpr rightPE = selectString(rightExpr, varMap);
+                    return mkStringIndexOf(leftPE, rightPE, lit(0));
+                }
+
+                case StringLastIndexOf: {
+                    final ProverExpr leftPE = selectString(leftExpr, varMap);
+                    final ProverExpr rightPE = selectString(rightExpr, varMap);
+                    return mkStringLastIndexOf(leftPE, rightPE, p.mkMinus(len(leftPE), len(rightPE)));
+                }
+
+                case StringIndexOfChar: {
+                    final ProverExpr leftPE = selectString(leftExpr, varMap);
+                    final ProverExpr rightPE = mkStringPE(((char) selectInt(rightExpr, varMap).getIntLiteralValue().intValue()) + "");
+                    return mkStringIndexOf(leftPE, rightPE, lit(0));
+                }
+
+                case StringLastIndexOfChar: {
+                    final ProverExpr leftPE = selectString(leftExpr, varMap);
+                    final ProverExpr rightPE = mkStringPE(((char) selectInt(rightExpr, varMap).getIntLiteralValue().intValue()) + "");
+                    return mkStringLastIndexOf(leftPE, rightPE, p.mkMinus(len(leftPE), len(rightPE)));
+                }
+
                 case StringCompareTo: {
                     final ProverExpr leftPE = selectString(leftExpr, varMap);
                     final ProverExpr rightPE = selectString(rightExpr, varMap);
@@ -1223,6 +1405,24 @@ public class StringEncoder {
                     final ProverExpr leftPE = selectString(te.getExpression(0), varMap);
                     final ProverExpr indexPE = selectInt(te.getExpression(1), varMap);
                     return mkStringSubstring(leftPE, indexPE, (ReferenceType) te.getExpression(0).getType());
+                }
+                case IndexOfWithOffset:
+                case LastIndexOfWithOffset: {
+                    final ProverExpr leftPE = selectString(te.getExpression(0), varMap);
+                    final ProverExpr rightPE = selectString(te.getExpression(1), varMap);
+                    final ProverExpr offsetPE = selectInt(te.getExpression(2), varMap);
+                    return (te.getOp().equals(NaryExpression.NaryOperator.IndexOfWithOffset)) ?
+                            mkStringIndexOf(leftPE, rightPE, offsetPE)
+                            : mkStringLastIndexOf(leftPE, rightPE, offsetPE);
+                }
+                case IndexOfCharWithOffset:
+                case LastIndexOfCharWithOffset: {
+                    final ProverExpr leftPE = selectString(te.getExpression(0), varMap);
+                    final ProverExpr rightPE = mkStringPE(((char) selectInt(te.getExpression(1), varMap).getIntLiteralValue().intValue()) + "");
+                    final ProverExpr offsetPE = selectInt(te.getExpression(2), varMap);
+                    return (te.getOp().equals(NaryExpression.NaryOperator.IndexOfCharWithOffset)) ?
+                            mkStringIndexOf(leftPE, rightPE, offsetPE)
+                            : mkStringLastIndexOf(leftPE, rightPE, offsetPE);
                 }
                 default:
                     return null;

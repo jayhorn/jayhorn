@@ -1,17 +1,17 @@
 /*
  * jimple2boogie - Translates Jimple (or Java) Programs to Boogie
  * Copyright (C) 2013 Martin Schaef and Stephan Arlt
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
@@ -177,7 +177,7 @@ public class SootStmtSwitch implements StmtSwitch {
 
 	/**
 	 * Checks if the current statement is synchronized or inside a monitor
-	 * 
+	 *
 	 * @return True if the current statement is inside a monitor or synchronized
 	 *         and false, otherwise.
 	 */
@@ -234,7 +234,7 @@ public class SootStmtSwitch implements StmtSwitch {
 
 	/*
 	 * Below follow the visitor methods from StmtSwitch
-	 * 
+	 *
 	 */
 
 	@Override
@@ -411,7 +411,7 @@ public class SootStmtSwitch implements StmtSwitch {
 	/**
 	 * Translate method invokation. This assumes that exceptions and virtual
 	 * calls have already been removed.
-	 * 
+	 *
 	 * @param u
 	 * @param optionalLhs
 	 * @param call
@@ -451,7 +451,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			optionalLhs.apply(valueSwitch);
 			Expression lhs = valueSwitch.popExpression();
 			receiver.add(lhs);
-		} 
+		}
 		// System.err.println(call);
 		if (call.getMethod().isConstructor() && call instanceof SpecialInvokeExpr) {
 			/*
@@ -468,7 +468,7 @@ public class SootStmtSwitch implements StmtSwitch {
 					receiver.add(new IdentifierExpression(loc, dummyVar));
 				}
 			}
-			
+
 			CallStatement stmt = new CallStatement(SootTranslationHelpers.v().getSourceLocation(u), method, args,
 					receiver);
 			this.currentBlock.addStatement(stmt);
@@ -504,7 +504,7 @@ public class SootStmtSwitch implements StmtSwitch {
 	/**
 	 * Check if the call is a special case such as System.exit. If so, translate
 	 * it and return true. Otherwise, ignore it and return false.
-	 * 
+	 *
 	 * @param u
 	 * @param optionalLhs
 	 * @param call
@@ -546,16 +546,16 @@ public class SootStmtSwitch implements StmtSwitch {
 			return true;
 		}
 		if (methodSignature.contains("<java.lang.String: java.lang.String valueOf(int)>") ||
-			methodSignature.contains("<java.lang.String: java.lang.String valueOf(long)>")) {
-            assert (call instanceof StaticInvokeExpr);
-            if (optionalLhs != null) {
-                Expression itemExpr = valueToExpr(call.getArg(0));
-                Expression lhs = valueToExpr(optionalLhs);
+				methodSignature.contains("<java.lang.String: java.lang.String valueOf(long)>")) {
+			assert (call instanceof StaticInvokeExpr);
+			if (optionalLhs != null) {
+				Expression itemExpr = valueToExpr(call.getArg(0));
+				Expression lhs = valueToExpr(optionalLhs);
 				Expression rhs = new BinaryExpression(srcLoc, BinaryOperator.ToString, itemExpr, lhs);
-                currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
-            } // else: ignore
-            return true;
-        }
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+			} // else: ignore
+			return true;
+		}
 		if (methodSignature.contains("<java.lang.String: java.lang.String valueOf(char)>")) {
 			assert (call instanceof StaticInvokeExpr);
 			if (optionalLhs != null) {
@@ -630,6 +630,76 @@ public class SootStmtSwitch implements StmtSwitch {
 				Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
 				Expression index = valueToExpr(call.getArg(0));
 				Expression rhs = new NaryExpression(srcLoc, NaryExpression.NaryOperator.SubstringWithOneIndex, a, index);
+				Expression lhs = valueToExpr(optionalLhs);
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+			}
+			return true;
+		}
+		if (methodSignature.contains("<java.lang.String: int indexOf(java.lang.String)>") ||
+				methodSignature.contains("<java.lang.String: int indexOf(int)>")) {
+			assert (call instanceof InstanceInvokeExpr);
+			if (optionalLhs != null) {
+				Expression rhs;
+				if (call.getArg(0).getType() instanceof RefType || call.getArg(0).getType() instanceof IntType) {
+					Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+					Expression b = valueToInnerExpr(call.getArg(0));
+					rhs = new BinaryExpression(srcLoc, (call.getArg(0).getType() instanceof IntType) ? BinaryOperator.StringIndexOfChar : BinaryOperator.StringIndexOf, a, b);
+				} else {
+					throw new RuntimeException("String.indexOf(NonObject) not implemented");
+				}
+				Expression lhs = valueToExpr(optionalLhs);
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+			}
+			return true;
+		}
+		if (methodSignature.contains("<java.lang.String: int lastIndexOf(java.lang.String)>") ||
+				methodSignature.contains("<java.lang.String: int lastIndexOf(int)>")) {
+			assert (call instanceof InstanceInvokeExpr);
+			if (optionalLhs != null) {
+				Expression rhs;
+				if (call.getArg(0).getType() instanceof RefType || call.getArg(0).getType() instanceof IntType) {
+					Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+					Expression b = valueToInnerExpr(call.getArg(0));
+					rhs = new BinaryExpression(srcLoc, (call.getArg(0).getType() instanceof IntType) ? BinaryOperator.StringLastIndexOfChar : BinaryOperator.StringLastIndexOf, a, b);
+				} else {
+					throw new RuntimeException("String.lastIndexOf(NonObject) not implemented");
+				}
+				Expression lhs = valueToExpr(optionalLhs);
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+			}
+			return true;
+		}
+		if (methodSignature.contains("<java.lang.String: int indexOf(java.lang.String,int)>") ||
+				methodSignature.contains("<java.lang.String: int indexOf(int,int)>")) {
+			assert (call instanceof InstanceInvokeExpr);
+			if (optionalLhs != null) {
+				Expression rhs;
+				if ((call.getArg(0).getType() instanceof RefType || call.getArg(0).getType() instanceof IntType) && call.getArg(1).getType() instanceof IntType) {
+					Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+					Expression b = valueToInnerExpr(call.getArg(0));
+					Expression c = valueToExpr(call.getArg(1));
+					rhs = new NaryExpression(srcLoc, (call.getArg(0).getType() instanceof IntType) ? NaryExpression.NaryOperator.IndexOfCharWithOffset : NaryExpression.NaryOperator.IndexOfWithOffset, a, b, c);
+				} else {
+					throw new RuntimeException("String.indexOf(NonObject, NonObject) not implemented");
+				}
+				Expression lhs = valueToExpr(optionalLhs);
+				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
+			}
+			return true;
+		}
+		if (methodSignature.contains("<java.lang.String: int lastIndexOf(java.lang.String,int)>") ||
+				methodSignature.contains("<java.lang.String: int lastIndexOf(int,int)>")) {
+			assert (call instanceof InstanceInvokeExpr);
+			if (optionalLhs != null) {
+				Expression rhs;
+				if ((call.getArg(0).getType() instanceof RefType || call.getArg(0).getType() instanceof IntType) && call.getArg(1).getType() instanceof IntType) {
+					Expression a = valueToInnerExpr(((InstanceInvokeExpr) call).getBase());
+					Expression b = valueToInnerExpr(call.getArg(0));
+					Expression c = valueToExpr(call.getArg(1));
+					rhs = new NaryExpression(srcLoc, (call.getArg(0).getType() instanceof IntType) ? NaryExpression.NaryOperator.LastIndexOfCharWithOffset : NaryExpression.NaryOperator.LastIndexOfWithOffset, a, b, c);
+				} else {
+					throw new RuntimeException("String.lastIndexOf(NonObject, NonObject) not implemented");
+				}
 				Expression lhs = valueToExpr(optionalLhs);
 				currentBlock.addStatement(new AssignStatement(srcLoc, lhs, rhs));
 			}
@@ -738,7 +808,7 @@ public class SootStmtSwitch implements StmtSwitch {
 //			}
 		}
 		if (methodSignature.contains("<java.lang.System: void exit(int)>") ||
-                    methodSignature.contains("<java.lang.Runtime: void halt(int)>")) {
+				methodSignature.contains("<java.lang.Runtime: void halt(int)>")) {
 			// TODO: this is not sufficient for interprocedural analysis.
 			currentBlock = null;
 			return true;
@@ -866,7 +936,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			}
 
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: boolean nondetBoolean()>") ||
-				   methodSignature.equals("<java.util.Random: boolean nextBoolean()>")) {
+				methodSignature.equals("<java.util.Random: boolean nextBoolean()>")) {
 			translateRandomNondet(BooleanType.v(), optionalLhs, call, false, 0, 0);
 			return true;
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: byte nondetByte()>")) {
@@ -879,16 +949,16 @@ public class SootStmtSwitch implements StmtSwitch {
 			translateRandomNondet(ShortType.v(), optionalLhs, call,true, Short.MIN_VALUE, Short.MAX_VALUE);
 			return true;
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: int nondetInt()>") ||
-				   methodSignature.equals("<java.util.Random: int nextInt()>")) {
+				methodSignature.equals("<java.util.Random: int nextInt()>")) {
 			translateRandomNondet(IntType.v(), optionalLhs, call,true, Integer.MIN_VALUE, Integer.MAX_VALUE);
 			return true;
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: long nondetLong()>") ||
-				   methodSignature.equals("<java.util.Random: long nextLong()>")) {
+				methodSignature.equals("<java.util.Random: long nextLong()>")) {
 			translateRandomNondet(LongType.v(), optionalLhs, call,true, Long.MIN_VALUE, Long.MAX_VALUE);
 			return true;
-		// TODO: cover other nondeterministic Verifier functions
+			// TODO: cover other nondeterministic Verifier functions
 		} else if (methodSignature.equals("<org.sosy_lab.sv_benchmarks.Verifier: java.lang.String nondetString()>") &&
-					!Options.v().useBuiltInSpecs()) {
+				!Options.v().useBuiltInSpecs()) {
 			translateNondetString(RefType.v(), optionalLhs, call);
 			return true;
 
@@ -898,7 +968,7 @@ public class SootStmtSwitch implements StmtSwitch {
 			call.getArg(0).apply(valueSwitch);
 			Expression cond = valueSwitch.popExpression();
 			currentBlock.addStatement(
-			   new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(u), cond)
+					new AssumeStatement(SootTranslationHelpers.v().getSourceLocation(u), cond)
 			);
 			return true;
 		}
@@ -947,42 +1017,42 @@ public class SootStmtSwitch implements StmtSwitch {
 //            }
 //        }
 
-        /**
-         * Method nondet*() of the Verifier class used to formulate
-         * SV-COMP problems.  Replace those method with a simple
-         * havoc.
-         */
-        private void translateRandomNondet(Type t, Value optionalLhs,
-                                           InvokeExpr call,
-                                           boolean addBounds,
-                                           long lower, long upper) {
-            Verify.verify(call.getArgCount() == 0);
+	/**
+	 * Method nondet*() of the Verifier class used to formulate
+	 * SV-COMP problems.  Replace those method with a simple
+	 * havoc.
+	 */
+	private void translateRandomNondet(Type t, Value optionalLhs,
+									   InvokeExpr call,
+									   boolean addBounds,
+									   long lower, long upper) {
+		Verify.verify(call.getArgCount() == 0);
 
-            if (optionalLhs != null) {
-                optionalLhs.apply(valueSwitch);
-                Expression lhs = valueSwitch.popExpression();
+		if (optionalLhs != null) {
+			optionalLhs.apply(valueSwitch);
+			Expression lhs = valueSwitch.popExpression();
 
-                Verify.verify(lhs instanceof IdentifierExpression,
-                              "do not know how to havoc " + lhs);
-                IdentifierExpression idLhs = (IdentifierExpression)lhs;
+			Verify.verify(lhs instanceof IdentifierExpression,
+					"do not know how to havoc " + lhs);
+			IdentifierExpression idLhs = (IdentifierExpression)lhs;
 
-                final SourceLocation loc = lhs.getSourceLocation();
+			final SourceLocation loc = lhs.getSourceLocation();
 
-                currentBlock.addStatement(new HavocStatement(loc, idLhs));
+			currentBlock.addStatement(new HavocStatement(loc, idLhs));
 
-                if (addBounds)
-                    currentBlock.addStatement(
-                        new AssumeStatement(loc,
-                          new BinaryExpression(
-                            loc, BinaryOperator.And,
-                            new BinaryExpression(
-                              loc, BinaryOperator.Le,
-                              new IntegerLiteral(loc, lower), idLhs),
-                            new BinaryExpression(
-                              loc, BinaryOperator.Le,
-                              idLhs, new IntegerLiteral(loc, upper)))));
-            }
-        }
+			if (addBounds)
+				currentBlock.addStatement(
+						new AssumeStatement(loc,
+								new BinaryExpression(
+										loc, BinaryOperator.And,
+										new BinaryExpression(
+												loc, BinaryOperator.Le,
+												new IntegerLiteral(loc, lower), idLhs),
+										new BinaryExpression(
+												loc, BinaryOperator.Le,
+												idLhs, new IntegerLiteral(loc, upper)))));
+		}
+	}
 
 	/**
 	 * Method of the Random class, which are replaced with a simple
