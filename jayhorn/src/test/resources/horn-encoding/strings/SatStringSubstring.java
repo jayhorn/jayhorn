@@ -1,13 +1,19 @@
 public class SatStringSubstring {
 
     public static void main(String[] args) {
-        String s = "abcd";
-        assert (s.substring(0, 0).equals(""));
-        assert (s.substring(0, 2).equals("ab"));
-        assert (s.substring(1, 3).equals("bc"));
-        assert (s.substring(0).equals("abcd"));
-        assert (s.substring(3).equals("d"));
-        assert (s.substring(s.length()).equals(""));
+        String s = "ab";
+        assert ("".substring(0, 0).equals(""));
+        assert ("a".substring(0, 0).equals(""));
+        assert (s.substring(0, 1).equals("a"));
+        assert (s.substring(0, 2).equals(s));
+        assert (s.substring(1, 2).equals("b"));
+        assert (s.substring(2, 2).equals(""));
+        assert (s.substring(1, 1).equals(""));
+
+        assert ("".substring(0).equals(""));
+        assert ("a".substring(0).equals("a"));
+        assert (s.substring(1).equals("b"));
+        assert (s.substring(2).equals(""));
     }
 
 }

@@ -1,20 +1,27 @@
 public class SatStringLastIndexOf {
 
     public static void main(String[] args) {
-        String a = "";
-        char b = 'a';
-        String c = "ba";
-        String d = "ddsd";
-        String e = "ds";
-        String s = "baas";
-        assert (s.lastIndexOf(a) == 4);
-        assert (s.lastIndexOf(b) == 2);
-        assert (s.lastIndexOf(d) == -1);
-        assert (s.lastIndexOf(e) == -1);
-        assert (s.lastIndexOf(s) == 0);
-        assert (s.lastIndexOf(b, 2) == 2);
-        assert (d.lastIndexOf(e, 2) == 1);
-        assert (d.lastIndexOf(e, 4) == 1);
+        String s = "aaa";
+        assert ("ab".lastIndexOf("c") == -1);
+        assert ("ab".lastIndexOf('c') == -1);
+        assert ("ab".lastIndexOf("cd") == -1);
+        assert ("ab".lastIndexOf("cde") == -1);
+        assert (s.lastIndexOf("") == 3);
+        assert (s.lastIndexOf("a") == 2);
+        assert (s.lastIndexOf('a') == 2);
+        assert (s.lastIndexOf("aa") == 1);
+        assert (s.lastIndexOf("", 3) == 3);
+        assert (s.lastIndexOf("a", 3) == 2);
+        assert (s.lastIndexOf('a', 3) == 2);
+        assert (s.lastIndexOf("aa", 3) == 1);
+        assert (s.lastIndexOf("", 2) == 2);
+        assert (s.lastIndexOf("a", 2) == 2);
+        assert (s.lastIndexOf('a', 2) == 2);
+        assert (s.lastIndexOf("aa", 2) == 1);
+        assert (s.lastIndexOf("", -1) == -1);
+        assert (s.lastIndexOf("a", -1) == -1);
+        assert (s.lastIndexOf('a', -1) == -1);
+        assert (s.lastIndexOf("aa", -1) == -1);
     }
 
 }

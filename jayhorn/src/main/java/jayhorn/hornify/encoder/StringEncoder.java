@@ -332,7 +332,7 @@ public class StringEncoder {
         addPHC(
                 predSubstring.mkExpr(a, startIndex, startIndex, nil()),
                 EMPTY_PHC_BODY,
-                p.mkAnd(p.mkGeq(startIndex, lit(0)), p.mkLeq(endIndex, len(a)), p.mkLeq(startIndex, endIndex))
+                p.mkAnd(p.mkGeq(startIndex, lit(0)), p.mkLeq(startIndex, len(a)))
                 // https://docs.oracle.com/javase/8/docs/api/java/lang/String.html#substring-int-int-
         );
         if (stringDirection == StringDirection.ltr) {
@@ -902,7 +902,7 @@ public class StringEncoder {
         ProverFun reverserPredIndexOf = mkStringIndexOfReverserProverFUn(stringADTType);
 
         addPHC(
-                finalPredIndexOf.mkExpr(a, b, isIndexOf ? ZERO : len(a)),
+                finalPredIndexOf.mkExpr(a, b, startOffset),
                 EMPTY_PHC_BODY,
                 p.mkEq(rightStringLength, ZERO)
         );
@@ -978,15 +978,6 @@ public class StringEncoder {
                 new ProverExpr[]{predIndexOf.mkExpr(a, b, cons(j, aRevCopy), cons(j, bRevCopy), i, si)},
                 p.mkAnd(p.mkLt(si, p.mkMinus(leftStringLength, i)), p.mkLeq(p.mkMinus(leftStringLength, i), p.mkPlus(si, rightStringLength)), siIsInLimit)
         );
-//        addPHC(
-//                predIndexOf.mkExpr(a, b, aRev, bRev, aRev, bRev, ZERO, nextSi),
-//                new ProverExpr[]{predIndexOf.mkExpr(a, b, aRev, bRev, cons(k, aRevCopy), cons(j, bRevCopy), i, si)},
-//                p.mkAnd(p.mkLt(si, p.mkMinus(leftStringLength, i)),
-//                        p.mkLeq(p.mkMinus(leftStringLength, i), p.mkPlus(si, rightStringLength)),
-//                        p.mkNot(p.mkEq(k, j)),
-//                        siIsInLimit
-//                )
-//        );
         addPHC(
                 finalPredIndexOf.mkExpr(a, b, lit(-1)),
                 new ProverExpr[]{predIndexOf.mkExpr(a, b, aRev, bRev, ZERO, si)},
