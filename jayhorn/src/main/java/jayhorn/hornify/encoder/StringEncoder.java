@@ -900,12 +900,6 @@ public class StringEncoder {
         ProverFun finalPredIndexOf = mkStringIndexOfProverFun(stringADTType);
         ProverFun predIndexOf = mkStringInnerIndexOfProverFun(stringADTType);
         ProverFun reverserPredIndexOf = mkStringIndexOfReverserProverFUn(stringADTType);
-
-        addPHC(
-                finalPredIndexOf.mkExpr(a, b, startOffset),
-                EMPTY_PHC_BODY,
-                p.mkEq(rightStringLength, ZERO)
-        );
         addPHC(
                 reverserPredIndexOf.mkExpr(a, b, a, b, nil(), nil()),
                 EMPTY_PHC_BODY,
@@ -913,11 +907,26 @@ public class StringEncoder {
         );
         if (isIndexOf) {
             addPHC(
+                    finalPredIndexOf.mkExpr(a, b, (startOffset.getIntLiteralValue().intValue() > 0 ? startOffset : ZERO)),
+                    EMPTY_PHC_BODY,
+                    p.mkEq(rightStringLength, ZERO)
+            );
+            addPHC(
                     predIndexOf.mkExpr(a, b, aRev, bRev, ZERO, ZERO),
                     new ProverExpr[]{predIndexOf.mkExpr(a, b, aRev, bRev, ZERO, startOffset)},
                     p.mkLt(startOffset, ZERO)
             );
         } else {
+            addPHC(
+                    finalPredIndexOf.mkExpr(a, b, leftStringLength),
+                    EMPTY_PHC_BODY,
+                    p.mkAnd(p.mkEq(rightStringLength, ZERO), p.mkGeq(startOffset, leftStringLength))
+            );
+            addPHC(
+                    finalPredIndexOf.mkExpr(a, b, startOffset),
+                    EMPTY_PHC_BODY,
+                    p.mkAnd(p.mkEq(rightStringLength, ZERO), p.mkLt(startOffset, leftStringLength))
+            );
             addPHC(
                     predIndexOf.mkExpr(a, b, aRev, bRev, ZERO, p.mkMinus(leftStringLength, rightStringLength)),
                     new ProverExpr[]{predIndexOf.mkExpr(a, b, aRev, bRev, ZERO, startOffset)},
