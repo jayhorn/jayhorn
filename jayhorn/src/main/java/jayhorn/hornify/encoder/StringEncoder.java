@@ -891,6 +891,7 @@ public class StringEncoder {
 
         final ProverExpr ONE = lit(1);
         final ProverExpr ZERO = lit(0);
+        final ProverExpr MINUS_ONE = lit(-1);
         final ProverExpr rightStringLength = len(rightString);
         final ProverExpr leftStringLength = len(leftString);
         ProverExpr siIsInLimit = p.mkAnd(p.mkGeq(p.mkMinus(leftStringLength, rightStringLength), si), p.mkGeq(si, ZERO));
@@ -907,9 +908,19 @@ public class StringEncoder {
         );
         if (isIndexOf) {
             addPHC(
-                    finalPredIndexOf.mkExpr(a, b, (startOffset.getIntLiteralValue().intValue() > 0 ? startOffset : ZERO)),
+                    finalPredIndexOf.mkExpr(a, b, ZERO),
                     EMPTY_PHC_BODY,
-                    p.mkEq(rightStringLength, ZERO)
+                    p.mkAnd(p.mkEq(rightStringLength, ZERO), p.mkLt(startOffset, ZERO))
+            );
+            addPHC(
+                    finalPredIndexOf.mkExpr(a, b, startOffset),
+                    EMPTY_PHC_BODY,
+                    p.mkAnd(p.mkEq(rightStringLength, ZERO), p.mkGeq(startOffset, ZERO), p.mkLt(startOffset, leftStringLength))
+            );
+            addPHC(
+                    finalPredIndexOf.mkExpr(a, b, leftStringLength),
+                    EMPTY_PHC_BODY,
+                    p.mkAnd(p.mkEq(rightStringLength, ZERO), p.mkGeq(startOffset, leftStringLength))
             );
             addPHC(
                     predIndexOf.mkExpr(a, b, aRev, bRev, ZERO, ZERO),
@@ -925,7 +936,12 @@ public class StringEncoder {
             addPHC(
                     finalPredIndexOf.mkExpr(a, b, startOffset),
                     EMPTY_PHC_BODY,
-                    p.mkAnd(p.mkEq(rightStringLength, ZERO), p.mkLt(startOffset, leftStringLength))
+                    p.mkAnd(p.mkEq(rightStringLength, ZERO), p.mkLt(startOffset, leftStringLength), p.mkGeq(startOffset, ZERO))
+            );
+            addPHC(
+                    finalPredIndexOf.mkExpr(a, b, MINUS_ONE),
+                    EMPTY_PHC_BODY,
+                    p.mkAnd(p.mkEq(rightStringLength, ZERO), p.mkLt(startOffset, ZERO))
             );
             addPHC(
                     predIndexOf.mkExpr(a, b, aRev, bRev, ZERO, p.mkMinus(leftStringLength, rightStringLength)),
@@ -988,7 +1004,7 @@ public class StringEncoder {
                 p.mkAnd(p.mkLt(si, p.mkMinus(leftStringLength, i)), p.mkLeq(p.mkMinus(leftStringLength, i), p.mkPlus(si, rightStringLength)), siIsInLimit)
         );
         addPHC(
-                finalPredIndexOf.mkExpr(a, b, lit(-1)),
+                finalPredIndexOf.mkExpr(a, b, MINUS_ONE),
                 new ProverExpr[]{predIndexOf.mkExpr(a, b, aRev, bRev, ZERO, si)},
                 siExceededLimit
         );

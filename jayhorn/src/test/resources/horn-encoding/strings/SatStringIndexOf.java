@@ -19,7 +19,7 @@ public class SatStringIndexOf {
         assert (s.indexOf("a", 1) == 1);
         assert (s.indexOf('a', 1) == 1);
         assert (s.indexOf("aa", 1) == 1);
-        assert (s.indexOf("", 4) == -1);
+        assert (s.indexOf("", 4) == 3);
         assert (s.indexOf("a", 3) == -1);
         assert (s.indexOf('a', 3) == -1);
         assert (s.indexOf("aa", 2) == -1);
