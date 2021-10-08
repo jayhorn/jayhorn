@@ -19,11 +19,12 @@ public class SatStringIndexOf {
         assert (s.indexOf("a", 1) == 1);
         assert (s.indexOf('a', 1) == 1);
         assert (s.indexOf("aa", 1) == 1);
-        assert (s.indexOf("", 4) == 3);
         assert (s.indexOf("a", 3) == -1);
         assert (s.indexOf('a', 3) == -1);
         assert (s.indexOf("aa", 2) == -1);
 
+        assert (s.indexOf("", 9) == 3);     // JAVADOC DEFINITION MISMATCH: https://docs.oracle.com/javase/8/docs/api/java/lang/String.html#indexOf-java.lang.String-int-
+        assert (s.indexOf("", -9) == 0);
     }
 
 }
