@@ -3,6 +3,8 @@ package soottocfg.cfg.expression;
 import com.google.common.base.Verify;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.type.StringType;
+import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;
 
@@ -16,7 +18,9 @@ public class NaryExpression extends Expression {
     private static final long serialVersionUID = 1992559247136566989L;
 
     public enum NaryOperator {
-        StartsWithOffset("startsWithOffset");
+        StartsWithOffset("startsWithOffset"), Substring("substring"), SubstringWithOneIndex("substringWithOneIndex"),
+        IndexOfWithOffset("indexOfWithOffset"), IndexOfCharWithOffset("indexOfCharWithOffset"),
+        LastIndexOfWithOffset("lastIndexOfWithOffset"), LastIndexOfCharWithOffset("lastIndexOfCharWithOffset");
 
         private final String name;
 
@@ -43,7 +47,16 @@ public class NaryExpression extends Expression {
         this.op = op;
         switch (this.op) {
             case StartsWithOffset:
+            case Substring:
+            case IndexOfWithOffset:
+            case IndexOfCharWithOffset:
+            case LastIndexOfWithOffset:
+            case LastIndexOfCharWithOffset:
                 Verify.verify(expressions.length == 3);
+                this.expressions = Arrays.copyOf(expressions, expressions.length);
+                break;
+            case SubstringWithOneIndex:
+                Verify.verify(expressions.length == 2);
                 this.expressions = Arrays.copyOf(expressions, expressions.length);
                 break;
             default:
@@ -99,6 +112,14 @@ public class NaryExpression extends Expression {
         switch (op) {
             case StartsWithOffset:
                 return BoolType.instance();
+            case Substring:
+            case SubstringWithOneIndex:
+                return StringType.instance();
+            case IndexOfWithOffset:
+            case IndexOfCharWithOffset:
+            case LastIndexOfWithOffset:
+            case LastIndexOfCharWithOffset:
+                return IntType.instance();
             default:
                 throw new RuntimeException("not implemented");
         }
