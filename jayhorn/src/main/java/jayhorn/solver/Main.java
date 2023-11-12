@@ -3,6 +3,7 @@ package jayhorn.solver;
 import java.util.HashMap;
 import java.util.Map;
 
+import jayhorn.solver.princess.PrincessStringADTFactory;
 import jayhorn.solver.princess.PrincessProverFactory;
 import jayhorn.solver.spacer.SpacerProver;
 
@@ -222,7 +223,7 @@ public class Main {
             p.addAssertion(c1);
             p.addAssertion(c2);
             p.addAssertion(c3);
-            p.addAssertion(c4);;
+            p.addAssertion(c4);
 
             if (p.checkSat(true)!=ProverResult.Sat) {
             	throw new RuntimeException("Solver failed.");
@@ -237,19 +238,9 @@ public class Main {
             p.setHornLogic(false);
         }
 
-        private ProverADT mkListADT(Prover p) {
-            return 
-                p.mkADT(new String[]       { "List" },
-                        new String[]       { "nil", "cons" },
-                        new int[]          { 0, 0 },
-                        new ProverType[][] { {}, { p.getIntType(),
-                                                   p.getADTTempType(0) } },
-                        new String[][]     { {}, { "head", "tail" } });
-        }
-
         public void testADT(Prover p) {
             System.out.println("Running ADT test ...");
-            final ProverADT listADT = mkListADT(p);
+            final ProverADT listADT = (new PrincessStringADTFactory()).spawnStringADT();
 
             ProverExpr x = p.mkVariable("x", listADT.getType(0));
             ProverExpr y = p.mkVariable("y", listADT.getType(0));
@@ -277,7 +268,7 @@ public class Main {
             p.setHornLogic(true);
             System.out.println("Running ADT Horn test ...");
 
-            final ProverADT listADT = mkListADT(p);
+			final ProverADT listADT = (new PrincessStringADTFactory()).spawnStringADT();
 
             ProverExpr x = p.mkVariable("x", listADT.getType(0));
             ProverExpr y = p.mkVariable("y", p.getIntType());

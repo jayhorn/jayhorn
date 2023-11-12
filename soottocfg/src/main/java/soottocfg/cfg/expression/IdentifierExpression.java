@@ -84,5 +84,5 @@ public class IdentifierExpression extends Expression {
 	public boolean sameVariable(IdentifierExpression other) {
 		return this.variable.equals(other.variable);
 	}
-	
+
 }

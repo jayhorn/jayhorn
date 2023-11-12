@@ -2,12 +2,7 @@ package soottocfg.cfg.util;
 
 import java.util.List;
 
-import soottocfg.cfg.expression.BinaryExpression;
-import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.IteExpression;
-import soottocfg.cfg.expression.TupleAccessExpression;
-import soottocfg.cfg.expression.UnaryExpression;
+import soottocfg.cfg.expression.*;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
@@ -128,6 +123,14 @@ public class CfgScanner extends CfgVisitor {
 	}
 
 	@Override
+	protected Expression processExpression(NaryExpression e) {
+		for (int i = 0; i < e.getArity(); i++) {
+			processExpression(e.getExpression(i));
+		}
+		return e;
+	}
+
+	@Override
 	protected Expression processExpression(BooleanLiteral e) {
 		return e;
 	}
@@ -141,6 +144,11 @@ public class CfgScanner extends CfgVisitor {
 	protected Expression processExpression(IntegerLiteral e) {
 		return e;
 	}
+
+//	@Override
+//	protected Expression processExpression(StringLiteral e) {
+//		return e;
+//	}
 
 	@Override
 	protected Expression processExpression(NullLiteral e) {

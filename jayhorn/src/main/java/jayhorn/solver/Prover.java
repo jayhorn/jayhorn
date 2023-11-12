@@ -23,18 +23,6 @@ public interface Prover {
 
 	ProverType getTupleType(ProverType[] subTypes);
 
-	// Define an algebraic data-type with the given sort, constructor,
-	// and selector names and types
-	ProverADT mkADT(String[]       typeNames,
-                        String[]       ctorNames,
-                        int[]          ctorTypes,
-                        ProverType[][] ctorArgTypes,
-                        String[][]     selectorNames);
-
-	// Temporary type representing the n'th ADT type; this is only used
-	// for defining ADTs
-	ProverType getADTTempType(int n);
-
 	// Variables
 	ProverExpr mkBoundVariable(int deBruijnIndex, ProverType type);
 
@@ -68,11 +56,11 @@ public interface Prover {
 
 	ProverExpr mkAnd(ProverExpr left, ProverExpr right);
 
-	ProverExpr mkAnd(ProverExpr[] args);
+	ProverExpr mkAnd(ProverExpr ... args);
 
 	ProverExpr mkOr(ProverExpr left, ProverExpr right);
 
-	ProverExpr mkOr(ProverExpr[] args);
+	ProverExpr mkOr(ProverExpr ... args);
 
 	ProverExpr mkImplies(ProverExpr left, ProverExpr right);
 
@@ -252,10 +240,17 @@ public interface Prover {
      * The head literal can either be constructed using
      * <code>mkHornPredicate</code>, or be the formula <code>false</code>.
      */
-    ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body,
-                                  ProverExpr constraint);
-    
-    
+	ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body,
+								  ProverExpr constraint);
+
+//	ProverHornClause mkHornClause(ProverExpr head, ProverExpr[] body,
+//								  ProverExpr constraint, String name);
+
+
+//	void initializeStringHornClauses(Iterable<ProverHornClause> stringHornClauses);
+//
+//    boolean isInitializedStringHornClauses();
+
     void addRule(ProverExpr hornRule);
     
     

@@ -97,6 +97,7 @@ import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.UnaryExpression.UnaryOperator;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
+import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.soot.memory_model.MemoryModel;
 import soottocfg.soot.util.MethodInfo;
@@ -264,7 +265,12 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseStringConstant(StringConstant arg0) {
-		this.expressionStack.add(this.memoryModel.mkStringConstant(arg0));
+		this.expressionStack.add(new StringLiteral(
+				statementSwitch.getCurrentLoc(),
+				SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
+						"$string(" + StringLiteral.escape(arg0.value) + ")",
+						SootTranslationHelpers.v().getMemoryModel().lookupType(arg0.getType())),
+				arg0.value));
 	}
 
 	@Override
@@ -551,7 +557,7 @@ public class SootValueSwitch implements JimpleValueSwitch {
 
 	@Override
 	public void caseNewExpr(NewExpr arg0) {
-		throw new RuntimeException("Should be handeled in SootStmtSwitch");
+		throw new RuntimeException("Should be handled in SootStmtSwitch");
 	}
 
 	@Override

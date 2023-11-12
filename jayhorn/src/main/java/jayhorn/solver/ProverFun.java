@@ -2,6 +2,6 @@ package jayhorn.solver;
 
 public interface ProverFun {
 
-	ProverExpr mkExpr(ProverExpr[] args);
+	ProverExpr mkExpr(ProverExpr ... args);
 
 }

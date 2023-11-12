@@ -6,4 +6,6 @@ public interface ProverFactory {
 
 	public Prover spawnWithLog(String basename);
 
+	public ProverADT spawnStringADT();
+
 }

@@ -5,6 +5,7 @@ package soottocfg.soot.memory_model;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,14 +30,18 @@ import soot.jimple.FloatConstant;
 import soot.jimple.NewArrayExpr;
 import soot.jimple.NewMultiArrayExpr;
 import soot.jimple.StringConstant;
+import soottocfg.Options;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
+import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
+import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.CallStatement;
 import soottocfg.cfg.type.BoolType;
 import soottocfg.cfg.type.IntType;
+import soottocfg.cfg.type.StringType;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.type.TypeType;
@@ -55,6 +60,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	protected final Map<SootField, Variable> fieldGlobals = new HashMap<SootField, Variable>();
 
 	protected final Map<Constant, Variable> constantDictionary = new HashMap<Constant, Variable>();
+	protected final Map<Variable, Expression> varToExpressionMap = new HashMap<Variable, Expression>();	// TODO: probabely should be removed
 
 	// protected final Type nullType;
 
@@ -107,10 +113,14 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkStringLengthExpr(Value arg0) {
+		if (arg0 instanceof StringConstant) {	// TODO: is this special case helpful?
+			return new IntegerLiteral(this.statementSwitch.getCurrentLoc(), ((StringConstant)arg0).value.length());
+		} else {
             Variable v =
                 new Variable(SootTranslationHelpers.AbstractedVariablePrefix +
                              "strlen_" + constantDictionary.size(), IntType.instance());
             return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), v);
+		}
 	}
 
 	/*
@@ -131,11 +141,14 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 */
 	@Override
 	public Expression mkStringConstant(StringConstant arg0) {
+		// TODO: This method is currently ignored. Find a way to declare string constants without losing its value by optimizer.
 		if (!constantDictionary.containsKey(arg0)) {
 			constantDictionary.put(arg0, SootTranslationHelpers.v().getProgram().lookupGlobalVariable(
-					"$string" + constantDictionary.size(), lookupType(arg0.getType())));
+					"$string" + constantDictionary.size(), ReferenceType.instance()));	// TODO: StringType
+			putExpression(constantDictionary.get(arg0),
+					new StringLiteral(statementSwitch.getCurrentLoc(), constantDictionary.get(arg0), arg0.value));
 		}
-		return new IdentifierExpression(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0));
+		return new StringLiteral(this.statementSwitch.getCurrentLoc(), constantDictionary.get(arg0), arg0.value);
 	}
 
 	/*
@@ -183,7 +196,7 @@ public abstract class BasicMemoryModel extends MemoryModel {
 	 * (non-Javadoc)
 	 * 
 	 * @see soottocfg.soot.memory_model.MemoryModel#lookupType(soot.Type)
-	 * TODO: check which types to use for Short, Lond, Double, and Float.
+	 * TODO: check which types to use for Short, Long, Double, and Float.
 	 */
 	@Override
 	public Type lookupType(soot.Type t) {
@@ -227,8 +240,14 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		if (t instanceof ArrayType) {
 			throw new RuntimeException("Remove Arrays first. " + t);
 		} else if (t instanceof RefType) {
-			if ( ((RefType)t).getSootClass().equals(Scene.v().getSootClass("java.lang.Class"))) {
+			SootClass typeSootClass = ((RefType)t).getSootClass();
+			if (typeSootClass.equals(Scene.v().getSootClass("java.lang.Class"))) {
 				return new TypeType();
+			}
+			if (typeSootClass.equals(Scene.v().getSootClass("java.lang.String"))) {
+				LinkedHashMap<String, Type> elementTypes = ReferenceType.mkDefaultElementTypes();
+				elementTypes.put("$String", StringType.instance());
+				return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)), elementTypes);
 			}
 			return new ReferenceType(lookupClassVariable(SootTranslationHelpers.v().getClassConstant(t)));
 		} else if (t instanceof soot.NullType) {
@@ -303,4 +322,11 @@ public abstract class BasicMemoryModel extends MemoryModel {
 		return (ClassVariable) this.constantDictionary.get(cc);
 	}
 
+	public void putExpression(Variable variable, Expression expr) {
+		varToExpressionMap.put(variable, expr);
+	}
+
+	public Expression lookupExpression(Variable variable) {
+		return varToExpressionMap.get(variable);
+	}
 }

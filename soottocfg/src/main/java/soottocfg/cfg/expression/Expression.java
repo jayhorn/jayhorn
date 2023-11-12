@@ -75,7 +75,7 @@ public abstract class Expression implements Node, Serializable {
 	 * @return true if this is sub- or equal-type to other.
 	 */
 	public boolean canBeAssignedTo(Expression other) {
-		if (other.getType().getClass() != this.getType().getClass()
+		if (!other.getType().getClass().isAssignableFrom(this.getType().getClass())
 				&& !SootTranslationHelpers.v().getMemoryModel().isNullReference(this)) {
 			return false;
 		}
@@ -83,10 +83,7 @@ public abstract class Expression implements Node, Serializable {
 	}
 
 	public boolean canBeAssignedToType(Type t) {
-		if (t.getClass() != this.getType().getClass()) {
-			return false;
-		}
-		return true;
+		return t.getClass().isAssignableFrom(this.getType().getClass());
 	}
 	
 	/**

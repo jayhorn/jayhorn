@@ -52,7 +52,7 @@ public class Hornify {
 		prover = factory.spawn();
 		prover.setHornLogic(true);
 		
-		HornEncoderContext hornContext = new HornEncoderContext(prover, program, explicitHeapSize, generatedAssertions);
+		HornEncoderContext hornContext = new HornEncoderContext(prover, program, factory.spawnStringADT(), explicitHeapSize, generatedAssertions);
 
 		Log.info("Transform Program Methods into Horn Clauses ... ");
 

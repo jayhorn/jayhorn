@@ -15,6 +15,7 @@ import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.expression.Expression;
 import soottocfg.cfg.expression.IdentifierExpression;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
+import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.CfgEdge;
 import soottocfg.cfg.method.Method;
@@ -74,6 +75,7 @@ public class CopyPropagator {
 		return changes;
 	}
 
+	// FIXME: progateForEdgeLabels -> propagateForEdgeLabels ?
 	private static boolean progateForEdgeLabels(Method m, CfgBlock b, ReachingDefinitions rdefs) {
 		boolean changes = false;
 		if (!b.getStatements().isEmpty()) {
@@ -109,7 +111,8 @@ public class CopyPropagator {
                             if (rdefs.havocStatements.contains(s))
                                 continue mainLoop;
                             if (!(s instanceof AssignStatement &&
-                                  ((AssignStatement)s).getRight() instanceof IdentifierExpression))
+                                  (((AssignStatement)s).getRight() instanceof IdentifierExpression) &&
+                                  !(((AssignStatement)s).getRight() instanceof StringLiteral)))
                                 continue mainLoop;
                             AssignStatement assS = (AssignStatement)s;
                             Variable rhs = ((IdentifierExpression)assS.getRight()).getVariable();

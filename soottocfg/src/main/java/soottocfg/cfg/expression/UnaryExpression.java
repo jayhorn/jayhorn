@@ -9,6 +9,7 @@ import java.util.Set;
 
 import soottocfg.cfg.SourceLocation;
 import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.variable.Variable;
 
@@ -23,7 +24,7 @@ public class UnaryExpression extends Expression {
 	private final UnaryOperator op;
 
 	public enum UnaryOperator {
-		Neg("-"), LNot("!");
+		Neg("-"), LNot("!"), Len("<len>");
 		private final String name;
 
 		private UnaryOperator(String s) {
@@ -79,12 +80,15 @@ public class UnaryExpression extends Expression {
 	@Override
 	public Type getType() {
 		switch (op) {
-		case LNot: {
-			return BoolType.instance();
-		}
-		case Neg: {
-			return expression.getType();
-		}
+			case LNot: {
+				return BoolType.instance();
+			}
+			case Neg: {
+				return expression.getType();
+			}
+			case Len: {
+				return IntType.instance();
+			}
 		}
 		throw new RuntimeException("Unknown case " + op);
 	}

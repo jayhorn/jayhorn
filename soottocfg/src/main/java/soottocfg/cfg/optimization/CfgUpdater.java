@@ -5,12 +5,7 @@ import java.util.List;
 
 import com.google.common.base.Verify;
 
-import soottocfg.cfg.expression.BinaryExpression;
-import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.IteExpression;
-import soottocfg.cfg.expression.TupleAccessExpression;
-import soottocfg.cfg.expression.UnaryExpression;
+import soottocfg.cfg.expression.*;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
@@ -157,6 +152,15 @@ public class CfgUpdater extends CfgVisitor {
 	}
 
 	@Override
+	protected Expression processExpression(NaryExpression e) {
+		Expression[] processedExpressions = new Expression[e.getArity()];
+		for (int i = 0; i < e.getArity(); i++) {
+			processedExpressions[i] = processExpression(e.getExpression(i));
+		}
+		return new NaryExpression(e.getSourceLocation(), e.getOp(), processedExpressions);
+	}
+
+	@Override
 	protected Expression processExpression(BooleanLiteral e) {
 		return e;
 	}
@@ -176,6 +180,11 @@ public class CfgUpdater extends CfgVisitor {
 	protected Expression processExpression(IntegerLiteral e) {
 		return e;
 	}
+
+//	@Override
+//	protected Expression processExpression(StringLiteral e) {
+//		return e.deepCopy();
+//	}
 
 	@Override
 	protected Expression processExpression(TupleAccessExpression e) {

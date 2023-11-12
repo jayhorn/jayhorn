@@ -1,5 +1,6 @@
 package jayhorn;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -51,7 +52,7 @@ public class Main {
   		if (Options.v().getOut()!=null) {
   			Path outDir = Paths.get(Options.v().getOut());
   			String in = Options.v().getJavaInput();
-  			String outName = in.substring(in.lastIndexOf('/') + 1, in.length()).replace(".java", "").replace(".class", "");
+  			String outName = in.substring(in.lastIndexOf(File.separator) + 1, in.length()).replace(".java", "").replace(".class", "");
   			soottocfg.Options.v().setOutDir(outDir);
   			soottocfg.Options.v().setOutBaseName(outName);
   		}

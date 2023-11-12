@@ -14,6 +14,8 @@ import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
 import soottocfg.cfg.type.BoolType;
+import soottocfg.cfg.type.IntType;
+import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.type.Type;
 import soottocfg.cfg.type.TypeType;
 import soottocfg.cfg.variable.Variable;
@@ -31,9 +33,11 @@ public class BinaryExpression extends Expression {
 	private static final long serialVersionUID = 1992559147136566989L;
 
 	public enum BinaryOperator {
-		Plus("+"), Minus("-"), Mul("*"), Div("/"), Mod("%"), And("&&"), Or("||"), Xor("^"), Implies("->"), Eq("=="), Ne(
-				"!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&"),
-		PoLeq("<:");
+		Plus("+"), Minus("-"), Mul("*"), Div("/"), Mod("%"), And("&&"), Or("||"), Xor("^"), Implies("->"), Eq("=="),
+		Ne("!="), Gt(">"), Ge(">="), Lt("<"), Le("<="), Shl("<<"), Shr(">>"), Ushr("u>>"), BOr("|"), BAnd("&"),
+		PoLeq("<:"), StringEq("==="), StringConcat("+++"), StringCompareTo("<?>"), StartsWith("startsWith"), EndsWith("endsWith"), CharAt("charAt"),
+		ToString("<str>"), BoolToString("<str_b>"), CharToString("<str_c>"), IndexInString("<idx_str>"), StringIndexOf("<idx_of>"), StringIndexOfChar("<idx_of_char>"),
+		StringLastIndexOf("<last_idx_of>"), StringLastIndexOfChar("<last_idx_of_char>");	// TODO: not an actual BinaryExpression
 
 		private final String name;
 
@@ -42,7 +46,7 @@ public class BinaryExpression extends Expression {
 		}
 
 		public boolean equalsName(String otherName) {
-			return (otherName == null) ? false : name.equals(otherName);
+			return name.equals(otherName);	// Object.equals(o) returns false when o is null
 		}
 
 		@Override
@@ -80,8 +84,15 @@ public class BinaryExpression extends Expression {
 
 		Preconditions.checkArgument(
 				left.getType().getClass() == right.getType().getClass()
+						|| (left.getType() instanceof ReferenceType && right.getType() instanceof ReferenceType &&
+							((ReferenceType) left.getType()).getClassVariable().equals(((ReferenceType) right.getType()).getClassVariable()))
 						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(right)
-						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(left),
+						|| SootTranslationHelpers.v().getMemoryModel().isNullReference(left)
+						|| op == BinaryOperator.CharAt || op == BinaryOperator.IndexInString
+						|| op == BinaryOperator.ToString || op == BinaryOperator.BoolToString || op == BinaryOperator.CharToString
+							|| op == BinaryOperator.StringIndexOfChar || op == BinaryOperator.StringLastIndexOfChar
+						|| ((op == BinaryOperator.StringConcat || op == BinaryOperator.StringCompareTo || op == BinaryOperator.StringIndexOf || op == BinaryOperator.StringLastIndexOf) &&
+							(left.getType() instanceof ReferenceType || right.getType() instanceof ReferenceType)),
 				"Types don't match: " + left.getType() + " and " + right.getType() + " for "+left.toString()+op+right.toString());
 		// TODO: more type checking depending on operator
 		this.left = left;
@@ -105,9 +116,15 @@ public class BinaryExpression extends Expression {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("(");
-		sb.append(this.left);
-		sb.append(" " + this.op + " ");
-		sb.append(this.right);
+		if (this.op.equals(BinaryOperator.ToString) || this.op.equals(BinaryOperator.BoolToString) ||
+			this.op.equals(BinaryOperator.CharToString)) {
+			sb.append(this.op);
+			sb.append(left);
+		} else {
+			sb.append(this.left);
+			sb.append(" " + this.op + " ");
+			sb.append(this.right);
+		}
 		sb.append(")");
 		return sb.toString();
 	}
@@ -130,38 +147,52 @@ public class BinaryExpression extends Expression {
 	@Override
 	public Type getType() {
 		switch (op) {
-		case Plus:
-		case Minus:
-		case Mul:
-		case Div:
-		case Mod: {
-			assert (left.getType().equals(right.getType()));
-			return left.getType();
-		}
-		case Eq:
-		case Ne:
-		case Gt:
-		case Ge:
-		case Lt:
-		case Le: {
-			// assert(left.getType().equals(right.getType()));
-			return BoolType.instance();
-		}
-		case And:
-		case Or:
-		case Implies: {
-			assert (left.getType() == BoolType.instance() && right.getType() == BoolType.instance());
-			return BoolType.instance();
-		}
+			case Plus:
+			case Minus:
+			case Mul:
+			case Div:
+			case Mod: {
+				assert (left.getType().equals(right.getType()));
+				return left.getType();
+			}
+			case Eq:
+			case StringEq:
+			case Ne:
+			case Gt:
+			case Ge:
+			case Lt:
+			case Le: {
+				// assert(left.getType().equals(right.getType()));
+				return BoolType.instance();
+			}
+			case And:
+			case Or:
+			case Implies: {
+				assert (left.getType() == BoolType.instance() && right.getType() == BoolType.instance());
+				return BoolType.instance();
+			}
 
-		case PoLeq: {
-			return BoolType.instance();
-		}
-		
-		default: {
-			//TODO: more testing here?
-			return left.getType();
-		}
+			case PoLeq:
+			case StartsWith:
+			case EndsWith:
+			case IndexInString: {
+				return BoolType.instance();
+			}
+
+			case CharAt: {
+				return IntType.instance();
+			}
+
+			case ToString:
+			case BoolToString:
+			case CharToString: {
+				return right.getType();
+			}
+
+			default: {
+				//TODO: more testing here?
+				return left.getType();
+			}
 		}
 	}
 

@@ -10,6 +10,7 @@ import java.util.Set;
 
 import com.google.common.base.Verify;
 
+import jayhorn.Options;
 import jayhorn.hornify.HornEncoderContext;
 import jayhorn.hornify.HornHelper;
 import jayhorn.hornify.HornPredicate;
@@ -223,10 +224,15 @@ public class StatementEncoder {
                       "only assignments to variables are supported, not to " + as.getLeft());
         final IdentifierExpression idLhs = (IdentifierExpression) as.getLeft();
 
+        StringEncoder.EncodingFacts stringConstraints =
+            expEncoder.getStringEncoder().handleStringExpr(as.getRight(), varMap);
+        if (stringConstraints != null)
+            return generateStringClauses(stringConstraints, idLhs, postPred, preAtom, varMap);
+
         ProverExpr right = expEncoder.exprToProverExpr(as.getRight(), varMap);
         if (as.getRight() instanceof NullLiteral) {
             ProverTupleType pttLeft = (ProverTupleType) HornHelper.hh().getProverType(p, idLhs.getType());
-            right = HornHelper.hh().mkNullExpression(p, pttLeft.getSubTypes());
+            right = HornHelper.hh().mkNullExpression(p, pttLeft.getSubTypes(), expEncoder);
         } else if (right instanceof ProverTupleExpr) {
             if (!(idLhs.getType() instanceof ReferenceType)) {
                 Verify.verify(false, "Chances are that this is a cast from java.lang.Integer to int");
@@ -256,21 +262,43 @@ public class StatementEncoder {
         return clauses;
     }
 
+    private List<ProverHornClause> generateStringClauses(StringEncoder.EncodingFacts stringConstraints,
+                                                         IdentifierExpression idLhs,
+                                                         HornPredicate postPred, ProverExpr preAtom,
+                                                         Map<Variable, ProverExpr> varMap) {
+        List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
+
+        if (stringConstraints.rely != null)
+            clauses.add(p.mkHornClause(stringConstraints.rely, new ProverExpr[]{preAtom}, p.mkLiteral(true)));
+
+        varMap.put(idLhs.getVariable(), stringConstraints.result);
+
+        ProverExpr[] body;
+        if (stringConstraints.guarantee != null)
+            body = new ProverExpr[]{preAtom, stringConstraints.guarantee};
+        else
+            body = new ProverExpr[]{preAtom};
+
+        final ProverExpr postAtom = postPred.instPredicate(varMap);
+        clauses.add(p.mkHornClause(postAtom, body, stringConstraints.constraint));
+
+        return clauses;
+    }
 
     public List<ProverHornClause> newToClause(NewStatement ns, HornPredicate postPred, ProverExpr preAtom,
                                               Map<Variable, ProverExpr> varMap) {
         List<ProverHornClause> clauses = new LinkedList<ProverHornClause>();
 
         Verify.verify(ns.getLeft() instanceof IdentifierExpression,
-                      "only assignments to variables are supported, not to " + ns.getLeft());
+                "only assignments to variables are supported, not to " + ns.getLeft());
         final IdentifierExpression idLhs = (IdentifierExpression) ns.getLeft();
 
         ReferenceType rightType = new ReferenceType(ns.getClassVariable());
         ProverExpr[] tupleElements = new ProverExpr[rightType.getElementTypeList().size()];
 
         final ProverExpr heapCounter =
-            expEncoder.exprToProverExpr(
-                new IdentifierExpression(ns.getSourceLocation(), ns.getCounterVar()), varMap);
+                expEncoder.exprToProverExpr(
+                        new IdentifierExpression(ns.getSourceLocation(), ns.getCounterVar()), varMap);
         int offset = 0;
         tupleElements[offset++] = heapCounter;
         tupleElements[offset++] = p.mkLiteral(hornContext.getTypeID(ns.getClassVariable()));
@@ -282,7 +310,7 @@ public class StatementEncoder {
 
         for (int i = offset; i < tupleElements.length; i++) {
             tupleElements[i] = p.mkHornVariable("$new" + i,
-                                                HornHelper.hh().getProverType(p, rightType.getElementTypeList().get(i)));
+                    HornHelper.hh().getProverType(p, rightType.getElementTypeList().get(i)));
         }
         varMap.put(idLhs.getVariable(), p.mkTuple(tupleElements));
 
@@ -294,14 +322,14 @@ public class StatementEncoder {
 
         final ProverExpr postAtom = postPred.instPredicate(varMap);
         final ProverExpr validHeapCounter =
-            hornContext.validHeapCounterConstraint(heapCounter);
+                hornContext.validHeapCounterConstraint(heapCounter);
 
         clauses.add(p.mkHornClause(postAtom, new ProverExpr[]{preAtom},
-                                   validHeapCounter));
+                validHeapCounter));
 
         if (hornContext.genHeapBoundAssertions())
             clauses.add(p.mkHornClause(p.mkLiteral(false), new ProverExpr[]{preAtom},
-                                       p.mkNot(validHeapCounter)));
+                    p.mkNot(validHeapCounter)));
 
         return clauses;
     }
@@ -358,6 +386,19 @@ public class StatementEncoder {
         for (Expression e : cs.getReceiver()) {
             receiverVars.add(((IdentifierExpression) e).getVariable());
         }
+
+        if (Options.v().strictlySound() && hornContext.elimOverApprox() &&
+            calledMethod.isArrayGet()) {
+            for (Variable v : receiverVars) {
+                if (v.getType().toString().equals("java.lang.String")) {
+                    Log.info("Dropping call to over-approximated " +
+                             calledMethod.getMethodName());
+                    hornContext.droppedApproximatedStatement();
+                    return clauses;
+                }
+            }
+        }
+
         // final List<ProverExpr> receiverExprs =
         HornHelper.hh().findOrCreateProverVar(p, receiverVars, varMap);
 
@@ -375,7 +416,7 @@ public class StatementEncoder {
             if (e instanceof NullLiteral) {
                 ReferenceType rt = (ReferenceType) inParams.get(cnt).getType();
                 ProverTupleType ptt = (ProverTupleType) HornHelper.hh().getProverType(p, rt);
-                expr = HornHelper.hh().mkNullExpression(p, ptt.getSubTypes());
+                expr = HornHelper.hh().mkNullExpression(p, ptt.getSubTypes(), expEncoder);
             } else {
                 expr = expEncoder.exprToProverExpr(e, varMap);
             }
@@ -393,7 +434,7 @@ public class StatementEncoder {
                     for (int i = 0; i < ptt.getArity(); i++) {
                         smallTuple[i] = pte.getSubExpr(i);
                     }
-                    expr = new ProverTupleExpr(smallTuple);
+                    expr = new ProverTupleExpr(smallTuple);     // TODO: support arbitrary size in param type
                 }
             }
 
@@ -488,7 +529,7 @@ public class StatementEncoder {
         Variable var = hs.getVariable();
         varMap.put(var,
                    p.mkHornVariable(var.getName() + "_havoc",
-                                    HornHelper.hh().getProverType(p, var.getType())));
+                                HornHelper.hh().getProverType(p, var.getType())));
         
         final ProverExpr postAtom =
             postPred.instPredicate(varMap);
@@ -788,7 +829,7 @@ public class StatementEncoder {
             if (invariantArgs.get(i) instanceof NullLiteral) {
                 ProverTupleType ptt = (ProverTupleType) HornHelper.hh().getProverType(p,
                                                                                       invariant.variables.get(i).getType());
-                right = HornHelper.hh().mkNullExpression(p, ptt.getSubTypes());
+                right = HornHelper.hh().mkNullExpression(p, ptt.getSubTypes(), expEncoder);
             } else {
                 right = expEncoder.exprToProverExpr(invariantArgs.get(i), varMap);
             }

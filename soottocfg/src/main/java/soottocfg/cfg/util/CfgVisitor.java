@@ -2,15 +2,11 @@ package soottocfg.cfg.util;
 
 import java.util.List;
 
-import soottocfg.cfg.expression.BinaryExpression;
-import soottocfg.cfg.expression.Expression;
-import soottocfg.cfg.expression.IdentifierExpression;
-import soottocfg.cfg.expression.IteExpression;
-import soottocfg.cfg.expression.TupleAccessExpression;
-import soottocfg.cfg.expression.UnaryExpression;
+import soottocfg.cfg.expression.*;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
+import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.method.CfgBlock;
 import soottocfg.cfg.method.Method;
 import soottocfg.cfg.statement.AssertStatement;
@@ -102,12 +98,16 @@ public abstract class CfgVisitor {
 	protected Expression processExpression(Expression e) {
 		if (e instanceof BinaryExpression) {
 			return processExpression((BinaryExpression) e);
+		} else if (e instanceof NaryExpression) {
+			return processExpression((NaryExpression) e);
 		} else if (e instanceof BooleanLiteral) {
 			return processExpression((BooleanLiteral) e);
 		} else if (e instanceof IdentifierExpression) {
 			return processExpression((IdentifierExpression) e);
 		} else if (e instanceof IntegerLiteral) {
 			return processExpression((IntegerLiteral) e);
+//		} else if (e instanceof StringLiteral) {
+//			return processExpression((StringLiteral) e);
 		} else if (e instanceof IteExpression) {
 			return processExpression((IteExpression) e);
 		} else if (e instanceof UnaryExpression) {
@@ -125,11 +125,15 @@ public abstract class CfgVisitor {
 
 	protected abstract Expression processExpression(BinaryExpression e);
 
+	protected abstract Expression processExpression(NaryExpression e);
+
 	protected abstract Expression processExpression(BooleanLiteral e);
 
 	protected abstract Expression processExpression(IdentifierExpression e);
 
 	protected abstract Expression processExpression(IntegerLiteral e);
+
+//	protected abstract Expression processExpression(StringLiteral e);
 
 	protected abstract Expression processExpression(IteExpression ite);
 

@@ -4,6 +4,7 @@
 package jayhorn.hornify.encoder;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Verify;
@@ -15,6 +16,7 @@ import jayhorn.solver.ProverExpr;
 import jayhorn.solver.ProverTupleExpr;
 import jayhorn.solver.ProverType;
 import jayhorn.solver.ProverTupleType;
+import jayhorn.solver.ProverHornClause;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.expression.BinaryExpression;
 import soottocfg.cfg.expression.Expression;
@@ -25,6 +27,7 @@ import soottocfg.cfg.expression.UnaryExpression;
 import soottocfg.cfg.expression.literal.BooleanLiteral;
 import soottocfg.cfg.expression.literal.IntegerLiteral;
 import soottocfg.cfg.expression.literal.NullLiteral;
+import soottocfg.cfg.expression.literal.StringLiteral;
 import soottocfg.cfg.type.ReferenceType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
@@ -38,12 +41,19 @@ public class ExpressionEncoder {
 	private final Prover p;
 	private final HornEncoderContext hornContext;
 
+	private final StringEncoder stringEncoder;
+
 	/**
 	 * 
 	 */
 	public ExpressionEncoder(Prover p, HornEncoderContext hornContext) {
 		this.p = p;
 		this.hornContext = hornContext;
+		this.stringEncoder = new StringEncoder(p, HornHelper.hh().getStringADT());
+	}
+
+	public StringEncoder getStringEncoder() {
+		return stringEncoder;
 	}
 
 	public HornEncoderContext getContext() {
@@ -83,8 +93,20 @@ public class ExpressionEncoder {
             }
         }
 
+	public List<ProverHornClause> getExtraEncodedClauses() {
+		return stringEncoder.getEncodedClauses();
+	}
+
 	public ProverExpr exprToProverExpr(Expression e, Map<Variable, ProverExpr> varMap) {
-		if (e instanceof IdentifierExpression) {
+		if (e instanceof StringLiteral) {	// check before (e instanceof IdentifierExpression)
+//			return stringEncoder.mkString(((StringLiteral) e).getValue());
+			StringLiteral stl = (StringLiteral) e;
+			ProverExpr str = stringEncoder.mkStringPE(stl.getValue());
+			ProverExpr ref = varToProverExpr(stl.getVariable(), varMap);
+//			stringEncoder.assertStringLiteral(ref, ste, (ReferenceType)e.getType());
+//			return ref;
+			return p.mkTupleUpdate(ref, 3, str);
+		} else if (e instanceof IdentifierExpression) {
 			Variable var = ((IdentifierExpression) e).getVariable();
                         return varToProverExpr(var, varMap);
 		} else if (e instanceof TupleAccessExpression) {
@@ -140,13 +162,15 @@ public class ExpressionEncoder {
 		        if (left instanceof ProverTupleExpr) {
 		            ProverTupleExpr tLeft = (ProverTupleExpr)left;
 		            ProverTupleExpr tRight = (ProverTupleExpr)right;
-		            //TODO: this is sound if we assume that the first
-		            //element of a tuple is the sound identifier.
-                            // TODO: does this make sense? it should be advantageous
-                            // to use the other tuple components to differentiate objects
+		            /*
+					TODO: this is sound if we assume that the first element of a tuple is the sound identifier.
+						  does this make sense? it should be advantageous to use the other tuple components to differentiate objects
+						  (also applies to case StringEq)
+					*/
 		            return p.mkEq(tLeft.getSubExpr(0), tRight.getSubExpr(0));
+		        } else {
+					return p.mkEq(left, right);
 		        }
-				return p.mkEq(left, right);
 			case Ne:
 				return p.mkNot(p.mkEq(left, right));
 			case Gt:
@@ -180,6 +204,8 @@ public class ExpressionEncoder {
 				return p.mkOr(left, right);
 			case Implies:
 				return p.mkImplies(left, right);
+			case IndexInString:
+				return stringEncoder.mkIndexInString(e, varMap);
 			case Shl:
 			case Shr:
 			case Ushr:
@@ -200,10 +226,12 @@ public class ExpressionEncoder {
 			final UnaryExpression ue = (UnaryExpression) e;
 			final ProverExpr subExpr = exprToProverExpr(ue.getExpression(), varMap);
 
-			// TODO: the following choices encode Java semantics
-			// of various operators; need a good schema to choose
-			// how precise the encoding should be (probably
-			// configurable)
+			/*
+			TODO: the following choices encode Java semantics
+				  of various operators; need a good schema to choose
+				  how precise the encoding should be (probably
+				  configurable)
+			*/
 			switch (ue.getOp()) {
 			case Neg:
 				return p.mkNeg(subExpr);
@@ -248,6 +276,5 @@ public class ExpressionEncoder {
                         return fullRef;
 		}
         }
-
 
 }

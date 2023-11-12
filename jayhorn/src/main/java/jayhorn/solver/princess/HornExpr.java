@@ -24,9 +24,16 @@ class HornExpr implements ProverHornClause {
 
     protected final HornClauses.Clause clause;
 
+//    private String name = null;
+
     public HornExpr(HornClauses.Clause clause) {
         this.clause = clause;
     }
+
+//    public HornExpr(HornClauses.Clause clause, String name) {
+//        this(clause);
+//        this.name = name;
+//    }
 
     public ProverType getType() {
         return BoolType.INSTANCE;
@@ -62,7 +69,9 @@ class HornExpr implements ProverHornClause {
 
   @Override
   public String toString() {
-	  return this.clause.toPrologString();
+	  return this.clause.toPrologString()
+//              + (name == null ? "" : " [" + name + "]")
+              ;
 //	  return this.clause.toString();
 //	  String ret = null;
 //	  try {
