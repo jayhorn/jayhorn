@@ -148,6 +148,9 @@ public class Options {
 	@Option(name = "-solution", usage = "Output full solution or counter-example", required = false)
 	public boolean solution = false;
 
+	@Option(name = "-violation-witness", usage = "Witness for unsat results", required = false)
+	public boolean violationWitness = false;
+
 	@Option(name = "-dot-cex", usage = "Output counter-examples in GraphViz format", required = false)
 	public boolean dotCEX = false;
 	

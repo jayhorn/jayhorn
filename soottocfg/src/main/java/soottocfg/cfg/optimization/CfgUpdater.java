@@ -123,7 +123,7 @@ public class CfgUpdater extends CfgVisitor {
 	protected Statement processStatement(HavocStatement s) {
             Expression newVar = processExpression(s.getHavocedExpression());
             Verify.verify(newVar instanceof IdentifierExpression);
-            return new HavocStatement(s.getSourceLocation(),
+            return new HavocStatement(s.getSourceLocation(),s.getHavocScope(),
                                       (IdentifierExpression)newVar);
 	}
 	

@@ -15,14 +15,20 @@ import soottocfg.cfg.variable.Variable;
 public class HavocStatement extends Statement {
 
     private final IdentifierExpression variable;
+    private final String Scope;
 
-    public HavocStatement(SourceLocation loc, IdentifierExpression var) {
+    public HavocStatement(SourceLocation loc, String scope, IdentifierExpression var) {
         super(loc);
         variable = var;
+        Scope = scope;
     }
 
     public IdentifierExpression getHavocedExpression() {
         return variable;
+    }
+    public String getHavocScope()
+    {
+        return Scope;
     }
 
     public Variable getVariable() {
@@ -52,7 +58,7 @@ public class HavocStatement extends Statement {
 
     @Override
     public Statement deepCopy() {
-        return new HavocStatement(getSourceLocation(), variable);
+        return new HavocStatement(getSourceLocation(), getHavocScope() ,variable);
     }
 
     @Override
@@ -62,6 +68,7 @@ public class HavocStatement extends Statement {
         if (newVar != null && newVar != oldVar)
             return new HavocStatement(
                          getSourceLocation(),
+                         getHavocScope(),
                          new IdentifierExpression(getSourceLocation(), newVar));
         return this;
     }
