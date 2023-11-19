@@ -22,16 +22,38 @@ import java.nio.file.Paths;
 
 public class CexPrinter {
 
-    public String proverCexToCext(Util.Dag<Tuple2<ProverFun, ProverExpr[]>> cex,
-                                  HornEncoderContext hornContext) {
+
+    public Stack<ProverExpr[]> argsVal = new Stack<ProverExpr[]>();
+    public Stack<Map.Entry<Statement, List<ProverHornClause>>> havocStatementEntries = new Stack<Map.Entry<Statement, List<ProverHornClause>>>();
+
+    public String CexTraceToString(List<Statement> trace) {
 
         ///soottocfg.cfg.ast2cfg.Cfg2AstPrinter.printProgramToString()
+
+        //final List<Statement> trace = getProverCexTrace(cex);
+        final StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Counterexample Trace:\n");
+        for (int i = trace.size() - 1; i >= 0; --i) {
+            Statement stmt = trace.get(i);
+            final SourceLocation loc = stmt.getSourceLocation();
+            stringBuilder.append(String.format("%20s:%-5d %s%n",
+                                               loc.getSourceFileName(),
+                                               loc.getLineNumber(),
+                                               stmt.toString()));
+        }
+
+        return stringBuilder.toString();
+    }
+    public List<Statement> getProverCexTrace(Util.Dag<Tuple2<ProverFun, ProverExpr[]>> cex,HornEncoderContext hornContext)
+    {
+
+
         final StringBuilder stringBuilder1 = new StringBuilder();
         final List<Statement> trace = new ArrayList<>();
 
         Statement lastStatement = null;
         scala.collection.Iterator<Tuple2<ProverFun, ProverExpr[]>> iter =
-            cex.iterator();
+                cex.iterator();
         while (iter.hasNext()) {
             final Tuple2<ProverFun, ProverExpr[]> tuple = iter.next();
 
@@ -43,8 +65,8 @@ public class CexPrinter {
 
                 // for helper statements, we might not have a location.
                 if (stmt != null && stmt.getSourceLocation() != null &&
-                    stmt.getSourceLocation().getSourceFileName() != null
-                    && stmt.getSourceLocation().getLineNumber() > 0) {
+                        stmt.getSourceLocation().getSourceFileName() != null
+                        && stmt.getSourceLocation().getLineNumber() > 0) {
                     /*                    if (lastStatement != null &&
                         lastStatement.getSourceLocation() != null &&
                         stmt.getSourceLocation()
@@ -55,36 +77,25 @@ public class CexPrinter {
 
                     if (lastStatement == stmt) {
                         // do not add the same statement several times in a row.
-                        if(Options.v().violationWitness)
-                            if(stmt.getClass().getTypeName().contains("Havoc"))
-                                PushNonDefunctInvocation(tuple._2(), entry);
+                                //PushNonDefunctInvocation(tuple._2(), entry);
                     } else {
                         trace.add(stmt);
                         if(Options.v().violationWitness)
                             if(stmt.getClass().getTypeName().contains("Havoc"))
-                                PushNonDefunctInvocation(tuple._2(), entry);
+                            {
+                                havocStatementEntries.push(entry);
+                                argsVal.push(tuple._2());
+                            }
                     }
                     lastStatement = stmt;
                 }
             }
         }
+        return trace;
 
-        final StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Counterexample Trace:\n");
-        for (int i = trace.size() - 1; i >= 0; --i) {
-            Statement stmt = trace.get(i);
-            final SourceLocation loc = stmt.getSourceLocation();
-            stringBuilder.append(String.format("%20s:%-5d %s%n",
-                                               loc.getSourceFileName(),
-                                               loc.getLineNumber(),
-                                               stmt.toString()));
-        }
-        if(Options.v().violationWitness)
-            GenerateWitnessViolation();
-
-        return stringBuilder.toString();
     }
-    private void GenerateWitnessViolation()
+   // private   List<Map.Entry<Statement, List<ProverHornClause>>> getEntries
+  /*  private void GenerateWitnessViolation()
     {
         try {
             if(Witness.getCurrentNode() != 0) return;
@@ -168,7 +179,7 @@ public class CexPrinter {
             }
         }
         return "";
-    }
+    }*/
     private Map.Entry<Statement, List<ProverHornClause>> findStatement(final ProverFun proverFun) {
         for (Map.Entry<Statement, List<ProverHornClause>> entry : S2H.sh().getStatToClause().entrySet()) {
             for (ProverHornClause hc : entry.getValue()) {

@@ -80,7 +80,7 @@ public class Witness {
         long time = System.currentTimeMillis();
         try {
             /*Tool.hash(file)*/
-            out.println(WitnessGraph.header(file, String.valueOf(time) ,"", bits, "violation_witness"));
+            out.println(WitnessGraph.header(file, String.valueOf(time) ,"e2d5365a863c1c57fbe2870942676040efc3aea2d9bb085092800d6e256daf06", bits, "violation_witness"));
         }
         finally {
 
@@ -109,27 +109,7 @@ public class Witness {
         out.println(WitnessGraph.footer);
         out.println(footer);
     }
-    /*public static void cex(String file, List<Pair<String, Integer>> trace, PrintStream out) {
-        out.println( header.format(file));
-        long time = System.currentTimeMillis();
-        try {
-            out.println(WitnessGraph.header(file, time, Tool.hash(file), bits, "violation_witness"));
-            out.println(WitnessGraph.entry(Node0));
-            for (int i = 0; i < trace.size(); i++) {
-                Pair<String, Integer> pair = trace.get(i);
-                cex(pair.getKey(), pair.getValue(), i, out);
-            }
-            int n = trace.size();
-            out.println(WitnessGraph.violation(NodeViolation));
-            out.println(WitnessGraph.call("reach_error", "N" + n, NodeViolation));
-            if (Main.debug) {
-                System.out.println("finished writing violation witness for " + file);
-            }
-        } finally {
-            out.println(WitnessGraph.footer);
-            out.println(footer);
-        }
-    }*/
+
 
 }
 
