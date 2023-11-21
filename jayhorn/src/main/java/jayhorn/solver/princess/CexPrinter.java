@@ -80,7 +80,7 @@ public class CexPrinter {
                                 //PushNonDefunctInvocation(tuple._2(), entry);
                     } else {
                         trace.add(stmt);
-                        if(Options.v().violationWitness)
+                        if(Options.v().violationWitness != null && !Options.v().violationWitness.isEmpty())
                             if(stmt.getClass().getTypeName().contains("Havoc"))
                             {
                                 havocStatementEntries.push(entry);

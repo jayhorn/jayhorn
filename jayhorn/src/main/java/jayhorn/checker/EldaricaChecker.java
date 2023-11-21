@@ -229,7 +229,7 @@ public class EldaricaChecker extends Checker {
             if (Options.v().fullCEX && result == ProverResult.Unsat)
                 ((PrincessProver) prover).prettyPrintLastCEX();
 
-           if(Options.v().trace || Options.v().violationWitness) {
+           if(Options.v().trace ||!Options.v().violationWitness.isEmpty()) {
                trace = cexPrinter.getProverCexTrace(((PrincessProver) prover).getLastCEX(),hornContext);
            }
 
@@ -238,7 +238,7 @@ public class EldaricaChecker extends Checker {
                 solutionOutput =
                     cexPrinter.CexTraceToString(trace);
             }
-            if(Options.v().violationWitness && result == ProverResult.Unsat)
+            if(Options.v().violationWitness != null && !Options.v().violationWitness.isEmpty() && result == ProverResult.Unsat)
             {
                 WitnessGeneration.GenerateWitnessViolation(cexPrinter.argsVal,cexPrinter.havocStatementEntries);
             }

@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.io.File;
 
 public  class WitnessGeneration {
 
@@ -24,7 +25,10 @@ public  class WitnessGeneration {
         try {
             if(Witness.getCurrentNode() != 0) return;
             Witness.resetCurrentNode();
-            PrintStream witnessViolFile = new PrintStream("Witness.GraphML");
+//new File(ClassLoader.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath())+
+            //File file = new File(WitnessGeneration.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParentFile();
+
+            PrintStream witnessViolFile = new PrintStream( Options.v().violationWitness+"/Witness.GraphML");
             Witness.setHeader("",witnessViolFile);
             Witness.setEntry(witnessViolFile);
             while (!havocStatementEntries.empty())
@@ -53,8 +57,9 @@ public  class WitnessGeneration {
             String nonDetCallReturnVal = findNonDetValue(ArgsValue, entry);
             Statement stmt = entry.getKey();
             int nonDetCallLineNum = stmt.getJavaSourceLine();
-            String exampleRoot = Options.v().getJavaInput().substring(0,Options.v().getJavaInput().indexOf('/'));
-            Path path = Paths.get(String.format( exampleRoot+"/src/%s",stmt.getSourceLocation().getSourceFileName()));
+            String benchmarkRoot = Options.v().getJavaSrcInput();//Options.v().getJavaInput().substring(0,Options.v().getJavaInput().indexOf('/'));
+
+            Path path = Paths.get(String.format( "%s/%s",benchmarkRoot,stmt.getSourceLocation().getSourceFileName()));
             List<String> lines = Files.readAllLines(path);
             String nonDetCallWholeLine = getLines(lines,nonDetCallLineNum-1,nonDetCallLineNum-1).stream().findFirst().orElse(null);
 
