@@ -2,7 +2,7 @@ package jayhorn.witness;
 
 public class NodeData {
 
-    public String NodeId;
+
     public String funcName;
     public String FuncResult;
 

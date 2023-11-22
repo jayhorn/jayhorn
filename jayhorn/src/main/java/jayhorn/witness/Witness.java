@@ -9,36 +9,36 @@ public class Witness {
     public  static  void resetCurrentNode() {currentNode = 0;}
 
     public static int getCurrentNode(){return currentNode;}
-    public static  int bits = 64;
-    private static String header = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
-            "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
-            " <key attr.name=\"originFileName\" attr.type=\"string\" for=\"edge\" id=\"originfile\">\n" +
-            "  <default>%s </default>\n" +
-            " </key>\n" +
-            " <key attr.name=\"invariant\" attr.type=\"string\" for=\"node\" id=\"invariant\"/>\n" +
-            " <key attr.name=\"invariant.scope\" attr.type=\"string\" for=\"node\" id=\"invariant.scope\"/>\n" +
-            " <key attr.name=\"namedValue\" attr.type=\"string\" for=\"node\" id=\"named\"/>\n" +
-            " <key attr.name=\"nodeType\" attr.type=\"string\" for=\"node\" id=\"nodetype\">\n" +
-            "  <default>path</default>\n" +
-            " </key>\n" +
-            " <key attr.name=\"isFrontierNode\" attr.type=\"boolean\" for=\"node\" id=\"frontier\">\n" +
-            "  <default>false</default>\n" +
-            " </key>\n" +
-            " <key attr.name=\"isViolationNode\" attr.type=\"boolean\" for=\"node\" id=\"violation\">\n" +
-            "  <default>false</default>\n" +
-            " </key>\n" +
-            " <key attr.name=\"isEntryNode\" attr.type=\"boolean\" for=\"node\" id=\"entry\">\n" +
-            "  <default>false</default>\n" +
-            " </key>\n" +
-            " <key attr.name=\"isSinkNode\" attr.type=\"boolean\" for=\"node\" id=\"sink\">\n" +
-            "  <default>false</default>\n" +
-            " </key>\n" +
-            " <key attr.name=\"enterLoopHead\" attr.type=\"boolean\" for=\"edge\" id=\"enterLoopHead\">\n" +
-            "  <default>false</default>\n" +
-            " </key>\n" +
-            " <key attr.name=\"violatedProperty\" attr.type=\"string\" for=\"node\" id=\"violatedProperty\"/>\n" +
-            " <key attr.name=\"threadId\" attr.type=\"string\" for=\"edge\" id=\"threadId\"/>\n" +
-            " <key attr.name=\"sourcecodeLanguage\" attr.type=\"string\" for=\"graph\" id=\"sourcecodelang\"/>\n" +
+    public final static  int bits = 64;
+    private static String header = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>%n" +
+            "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">%n" +
+            " <key attr.name=\"originFileName\" attr.type=\"string\" for=\"edge\" id=\"originfile\">%n" +
+            "  <default>%s </default>%n" +
+            " </key>%n" +
+            " <key attr.name=\"invariant\" attr.type=\"string\" for=\"node\" id=\"invariant\"/>%n" +
+            " <key attr.name=\"invariant.scope\" attr.type=\"string\" for=\"node\" id=\"invariant.scope\"/>%n" +
+            " <key attr.name=\"namedValue\" attr.type=\"string\" for=\"node\" id=\"named\"/>%n" +
+            " <key attr.name=\"nodeType\" attr.type=\"string\" for=\"node\" id=\"nodetype\">%n" +
+            "  <default>path</default>%n" +
+            " </key>%n" +
+            " <key attr.name=\"isFrontierNode\" attr.type=\"boolean\" for=\"node\" id=\"frontier\">%n" +
+            "  <default>false</default>%n" +
+            " </key>%n" +
+            " <key attr.name=\"isViolationNode\" attr.type=\"boolean\" for=\"node\" id=\"violation\">%n" +
+            "  <default>false</default>%n" +
+            " </key>%n" +
+            " <key attr.name=\"isEntryNode\" attr.type=\"boolean\" for=\"node\" id=\"entry\">%n" +
+            "  <default>false</default>%n" +
+            " </key>%n" +
+            " <key attr.name=\"isSinkNode\" attr.type=\"boolean\" for=\"node\" id=\"sink\">%n" +
+            "  <default>false</default>%n" +
+            " </key>%n" +
+            " <key attr.name=\"enterLoopHead\" attr.type=\"boolean\" for=\"edge\" id=\"enterLoopHead\">%n" +
+            "  <default>false</default>%n" +
+            " </key>%n" +
+            " <key attr.name=\"violatedProperty\" attr.type=\"string\" for=\"node\" id=\"violatedProperty\"/>%n" +
+            " <key attr.name=\"threadId\" attr.type=\"string\" for=\"edge\" id=\"threadId\"/>%n" +
+            " <key attr.name=\"sourcecodeLanguage\" attr.type=\"string\" for=\"graph\" id=\"sourcecodelang\"/>%n" +
             "<key attr.name=\"programFile\" attr.type=\"string\" for=\"graph\" id=\"programfile\"/>" +
             "<key attr.name=\"programHash\" attr.type=\"string\" for=\"graph\" id=\"programhash\"/>" +
             "<key attr.name=\"specification\" attr.type=\"string\" for=\"graph\" id=\"specification\"/>" +
@@ -70,9 +70,9 @@ public class Witness {
     public static void setTransitionToViolation(PrintStream out) {
 
         String Ni = "N" + currentNode; // current state
-        SetViolation(out);
+        setViolation(out);
         String Nj = "N" + currentNode; // successor state
-        out.println(WitnessGraph.TransitiontoViolation(Ni, Nj));
+        out.println(WitnessGraph.transitiontoViolation(Ni, Nj));
     }
     public static void setHeader(String file ,PrintStream out)
     {
@@ -97,7 +97,7 @@ public class Witness {
         out.println(WitnessGraph.node(Ni));
 
     }
-    public static void SetViolation(PrintStream out)
+    public static void setViolation(PrintStream out)
     {
         currentNode++;
         String Ni = "N" + currentNode;

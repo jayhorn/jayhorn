@@ -10,6 +10,7 @@ import soottocfg.cfg.statement.Statement;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,7 +19,7 @@ import java.io.File;
 
 public  class WitnessGeneration {
 
-    public static void GenerateWitnessViolation(Stack<ProverExpr[]> argsVal, Stack<Map.Entry<Statement, List<ProverHornClause>>> havocStatementEntries)
+    public static void generateWitnessViolation(Stack<ProverExpr[]> argsVal, Stack<Map.Entry<Statement, List<ProverHornClause>>> havocStatementEntries)
     {
 
 
@@ -27,8 +28,8 @@ public  class WitnessGeneration {
             Witness.resetCurrentNode();
 //new File(ClassLoader.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath())+
             //File file = new File(WitnessGeneration.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParentFile();
-
-            PrintStream witnessViolFile = new PrintStream( Options.v().violationWitness+"/Witness.GraphML");
+            String pathToWitnessFile = Options.v().violationWitness+"/witness.GraphML";
+            PrintStream witnessViolFile = new PrintStream( pathToWitnessFile,"UTF-8");
             Witness.setHeader("",witnessViolFile);
             Witness.setEntry(witnessViolFile);
             while (!havocStatementEntries.empty())
@@ -44,10 +45,13 @@ public  class WitnessGeneration {
             Witness.setFooter(witnessViolFile);
             witnessViolFile.close();
         }
-        catch (Exception e)
+        catch (RuntimeException e)
         {
-
+            throw e;
         }
+        catch (Exception e) {
+        }
+
     }
 
     private static NodeData getNonDefunctInvocationInfo(ProverExpr[] ArgsValue, Map.Entry<Statement, List<ProverHornClause>> entry)

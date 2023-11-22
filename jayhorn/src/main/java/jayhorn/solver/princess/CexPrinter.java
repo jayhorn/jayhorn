@@ -26,7 +26,7 @@ public class CexPrinter {
     public Stack<ProverExpr[]> argsVal = new Stack<ProverExpr[]>();
     public Stack<Map.Entry<Statement, List<ProverHornClause>>> havocStatementEntries = new Stack<Map.Entry<Statement, List<ProverHornClause>>>();
 
-    public String CexTraceToString(List<Statement> trace) {
+    public String cexTraceToString(List<Statement> trace) {
 
         ///soottocfg.cfg.ast2cfg.Cfg2AstPrinter.printProgramToString()
 
@@ -48,7 +48,7 @@ public class CexPrinter {
     {
 
 
-        final StringBuilder stringBuilder1 = new StringBuilder();
+
         final List<Statement> trace = new ArrayList<>();
 
         Statement lastStatement = null;

@@ -229,18 +229,18 @@ public class EldaricaChecker extends Checker {
             if (Options.v().fullCEX && result == ProverResult.Unsat)
                 ((PrincessProver) prover).prettyPrintLastCEX();
 
-           if(Options.v().trace ||!Options.v().violationWitness.isEmpty()) {
+           if((Options.v().trace ||!Options.v().violationWitness.isEmpty() ) && result == ProverResult.Unsat ){
                trace = cexPrinter.getProverCexTrace(((PrincessProver) prover).getLastCEX(),hornContext);
            }
 
             if (Options.v().trace && result == ProverResult.Unsat) {
 
                 solutionOutput =
-                    cexPrinter.CexTraceToString(trace);
+                    cexPrinter.cexTraceToString(trace);
             }
             if(Options.v().violationWitness != null && !Options.v().violationWitness.isEmpty() && result == ProverResult.Unsat)
             {
-                WitnessGeneration.GenerateWitnessViolation(cexPrinter.argsVal,cexPrinter.havocStatementEntries);
+                WitnessGeneration.generateWitnessViolation(cexPrinter.argsVal,cexPrinter.havocStatementEntries);
             }
 
             Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));
