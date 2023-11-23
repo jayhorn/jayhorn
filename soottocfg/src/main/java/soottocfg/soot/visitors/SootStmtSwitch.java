@@ -1036,9 +1036,12 @@ public class SootStmtSwitch implements StmtSwitch {
 					"do not know how to havoc " + lhs);
 			IdentifierExpression idLhs = (IdentifierExpression)lhs;
 
-			final SourceLocation loc = lhs.getSourceLocation();
-
-			currentBlock.addStatement(new HavocStatement(loc, idLhs));
+			//final SourceLocation loc = lhs.getSourceLocation();
+			final SourceLocation loc = valueSwitch.getStatementSwitch().loc;//lhs.getSourceLocation();
+			//final SootMethod sootMethod = valueSwitch.getMethodInfo().getSootMethod();
+			final String scope = sootMethod.getDeclaringClass().getName() + "." + sootMethod.getName();
+			currentBlock.addStatement(new HavocStatement(loc ,scope ,idLhs));
+			//currentBlock.addStatement(new HavocStatement(loc, idLhs));
 
 			if (addBounds)
 				currentBlock.addStatement(

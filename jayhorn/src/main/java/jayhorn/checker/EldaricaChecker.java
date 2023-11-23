@@ -1,12 +1,7 @@
 package jayhorn.checker;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
@@ -28,8 +23,10 @@ import jayhorn.solver.princess.CexPrinter;
 import jayhorn.utils.GhostRegister;
 import jayhorn.utils.HeapCounterTransformer;
 import jayhorn.utils.Stats;
+import jayhorn.witness.WitnessGeneration;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.method.Method;
+import soottocfg.cfg.statement.Statement;
 import soottocfg.cfg.type.IntType;
 import soottocfg.cfg.variable.ClassVariable;
 import soottocfg.cfg.variable.Variable;
@@ -227,16 +224,23 @@ public class EldaricaChecker extends Checker {
                              ((PrincessProver)prover).getLastCEX().apply(1).productElement(0));
                 }
             }
-
+            List<Statement> trace = new ArrayList<>();
+            CexPrinter cexPrinter = new CexPrinter();
             if (Options.v().fullCEX && result == ProverResult.Unsat)
                 ((PrincessProver) prover).prettyPrintLastCEX();
 
+           if((Options.v().trace ||!Options.v().violationWitness.isEmpty() ) && result == ProverResult.Unsat ){
+               trace = cexPrinter.getProverCexTrace(((PrincessProver) prover).getLastCEX(),hornContext);
+           }
+
             if (Options.v().trace && result == ProverResult.Unsat) {
-                final CexPrinter cexPrinter = new CexPrinter();
+
                 solutionOutput =
-                    cexPrinter.proverCexToCext(
-                       ((PrincessProver) prover).getLastCEX(),
-                       hornContext);
+                    cexPrinter.cexTraceToString(trace);
+            }
+            if(Options.v().violationWitness != null && !Options.v().violationWitness.isEmpty() && result == ProverResult.Unsat)
+            {
+                WitnessGeneration.generateWitnessViolation(cexPrinter.argsVal,cexPrinter.havocStatementEntries);
             }
 
             Stats.stats().add("CheckSatTime", String.valueOf(satTimer.stop()));

@@ -108,9 +108,14 @@ public class Options {
 	@Option(name = "-j", usage = "JAR file, class folder, or apk", required = true)
 	private String javaInput;
 
+	@Option(name = "-src", usage = "java file", required = false)
+	private String javaSrcInput="";
+
 	public String getJavaInput() {
 		return this.javaInput;
 	}
+
+	public  String getJavaSrcInput(){return this.javaSrcInput;}
 	
 	public void setJavaInput(String input) {
 		this.javaInput = input;
@@ -147,6 +152,11 @@ public class Options {
 	
 	@Option(name = "-solution", usage = "Output full solution or counter-example", required = false)
 	public boolean solution = false;
+
+	@Option(name = "-graphml-witness", usage = "Witness for unsat results", required = false)
+	public String violationWitness;
+
+
 
 	@Option(name = "-dot-cex", usage = "Output counter-examples in GraphViz format", required = false)
 	public boolean dotCEX = false;

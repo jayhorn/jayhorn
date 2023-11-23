@@ -99,6 +99,8 @@ public class MethodInfo {
 		return cfgMethod;
 	}
 
+	public SootMethod getSootMethod(){return  sootMethod;}
+
 	/**
 	 * Called after the method has been translated. Looks up the corresponding
 	 * Method object in Program and fills in all the information. Should only be
