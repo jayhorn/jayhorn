@@ -28,8 +28,8 @@ public  class WitnessGeneration {
             Witness.resetCurrentNode();
 //new File(ClassLoader.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath())+
             //File file = new File(WitnessGeneration.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParentFile();
-            String pathToWitnessFile = Options.v().violationWitness+"/witness.GraphML";
-            PrintStream witnessViolFile = new PrintStream( pathToWitnessFile,"UTF-8");
+            String witnessFile = Options.v().violationWitness;
+            PrintStream witnessViolFile = new PrintStream( witnessFile,"UTF-8");
             Witness.setHeader("",witnessViolFile);
             Witness.setEntry(witnessViolFile);
             while (!havocStatementEntries.empty())

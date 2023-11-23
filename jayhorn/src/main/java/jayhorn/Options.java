@@ -153,7 +153,7 @@ public class Options {
 	@Option(name = "-solution", usage = "Output full solution or counter-example", required = false)
 	public boolean solution = false;
 
-	@Option(name = "--graphml-witness", usage = "Witness for unsat results", required = false)
+	@Option(name = "-graphml-witness", usage = "Witness for unsat results", required = false)
 	public String violationWitness;
 
 
