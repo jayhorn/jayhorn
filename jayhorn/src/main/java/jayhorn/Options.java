@@ -163,6 +163,10 @@ public class Options {
     @Option(name = "-jimple", usage = "Prints the jimple of the bytecode", required = false, hidden=true)
         public boolean printJimple = false;
 
+
+	@Option(name = "-symex", usage = "Use symex backend", required = false, hidden=true)
+	public boolean useSymex = false;
+
 	
 	/*
 	 * Memory precision
